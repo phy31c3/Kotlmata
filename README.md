@@ -1,5 +1,5 @@
 # Kotlmata
-Automata-based programming library for Kotlin.  
+Automata-based programming library for Kotlin.
 ## License
 ```$xslt
 Copyright 2018 Jongsun Yoo
