@@ -1,5 +1,8 @@
 package kr.co.plasticcity.kotlmata
 
-class Kotlmata
+object Kotlmata : KotlmataInterface by KotlmataImpl()
+
+internal interface KotlmataInterface
 {
+	infix fun init(block: Config.() -> Unit)
 }
