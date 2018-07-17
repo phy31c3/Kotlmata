@@ -25,7 +25,7 @@ internal class KotlmataImpl : KotlmataInterface
 			if (state != State.RUNNING)
 			{
 				state = State.RUNNING
-				Config().block()
+				Config(block)
 			}
 		}
 		finally

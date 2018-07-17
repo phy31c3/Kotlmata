@@ -7,7 +7,8 @@ class Tests
 	fun basicTest()
 	{
 		Kotlmata init {
-			debugLogger = ::print
+			debugLogger = ::println
+			errorLogger = ::error
 		}
 	}
 }
