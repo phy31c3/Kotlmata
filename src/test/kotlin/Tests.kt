@@ -10,5 +10,9 @@ class Tests
 			debugLogger = ::println
 			errorLogger = ::error
 		}
+		
+		Kotlmata release {
+			/* do nothing */
+		}
 	}
 }

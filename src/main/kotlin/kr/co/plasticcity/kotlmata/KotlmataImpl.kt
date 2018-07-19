@@ -7,30 +7,41 @@ internal class KotlmataImpl : KotlmataInterface
 {
 	private enum class State
 	{
-		NOT_INIT, RUNNING, RELEASED
+		FRESH, RUNNING, RELEASED
 	}
 	
-	@Volatile
-	private var state: State = State.NOT_INIT
-	
 	private val lock: ReentrantReadWriteLock = ReentrantReadWriteLock(true)
-	private val readlock: Lock = lock.readLock()
-	private val writelock: Lock = lock.writeLock()
+	private val readLock: Lock = lock.readLock()
+	private val writeLock: Lock = lock.writeLock()
+	
+	@Volatile
+	private var state: State = State.FRESH
+	@Volatile
+	private lateinit var worker: Worker
 	
 	override fun init(block: Config.() -> Unit)
 	{
-		writelock.lock()
+		writeLock.lock()
 		try
 		{
 			if (state != State.RUNNING)
 			{
-				state = State.RUNNING
 				Config(block)
+				worker = Worker()
+				state = State.RUNNING
+				Logger.d(KOTLMATA_INITIALIZED)
 			}
 		}
 		finally
 		{
-			writelock.unlock()
+			writeLock.unlock()
 		}
 	}
+	
+	override fun release(block: () -> Unit)
+	{
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+	
+	private class Worker
 }

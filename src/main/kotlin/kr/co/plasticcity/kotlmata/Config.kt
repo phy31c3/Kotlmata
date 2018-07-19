@@ -18,6 +18,10 @@ class Config internal constructor(validBlock: Config.() -> Unit)
 			{
 				Logger.debugLogger = value
 			}
+			else
+			{
+				Logger.e(INVALID_CONFIG)
+			}
 		}
 	
 	var errorLogger: ((String) -> Unit)
@@ -27,6 +31,10 @@ class Config internal constructor(validBlock: Config.() -> Unit)
 			if (valid)
 			{
 				Logger.errorLogger = value
+			}
+			else
+			{
+				Logger.e(INVALID_CONFIG)
 			}
 		}
 }

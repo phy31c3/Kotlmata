@@ -40,4 +40,5 @@ const val SWITCH_TO_UNDEFINED_STATE_BY_CLASS = "[%s] tried to switch from [%s] t
 const val SWITCH_TO_UNDEFINED_STATE_BY_STRING = "[%s] tried to switch from [%s] to [%s] by [\"%s\"], but machine has no definition for [%s]"
 
 /* Config */
+
 const val INVALID_CONFIG = "Use invalid Config object. Config is only available within the 'Kotlmata.init' function"
