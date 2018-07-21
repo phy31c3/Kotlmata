@@ -15,7 +15,7 @@ internal object Logger
 	var debugLogger: (String) -> Unit = none
 	var errorLogger: (String) -> Unit = ::error
 	
-	fun d(vararg args: Any, log: Logs.Companion.() -> String)
+	inline fun d(vararg args: Any, log: Logs.Companion.() -> String)
 	{
 		if (debugLogger != none)
 		{
