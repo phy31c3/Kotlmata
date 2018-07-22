@@ -5,7 +5,10 @@ internal class Logs
 	companion object
 	{
 		/* Config */
-		const val INVALID_CONFIG = "Use invalid Config object. Config is only available within the 'Kotlmata.init' function"
+		const val INVALID_CONFIG = "** Use invalid Config object. Config is only available within the 'Kotlmata.init' function"
+		
+		/* State */
+		const val INVALID_STATE_SETTER = "State[%s] : Use invalid StateSetter object. StateSetter is only available within the 'KotlmataState.set' function"
 	}
 }
 

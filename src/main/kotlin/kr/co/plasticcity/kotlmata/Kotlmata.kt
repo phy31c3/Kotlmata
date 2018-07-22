@@ -13,11 +13,12 @@ private class KotlmataImpl : KotlmataInterface
 	override fun init(block: DisposableConfig.() -> Unit)
 	{
 		DisposableConfig(block)
+		/* should implement */
 	}
 	
 	override fun release(block: () -> Unit)
 	{
-		TODO("not implemented")
+		/* should implement */
 	}
 }
 
@@ -35,27 +36,25 @@ class DisposableConfig internal constructor(block: DisposableConfig.() -> Unit)
 		get() = Logger.debugLogger
 		set(value)
 		{
-			if (valid)
-			{
-				Logger.debugLogger = value
-			}
-			else
-			{
-				Logger.e { INVALID_CONFIG }
-			}
+			ifValid { Logger.debugLogger = value }
 		}
 	
 	var errorLogger: ((String) -> Unit)
 		get() = Logger.errorLogger
 		set(value)
 		{
-			if (valid)
-			{
-				Logger.errorLogger = value
-			}
-			else
-			{
-				Logger.e { INVALID_CONFIG }
-			}
+			ifValid { Logger.errorLogger = value }
 		}
+	
+	private fun ifValid(block: () -> Unit)
+	{
+		if (valid)
+		{
+			block()
+		}
+		else
+		{
+			Logger.e { INVALID_CONFIG }
+		}
+	}
 }
