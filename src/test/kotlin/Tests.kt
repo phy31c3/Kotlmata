@@ -12,10 +12,6 @@ class Tests
 			errorLogger = ::error
 		}
 		
-		Kotlmata release {
-			/* do nothing */
-		}
-		
 		val action = {}
 		
 		KotlmataState new "tag" set {
@@ -23,6 +19,10 @@ class Tests
 			entry via "signal" action action
 			input signal "signal" action action
 			exit action action
+		}
+		
+		Kotlmata release {
+			/* do nothing */
 		}
 	}
 }

@@ -8,7 +8,7 @@ internal interface KotlmataInterface
 	infix fun release(block: (() -> Unit))
 }
 
-internal class KotlmataImpl : KotlmataInterface
+private class KotlmataImpl : KotlmataInterface
 {
 	override fun init(block: DisposableConfig.() -> Unit)
 	{
