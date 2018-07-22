@@ -4,15 +4,15 @@ object Kotlmata : KotlmataInterface by KotlmataImpl()
 
 internal interface KotlmataInterface
 {
-	infix fun init(block: Config.() -> Unit)
+	infix fun init(block: DisposableConfig.() -> Unit)
 	infix fun release(block: (() -> Unit))
 }
 
 internal class KotlmataImpl : KotlmataInterface
 {
-	override fun init(block: Config.() -> Unit)
+	override fun init(block: DisposableConfig.() -> Unit)
 	{
-		TODO("not implemented")
+		DisposableConfig(block)
 	}
 	
 	override fun release(block: () -> Unit)
@@ -21,13 +21,13 @@ internal class KotlmataImpl : KotlmataInterface
 	}
 }
 
-class Config internal constructor(validBlock: Config.() -> Unit)
+class DisposableConfig internal constructor(block: DisposableConfig.() -> Unit)
 {
 	private var valid: Boolean = true
 	
 	init
 	{
-		validBlock()
+		block()
 		valid = false
 	}
 	
