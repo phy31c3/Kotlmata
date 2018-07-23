@@ -9,9 +9,9 @@ interface KotlmataState
 		infix fun new(key: Any): KotlmataState = KotlmataStateImpl(key)
 	}
 	
-	infix fun set(block: DisposableSetter.() -> Unit): KotlmataState
+	infix fun set(block: Setter.() -> Unit): KotlmataState
 	
-	interface DisposableSetter
+	interface Setter
 	{
 		val entry: Entry
 		val event: Event
@@ -55,15 +55,15 @@ private class KotlmataStateImpl(val key: Any) : KotlmataState
 	private var eventMap: MutableMap<Any, (Any) -> Unit>? = null
 	private var exit: () -> Unit = none
 	
-	override fun set(block: KotlmataState.DisposableSetter.() -> Unit): KotlmataState
+	override fun set(block: KotlmataState.Setter.() -> Unit): KotlmataState
 	{
-		DisposableSetterImpl(block)
+		SetterImpl(block)
 		return this
 	}
 	
-	private inner class DisposableSetterImpl
-	internal constructor(block: KotlmataState.DisposableSetter.() -> Unit)
-		: KotlmataState.DisposableSetter
+	private inner class SetterImpl
+	internal constructor(block: KotlmataState.Setter.() -> Unit)
+		: KotlmataState.Setter
 	{
 		private var valid: Boolean = true
 		
@@ -88,16 +88,16 @@ private class KotlmataStateImpl(val key: Any) : KotlmataState
 			}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val entry: KotlmataState.DisposableSetter.Entry = object : KotlmataState.DisposableSetter.Entry
+		override val entry: KotlmataState.Setter.Entry = object : KotlmataState.Setter.Entry
 		{
 			override fun action(action: () -> Any?)
 			{
 				ifValid { this@KotlmataStateImpl.entry = action }
 			}
 			
-			override fun <T : Any> via(signal: KClass<T>): KotlmataState.DisposableSetter.Action<T, Any?>
+			override fun <T : Any> via(signal: KClass<T>): KotlmataState.Setter.Action<T, Any?>
 			{
-				return object : KotlmataState.DisposableSetter.Action<T, Any?>
+				return object : KotlmataState.Setter.Action<T, Any?>
 				{
 					override fun action(action: (T) -> Any?)
 					{
@@ -111,9 +111,9 @@ private class KotlmataStateImpl(val key: Any) : KotlmataState
 				}
 			}
 			
-			override fun <T : Any> via(signal: T): KotlmataState.DisposableSetter.Action<T, Any?>
+			override fun <T : Any> via(signal: T): KotlmataState.Setter.Action<T, Any?>
 			{
-				return object : KotlmataState.DisposableSetter.Action<T, Any?>
+				return object : KotlmataState.Setter.Action<T, Any?>
 				{
 					override fun action(action: (T) -> Any?)
 					{
@@ -129,11 +129,11 @@ private class KotlmataStateImpl(val key: Any) : KotlmataState
 		}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val event: KotlmataState.DisposableSetter.Event = object : KotlmataState.DisposableSetter.Event
+		override val event: KotlmataState.Setter.Event = object : KotlmataState.Setter.Event
 		{
-			override fun <T : Any> input(signal: KClass<T>): KotlmataState.DisposableSetter.Action<T, Unit>
+			override fun <T : Any> input(signal: KClass<T>): KotlmataState.Setter.Action<T, Unit>
 			{
-				return object : KotlmataState.DisposableSetter.Action<T, Unit>
+				return object : KotlmataState.Setter.Action<T, Unit>
 				{
 					override fun action(action: (T) -> Unit)
 					{
@@ -147,9 +147,9 @@ private class KotlmataStateImpl(val key: Any) : KotlmataState
 				}
 			}
 			
-			override fun <T : Any> input(signal: T): KotlmataState.DisposableSetter.Action<T, Unit>
+			override fun <T : Any> input(signal: T): KotlmataState.Setter.Action<T, Unit>
 			{
-				return object : KotlmataState.DisposableSetter.Action<T, Unit>
+				return object : KotlmataState.Setter.Action<T, Unit>
 				{
 					override fun action(action: (T) -> Unit)
 					{
@@ -164,7 +164,7 @@ private class KotlmataStateImpl(val key: Any) : KotlmataState
 			}
 		}
 		
-		override val exit: KotlmataState.DisposableSetter.Exit = object : KotlmataState.DisposableSetter.Exit
+		override val exit: KotlmataState.Setter.Exit = object : KotlmataState.Setter.Exit
 		{
 			override fun action(action: () -> Unit)
 			{
