@@ -14,7 +14,7 @@ interface KotlmataState
 	interface DisposableSetter
 	{
 		val entry: Entry
-		val input: Input
+		val event: Event
 		val exit: Exit
 		
 		interface Entry
@@ -24,10 +24,10 @@ interface KotlmataState
 			infix fun <T : Any> via(signal: T): Action<T, Any?>
 		}
 		
-		interface Input
+		interface Event
 		{
-			infix fun <T : Any> signal(signal: KClass<T>): Action<T, Unit>
-			infix fun <T : Any> signal(signal: T): Action<T, Unit>
+			infix fun <T : Any> input(signal: KClass<T>): Action<T, Unit>
+			infix fun <T : Any> input(signal: T): Action<T, Unit>
 		}
 		
 		interface Exit
@@ -45,9 +45,14 @@ interface KotlmataState
 
 private class KotlmataStateImpl(val tag: Any) : KotlmataState
 {
+	private companion object
+	{
+		private val none = {}
+	}
+	
 	private var entry: () -> Any? = none
-	private val entryMap: MutableMap<Any, (Any) -> Any?> = HashMap()
-	private val inputMap: MutableMap<Any, (Any) -> Unit> = HashMap()
+	private var entryMap: MutableMap<Any, (Any) -> Any?>? = null
+	private var eventMap: MutableMap<Any, (Any) -> Unit>? = null
 	private var exit: () -> Unit = none
 	
 	override fun set(block: KotlmataState.DisposableSetter.() -> Unit): KotlmataState
@@ -61,6 +66,26 @@ private class KotlmataStateImpl(val tag: Any) : KotlmataState
 		: KotlmataState.DisposableSetter
 	{
 		private var valid: Boolean = true
+		
+		private val entryMap: MutableMap<Any, (Any) -> Any?>
+			get()
+			{
+				if (this@KotlmataStateImpl.entryMap == null)
+				{
+					this@KotlmataStateImpl.entryMap = HashMap()
+				}
+				return this@KotlmataStateImpl.entryMap!!
+			}
+		
+		private val eventMap: MutableMap<Any, (Any) -> Unit>
+			get()
+			{
+				if (this@KotlmataStateImpl.eventMap == null)
+				{
+					this@KotlmataStateImpl.eventMap = HashMap()
+				}
+				return this@KotlmataStateImpl.eventMap!!
+			}
 		
 		@Suppress("UNCHECKED_CAST")
 		override val entry: KotlmataState.DisposableSetter.Entry = object : KotlmataState.DisposableSetter.Entry
@@ -104,36 +129,36 @@ private class KotlmataStateImpl(val tag: Any) : KotlmataState
 		}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val input: KotlmataState.DisposableSetter.Input = object : KotlmataState.DisposableSetter.Input
+		override val event: KotlmataState.DisposableSetter.Event = object : KotlmataState.DisposableSetter.Event
 		{
-			override fun <T : Any> signal(signal: KClass<T>): KotlmataState.DisposableSetter.Action<T, Unit>
+			override fun <T : Any> input(signal: KClass<T>): KotlmataState.DisposableSetter.Action<T, Unit>
 			{
 				return object : KotlmataState.DisposableSetter.Action<T, Unit>
 				{
 					override fun action(action: (T) -> Unit)
 					{
-						ifValid { inputMap[signal] = action as (Any) -> Unit }
+						ifValid { eventMap[signal] = action as (Any) -> Unit }
 					}
 					
 					override fun action(action: () -> Unit)
 					{
-						ifValid { inputMap[signal] = { _ -> action() } }
+						ifValid { eventMap[signal] = { _ -> action() } }
 					}
 				}
 			}
 			
-			override fun <T : Any> signal(signal: T): KotlmataState.DisposableSetter.Action<T, Unit>
+			override fun <T : Any> input(signal: T): KotlmataState.DisposableSetter.Action<T, Unit>
 			{
 				return object : KotlmataState.DisposableSetter.Action<T, Unit>
 				{
 					override fun action(action: (T) -> Unit)
 					{
-						ifValid { inputMap[signal] = action as (Any) -> Unit }
+						ifValid { eventMap[signal] = action as (Any) -> Unit }
 					}
 					
 					override fun action(action: () -> Unit)
 					{
-						ifValid { inputMap[signal] = { _ -> action() } }
+						ifValid { eventMap[signal] = { _ -> action() } }
 					}
 				}
 			}
@@ -153,7 +178,7 @@ private class KotlmataStateImpl(val tag: Any) : KotlmataState
 			valid = false
 		}
 		
-		private fun ifValid(block: () -> Unit)
+		private inline fun ifValid(block: () -> Unit)
 		{
 			if (valid)
 			{
@@ -166,5 +191,3 @@ private class KotlmataStateImpl(val tag: Any) : KotlmataState
 		}
 	}
 }
-
-private val none = {}

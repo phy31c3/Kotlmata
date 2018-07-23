@@ -17,7 +17,7 @@ class Tests
 		KotlmataState new "tag" set {
 			entry action action
 			entry via "signal" action action
-			input signal "signal" action action
+			event input "signal" action action
 			exit action action
 		}
 		
