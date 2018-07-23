@@ -6,7 +6,7 @@ interface KotlmataState
 {
 	companion object
 	{
-		infix fun new(tag: Any): KotlmataState = KotlmataStateImpl(tag)
+		infix fun new(key: Any): KotlmataState = KotlmataStateImpl(key)
 	}
 	
 	infix fun set(block: DisposableSetter.() -> Unit): KotlmataState
@@ -43,7 +43,7 @@ interface KotlmataState
 	}
 }
 
-private class KotlmataStateImpl(val tag: Any) : KotlmataState
+private class KotlmataStateImpl(val key: Any) : KotlmataState
 {
 	private companion object
 	{
@@ -186,7 +186,7 @@ private class KotlmataStateImpl(val tag: Any) : KotlmataState
 			}
 			else
 			{
-				Logger.e(tag) { INVALID_STATE_SETTER }
+				Logger.e(key) { INVALID_STATE_SETTER }
 			}
 		}
 	}

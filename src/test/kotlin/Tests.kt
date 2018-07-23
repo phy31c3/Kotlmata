@@ -14,7 +14,7 @@ class Tests
 		
 		val action = {}
 		
-		KotlmataState new "tag" set {
+		KotlmataState new "key" set {
 			entry action action
 			entry via "signal" action action
 			event input "signal" action action
