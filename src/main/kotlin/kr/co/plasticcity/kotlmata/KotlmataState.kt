@@ -6,8 +6,11 @@ interface KotlmataState
 {
 	companion object
 	{
-		infix fun new(key: Any): KotlmataState = KotlmataStateImpl(key)
+		infix fun new(name: String): KotlmataState = KotlmataStateImpl(name)
+		infix fun new(block: Setter.() -> Unit): KotlmataState = KotlmataStateImpl(block)
 	}
+	
+	operator fun invoke(block: Setter.() -> Unit): KotlmataState
 	
 	infix fun set(block: Setter.() -> Unit): KotlmataState
 	
@@ -43,7 +46,7 @@ interface KotlmataState
 	}
 }
 
-private class KotlmataStateImpl(val key: Any) : KotlmataState
+private class KotlmataStateImpl(val key: Any = this, block: (KotlmataState.Setter.() -> Unit)? = null) : KotlmataState
 {
 	private companion object
 	{
@@ -54,6 +57,15 @@ private class KotlmataStateImpl(val key: Any) : KotlmataState
 	private var entryMap: MutableMap<Any, (Any) -> Any?>? = null
 	private var eventMap: MutableMap<Any, (Any) -> Unit>? = null
 	private var exit: () -> Unit = none
+	
+	init
+	{
+		block?.let {
+			set(it)
+		}
+	}
+	
+	override fun invoke(block: KotlmataState.Setter.() -> Unit): KotlmataState = set(block)
 	
 	override fun set(block: KotlmataState.Setter.() -> Unit): KotlmataState
 	{
@@ -68,23 +80,15 @@ private class KotlmataStateImpl(val key: Any) : KotlmataState
 		private var valid: Boolean = true
 		
 		private val entryMap: MutableMap<Any, (Any) -> Any?>
-			get()
-			{
-				if (this@KotlmataStateImpl.entryMap == null)
-				{
-					this@KotlmataStateImpl.entryMap = HashMap()
-				}
-				return this@KotlmataStateImpl.entryMap!!
+			get() = this@KotlmataStateImpl.entryMap ?: HashMap<Any, (Any) -> Any?>().let {
+				this@KotlmataStateImpl.entryMap = it
+				it
 			}
 		
 		private val eventMap: MutableMap<Any, (Any) -> Unit>
-			get()
-			{
-				if (this@KotlmataStateImpl.eventMap == null)
-				{
-					this@KotlmataStateImpl.eventMap = HashMap()
-				}
-				return this@KotlmataStateImpl.eventMap!!
+			get() = this@KotlmataStateImpl.eventMap ?: HashMap<Any, (Any) -> Unit>().let {
+				this@KotlmataStateImpl.eventMap = it
+				it
 			}
 		
 		@Suppress("UNCHECKED_CAST")

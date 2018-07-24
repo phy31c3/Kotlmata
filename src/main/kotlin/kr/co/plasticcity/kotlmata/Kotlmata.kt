@@ -26,7 +26,7 @@ object Kotlmata : KotlmataInterface by KotlmataImpl()
 			valid = false
 		}
 		
-		private fun ifValid(block: () -> Unit)
+		private inline fun ifValid(block: () -> Unit)
 		{
 			if (valid)
 			{
