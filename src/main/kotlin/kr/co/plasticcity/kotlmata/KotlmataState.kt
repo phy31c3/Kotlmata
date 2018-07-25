@@ -77,7 +77,8 @@ private class KotlmataStateImpl(val key: Any = this, block: (KotlmataState.Sette
 	internal constructor(block: KotlmataState.Setter.() -> Unit)
 		: KotlmataState.Setter
 	{
-		private var valid: Boolean = true
+		@Volatile
+		private var expired: Boolean = false
 		
 		private val entryMap: MutableMap<Any, (Any) -> Any?>
 			get() = this@KotlmataStateImpl.entryMap ?: HashMap<Any, (Any) -> Any?>().let {
@@ -96,7 +97,8 @@ private class KotlmataStateImpl(val key: Any = this, block: (KotlmataState.Sette
 		{
 			override fun action(action: () -> Any?)
 			{
-				ifValid { this@KotlmataStateImpl.entry = action }
+				expired should { return }
+				this@KotlmataStateImpl.entry = action
 			}
 			
 			override fun <T : Any> via(signal: KClass<T>): KotlmataState.Setter.Action<T, Any?>
@@ -105,12 +107,14 @@ private class KotlmataStateImpl(val key: Any = this, block: (KotlmataState.Sette
 				{
 					override fun action(action: (T) -> Any?)
 					{
-						ifValid { entryMap[signal] = action as (Any) -> Any? }
+						expired should { return }
+						entryMap[signal] = action as (Any) -> Any?
 					}
 					
 					override fun action(action: () -> Any?)
 					{
-						ifValid { entryMap[signal] = { _ -> action() } }
+						expired should { return }
+						entryMap[signal] = { _ -> action() }
 					}
 				}
 			}
@@ -121,12 +125,14 @@ private class KotlmataStateImpl(val key: Any = this, block: (KotlmataState.Sette
 				{
 					override fun action(action: (T) -> Any?)
 					{
-						ifValid { entryMap[signal] = action as (Any) -> Any? }
+						expired should { return }
+						entryMap[signal] = action as (Any) -> Any?
 					}
 					
 					override fun action(action: () -> Any?)
 					{
-						ifValid { entryMap[signal] = { _ -> action() } }
+						expired should { return }
+						entryMap[signal] = { _ -> action() }
 					}
 				}
 			}
@@ -141,12 +147,14 @@ private class KotlmataStateImpl(val key: Any = this, block: (KotlmataState.Sette
 				{
 					override fun action(action: (T) -> Unit)
 					{
-						ifValid { eventMap[signal] = action as (Any) -> Unit }
+						expired should { return }
+						eventMap[signal] = action as (Any) -> Unit
 					}
 					
 					override fun action(action: () -> Unit)
 					{
-						ifValid { eventMap[signal] = { _ -> action() } }
+						expired should { return }
+						eventMap[signal] = { _ -> action() }
 					}
 				}
 			}
@@ -157,12 +165,14 @@ private class KotlmataStateImpl(val key: Any = this, block: (KotlmataState.Sette
 				{
 					override fun action(action: (T) -> Unit)
 					{
-						ifValid { eventMap[signal] = action as (Any) -> Unit }
+						expired should { return }
+						eventMap[signal] = action as (Any) -> Unit
 					}
 					
 					override fun action(action: () -> Unit)
 					{
-						ifValid { eventMap[signal] = { _ -> action() } }
+						expired should { return }
+						eventMap[signal] = { _ -> action() }
 					}
 				}
 			}
@@ -172,25 +182,23 @@ private class KotlmataStateImpl(val key: Any = this, block: (KotlmataState.Sette
 		{
 			override fun action(action: () -> Unit)
 			{
-				ifValid { this@KotlmataStateImpl.exit = action }
+				expired should { return }
+				this@KotlmataStateImpl.exit = action
 			}
 		}
 		
 		init
 		{
 			block()
-			valid = false
+			expired = true
 		}
 		
-		private inline fun ifValid(block: () -> Unit)
+		private inline infix fun Boolean.should(block: () -> Unit)
 		{
-			if (valid)
-			{
-				block()
-			}
-			else
+			if (expired)
 			{
 				Logger.e(key) { INVALID_STATE_SETTER }
+				block()
 			}
 		}
 	}

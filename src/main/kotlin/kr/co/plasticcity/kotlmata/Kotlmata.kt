@@ -4,37 +4,37 @@ object Kotlmata : KotlmataInterface by KotlmataImpl()
 {
 	class Config internal constructor(block: Config.() -> Unit)
 	{
-		private var valid: Boolean = true
+		@Volatile
+		private var expired: Boolean = false
 		
 		var debugLogger: ((String) -> Unit)
 			get() = Logger.debugLogger
 			set(value)
 			{
-				ifValid { Logger.debugLogger = value }
+				expired should { return }
+				Logger.debugLogger = value
 			}
 		
 		var errorLogger: ((String) -> Unit)
 			get() = Logger.errorLogger
 			set(value)
 			{
-				ifValid { Logger.errorLogger = value }
+				expired should { return }
+				Logger.errorLogger = value
 			}
 		
 		init
 		{
 			block()
-			valid = false
+			expired = true
 		}
 		
-		private inline fun ifValid(block: () -> Unit)
+		private inline infix fun Boolean.should(block: () -> Unit)
 		{
-			if (valid)
-			{
-				block()
-			}
-			else
+			if (expired)
 			{
 				Logger.e { INVALID_CONFIG }
+				block()
 			}
 		}
 	}
