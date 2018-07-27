@@ -46,13 +46,14 @@ interface KotlmataState
 	}
 }
 
-private class KotlmataStateImpl(val key: Any = this, block: (KotlmataState.Setter.() -> Unit)? = null) : KotlmataState
+private class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Setter.() -> Unit)? = null) : KotlmataState
 {
 	private companion object
 	{
 		private val none = {}
 	}
 	
+	private val key: Any = key ?: this
 	private var entry: () -> Any? = none
 	private var entryMap: MutableMap<Any, (Any) -> Any?>? = null
 	private var eventMap: MutableMap<Any, (Any) -> Unit>? = null
@@ -73,8 +74,7 @@ private class KotlmataStateImpl(val key: Any = this, block: (KotlmataState.Sette
 		return this
 	}
 	
-	private inner class SetterImpl
-	internal constructor(block: KotlmataState.Setter.() -> Unit)
+	private inner class SetterImpl internal constructor(block: KotlmataState.Setter.() -> Unit)
 		: KotlmataState.Setter
 	{
 		@Volatile
