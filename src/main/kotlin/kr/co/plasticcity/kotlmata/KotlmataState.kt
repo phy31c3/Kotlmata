@@ -8,11 +8,19 @@ interface KotlmataState
 	{
 		infix fun new(name: String): KotlmataState = KotlmataStateImpl(name)
 		infix fun new(block: Setter.() -> Unit): KotlmataState = KotlmataStateImpl(block)
+		
+		operator fun invoke(block: Setter.() -> Unit): KotlmataState = new(block)
 	}
 	
 	operator fun invoke(block: Setter.() -> Unit): KotlmataState
 	
 	infix fun set(block: Setter.() -> Unit): KotlmataState
+	
+	interface Mutable
+	{
+		infix fun mutable(block: Setter.() -> Unit): KotlmataState
+		infix fun immutable(block: Setter.() -> Unit): KotlmataState
+	}
 	
 	interface Setter
 	{
@@ -44,6 +52,11 @@ interface KotlmataState
 			infix fun action(action: () -> U)
 		}
 	}
+}
+
+interface KotlmataMutableState
+{
+
 }
 
 private class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Setter.() -> Unit)? = null) : KotlmataState

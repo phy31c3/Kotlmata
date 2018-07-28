@@ -15,15 +15,35 @@ class Tests
 		
 		val action = {}
 		
-		KotlmataState new "state0" set {
+		KotlmataState new if (true)
+		{
+			"state0"
+		}
+		else
+		{
+			"state1"
+		} set {
 			entry action action
 			entry via "signal" action action
 			event input "signal" action action
 			exit action action
 		}
 		
-		val mutableMachine = KotlmataMachine new "machine" mutable {
-			start at "state0"
+		val state = KotlmataState new "state"
+		
+		val mutableMachine = (KotlmataMachine new "machine").run {
+			if (action != {})
+			{
+				immutable {
+					start at "state0"
+				}
+			}
+			else
+			{
+				mutable {
+					start at "state0"
+				}
+			}
 		}
 		
 		val immutableMachine = KotlmataMachine new {
@@ -63,5 +83,16 @@ class Tests
 		nil?.apply {
 			println("nil is $nil")
 		} ?: println("nil is null")
+		
+		("" name "") {
+		
+		}
 	}
 }
+
+infix fun String.name(name: String): (block: () -> Unit) -> Block
+{
+	return ::Block
+}
+
+class Block(block: () -> Unit)

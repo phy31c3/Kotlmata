@@ -1,0 +1,53 @@
+object {}
+object method {}
+object method object
+object method object method {}
+
+[State Setter]--------------------------------------------------------------------------------
+KotlmataState("start") {
+	entry action [action]
+	entry via "signal" action [action]
+	event input "signal" action [action]
+	exit action [action]
+}
+
+KotlmataState {
+	entry action [action]
+	exit action [action]
+}
+
+val state = KotlmataMutableState()
+
+state {
+	set entry action [action]
+	set entry via "signal" action [action]
+
+	remove entry
+	remove exit
+	remove entry via all
+	remove entry via "signal"
+	remove event input all
+	remove event input "signal"
+
+	clear
+}
+
+
+[Machine Setter]--------------------------------------------------------------------------------
+states += "state0" set {
+	entry action [action]
+	entry via "signal" action [action]
+	event input "signal" action [action] to "state1"
+	event input "signal" to "state1"
+	exit action [action]
+}
+
+rules += ("state0" + "signal") = "state1"
+rules += ("state1" + "signal") = "state2"
+
+states -= "state1"
+states -= "state2"
+
+rules -= "state1"
+
+start at "state0"
