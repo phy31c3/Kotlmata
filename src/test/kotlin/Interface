@@ -3,8 +3,10 @@ object method {}
 object method object
 object method object method {}
 
-[State Setter]--------------------------------------------------------------------------------
-KotlmataState("start") {
+remove clear delete drop erase
+
+[State]————————————————————————————————————————————————————————————————————————————————
+KotlmataState("name") {
 	entry action [action]
 	entry via "signal" action [action]
 	event input "signal" action [action]
@@ -16,38 +18,79 @@ KotlmataState {
 	exit action [action]
 }
 
-val state = KotlmataMutableState()
+val immutableState = KotlmataState() // 불가
+val mutableState = KotlmataMutableState()
 
 state {
-	set entry action [action]
-	set entry via "signal" action [action]
-
-	remove entry
-	remove exit
-	remove entry via all
-	remove entry via "signal"
-	remove event input all
-	remove event input "signal"
-
-	clear
-}
-
-
-[Machine Setter]--------------------------------------------------------------------------------
-states += "state0" set {
 	entry action [action]
 	entry via "signal" action [action]
-	event input "signal" action [action] to "state1"
-	event input "signal" to "state1"
-	exit action [action]
+
+	entry action delete
+	exit action delete
+	entry via any action delete
+	entry via "signal" action delete
+	event input all action delete
+	event input "signal" action delete
+
+	delete all actions
 }
 
-rules += ("state0" + "signal") = "state1"
-rules += ("state1" + "signal") = "state2"
+[Machine]————————————————————————————————————————————————————————————————————————————————
+KotlmataMachine("name") {
+	"state1" {
+		entry action [action]
+		entry via "signal" action [action]
+		event input "signal" action [action]
+		exit action [action]
+	}
 
-states -= "state1"
-states -= "state2"
+	"state0" X "signal" to "state1"
+	"state1" x "signal" to "state2"
 
-rules -= "state1"
+	initialize origin state to "state0"
+}
 
-start at "state0"
+val immutableMachine = KotlmataMachine {
+	states += "name"
+	initialize origin state to "state0"
+}
+
+val mutableMachine = KotlmataMutableMachine {
+	states += "name"
+	initialize origin state to "state0"
+}
+
+mutableMachine {
+	"state1" replace {
+		entry action [action]
+		entry via "signal" action [action]
+		event input "signal" action [action]
+		exit action [action]
+	}
+
+	"state1" update {
+		entry via "signal" action [action]
+		event input "signal" action [action]
+
+		entry action delete
+		exit action delete
+	}
+
+	"state0" X "signal" to "state1"
+
+	delete state "state1"
+	delete transition ("state0" X "signal")
+	delete transition all from "state0"
+	delete transition all to "state1"
+
+	delete all states
+	delete all transitions
+}
+
+mutableMachine["state"] {
+	remove entry
+	set entry action [action]
+    set entry via "signal" action [action]
+} // 불가
+
+immutableMachine["state"] // 불가
