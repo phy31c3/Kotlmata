@@ -3,9 +3,13 @@ object method {}
 object method object
 object method object method {}
 
+object method [object {}]
+
 remove clear delete drop erase
 
 [State]————————————————————————————————————————————————————————————————————————————————
+// KotlmataState는 추상 클래스
+
 KotlmataState("name") {
 	entry action [action]
 	entry via "signal" action [action]
@@ -21,7 +25,7 @@ KotlmataState {
 val immutableState = KotlmataState() // 불가
 val mutableState = KotlmataMutableState()
 
-state {
+mutableState {
 	entry action [action]
 	entry via "signal" action [action]
 
@@ -34,6 +38,15 @@ state {
 
 	delete all actions
 }
+
+mutableState.entry() {
+	event(it)
+}
+mutableState.entry("signal") {
+	event(it)
+}
+mutableState.event("signal")
+mutableState.exit()
 
 [Machine]————————————————————————————————————————————————————————————————————————————————
 KotlmataMachine("name") {
@@ -87,10 +100,35 @@ mutableMachine {
 	delete all transitions
 }
 
-mutableMachine["state"] {
-	remove entry
-	set entry action [action]
-    set entry via "signal" action [action]
-} // 불가
+mutableMachine.input("signal")
+mutableMachine.input(object, Any::class) // <T : Any> input(signal: T, type: KClass<in T>)
 
-immutableMachine["state"] // 불가
+[Daemon]————————————————————————————————————————————————————————————————————————————————
+KotlmataDaemon("name") {
+	on start [action] // 최초 시작 시
+	on pause [action]
+	on stop [action]
+	on resume [action] // 일시정지 혹은 정지 상태에서 재개될 시
+	on terminate [action] // 완전 종료 시
+
+	// Machine이랑 동일
+
+	initialize origin state to "state0"
+}.run()
+
+val mutableDaemon = KotlmataMutableDaemon {
+	on start [action]
+	initialize origin state to "state0"
+}
+
+mutableDaemon {
+	// Machine이랑 동일
+}
+
+mutableDaemon.run()
+mutableDaemon.pause()
+mutableDaemon.stop()
+mutableDaemon.terminate()
+
+mutableDaemon.input("signal")
+mutableDaemon.input(object, Any::class)
