@@ -14,6 +14,7 @@ KotlmataState("name") {
 	entry action [action]
 	entry via "signal" action [action]
 	event input "signal" action [action]
+	event input stateKey action [action]
 	exit action [action]
 }
 
@@ -50,13 +51,23 @@ mutableState.exit()
 
 [Machine]————————————————————————————————————————————————————————————————————————————————
 KotlmataMachine("name") {
-	"state1" {
+	"state0" {
+		base is "state1"
 		entry action [action]
 		entry via "signal" action [action]
-		event input "signal" action [action]
+		event input "signal" action {
+			stateKey
+			machineKey
+			// 여기서 신규 state를 어떻게 만들까
+		}
 		exit action [action]
 	}
 
+	"state2" {}
+	"state3" {base is "state1"}
+
+	// 전이 규칙 복사 : 만약 뒤에 state1의 전이 규칙이 바뀐다면 어떻게.. (결국 state처럼 상속 개념으로?)
+	copy transition rule of "state1" to "state0"
 	"state0" X "signal" to "state1"
 	"state1" x "signal" to "state2"
 
@@ -64,17 +75,17 @@ KotlmataMachine("name") {
 }
 
 val immutableMachine = KotlmataMachine {
-	states += "name"
 	initialize origin state to "state0"
 }
 
 val mutableMachine = KotlmataMutableMachine {
-	states += "name"
 	initialize origin state to "state0"
 }
 
 mutableMachine {
+	// 이미 state가 존재하면 건너뛰는 문법도 필요함..
 	"state1" replace {
+		base is "state0"
 		entry action [action]
 		entry via "signal" action [action]
 		event input "signal" action [action]
@@ -82,6 +93,7 @@ mutableMachine {
 	}
 
 	"state1" update {
+		base is "state1" // 불가
 		entry via "signal" action [action]
 		event input "signal" action [action]
 
@@ -132,3 +144,8 @@ mutableDaemon.terminate()
 
 mutableDaemon.input("signal")
 mutableDaemon.input(object, Any::class)
+
+[Kotlmata]————————————————————————————————————————————————————————————————————————————————
+Kotlmata init {
+	print...
+}
