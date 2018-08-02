@@ -9,7 +9,6 @@ remove clear delete drop erase
 
 [State]————————————————————————————————————————————————————————————————————————————————
 // KotlmataState는 추상 클래스
-
 KotlmataState("name") {
 	entry action [action]
 	entry via "signal" action [action]
@@ -40,11 +39,11 @@ mutableState {
 	delete all actions
 }
 
-mutableState.entry() {
-	event(it)
+mutableState.entry() { signal ->
+	event(signal)
 }
-mutableState.entry("signal") {
-	event(it)
+mutableState.entry("signal") { signal ->
+	event(signal)
 }
 mutableState.event("signal")
 mutableState.exit()
@@ -52,23 +51,18 @@ mutableState.exit()
 [Machine]————————————————————————————————————————————————————————————————————————————————
 KotlmataMachine("name") {
 	"state0" {
-		base is "state1"
 		entry action [action]
 		entry via "signal" action [action]
 		event input "signal" action {
-			stateKey
-			machineKey
-			// 여기서 신규 state를 어떻게 만들까
+			// 여기서 신규 state를 어떻게 만들까?
+			// immutable이면 여기서 만들 수 있어서도 안되기 때문에 원래 못 만드는 것으로 한다.
 		}
 		exit action [action]
 	}
 
 	"state2" {}
-	"state3" {base is "state1"}
 
-	// 전이 규칙 복사 : 만약 뒤에 state1의 전이 규칙이 바뀐다면 어떻게.. (결국 state처럼 상속 개념으로?)
-	copy transition rule of "state1" to "state0"
-	"state0" X "signal" to "state1"
+	"state0" x "signal" to "state1"
 	"state1" x "signal" to "state2"
 
 	initialize origin state to "state0"
@@ -83,33 +77,54 @@ val mutableMachine = KotlmataMutableMachine {
 }
 
 mutableMachine {
-	// 이미 state가 존재하면 건너뛰는 문법도 필요함..
-	"state1" replace {
-		base is "state0"
+	"state1" {
 		entry action [action]
 		entry via "signal" action [action]
 		event input "signal" action [action]
 		exit action [action]
+	} // 기본적으로 replace or add
+
+	"state0" x "signal" to "state1" // 기본적으로 replace or add
+
+	has state "state1" then {
+		// "state1"이 존재하면 실행
 	}
 
-	"state1" update {
-		base is "state1" // 불가
-		entry via "signal" action [action]
-		event input "signal" action [action]
-
-		entry action delete
-		exit action delete
+	has transition "state0" x "signal" then {
+		// "state1"이 존재하면 실행
 	}
 
-	"state0" X "signal" to "state1"
+	replace or add state "state1" of {
+		// "state1"이 존재하면 교체, 존재하지 않으면 추가
+	}
+
+	replace or not state "state1" of {
+		// "state1"이 존재할 경우에만 교체
+	}
+
+	update or add state "state1" of {
+		// "state1"이 존재하면 업데이트, 존재하지 않으면 추가
+	}
+
+	update or not state "state1" of {
+		// "state1"이 존재할 경우에만 업데이트
+	}
+
+	update or add transition "state0" x "signal" to "state1"
+	update or not transition "state0" x "signal" to "state1"
 
 	delete state "state1"
-	delete transition ("state0" X "signal")
+	delete transition "state0" x "signal"
 	delete transition all from "state0"
 	delete transition all to "state1"
 
 	delete all states
 	delete all transitions
+}
+
+/* 스택 머신 예제 */
+val stack = KotlmataMutableMachine {
+	initialize origin state to "floor"
 }
 
 mutableMachine.input("signal")
@@ -123,7 +138,7 @@ KotlmataDaemon("name") {
 	on resume [action] // 일시정지 혹은 정지 상태에서 재개될 시
 	on terminate [action] // 완전 종료 시
 
-	// Machine이랑 동일
+	// Machine init 블럭과 동일
 
 	initialize origin state to "state0"
 }.run()
@@ -134,7 +149,7 @@ val mutableDaemon = KotlmataMutableDaemon {
 }
 
 mutableDaemon {
-	// Machine이랑 동일
+	// Machine modify 블럭과 동일
 }
 
 mutableDaemon.run()
