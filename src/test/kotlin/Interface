@@ -13,7 +13,8 @@ KotlmataState("name") {
 	entry action [action]
 	entry via "signal" action [action]
 	event input "signal" action [action]
-	event input stateKey action [action]
+	event input KClass<String> action [action]
+	event input any action [action]
 	exit action [action]
 }
 
@@ -50,7 +51,24 @@ mutableState.exit()
 
 [Machine]————————————————————————————————————————————————————————————————————————————————
 KotlmataMachine("name") {
+	templates += "base" {
+		entry action [action]
+		entry via "signal" action [action]
+		event input "signal" action [action]
+		exit action [action]
+	}
+
+	templates {
+		"base" {
+			entry action [action]
+			entry via "signal" action [action]
+			event input "signal" action [action]
+			exit action [action]
+		}
+	}
+
 	"state0" {
+		extends template "base"
 		entry action [action]
 		entry via "signal" action [action]
 		event input "signal" action {
@@ -60,10 +78,11 @@ KotlmataMachine("name") {
 		exit action [action]
 	}
 
-	"state2" {}
+	"state2" { extends template "base" }
 
-	"state0" x "signal" to "state1"
-	"state1" x "signal" to "state2"
+	"state0" x "signal" %= "state1"
+	"state1" x KClass<String> %= "state2"
+	"state1" x any %= "state2"
 
 	initialize origin state to "state0"
 }
@@ -78,13 +97,14 @@ val mutableMachine = KotlmataMutableMachine {
 
 mutableMachine {
 	"state1" {
+		extends template "base"
 		entry action [action]
 		entry via "signal" action [action]
 		event input "signal" action [action]
 		exit action [action]
-	} // 기본적으로 replace or add
+	} // 기본적으로 add or replace
 
-	"state0" x "signal" to "state1" // 기본적으로 replace or add
+	"state0" x "signal" %= "state1" // 기본적으로 add or replace
 
 	has state "state1" then {
 		// "state1"이 존재하면 실행
@@ -94,24 +114,28 @@ mutableMachine {
 		// "state1"이 존재하면 실행
 	}
 
-	replace or add state "state1" of {
+	add or replace state "state1" of {
 		// "state1"이 존재하면 교체, 존재하지 않으면 추가
+		extends template "base" // 가능
 	}
 
-	replace or not state "state1" of {
+	add or not state "state1" of {
 		// "state1"이 존재할 경우에만 교체
+		extends template "base" // 가능
 	}
 
 	update or add state "state1" of {
 		// "state1"이 존재하면 업데이트, 존재하지 않으면 추가
+		extends template "base" // 불가
 	}
 
 	update or not state "state1" of {
 		// "state1"이 존재할 경우에만 업데이트
+		extends template "base" // 불가
 	}
 
-	update or add transition "state0" x "signal" to "state1"
-	update or not transition "state0" x "signal" to "state1"
+	update or add transition "state0" x "signal" %= "state1"
+	update or not transition "state0" x "signal" %= "state1"
 
 	delete state "state1"
 	delete transition "state0" x "signal"
@@ -120,11 +144,6 @@ mutableMachine {
 
 	delete all states
 	delete all transitions
-}
-
-/* 스택 머신 예제 */
-val stack = KotlmataMutableMachine {
-	initialize origin state to "floor"
 }
 
 mutableMachine.input("signal")
