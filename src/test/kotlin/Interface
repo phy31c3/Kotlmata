@@ -108,10 +108,14 @@ mutableMachine {
 
 	has state "state1" then {
 		// "state1"이 존재하면 실행
+	} or {
+		// "state1"이 존재하지 않으면 실행
 	}
 
 	has transition "state0" x "signal" then {
-		// "state1"이 존재하면 실행
+		// ("state0" x "signal")이 존재하면 실행
+	} or {
+		// ("state0" x "signal")이 존재하지 않으면 실행
 	}
 
 	add or replace state "state1" of {
@@ -132,9 +136,8 @@ mutableMachine {
 	update state "state1" of {
 		// "state1"이 존재할 경우에만 업데이트
 		extends template "base" // 불가
-	} ?: "state1" {
-		// "state1"이 존재하지 않으면 여기로 떨어진다.
-		// 여기는 add or replace
+	} or {
+		// "state1"이 존재하지 않으면 추가
 		extends template "base" // 가능
 	}
 
