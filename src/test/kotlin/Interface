@@ -102,9 +102,9 @@ mutableMachine {
 		entry via "signal" action [action]
 		event input "signal" action [action]
 		exit action [action]
-	} // 기본적으로 add or replace
+	} // insert or replace
 
-	"state0" x "signal" %= "state1" // 기본적으로 add or replace
+	"state0" x "signal" %= "state1" // insert or replace
 
 	has state "state1" then {
 		// "state1"이 존재하면 실행
@@ -118,13 +118,8 @@ mutableMachine {
 		// ("state0" x "signal")이 존재하지 않으면 실행
 	}
 
-	add or replace state "state1" of {
-		// "state1" 추가, 이미 존재하면 교체
-		extends template "base" // 가능
-	}
-
-	add or not state "state1" of {
-		// "state1" 추가, 이미 존재하면 건너뛰기
+	insert state "state1" of {
+		// "state1" 생성, 이미 존재하면 무시
 		extends template "base" // 가능
 	}
 
@@ -133,16 +128,21 @@ mutableMachine {
 		extends template "base" // 가능
 	}
 
-	update state "state1" of {
+	insert or replace state "state1" of {
+		// "state1" 생성, 이미 존재하면 교체
+		extends template "base" // 가능
+	}
+
+	update state "state1" set {
 		// "state1"이 존재할 경우에만 업데이트
 		extends template "base" // 불가
-	} or {
+	} or insert state "state1" of {
 		// "state1"이 존재하지 않으면 추가
 		extends template "base" // 가능
 	}
 
-	add or replace transition "state0" x "signal" %= "state1"
-	add or not transition "state0" x "signal" %= "state1"
+	insert transition "state0" x "signal" %= "state1"
+	insert or replace transition "state0" x "signal" %= "state1"
 	update transition "state0" x "signal" %= "state1"
 
 	delete state "state1"
@@ -168,7 +168,7 @@ KotlmataDaemon("name") {
 	// Machine init 블럭과 동일
 
 	initialize origin state to "state0"
-}.run()
+}
 
 val mutableDaemon = KotlmataMutableDaemon {
 	on start [action]
@@ -189,5 +189,103 @@ mutableDaemon.input(object, Any::class)
 
 [Kotlmata]————————————————————————————————————————————————————————————————————————————————
 Kotlmata init {
-	print...
+	print debug { log ->
+		// 로그 출력
+	}
+	print error { log ->
+		// 로그 출력
+	}
+}
+
+Kotlmata fork "daemon" of { // Daemon init 블럭과 동일
+	on start [action]
+	on terminate [action]
+
+	"state1" {
+		extends template "base"
+		entry action [action]
+		entry via "signal" action [action]
+		event input "signal" action [action]
+		exit action [action]
+	}
+
+	"state0" x "signal" %= "state1"
+
+	initialize origin state to "state0"
+}
+
+Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일
+	update state "state1" set {
+		event input "signal" action [action]
+	} or insert state "state1" of {
+		extends template "base"
+		entry action [action]
+		entry via "signal" action [action]
+		event input "signal" action [action]
+		exit action [action]
+	}
+}
+
+Kotlmata has "daemon" then { Kotlmata ->
+	terminate("daemon")
+} and { Kotlmata ->
+	fork("daemon") of {
+		on start [action]
+		on terminate [action]
+
+		"state1" {
+			extends template "base"
+			entry action [action]
+			entry via "signal" action [action]
+			event input "signal" action [action]
+			exit action [action]
+		}
+
+		"state0" x "signal" %= "state1"
+
+		initialize origin state to "state0"
+	}
+}
+
+Kotlmata has "daemon" then { Kotlmata ->
+	modify("daemon") set {
+		update state "state1" set {
+			event input "signal" action [action]
+		} or insert state "state1" of {
+			extends template "base"
+			entry action [action]
+			entry via "signal" action [action]
+			event input "signal" action [action]
+			exit action [action]
+		}
+	}
+} or {
+	fork("daemon") of {
+		on start [action]
+		on terminate [action]
+
+		"state1" {
+			extends template "base"
+			entry action [action]
+			entry via "signal" action [action]
+			event input "signal" action [action]
+			exit action [action]
+		}
+
+		"state0" x "signal" %= "state1"
+
+		initialize origin state to "state0"
+	}
+}
+
+Kotlmata run "daemon"
+Kotlmata pause "daemon"
+Kotlmata stop "daemon"
+Kotlmata terminate "daemon"
+
+Kotlmata input "signal" to "daemon"
+Kotlmata input "signal" being KClass<String> to "daemon"
+
+Kotlmata release {
+	// 자원 해제 등의 동작이 필요하면 여기에
 }
