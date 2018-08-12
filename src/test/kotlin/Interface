@@ -8,7 +8,6 @@ object method [object {}]
 remove clear delete drop erase
 
 [State]————————————————————————————————————————————————————————————————————————————————
-// KotlmataState는 추상 클래스
 KotlmataState("name") {
 	entry action [action]
 	entry via "signal" action [action]
