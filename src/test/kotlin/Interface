@@ -11,9 +11,12 @@ remove clear delete drop erase
 KotlmataState("name") {
 	entry action [action]
 	entry via "signal" action [action]
-	event input "signal" action [action]
-	event input KClass<String> action [action]
-	event input any action [action]
+	entry via action [action]
+
+	input action [action]
+	input signal "signal" action [action]
+	input signal KClass<String> action [action]
+
 	exit action [action]
 }
 
@@ -29,31 +32,33 @@ mutableState {
 	entry action [action]
 	entry via "signal" action [action]
 
-	entry action delete
-	exit action delete
-	entry via any action delete
-	entry via "signal" action delete
-	event input all action delete
-	event input "signal" action delete
+	delete action entry all
+	delete action entry default
+	delete action entry via "signal"
 
-	delete all actions
+	delete action input all
+	deleta action input default
+	delete action input signal all
+
+	delete action exit
+	delete action all
 }
 
-mutableState.entry() { signal ->
-	event(signal)
+immutableState.entry() { signal ->
+	input(signal)
 }
-mutableState.entry("signal") { signal ->
-	event(signal)
+immutableState.entry("signal") { signal ->
+	input(signal)
 }
-mutableState.event("signal")
-mutableState.exit()
+immutableState.input("signal")
+immutableState.exit()
 
 [Machine]————————————————————————————————————————————————————————————————————————————————
 KotlmataMachine("name") {
 	templates += "base" {
 		entry action [action]
 		entry via "signal" action [action]
-		event input "signal" action [action]
+		input signal "signal" action [action]
 		exit action [action]
 	}
 
@@ -61,7 +66,7 @@ KotlmataMachine("name") {
 		"base" {
 			entry action [action]
 			entry via "signal" action [action]
-			event input "signal" action [action]
+			input signal "signal" action [action]
 			exit action [action]
 		}
 	}
@@ -70,7 +75,7 @@ KotlmataMachine("name") {
 		extends template "base"
 		entry action [action]
 		entry via "signal" action [action]
-		event input "signal" action {
+		input signal "signal" action {
 			// 여기서 신규 state를 어떻게 만들까?
 			// immutable이면 여기서 만들 수 있어서도 안되기 때문에 원래 못 만드는 것으로 한다.
 		}
@@ -99,7 +104,7 @@ mutableMachine {
 		extends template "base"
 		entry action [action]
 		entry via "signal" action [action]
-		event input "signal" action [action]
+		input signal "signal" action [action]
 		exit action [action]
 	} // insert or replace
 
@@ -204,7 +209,7 @@ Kotlmata fork "daemon" of { // Daemon init 블럭과 동일
 		extends template "base"
 		entry action [action]
 		entry via "signal" action [action]
-		event input "signal" action [action]
+		input signal "signal" action [action]
 		exit action [action]
 	}
 
@@ -215,12 +220,12 @@ Kotlmata fork "daemon" of { // Daemon init 블럭과 동일
 
 Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일
 	update state "state1" set {
-		event input "signal" action [action]
+		input signal "signal" action [action]
 	} or insert state "state1" of {
 		extends template "base"
 		entry action [action]
 		entry via "signal" action [action]
-		event input "signal" action [action]
+		input signal "signal" action [action]
 		exit action [action]
 	}
 }
@@ -236,7 +241,7 @@ Kotlmata has "daemon" then { Kotlmata ->
 			extends template "base"
 			entry action [action]
 			entry via "signal" action [action]
-			event input "signal" action [action]
+			input signal "signal" action [action]
 			exit action [action]
 		}
 
@@ -249,12 +254,12 @@ Kotlmata has "daemon" then { Kotlmata ->
 Kotlmata has "daemon" then { Kotlmata ->
 	modify("daemon") set {
 		update state "state1" set {
-			event input "signal" action [action]
+			input signal "signal" action [action]
 		} or insert state "state1" of {
 			extends template "base"
 			entry action [action]
 			entry via "signal" action [action]
-			event input "signal" action [action]
+			input signal "signal" action [action]
 			exit action [action]
 		}
 	}
@@ -267,7 +272,7 @@ Kotlmata has "daemon" then { Kotlmata ->
 			extends template "base"
 			entry action [action]
 			entry via "signal" action [action]
-			event input "signal" action [action]
+			input signal "signal" action [action]
 			exit action [action]
 		}
 

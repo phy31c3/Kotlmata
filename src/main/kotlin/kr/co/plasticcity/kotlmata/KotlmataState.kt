@@ -6,60 +6,67 @@ interface KotlmataState
 {
 	companion object
 	{
-		infix fun new(name: String): KotlmataState = KotlmataStateImpl(name)
-		infix fun new(block: Setter.() -> Unit): KotlmataState = KotlmataStateImpl(block)
-		
-		operator fun invoke(block: Setter.() -> Unit): KotlmataState = new(block)
+		operator fun invoke(name: String? = null, block: Initializer.() -> Unit): KotlmataState = KotlmataStateImpl(name, block)
 	}
 	
-	operator fun invoke(block: Setter.() -> Unit): KotlmataState
-	
-	infix fun set(block: Setter.() -> Unit): KotlmataState
-	
-	interface Mutable
-	{
-		infix fun mutable(block: Setter.() -> Unit): KotlmataState
-		infix fun immutable(block: Setter.() -> Unit): KotlmataState
-	}
-	
-	interface Setter
+	interface Initializer
 	{
 		val entry: Entry
 		val event: Event
 		val exit: Exit
-		
-		interface Entry
-		{
-			infix fun action(action: () -> Any?)
-			infix fun <T : Any> via(signal: KClass<T>): Action<T, Any?>
-			infix fun <T : Any> via(signal: T): Action<T, Any?>
-		}
-		
-		interface Event
-		{
-			infix fun <T : Any> input(signal: KClass<T>): Action<T, Unit>
-			infix fun <T : Any> input(signal: T): Action<T, Unit>
-		}
-		
-		interface Exit
-		{
-			infix fun action(action: () -> Unit)
-		}
-		
-		interface Action<T, U>
-		{
-			infix fun action(action: (T) -> U)
-			infix fun action(action: () -> U)
-		}
+	}
+	
+	interface Entry
+	{
+		infix fun action(action: () -> Any?)
+		infix fun action(action: (Any) -> Any?)
+		infix fun <T : Any> via(signal: KClass<T>): Action<T, Any?>
+		infix fun <T : Any> via(signal: T): Action<T, Any?>
+	}
+	
+	interface Event
+	{
+		infix fun <T : Any> input(signal: KClass<T>): Action<T, Unit>
+		infix fun <T : Any> input(signal: T): Action<T, Unit>
+	}
+	
+	interface Exit
+	{
+		infix fun action(action: () -> Unit)
+	}
+	
+	interface Action<T, U>
+	{
+		infix fun action(action: (T) -> U)
+		infix fun action(action: () -> U)
 	}
 }
 
-interface KotlmataMutableState
+interface KotlmataMutableState : KotlmataState
 {
-
+	companion object
+	{
+		operator fun invoke(name: String? = null, block: (KotlmataState.Initializer.() -> Unit)? = null): KotlmataMutableState = KotlmataStateImpl(name, block)
+	}
+	
+	interface Modifier : KotlmataState.Initializer
+	{
+		val delete: Delete
+	}
+	
+	interface Delete
+	{
+		object actions
+		
+		infix fun all(keyword: actions)
+	}
+	
+	operator fun invoke(block: Modifier.() -> Unit)
+	
+	infix fun modify(block: Modifier.() -> Unit)
 }
 
-private class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Setter.() -> Unit)? = null) : KotlmataState
+internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initializer.() -> Unit)? = null) : KotlmataMutableState
 {
 	private companion object
 	{
@@ -75,20 +82,22 @@ private class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Setter.(
 	init
 	{
 		block?.let {
-			set(it)
+			modify(it)
 		}
 	}
 	
-	override fun invoke(block: KotlmataState.Setter.() -> Unit): KotlmataState = set(block)
-	
-	override fun set(block: KotlmataState.Setter.() -> Unit): KotlmataState
+	override fun invoke(block: KotlmataMutableState.Modifier.() -> Unit)
 	{
-		SetterImpl(block)
-		return this
+		modify(block)
 	}
 	
-	private inner class SetterImpl internal constructor(block: KotlmataState.Setter.() -> Unit)
-		: KotlmataState.Setter
+	override fun modify(block: KotlmataMutableState.Modifier.() -> Unit)
+	{
+		ModifierImpl(block)
+	}
+	
+	private inner class ModifierImpl internal constructor(block: KotlmataMutableState.Modifier.() -> Unit)
+		: KotlmataMutableState.Modifier
 	{
 		@Volatile
 		private var expired: Boolean = false
@@ -106,7 +115,7 @@ private class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Setter.(
 			}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val entry: KotlmataState.Setter.Entry = object : KotlmataState.Setter.Entry
+		override val entry: KotlmataState.Entry = object : KotlmataState.Entry
 		{
 			override fun action(action: () -> Any?)
 			{
@@ -114,9 +123,14 @@ private class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Setter.(
 				this@KotlmataStateImpl.entry = action
 			}
 			
-			override fun <T : Any> via(signal: KClass<T>): KotlmataState.Setter.Action<T, Any?>
+			override fun action(action: (Any) -> Any?)
 			{
-				return object : KotlmataState.Setter.Action<T, Any?>
+				TODO("not implemented")
+			}
+			
+			override fun <T : Any> via(signal: KClass<T>): KotlmataState.Action<T, Any?>
+			{
+				return object : KotlmataState.Action<T, Any?>
 				{
 					override fun action(action: (T) -> Any?)
 					{
@@ -132,9 +146,9 @@ private class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Setter.(
 				}
 			}
 			
-			override fun <T : Any> via(signal: T): KotlmataState.Setter.Action<T, Any?>
+			override fun <T : Any> via(signal: T): KotlmataState.Action<T, Any?>
 			{
-				return object : KotlmataState.Setter.Action<T, Any?>
+				return object : KotlmataState.Action<T, Any?>
 				{
 					override fun action(action: (T) -> Any?)
 					{
@@ -152,11 +166,11 @@ private class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Setter.(
 		}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val event: KotlmataState.Setter.Event = object : KotlmataState.Setter.Event
+		override val event: KotlmataState.Event = object : KotlmataState.Event
 		{
-			override fun <T : Any> input(signal: KClass<T>): KotlmataState.Setter.Action<T, Unit>
+			override fun <T : Any> input(signal: KClass<T>): KotlmataState.Action<T, Unit>
 			{
-				return object : KotlmataState.Setter.Action<T, Unit>
+				return object : KotlmataState.Action<T, Unit>
 				{
 					override fun action(action: (T) -> Unit)
 					{
@@ -172,9 +186,9 @@ private class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Setter.(
 				}
 			}
 			
-			override fun <T : Any> input(signal: T): KotlmataState.Setter.Action<T, Unit>
+			override fun <T : Any> input(signal: T): KotlmataState.Action<T, Unit>
 			{
-				return object : KotlmataState.Setter.Action<T, Unit>
+				return object : KotlmataState.Action<T, Unit>
 				{
 					override fun action(action: (T) -> Unit)
 					{
@@ -191,12 +205,24 @@ private class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Setter.(
 			}
 		}
 		
-		override val exit: KotlmataState.Setter.Exit = object : KotlmataState.Setter.Exit
+		override val exit: KotlmataState.Exit = object : KotlmataState.Exit
 		{
 			override fun action(action: () -> Unit)
 			{
 				expired should { return }
 				this@KotlmataStateImpl.exit = action
+			}
+		}
+		
+		override val delete: KotlmataMutableState.Delete = object : KotlmataMutableState.Delete
+		{
+			override fun all(keyword: KotlmataMutableState.Delete.actions)
+			{
+				expired should { return }
+				this@KotlmataStateImpl.entry = none
+				this@KotlmataStateImpl.entryMap = null
+				this@KotlmataStateImpl.eventMap = null
+				this@KotlmataStateImpl.exit = none
 			}
 		}
 		
