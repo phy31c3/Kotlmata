@@ -12,7 +12,7 @@ interface KotlmataState
 	interface Initializer
 	{
 		val entry: Entry
-		val event: Event
+		val input: Input
 		val exit: Exit
 	}
 	
@@ -24,10 +24,11 @@ interface KotlmataState
 		infix fun <T : Any> via(signal: T): Action<T, Any?>
 	}
 	
-	interface Event
+	interface Input
 	{
-		infix fun <T : Any> input(signal: KClass<T>): Action<T, Unit>
-		infix fun <T : Any> input(signal: T): Action<T, Unit>
+		infix fun action(action: (Any) -> Unit)
+		infix fun <T : Any> signal(signal: KClass<T>): Action<T, Unit>
+		infix fun <T : Any> signal(signal: T): Action<T, Unit>
 	}
 	
 	interface Exit
@@ -56,9 +57,26 @@ interface KotlmataMutableState : KotlmataState
 	
 	interface Delete
 	{
-		object actions
+		object all
 		
-		infix fun all(keyword: actions)
+		infix fun action(keyword: KotlmataState.Entry): Entry
+		infix fun action(keyword: KotlmataState.Input): Input
+		infix fun action(keyword: KotlmataState.Exit)
+		infix fun action(keyword: all)
+		
+		interface Entry
+		{
+			infix fun <T : Any> via(signal: KClass<T>)
+			infix fun <T : Any> via(signal: T)
+			infix fun via(keyword: all)
+		}
+		
+		interface Input
+		{
+			infix fun <T : Any> signal(signal: KClass<T>)
+			infix fun <T : Any> signal(signal: T)
+			infix fun signal(keyword: all)
+		}
 	}
 	
 	operator fun invoke(block: Modifier.() -> Unit)
@@ -66,17 +84,15 @@ interface KotlmataMutableState : KotlmataState
 	infix fun modify(block: Modifier.() -> Unit)
 }
 
+private object default
+
+private val none = {}
+
 internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initializer.() -> Unit)? = null) : KotlmataMutableState
 {
-	private companion object
-	{
-		private val none = {}
-	}
-	
 	private val key: Any = key ?: this
-	private var entry: () -> Any? = none
 	private var entryMap: MutableMap<Any, (Any) -> Any?>? = null
-	private var eventMap: MutableMap<Any, (Any) -> Unit>? = null
+	private var inputMap: MutableMap<Any, (Any) -> Unit>? = null
 	private var exit: () -> Unit = none
 	
 	init
@@ -108,9 +124,9 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 				it
 			}
 		
-		private val eventMap: MutableMap<Any, (Any) -> Unit>
-			get() = this@KotlmataStateImpl.eventMap ?: HashMap<Any, (Any) -> Unit>().let {
-				this@KotlmataStateImpl.eventMap = it
+		private val inputMap: MutableMap<Any, (Any) -> Unit>
+			get() = this@KotlmataStateImpl.inputMap ?: HashMap<Any, (Any) -> Unit>().let {
+				this@KotlmataStateImpl.inputMap = it
 				it
 			}
 		
@@ -120,12 +136,13 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 			override fun action(action: () -> Any?)
 			{
 				expired should { return }
-				this@KotlmataStateImpl.entry = action
+				entryMap[default] = { _ -> action() }
 			}
 			
 			override fun action(action: (Any) -> Any?)
 			{
-				TODO("not implemented")
+				expired should { return }
+				entryMap[default] = action
 			}
 			
 			override fun <T : Any> via(signal: KClass<T>): KotlmataState.Action<T, Any?>
@@ -166,40 +183,45 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 		}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val event: KotlmataState.Event = object : KotlmataState.Event
+		override val input: KotlmataState.Input = object : KotlmataState.Input
 		{
-			override fun <T : Any> input(signal: KClass<T>): KotlmataState.Action<T, Unit>
+			override fun action(action: (Any) -> Unit)
+			{
+				TODO("not implemented")
+			}
+			
+			override fun <T : Any> signal(signal: KClass<T>): KotlmataState.Action<T, Unit>
 			{
 				return object : KotlmataState.Action<T, Unit>
 				{
 					override fun action(action: (T) -> Unit)
 					{
 						expired should { return }
-						eventMap[signal] = action as (Any) -> Unit
+						inputMap[signal] = action as (Any) -> Unit
 					}
 					
 					override fun action(action: () -> Unit)
 					{
 						expired should { return }
-						eventMap[signal] = { _ -> action() }
+						inputMap[signal] = { _ -> action() }
 					}
 				}
 			}
 			
-			override fun <T : Any> input(signal: T): KotlmataState.Action<T, Unit>
+			override fun <T : Any> signal(signal: T): KotlmataState.Action<T, Unit>
 			{
 				return object : KotlmataState.Action<T, Unit>
 				{
 					override fun action(action: (T) -> Unit)
 					{
 						expired should { return }
-						eventMap[signal] = action as (Any) -> Unit
+						inputMap[signal] = action as (Any) -> Unit
 					}
 					
 					override fun action(action: () -> Unit)
 					{
 						expired should { return }
-						eventMap[signal] = { _ -> action() }
+						inputMap[signal] = { _ -> action() }
 					}
 				}
 			}
@@ -216,12 +238,26 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 		
 		override val delete: KotlmataMutableState.Delete = object : KotlmataMutableState.Delete
 		{
-			override fun all(keyword: KotlmataMutableState.Delete.actions)
+			override fun action(keyword: KotlmataState.Entry): KotlmataMutableState.Delete.Entry
+			{
+				TODO("not implemented")
+			}
+			
+			override fun action(keyword: KotlmataState.Input): KotlmataMutableState.Delete.Input
+			{
+				TODO("not implemented")
+			}
+			
+			override fun action(keyword: KotlmataState.Exit)
+			{
+				TODO("not implemented")
+			}
+			
+			override fun action(keyword: KotlmataMutableState.Delete.all)
 			{
 				expired should { return }
-				this@KotlmataStateImpl.entry = none
 				this@KotlmataStateImpl.entryMap = null
-				this@KotlmataStateImpl.eventMap = null
+				this@KotlmataStateImpl.inputMap = null
 				this@KotlmataStateImpl.exit = none
 			}
 		}

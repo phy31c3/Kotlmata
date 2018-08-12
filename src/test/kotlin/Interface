@@ -32,15 +32,16 @@ mutableState {
 	entry action [action]
 	entry via "signal" action [action]
 
-	delete action entry all
-	delete action entry default
+	delete action entry
 	delete action entry via "signal"
+	delete action entry via all
 
-	delete action input all
-	deleta action input default
+	delete action input
+	delete action input signal "signal"
 	delete action input signal all
 
 	delete action exit
+
 	delete action all
 }
 
