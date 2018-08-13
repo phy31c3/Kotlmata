@@ -1,4 +1,4 @@
-import kr.co.plasticcity.kotlmata.Kotlmata
+import kr.co.plasticcity.kotlmata.KotlmataState
 import org.junit.Test
 
 class Tests
@@ -6,13 +6,8 @@ class Tests
 	@Test
 	fun basicTest()
 	{
-		Kotlmata init {
-			debugLogger = ::println
-			errorLogger = ::error
-		}
+		KotlmataState {
 		
-		Kotlmata release {
-			/* do nothing */
 		}
 	}
 }
