@@ -247,7 +247,7 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 			override fun action(keyword: KotlmataState.Entry): KotlmataMutableState.Delete.Entry
 			{
 				val stash = this@KotlmataStateImpl.entry
-				expired yet {
+				expired not {
 					this@KotlmataStateImpl.entry = null
 				}
 				return object : KotlmataMutableState.Delete.Entry
@@ -278,7 +278,7 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 			override fun action(keyword: KotlmataState.Input): KotlmataMutableState.Delete.Input
 			{
 				val stash = this@KotlmataStateImpl.input
-				expired yet {
+				expired not {
 					this@KotlmataStateImpl.input = null
 				}
 				return object : KotlmataMutableState.Delete.Input
@@ -338,7 +338,7 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 			}
 		}
 		
-		private inline infix fun Boolean.yet(block: () -> Unit)
+		private inline infix fun Boolean.not(block: () -> Unit)
 		{
 			if (!expired)
 			{
