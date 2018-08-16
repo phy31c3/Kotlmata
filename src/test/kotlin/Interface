@@ -49,6 +49,7 @@ immutableState.entry("signal") { signal ->
 	input(signal)
 }
 immutableState.input("signal")
+immutableState.input("signal", String::class)
 immutableState.exit()
 
 [Machine]————————————————————————————————————————————————————————————————————————————————
@@ -286,7 +287,7 @@ Kotlmata stop "daemon"
 Kotlmata terminate "daemon"
 
 Kotlmata input "signal" to "daemon"
-Kotlmata input "signal" being KClass<String> to "daemon"
+Kotlmata input "signal" type KClass<String> to "daemon"
 
 Kotlmata release {
 	// 자원 해제 등의 동작이 필요하면 여기에
