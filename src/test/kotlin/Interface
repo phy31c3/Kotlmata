@@ -45,9 +45,6 @@ mutableState {
 	delete action all
 }
 
-immutableState.entry() { signal ->
-	input(signal)
-}
 immutableState.entry("signal") { signal ->
 	input(signal)
 }

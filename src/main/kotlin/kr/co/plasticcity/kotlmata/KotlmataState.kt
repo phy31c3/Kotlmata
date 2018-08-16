@@ -42,6 +42,15 @@ interface KotlmataState
 		infix fun action(action: (T) -> U)
 		infix fun action(action: () -> U)
 	}
+	
+	/**
+	 * @param block If 'entry action' returns a next signal, the block is runned.
+	 */
+	fun entry(signal: Any, block: (Any) -> Unit)
+	
+	fun input(signal: Any)
+	
+	fun exit()
 }
 
 interface KotlmataMutableState : KotlmataState
@@ -101,6 +110,36 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 		}
 	}
 	
+	override fun entry(signal: Any, block: (Any) -> Unit)
+	{
+		val next = entryMap?.let {
+			when
+			{
+				it.containsKey(signal) -> it[signal]?.invoke(signal)
+				it.containsKey(signal::class) -> it[signal::class]?.invoke(signal)
+				else -> null
+			}
+		} ?: entry?.invoke(signal)
+		next?.apply(block)
+	}
+	
+	override fun input(signal: Any)
+	{
+		inputMap?.let {
+			when
+			{
+				it.containsKey(signal) -> it[signal]?.invoke(signal)
+				it.containsKey(signal::class) -> it[signal::class]?.invoke(signal)
+				else -> null
+			}
+		} ?: input?.invoke(signal)
+	}
+	
+	override fun exit()
+	{
+		exit?.invoke()
+	}
+	
 	override fun invoke(block: KotlmataMutableState.Modifier.() -> Unit)
 	{
 		modify(block)
@@ -118,15 +157,13 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 		private var expired: Boolean = false
 		
 		private val entryMap: MutableMap<Any, (Any) -> Any?>
-			get() = this@KotlmataStateImpl.entryMap ?: HashMap<Any, (Any) -> Any?>().let {
-				this@KotlmataStateImpl.entryMap = it
-				it
+			get() = this@KotlmataStateImpl.entryMap ?: HashMap<Any, (Any) -> Any?>().apply {
+				this@KotlmataStateImpl.entryMap = this
 			}
 		
 		private val inputMap: MutableMap<Any, (Any) -> Unit>
-			get() = this@KotlmataStateImpl.inputMap ?: HashMap<Any, (Any) -> Unit>().let {
-				this@KotlmataStateImpl.inputMap = it
-				it
+			get() = this@KotlmataStateImpl.inputMap ?: HashMap<Any, (Any) -> Unit>().apply {
+				this@KotlmataStateImpl.inputMap = this
 			}
 		
 		@Suppress("UNCHECKED_CAST")
