@@ -6,7 +6,10 @@ interface KotlmataState
 {
 	companion object
 	{
-		operator fun invoke(name: String? = null, block: Initializer.() -> Unit): KotlmataState = KotlmataStateImpl(name, block)
+		operator fun invoke(
+				name: String? = null,
+				block: Initializer.() -> Unit
+		): KotlmataState = KotlmataStateImpl(name, block)
 	}
 	
 	interface Initializer
@@ -59,7 +62,10 @@ interface KotlmataMutableState : KotlmataState
 {
 	companion object
 	{
-		operator fun invoke(name: String? = null, block: (KotlmataState.Initializer.() -> Unit)? = null): KotlmataMutableState = KotlmataStateImpl(name, block)
+		operator fun invoke(
+				name: String? = null,
+				block: (KotlmataState.Initializer.() -> Unit)? = null
+		): KotlmataMutableState = KotlmataStateImpl(name, block)
 	}
 	
 	interface Modifier : KotlmataState.Initializer
@@ -94,7 +100,10 @@ interface KotlmataMutableState : KotlmataState
 	infix fun modify(block: Modifier.() -> Unit)
 }
 
-internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initializer.() -> Unit)? = null) : KotlmataMutableState
+internal class KotlmataStateImpl(
+		key: Any? = null,
+		block: (KotlmataState.Initializer.() -> Unit)? = null
+) : KotlmataMutableState
 {
 	private val key: Any = key ?: this
 	private var entry: ((Any) -> Any?)? = null
@@ -161,8 +170,9 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 		ModifierImpl(block)
 	}
 	
-	private inner class ModifierImpl internal constructor(block: KotlmataMutableState.Modifier.() -> Unit)
-		: KotlmataMutableState.Modifier
+	private inner class ModifierImpl internal constructor(
+			block: KotlmataMutableState.Modifier.() -> Unit
+	) : KotlmataMutableState.Modifier
 	{
 		@Volatile
 		private var expired: Boolean = false
