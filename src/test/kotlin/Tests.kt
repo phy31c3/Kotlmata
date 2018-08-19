@@ -142,5 +142,8 @@ class Tests
 			delete transition any %= any
 			delete transition all
 		}
+		
+		machine.input("base")
+		machine.input("base", Any::class)
 	}
 }

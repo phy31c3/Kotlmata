@@ -66,6 +66,10 @@ interface KotlmataMachine
 			operator fun remAssign(state: Any)
 		}
 	}
+	
+	fun input(signal: Any)
+	
+	fun <T : Any> input(signal: T, type: KClass<in T>)
 }
 
 interface KotlmataMutableMachine : KotlmataMachine
@@ -212,6 +216,16 @@ private class KotlmataMachineImpl(
 ) : KotlmataMutableMachine
 {
 	override fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	{
+		TODO("not implemented")
+	}
+	
+	override fun input(signal: Any)
+	{
+		TODO("not implemented")
+	}
+	
+	override fun <T : Any> input(signal: T, type: KClass<in T>)
 	{
 		TODO("not implemented")
 	}
