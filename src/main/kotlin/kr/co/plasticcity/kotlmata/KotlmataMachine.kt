@@ -87,9 +87,95 @@ interface KotlmataMutableMachine : KotlmataMachine
 		val delete: Delete
 		
 		interface Has
+		{
+			infix fun state(state: Any): Then
+			infix fun transition(state: Any): X
+			
+			interface X
+			{
+				infix fun x(signal: Any): Then
+			}
+			
+			interface Then
+			{
+				infix fun then(block: () -> Unit): Or
+			}
+			
+			interface Or
+			{
+				infix fun or(block: () -> Unit)
+			}
+		}
+		
 		interface Insert
+		{
+			infix fun state(state: Any): Of
+			infix fun transition(state: Any): X
+			infix fun or(keyword: Replace): State
+			infix fun or(keyword: Update): Transition
+			
+			interface State
+			{
+				infix fun state(state: Any): Of
+			}
+			
+			interface Transition
+			{
+				infix fun transition(state: Any): X
+			}
+			
+			interface Of
+			{
+				infix fun of(block: KotlmataMachine.StateDefine.StateInitializer.() -> Unit)
+			}
+			
+			interface X
+			{
+				infix fun x(signal: Any): TransitionLeft
+			}
+			
+			interface TransitionLeft
+			{
+				operator fun remAssign(state: Any)
+			}
+		}
+		
 		interface Replace
+		{
+			infix fun state(state: Any): Of
+			
+			interface Of
+			{
+				infix fun of(block: KotlmataMachine.StateDefine.StateInitializer.() -> Unit)
+			}
+		}
+		
 		interface Update
+		{
+			infix fun state(state: Any): Set
+			infix fun transition(state: Any): X
+			
+			interface Set
+			{
+				infix fun set(block: KotlmataMutableState.Modifier.() -> Unit): Or
+			}
+			
+			interface Or
+			{
+				infix fun or(block: KotlmataMachine.StateDefine.StateInitializer.() -> Unit)
+			}
+			
+			interface X
+			{
+				infix fun x(signal: Any): TransitionLeft
+			}
+			
+			interface TransitionLeft
+			{
+				operator fun remAssign(state: Any)
+			}
+		}
+		
 		interface Delete
 	}
 	

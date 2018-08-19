@@ -26,27 +26,27 @@ class Tests
 			input signal Any::class action { s -> println("Any타입 입력함수: $s") }
 			input signal "next" action { -> println("진입함수에서 흘러들어옴") }
 			exit action { println("퇴장함수") }
-		}.apply {
-			entry(Any()) {}
-			entry("signal") {}
-			entry("a") {}
-			entry("b") { signal ->
-				input(signal)
-			}
-			input("basic")
-			input("basic", Any::class)
-			exit()
 		}
+		
+		state.entry(Any()) {}
+		state.entry("signal") {}
+		state.entry("a") {}
+		state.entry("b") { signal ->
+			state.input(signal)
+		}
+		state.input("basic")
+		state.input("basic", Any::class)
+		state.exit()
 		
 		state {
 			delete action input signal "next"
 		}
 		
 		state.entry("b") { signal ->
-			input(signal)
+			state.input(signal)
 		}
 		
-		initializer?.entry?.action { _ -> }
+		initializer?.entry?.action { -> }
 	}
 	
 	@Test
@@ -73,9 +73,9 @@ class Tests
 			}
 			
 			"state3" {
-				entry action { -> println("state2: 기본 진입함수") }
-				input signal String::class action { s -> println("state2: String타입 진입함수: $s") }
-				exit action { println("state2: 퇴장함수") }
+				entry action { -> println("state3: 기본 진입함수") }
+				input signal String::class action { s -> println("state3: String타입 진입함수: $s") }
+				exit action { println("state3: 퇴장함수") }
 			}
 			
 			"state1" x "base" %= "state2"
@@ -86,7 +86,50 @@ class Tests
 		}
 		
 		machine {
-		
+			has state "state1" then {
+				println("state1 있음")
+			} or {
+				println("state1 없음")
+			}
+			
+			has transition "state1" x "base" then {
+				println("state1 x base 있음")
+			} or {
+				println("state1 x base 없음")
+			}
+			
+			insert state "state4" of {
+				entry action { -> println("state4: 기본 진입함수") }
+				input signal String::class action { s -> println("state4: String타입 진입함수: $s") }
+				exit action { println("state4: 퇴장함수") }
+			}
+			
+			insert or replace state "state4" of {
+				extends template "base"
+				entry action { -> println("state4: 기본 진입함수") }
+				input signal String::class action { s -> println("state4: String타입 진입함수: $s") }
+				exit action { println("state4: 퇴장함수") }
+			}
+			
+			replace state "state5" of {
+				entry action { -> println("state5: 기본 진입함수") }
+				input signal String::class action { s -> println("state5: String타입 진입함수: $s") }
+				exit action { println("state5: 퇴장함수") }
+			}
+			
+			update state "state4" set {
+				entry action { -> println("state4: 수정된 기본 진입함수") }
+				delete action exit
+			} or {
+				extends template "base"
+				entry action { -> println("state5: 기본 진입함수") }
+				input signal String::class action { s -> println("state5: String타입 진입함수: $s") }
+				exit action { println("state5: 퇴장함수") }
+			}
+			
+			insert transition "state1" x "base" %= "state3"
+			insert or update transition "state1" x "base" %= "state3"
+			update transition "state1" x "base" %= "state4"
 		}
 	}
 }

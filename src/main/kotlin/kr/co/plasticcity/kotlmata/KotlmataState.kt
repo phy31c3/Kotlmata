@@ -49,7 +49,7 @@ interface KotlmataState
 	/**
 	 * @param block If 'entry action' returns a next signal, the block is runned.
 	 */
-	fun entry(signal: Any, block: KotlmataState.(signal: Any) -> Unit)
+	fun entry(signal: Any, block: (signal: Any) -> Unit)
 	
 	fun input(signal: Any)
 	
@@ -124,7 +124,7 @@ private class KotlmataStateImpl(
 		modify(block)
 	}
 	
-	override fun entry(signal: Any, block: KotlmataState.(signal: Any) -> Unit)
+	override fun entry(signal: Any, block: (signal: Any) -> Unit)
 	{
 		val next = entryMap?.let {
 			when
@@ -134,9 +134,7 @@ private class KotlmataStateImpl(
 				else -> null
 			}
 		} ?: entry?.invoke(signal)
-		next?.apply {
-			this@KotlmataStateImpl.block(this)
-		}
+		next?.apply(block)
 	}
 	
 	override fun input(signal: Any)

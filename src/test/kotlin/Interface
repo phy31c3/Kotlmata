@@ -115,17 +115,17 @@ mutableMachine {
 	}
 
 	insert state "state1" of {
-		// "state1" 생성, 이미 존재하면 무시
-		extends template "base" // 가능
-	}
-
-	replace state "state1" of {
-		// "state1"이 존재할 경우에만 교체
+		// "state1" 삽입, 이미 존재하면 무시
 		extends template "base" // 가능
 	}
 
 	insert or replace state "state1" of {
-		// "state1" 생성, 이미 존재하면 교체
+		// "state1" 삽입, 이미 존재하면 교체
+		extends template "base" // 가능
+    }
+
+	replace state "state1" of {
+		// "state1"이 존재할 경우에만 교체
 		extends template "base" // 가능
 	}
 
@@ -133,12 +133,12 @@ mutableMachine {
 		// "state1"이 존재할 경우에만 업데이트
 		extends template "base" // 불가
 	} or insert state "state1" of {
-		// "state1"이 존재하지 않으면 추가
+		// "state1"이 존재하지 않으면 삽입
 		extends template "base" // 가능
 	}
 
 	insert transition "state0" x "signal" %= "state1"
-	insert or replace transition "state0" x "signal" %= "state1"
+	insert or update transition "state0" x "signal" %= "state1"
 	update transition "state0" x "signal" %= "state1"
 
 	delete state "state1"
