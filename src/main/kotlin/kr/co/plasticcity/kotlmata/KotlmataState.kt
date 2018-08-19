@@ -18,7 +18,7 @@ interface KotlmataState
 	
 	interface Entry
 	{
-		infix fun action(action: () -> Any?)
+		infix fun action(action: () -> Any?) = this.action { _ -> action() }
 		infix fun action(action: (Any) -> Any?)
 		infix fun <T : Any> via(signal: KClass<T>): Action<T, Any?>
 		infix fun <T : Any> via(signal: T): Action<T, Any?>
@@ -26,7 +26,7 @@ interface KotlmataState
 	
 	interface Input
 	{
-		infix fun action(action: () -> Unit)
+		infix fun action(action: () -> Unit) = this.action { _ -> action() }
 		infix fun action(action: (Any) -> Unit)
 		infix fun <T : Any> signal(signal: KClass<T>): Action<T, Unit>
 		infix fun <T : Any> signal(signal: T): Action<T, Unit>
@@ -39,7 +39,7 @@ interface KotlmataState
 	
 	interface Action<T, U>
 	{
-		infix fun action(action: () -> U)
+		infix fun action(action: () -> U) = this.action { _ -> action() }
 		infix fun action(action: (T) -> U)
 	}
 	
@@ -182,12 +182,6 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 		@Suppress("UNCHECKED_CAST")
 		override val entry: KotlmataState.Entry = object : KotlmataState.Entry
 		{
-			override fun action(action: () -> Any?)
-			{
-				expired should { return }
-				this@KotlmataStateImpl.entry = { _ -> action() }
-			}
-			
 			override fun action(action: (Any) -> Any?)
 			{
 				expired should { return }
@@ -198,12 +192,6 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 			{
 				return object : KotlmataState.Action<T, Any?>
 				{
-					override fun action(action: () -> Any?)
-					{
-						expired should { return }
-						entryMap[signal] = { _ -> action() }
-					}
-					
 					override fun action(action: (T) -> Any?)
 					{
 						expired should { return }
@@ -216,12 +204,6 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 			{
 				return object : KotlmataState.Action<T, Any?>
 				{
-					override fun action(action: () -> Any?)
-					{
-						expired should { return }
-						entryMap[signal] = { _ -> action() }
-					}
-					
 					override fun action(action: (T) -> Any?)
 					{
 						expired should { return }
@@ -234,12 +216,6 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 		@Suppress("UNCHECKED_CAST")
 		override val input: KotlmataState.Input = object : KotlmataState.Input
 		{
-			override fun action(action: () -> Unit)
-			{
-				expired should { return }
-				this@KotlmataStateImpl.input = { _ -> action() }
-			}
-			
 			override fun action(action: (Any) -> Unit)
 			{
 				expired should { return }
@@ -250,12 +226,6 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 			{
 				return object : KotlmataState.Action<T, Unit>
 				{
-					override fun action(action: () -> Unit)
-					{
-						expired should { return }
-						inputMap[signal] = { _ -> action() }
-					}
-					
 					override fun action(action: (T) -> Unit)
 					{
 						expired should { return }
@@ -268,12 +238,6 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 			{
 				return object : KotlmataState.Action<T, Unit>
 				{
-					override fun action(action: () -> Unit)
-					{
-						expired should { return }
-						inputMap[signal] = { _ -> action() }
-					}
-					
 					override fun action(action: (T) -> Unit)
 					{
 						expired should { return }

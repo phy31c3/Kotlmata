@@ -23,9 +23,9 @@ class Tests
 				println("b 진입함수")
 				"next"
 			}
-			input action { _ -> println("기본 입력함수") }
+			input action { -> println("기본 입력함수") }
 			input signal Any::class action { s -> println("Any타입 입력함수: $s") }
-			input signal "next" action { _ -> println("진입함수에서 흘러들어옴") }
+			input signal "next" action { -> println("진입함수에서 흘러들어옴") }
 			exit action { println("퇴장함수") }
 		}.apply {
 			entry(Any()) {}
@@ -40,5 +40,11 @@ class Tests
 		}
 		
 		initializer?.entry?.action { _ -> }
+	}
+	
+	@Test
+	fun machineTest()
+	{
+	
 	}
 }
