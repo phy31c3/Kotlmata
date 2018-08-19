@@ -130,6 +130,17 @@ class Tests
 			insert transition "state1" x "base" %= "state3"
 			insert or update transition "state1" x "base" %= "state3"
 			update transition "state1" x "base" %= "state4"
+			
+			delete state "state1"
+			delete state all
+			
+			delete transition "state1" x String::class
+			delete transition any x String::class
+			delete transition "state2" x any
+			delete transition any %= "base"
+			delete transition any x any
+			delete transition any %= any
+			delete transition all
 		}
 	}
 }

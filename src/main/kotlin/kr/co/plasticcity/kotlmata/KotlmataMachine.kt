@@ -177,6 +177,28 @@ interface KotlmataMutableMachine : KotlmataMachine
 		}
 		
 		interface Delete
+		{
+			infix fun state(state: Any)
+			infix fun state(keyword: all)
+			
+			infix fun transition(state: Any): X
+			infix fun transition(keyword: any): AnyLeft
+			infix fun transition(keyword: all)
+			
+			interface X
+			{
+				infix fun x(signal: Any)
+				infix fun x(keyword: any)
+			}
+			
+			interface AnyLeft
+			{
+				infix fun x(signal: Any)
+				infix fun x(keyword: any)
+				operator fun remAssign(state: Any)
+				operator fun remAssign(keyword: any)
+			}
+		}
 	}
 	
 	operator fun invoke(block: Modifier.() -> Unit)

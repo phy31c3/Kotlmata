@@ -142,12 +142,15 @@ mutableMachine {
 	update transition "state0" x "signal" %= "state1"
 
 	delete state "state1"
-	delete transition "state0" x "signal"
-	delete transition all from "state0"
-	delete transition all to "state1"
+	delete state all
 
-	delete all states
-	delete all transitions
+	delete transition "state0" x "signal"
+	delete transition "state0" x any
+	delete transition any x "signal"
+	delete transition any %= "state1"
+	delete transition any x any // delete transition all과 동일
+	delete transition any %= any // delete transition all과 동일
+	delete transition all
 }
 
 mutableMachine.input("signal")
