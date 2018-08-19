@@ -84,5 +84,9 @@ class Tests
 			
 			initialize origin state to "state1"
 		}
+		
+		machine {
+		
+		}
 	}
 }

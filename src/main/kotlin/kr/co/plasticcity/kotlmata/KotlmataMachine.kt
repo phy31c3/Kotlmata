@@ -9,7 +9,7 @@ interface KotlmataMachine
 		operator fun invoke(
 				name: String? = null,
 				block: Initializer.() -> Initialize.End
-		): KotlmataMachine? = null
+		): KotlmataMachine = KotlmataMachineImpl(name, block)
 	}
 	
 	interface Initializer : StateDefine, TransitionDefine
@@ -57,10 +57,6 @@ interface KotlmataMachine
 	
 	interface TransitionDefine
 	{
-		infix fun Any.X(signal: Any): TransitionLeft = x(signal)
-		infix fun Any.X(signal: KClass<out Any>): TransitionLeft = x(signal)
-		infix fun Any.X(keyword: any): TransitionLeft = x(keyword)
-		
 		infix fun Any.x(signal: Any): TransitionLeft
 		infix fun Any.x(signal: KClass<out Any>): TransitionLeft
 		infix fun Any.x(keyword: any): TransitionLeft
@@ -79,6 +75,41 @@ interface KotlmataMutableMachine : KotlmataMachine
 		operator fun invoke(
 				name: String? = null,
 				block: (KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End)? = null
-		): KotlmataMutableMachine? = null
+		): KotlmataMutableMachine = KotlmataMachineImpl(name, block)
+	}
+	
+	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.TransitionDefine
+	{
+		val has: Has
+		val insert: Insert
+		val replace: Replace
+		val update: Update
+		val delete: Delete
+		
+		interface Has
+		interface Insert
+		interface Replace
+		interface Update
+		interface Delete
+	}
+	
+	operator fun invoke(block: Modifier.() -> Unit)
+	
+	infix fun modify(block: Modifier.() -> Unit)
+}
+
+private class KotlmataMachineImpl(
+		key: Any? = null,
+		block: (KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End)? = null
+) : KotlmataMutableMachine
+{
+	override fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	{
+		TODO("not implemented")
+	}
+	
+	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	{
+		TODO("not implemented")
 	}
 }

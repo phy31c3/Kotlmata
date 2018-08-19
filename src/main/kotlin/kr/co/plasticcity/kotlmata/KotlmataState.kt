@@ -100,7 +100,7 @@ interface KotlmataMutableState : KotlmataState
 	infix fun modify(block: Modifier.() -> Unit)
 }
 
-internal class KotlmataStateImpl(
+private class KotlmataStateImpl(
 		key: Any? = null,
 		block: (KotlmataState.Initializer.() -> Unit)? = null
 ) : KotlmataMutableState
