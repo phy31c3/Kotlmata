@@ -1,5 +1,4 @@
-import kr.co.plasticcity.kotlmata.Kotlmata
-import kr.co.plasticcity.kotlmata.KotlmataState
+import kr.co.plasticcity.kotlmata.*
 import org.junit.Test
 
 class Tests
@@ -13,7 +12,7 @@ class Tests
 		}
 		
 		var initializer: KotlmataState.Initializer? = null
-		KotlmataState {
+		val state = KotlmataMutableState {
 			initializer = this
 			
 			entry action { -> println("기본 진입함수") }
@@ -39,12 +38,39 @@ class Tests
 			exit()
 		}
 		
+		state {
+			delete action entry via ""
+			delete action all
+		}
+		
+		state.input(Any())
+		
 		initializer?.entry?.action { _ -> }
 	}
 	
 	@Test
 	fun machineTest()
 	{
-	
+		KotlmataMachine {
+			templates {
+				"base" {
+				
+				}
+			}
+			
+			"state1" {
+				extends template "base"
+			}
+			
+			"state2" {
+			
+			}
+			
+			"state1" x "signal" %= "state2"
+			"state1" x String::class %= "state2"
+			"state1" x any %= "state2"
+			
+			initialize origin state to "state"
+		}
 	}
 }

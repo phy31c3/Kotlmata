@@ -54,13 +54,6 @@ immutableState.exit()
 
 [Machine]————————————————————————————————————————————————————————————————————————————————
 KotlmataMachine("name") {
-	templates += "base" {
-		entry action [action]
-		entry via "signal" action [action]
-		input signal "signal" action [action]
-		exit action [action]
-	}
-
 	templates {
 		"base" {
 			entry action [action]
