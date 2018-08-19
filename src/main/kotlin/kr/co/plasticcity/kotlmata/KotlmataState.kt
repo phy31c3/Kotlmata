@@ -22,7 +22,7 @@ interface KotlmataState
 	interface Entry
 	{
 		infix fun action(action: () -> Any?) = this.action { _ -> action() }
-		infix fun action(action: (Any) -> Any?)
+		infix fun action(action: (signal: Any) -> Any?)
 		infix fun <T : Any> via(signal: KClass<T>): Action<T, Any?>
 		infix fun <T : Any> via(signal: T): Action<T, Any?>
 	}
@@ -30,7 +30,7 @@ interface KotlmataState
 	interface Input
 	{
 		infix fun action(action: () -> Unit) = this.action { _ -> action() }
-		infix fun action(action: (Any) -> Unit)
+		infix fun action(action: (signal: Any) -> Unit)
 		infix fun <T : Any> signal(signal: KClass<T>): Action<T, Unit>
 		infix fun <T : Any> signal(signal: T): Action<T, Unit>
 	}
@@ -43,13 +43,13 @@ interface KotlmataState
 	interface Action<T, U>
 	{
 		infix fun action(action: () -> U) = this.action { _ -> action() }
-		infix fun action(action: (T) -> U)
+		infix fun action(action: (signal: T) -> U)
 	}
 	
 	/**
 	 * @param block If 'entry action' returns a next signal, the block is runned.
 	 */
-	fun entry(signal: Any, block: (Any) -> Unit)
+	fun entry(signal: Any, block: KotlmataState.(signal: Any) -> Unit)
 	
 	fun input(signal: Any)
 	
@@ -106,11 +106,11 @@ internal class KotlmataStateImpl(
 ) : KotlmataMutableState
 {
 	private val key: Any = key ?: this
-	private var entry: ((Any) -> Any?)? = null
-	private var input: ((Any) -> Unit)? = null
+	private var entry: ((signal: Any) -> Any?)? = null
+	private var input: ((signal: Any) -> Unit)? = null
 	private var exit: (() -> Unit)? = null
-	private var entryMap: MutableMap<Any, (Any) -> Any?>? = null
-	private var inputMap: MutableMap<Any, (Any) -> Unit>? = null
+	private var entryMap: MutableMap<Any, (signal: Any) -> Any?>? = null
+	private var inputMap: MutableMap<Any, (signal: Any) -> Unit>? = null
 	
 	init
 	{
@@ -124,7 +124,7 @@ internal class KotlmataStateImpl(
 		modify(block)
 	}
 	
-	override fun entry(signal: Any, block: (Any) -> Unit)
+	override fun entry(signal: Any, block: KotlmataState.(signal: Any) -> Unit)
 	{
 		val next = entryMap?.let {
 			when
@@ -134,7 +134,9 @@ internal class KotlmataStateImpl(
 				else -> null
 			}
 		} ?: entry?.invoke(signal)
-		next?.apply(block)
+		next?.apply {
+			this@KotlmataStateImpl.block(this)
+		}
 	}
 	
 	override fun input(signal: Any)
@@ -177,12 +179,12 @@ internal class KotlmataStateImpl(
 		@Volatile
 		private var expired: Boolean = false
 		
-		private val entryMap: MutableMap<Any, (Any) -> Any?>
+		private val entryMap: MutableMap<Any, (signal: Any) -> Any?>
 			get() = this@KotlmataStateImpl.entryMap ?: HashMap<Any, (Any) -> Any?>().apply {
 				this@KotlmataStateImpl.entryMap = this
 			}
 		
-		private val inputMap: MutableMap<Any, (Any) -> Unit>
+		private val inputMap: MutableMap<Any, (signal: Any) -> Unit>
 			get() = this@KotlmataStateImpl.inputMap ?: HashMap<Any, (Any) -> Unit>().apply {
 				this@KotlmataStateImpl.inputMap = this
 			}
@@ -190,7 +192,7 @@ internal class KotlmataStateImpl(
 		@Suppress("UNCHECKED_CAST")
 		override val entry: KotlmataState.Entry = object : KotlmataState.Entry
 		{
-			override fun action(action: (Any) -> Any?)
+			override fun action(action: (signal: Any) -> Any?)
 			{
 				expired should { return }
 				this@KotlmataStateImpl.entry = action
@@ -200,7 +202,7 @@ internal class KotlmataStateImpl(
 			{
 				return object : KotlmataState.Action<T, Any?>
 				{
-					override fun action(action: (T) -> Any?)
+					override fun action(action: (signal: T) -> Any?)
 					{
 						expired should { return }
 						entryMap[signal] = action as (Any) -> Any?
@@ -212,7 +214,7 @@ internal class KotlmataStateImpl(
 			{
 				return object : KotlmataState.Action<T, Any?>
 				{
-					override fun action(action: (T) -> Any?)
+					override fun action(action: (signal: T) -> Any?)
 					{
 						expired should { return }
 						entryMap[signal] = action as (Any) -> Any?
@@ -224,7 +226,7 @@ internal class KotlmataStateImpl(
 		@Suppress("UNCHECKED_CAST")
 		override val input: KotlmataState.Input = object : KotlmataState.Input
 		{
-			override fun action(action: (Any) -> Unit)
+			override fun action(action: (signal: Any) -> Unit)
 			{
 				expired should { return }
 				this@KotlmataStateImpl.input = action
@@ -234,7 +236,7 @@ internal class KotlmataStateImpl(
 			{
 				return object : KotlmataState.Action<T, Unit>
 				{
-					override fun action(action: (T) -> Unit)
+					override fun action(action: (signal: T) -> Unit)
 					{
 						expired should { return }
 						inputMap[signal] = action as (Any) -> Unit
@@ -246,7 +248,7 @@ internal class KotlmataStateImpl(
 			{
 				return object : KotlmataState.Action<T, Unit>
 				{
-					override fun action(action: (T) -> Unit)
+					override fun action(action: (signal: T) -> Unit)
 					{
 						expired should { return }
 						inputMap[signal] = action as (Any) -> Unit
