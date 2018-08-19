@@ -69,8 +69,6 @@ interface KotlmataMutableState : KotlmataState
 	
 	interface Delete
 	{
-		object all
-		
 		infix fun action(keyword: KotlmataState.Entry): Entry
 		infix fun action(keyword: KotlmataState.Input): Input
 		infix fun action(keyword: KotlmataState.Exit)
@@ -280,7 +278,7 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 						entryMap.remove(signal)
 					}
 					
-					override fun via(keyword: KotlmataMutableState.Delete.all)
+					override fun via(keyword: all)
 					{
 						expired should { return }
 						this@KotlmataStateImpl.entry = stash
@@ -311,7 +309,7 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 						inputMap.remove(signal)
 					}
 					
-					override fun signal(keyword: KotlmataMutableState.Delete.all)
+					override fun signal(keyword: all)
 					{
 						expired should { return }
 						this@KotlmataStateImpl.input = stash
@@ -326,7 +324,7 @@ internal class KotlmataStateImpl(key: Any? = null, block: (KotlmataState.Initial
 				this@KotlmataStateImpl.exit = null
 			}
 			
-			override fun action(keyword: KotlmataMutableState.Delete.all)
+			override fun action(keyword: all)
 			{
 				expired should { return }
 				this@KotlmataStateImpl.entry = null
