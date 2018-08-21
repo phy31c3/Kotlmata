@@ -54,17 +54,7 @@ immutableState.exit()
 
 [Machine]————————————————————————————————————————————————————————————————————————————————
 KotlmataMachine("name") {
-	templates {
-		"base" {
-			entry action [action]
-			entry via "signal" action [action]
-			input signal "signal" action [action]
-			exit action [action]
-		}
-	}
-
 	"state0" {
-		extends template "base"
 		entry action [action]
 		entry via "signal" action [action]
 		input signal "signal" action {
@@ -79,6 +69,8 @@ KotlmataMachine("name") {
 	"state0" x "signal" %= "state1"
 	"state1" x KClass<String> %= "state2"
 	"state1" x any %= "state2"
+	any x "signal" %= "state1"
+	any x any %= "state2"
 
 	initialize origin state to "state0"
 }
@@ -108,7 +100,7 @@ mutableMachine {
 		// "state1"이 존재하지 않으면 실행
 	}
 
-	has transition "state0" x "signal" then {
+	has transition ("state0" x "signal") then {
 		// ("state0" x "signal")이 존재하면 실행
 	} or {
 		// ("state0" x "signal")이 존재하지 않으면 실행
@@ -116,40 +108,39 @@ mutableMachine {
 
 	insert state "state1" of {
 		// "state1" 삽입, 이미 존재하면 무시
-		extends template "base" // 가능
+		// Initializer
 	}
 
 	insert or replace state "state1" of {
 		// "state1" 삽입, 이미 존재하면 교체
-		extends template "base" // 가능
+		// Initializer
     }
 
 	replace state "state1" of {
 		// "state1"이 존재할 경우에만 교체
-		extends template "base" // 가능
+		// Initializer
 	}
 
 	update state "state1" set {
 		// "state1"이 존재할 경우에만 업데이트
-		extends template "base" // 불가
+		// Modifier
 	} or insert state "state1" of {
 		// "state1"이 존재하지 않으면 삽입
-		extends template "base" // 가능
+		// Initializer
 	}
 
-	insert transition "state0" x "signal" %= "state1"
-	insert or update transition "state0" x "signal" %= "state1"
-	update transition "state0" x "signal" %= "state1"
+	insert transition ("state0" x "signal") %= "state1"
+	insert or update transition ("state0" x "signal") %= "state1"
+	update transition ("state0" x "signal") %= "state1"
 
 	delete state "state1"
 	delete state all
 
-	delete transition "state0" x "signal"
-	delete transition "state0" x any
-	delete transition any x "signal"
-	delete transition any %= "state1"
-	delete transition any x any // delete transition all과 동일
-	delete transition any %= any // delete transition all과 동일
+	delete transition ("state0" x "signal")
+	delete transition ("state0" x any)
+	delete transition (any x "signal")
+	delete transition (any x any)
+	delete transition of state "state1"
 	delete transition all
 }
 
