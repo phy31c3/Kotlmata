@@ -23,16 +23,16 @@ interface KotlmataState
 	{
 		infix fun action(action: () -> Any?) = this.action { _ -> action() }
 		infix fun action(action: (signal: Any) -> Any?)
-		infix fun <T : Any> via(signal: KClass<T>): Action<T, Any?>
-		infix fun <T : Any> via(signal: T): Action<T, Any?>
+		infix fun <T : Any> via(signal: KClass<T>): action<T, Any?>
+		infix fun <T : Any> via(signal: T): action<T, Any?>
 	}
 	
 	interface Input
 	{
 		infix fun action(action: () -> Unit) = this.action { _ -> action() }
 		infix fun action(action: (signal: Any) -> Unit)
-		infix fun <T : Any> signal(signal: KClass<T>): Action<T, Unit>
-		infix fun <T : Any> signal(signal: T): Action<T, Unit>
+		infix fun <T : Any> signal(signal: KClass<T>): action<T, Unit>
+		infix fun <T : Any> signal(signal: T): action<T, Unit>
 	}
 	
 	interface Exit
@@ -40,7 +40,7 @@ interface KotlmataState
 		infix fun action(action: () -> Unit)
 	}
 	
-	interface Action<T, U>
+	interface action<T, U>
 	{
 		infix fun action(action: () -> U) = this.action { _ -> action() }
 		infix fun action(action: (signal: T) -> U)
@@ -106,11 +106,11 @@ private class KotlmataStateImpl(
 ) : KotlmataMutableState
 {
 	private val key: Any = key ?: this
-	private var entry: ((signal: Any) -> Any?)? = null
-	private var input: ((signal: Any) -> Unit)? = null
+	private var entry: ((SIGNAL) -> SIGNAL?)? = null
+	private var input: ((SIGNAL) -> Unit)? = null
 	private var exit: (() -> Unit)? = null
-	private var entryMap: MutableMap<Any, (signal: Any) -> Any?>? = null
-	private var inputMap: MutableMap<Any, (signal: Any) -> Unit>? = null
+	private var entryMap: MutableMap<SIGNAL, (SIGNAL) -> SIGNAL?>? = null
+	private var inputMap: MutableMap<SIGNAL, (SIGNAL) -> Unit>? = null
 	
 	init
 	{
@@ -177,13 +177,13 @@ private class KotlmataStateImpl(
 		@Volatile
 		private var expired: Boolean = false
 		
-		private val entryMap: MutableMap<Any, (signal: Any) -> Any?>
-			get() = this@KotlmataStateImpl.entryMap ?: HashMap<Any, (Any) -> Any?>().apply {
+		private val entryMap: MutableMap<SIGNAL, (SIGNAL) -> SIGNAL?>
+			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, (SIGNAL) -> SIGNAL?>().apply {
 				this@KotlmataStateImpl.entryMap = this
 			}
 		
-		private val inputMap: MutableMap<Any, (signal: Any) -> Unit>
-			get() = this@KotlmataStateImpl.inputMap ?: HashMap<Any, (Any) -> Unit>().apply {
+		private val inputMap: MutableMap<SIGNAL, (SIGNAL) -> Unit>
+			get() = this@KotlmataStateImpl.inputMap ?: HashMap<SIGNAL, (SIGNAL) -> Unit>().apply {
 				this@KotlmataStateImpl.inputMap = this
 			}
 		
@@ -196,9 +196,9 @@ private class KotlmataStateImpl(
 				this@KotlmataStateImpl.entry = action
 			}
 			
-			override fun <T : Any> via(signal: KClass<T>): KotlmataState.Action<T, Any?>
+			override fun <T : Any> via(signal: KClass<T>): KotlmataState.action<T, Any?>
 			{
-				return object : KotlmataState.Action<T, Any?>
+				return object : KotlmataState.action<T, Any?>
 				{
 					override fun action(action: (signal: T) -> Any?)
 					{
@@ -208,9 +208,9 @@ private class KotlmataStateImpl(
 				}
 			}
 			
-			override fun <T : Any> via(signal: T): KotlmataState.Action<T, Any?>
+			override fun <T : Any> via(signal: T): KotlmataState.action<T, Any?>
 			{
-				return object : KotlmataState.Action<T, Any?>
+				return object : KotlmataState.action<T, Any?>
 				{
 					override fun action(action: (signal: T) -> Any?)
 					{
@@ -230,9 +230,9 @@ private class KotlmataStateImpl(
 				this@KotlmataStateImpl.input = action
 			}
 			
-			override fun <T : Any> signal(signal: KClass<T>): KotlmataState.Action<T, Unit>
+			override fun <T : Any> signal(signal: KClass<T>): KotlmataState.action<T, Unit>
 			{
-				return object : KotlmataState.Action<T, Unit>
+				return object : KotlmataState.action<T, Unit>
 				{
 					override fun action(action: (signal: T) -> Unit)
 					{
@@ -242,9 +242,9 @@ private class KotlmataStateImpl(
 				}
 			}
 			
-			override fun <T : Any> signal(signal: T): KotlmataState.Action<T, Unit>
+			override fun <T : Any> signal(signal: T): KotlmataState.action<T, Unit>
 			{
-				return object : KotlmataState.Action<T, Unit>
+				return object : KotlmataState.action<T, Unit>
 				{
 					override fun action(action: (signal: T) -> Unit)
 					{

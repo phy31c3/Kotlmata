@@ -19,9 +19,9 @@ interface KotlmataMachine
 	
 	interface Initialize
 	{
-		infix fun origin(keyword: state): To
+		infix fun origin(keyword: state): to
 		
-		interface To
+		interface to
 		{
 			infix fun to(state: Any): End
 		}
@@ -75,15 +75,15 @@ interface KotlmataMutableMachine : KotlmataMachine
 		
 		interface Has
 		{
-			infix fun state(state: Any): Then
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): Then
+			infix fun state(state: Any): then
+			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): then
 			
-			interface Then
+			interface then
 			{
-				infix fun then(block: () -> Unit): Or
+				infix fun then(block: () -> Unit): or
 			}
 			
-			interface Or
+			interface or
 			{
 				infix fun or(block: () -> Unit)
 			}
@@ -91,27 +91,27 @@ interface KotlmataMutableMachine : KotlmataMachine
 		
 		interface Insert
 		{
-			infix fun state(state: Any): Of
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): RemAssign
-			infix fun or(keyword: Replace): State
-			infix fun or(keyword: Update): Transition
+			infix fun state(state: Any): of
+			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
+			infix fun or(keyword: Replace): state
+			infix fun or(keyword: Update): transition
 			
-			interface State
+			interface state
 			{
-				infix fun state(state: Any): Of
+				infix fun state(state: Any): of
 			}
 			
-			interface Transition
+			interface transition
 			{
-				infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): RemAssign
+				infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
 			}
 			
-			interface Of
+			interface of
 			{
 				infix fun of(block: KotlmataState.Initializer.() -> Unit)
 			}
 			
-			interface RemAssign
+			interface remAssign
 			{
 				operator fun remAssign(state: Any)
 			}
@@ -119,9 +119,9 @@ interface KotlmataMutableMachine : KotlmataMachine
 		
 		interface Replace
 		{
-			infix fun state(state: Any): Of
+			infix fun state(state: Any): of
 			
-			interface Of
+			interface of
 			{
 				infix fun of(block: KotlmataState.Initializer.() -> Unit)
 			}
@@ -129,20 +129,20 @@ interface KotlmataMutableMachine : KotlmataMachine
 		
 		interface Update
 		{
-			infix fun state(state: Any): Set
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): RemAssign
+			infix fun state(state: Any): set
+			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
 			
-			interface Set
+			interface set
 			{
-				infix fun set(block: KotlmataMutableState.Modifier.() -> Unit): Or
+				infix fun set(block: KotlmataMutableState.Modifier.() -> Unit): or
 			}
 			
-			interface Or
+			interface or
 			{
 				infix fun or(block: KotlmataState.Initializer.() -> Unit)
 			}
 			
-			interface RemAssign
+			interface remAssign
 			{
 				operator fun remAssign(state: Any)
 			}
@@ -154,10 +154,10 @@ interface KotlmataMutableMachine : KotlmataMachine
 			infix fun state(keyword: all)
 			
 			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft)
-			infix fun transition(keyword: of): State
+			infix fun transition(keyword: of): state
 			infix fun transition(keyword: all)
 			
-			interface State
+			interface state
 			{
 				infix fun state(state: Any)
 			}
@@ -175,8 +175,8 @@ private class KotlmataMachineImpl(
 ) : KotlmataMutableMachine
 {
 	private val key: Any = key ?: this
-	private val stateMap: MutableMap<Any, KotlmataMutableState> = HashMap()
-	private val transitionMap: MutableMap<Any, MutableMap<Any, Any>> = HashMap()
+	private val stateMap: MutableMap<STATE, KotlmataMutableState> = HashMap()
+	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
 	override fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
