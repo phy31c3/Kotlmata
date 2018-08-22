@@ -200,12 +200,44 @@ private class KotlmataMachineImpl(
 	
 	override fun input(signal: Any)
 	{
-		TODO("not implemented")
+		fun MutableMap<SIGNAL, STATE>.getNext(): STATE?
+		{
+			return this[signal] ?: this[signal::class] ?: this[any]
+		}
+		
+		let {
+			state.input(signal)
+			transitionMap[state.key]?.getNext() ?: transitionMap[any]?.getNext()
+		}?.let {
+			stateMap[it]
+		}?.let {
+			state.exit()
+			state = it
+			state.entry(signal) { signal ->
+				input(signal)
+			}
+		}
 	}
 	
 	override fun <T : Any> input(signal: T, type: KClass<in T>)
 	{
-		TODO("not implemented")
+		fun MutableMap<SIGNAL, STATE>.next(): STATE?
+		{
+			return this[type] ?: this[any]
+		}
+		
+		let {
+			state.input(signal, type)
+			transitionMap[state.key]?.next() ?: transitionMap[any]?.next()
+		}?.let {
+			stateMap[it]
+		}?.let {
+			state.exit()
+			state = it
+			state.entry(signal, type) { signal ->
+				input(signal)
+			}
+		}
 	}
 	
 	private inner class ModifierImpl internal constructor(
