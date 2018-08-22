@@ -50,6 +50,8 @@ interface KotlmataMachine
 		operator fun remAssign(state: Any)
 	}
 	
+	val key: Any
+	
 	fun input(signal: Any)
 	
 	fun <T : Any> input(signal: T, type: KClass<in T>)
@@ -174,13 +176,26 @@ private class KotlmataMachineImpl(
 		block: (KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End)? = null
 ) : KotlmataMutableMachine
 {
-	private val key: Any = key ?: this
+	override val key: Any = key ?: this
 	private val stateMap: MutableMap<STATE, KotlmataMutableState> = HashMap()
 	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
+	private lateinit var state: KotlmataState
+	
+	init
+	{
+		block?.let {
+			ModifierImpl(init = it)
+		}
+	}
 	
 	override fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
-		TODO("not implemented")
+		modify(block)
+	}
+	
+	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	{
+		ModifierImpl(modify = block)
 	}
 	
 	override fun input(signal: Any)
@@ -193,8 +208,62 @@ private class KotlmataMachineImpl(
 		TODO("not implemented")
 	}
 	
-	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	private inner class ModifierImpl internal constructor(
+			init: (KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End)? = null,
+			modify: (KotlmataMutableMachine.Modifier.() -> Unit)? = null
+	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier
 	{
-		TODO("not implemented")
+		override val initialize: KotlmataMachine.Initialize
+			get() = TODO("not implemented")
+		override val has: KotlmataMutableMachine.Modifier.Has
+			get() = TODO("not implemented")
+		override val insert: KotlmataMutableMachine.Modifier.Insert
+			get() = TODO("not implemented")
+		override val replace: KotlmataMutableMachine.Modifier.Replace
+			get() = TODO("not implemented")
+		override val update: KotlmataMutableMachine.Modifier.Update
+			get() = TODO("not implemented")
+		override val delete: KotlmataMutableMachine.Modifier.Delete
+			get() = TODO("not implemented")
+		
+		init
+		{
+			TODO("not implemented")
+		}
+		
+		override fun Any.invoke(block: KotlmataState.Initializer.() -> Unit)
+		{
+			TODO("not implemented")
+		}
+		
+		override fun Any.x(signal: Any): KotlmataMachine.TransitionLeft
+		{
+			TODO("not implemented")
+		}
+		
+		override fun Any.x(signal: KClass<out Any>): KotlmataMachine.TransitionLeft
+		{
+			TODO("not implemented")
+		}
+		
+		override fun Any.x(keyword: any): KotlmataMachine.TransitionLeft
+		{
+			TODO("not implemented")
+		}
+		
+		override fun any.x(signal: Any): KotlmataMachine.TransitionLeft
+		{
+			TODO("not implemented")
+		}
+		
+		override fun any.x(signal: KClass<out Any>): KotlmataMachine.TransitionLeft
+		{
+			TODO("not implemented")
+		}
+		
+		override fun any.x(keyword: any): KotlmataMachine.TransitionLeft
+		{
+			TODO("not implemented")
+		}
 	}
 }

@@ -46,10 +46,17 @@ interface KotlmataState
 		infix fun action(action: (signal: T) -> U)
 	}
 	
+	val key: Any
+	
 	/**
 	 * @param block If 'entry action' returns a next signal, the block is runned.
 	 */
 	fun entry(signal: Any, block: (signal: Any) -> Unit)
+	
+	/**
+	 * @param block If 'entry action' returns a next signal, the block is runned.
+	 */
+	fun <T : Any> entry(signal: Any, type: KClass<in T>, block: (signal: Any) -> Unit)
 	
 	fun input(signal: Any)
 	
@@ -105,7 +112,7 @@ private class KotlmataStateImpl(
 		block: (KotlmataState.Initializer.() -> Unit)? = null
 ) : KotlmataMutableState
 {
-	private val key: Any = key ?: this
+	override val key: Any = key ?: this
 	private var entry: ((SIGNAL) -> SIGNAL?)? = null
 	private var input: ((SIGNAL) -> Unit)? = null
 	private var exit: (() -> Unit)? = null
@@ -135,6 +142,18 @@ private class KotlmataStateImpl(
 			when
 			{
 				it.containsKey(signal) -> it[signal]?.invoke(signal)
+				it.containsKey(signal::class) -> it[signal::class]?.invoke(signal)
+				else -> null
+			}
+		} ?: entry?.invoke(signal)
+		next?.apply(block)
+	}
+	
+	override fun <T : Any> entry(signal: Any, type: KClass<in T>, block: (signal: Any) -> Unit)
+	{
+		val next = entryMap?.let {
+			when
+			{
 				it.containsKey(signal::class) -> it[signal::class]?.invoke(signal)
 				else -> null
 			}
