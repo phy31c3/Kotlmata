@@ -124,6 +124,11 @@ private class KotlmataStateImpl(
 		modify(block)
 	}
 	
+	override fun modify(block: KotlmataMutableState.Modifier.() -> Unit)
+	{
+		ModifierImpl(block)
+	}
+	
 	override fun entry(signal: Any, block: (signal: Any) -> Unit)
 	{
 		val next = entryMap?.let {
@@ -163,11 +168,6 @@ private class KotlmataStateImpl(
 	override fun exit()
 	{
 		exit?.invoke()
-	}
-	
-	override fun modify(block: KotlmataMutableState.Modifier.() -> Unit)
-	{
-		ModifierImpl(block)
 	}
 	
 	private inner class ModifierImpl internal constructor(
