@@ -26,7 +26,7 @@ interface KotlmataMachine
 			infix fun to(state: Any): End
 		}
 		
-		interface End
+		class End internal constructor()
 	}
 	
 	interface StateDefine
@@ -248,10 +248,36 @@ private class KotlmataMachineImpl(
 		@Volatile
 		private var expired: Boolean = false
 		
-		override val initialize: KotlmataMachine.Initialize
-			get() = TODO("not implemented")
-		override val has: KotlmataMutableMachine.Modifier.Has
-			get() = TODO("not implemented")
+		override val initialize: KotlmataMachine.Initialize = object : KotlmataMachine.Initialize
+		{
+			override fun origin(keyword: state): KotlmataMachine.Initialize.to = object : KotlmataMachine.Initialize.to
+			{
+				override fun to(state: Any): KotlmataMachine.Initialize.End
+				{
+					expired should { return KotlmataMachine.Initialize.End() }
+					
+					stateMap[state]?.let {
+						this@KotlmataMachineImpl.state = it
+					} ?: Logger.e(key, state) { INVALID_ORIGIN_STATE }
+					
+					return KotlmataMachine.Initialize.End()
+				}
+			}
+		}
+		
+		override val has: KotlmataMutableMachine.Modifier.Has = object :KotlmataMutableMachine.Modifier.Has
+		{
+			override fun state(state: Any): KotlmataMutableMachine.Modifier.Has.then
+			{
+				TODO("not implemented")
+			}
+			
+			override fun transition(transitionLeft: KotlmataMachine.TransitionLeft): KotlmataMutableMachine.Modifier.Has.then
+			{
+				TODO("not implemented")
+			}
+		}
+		
 		override val insert: KotlmataMutableMachine.Modifier.Insert
 			get() = TODO("not implemented")
 		override val replace: KotlmataMutableMachine.Modifier.Replace

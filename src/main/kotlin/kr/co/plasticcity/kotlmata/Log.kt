@@ -12,6 +12,7 @@ internal class Logs
 		
 		/* Machine */
 		const val INVALID_MACHINE_SETTER = "Machine[%s] : Use of invalid KotlmataMutableMachine.Modifier object: The object is only available within the initialization or modifying block."
+		const val INVALID_ORIGIN_STATE = "Machine[%s] : The origin state %s does not exist in machine."
 	}
 }
 
