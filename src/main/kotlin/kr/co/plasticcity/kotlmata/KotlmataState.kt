@@ -121,7 +121,7 @@ private class KotlmataStateImpl(
 	
 	init
 	{
-		block?.let {
+		block?.also {
 			modify(it)
 		}
 	}

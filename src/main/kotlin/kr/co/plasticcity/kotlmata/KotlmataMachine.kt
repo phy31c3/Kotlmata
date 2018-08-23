@@ -47,6 +47,9 @@ interface KotlmataMachine
 	
 	interface TransitionLeft
 	{
+		val state: STATE
+		val signal: SIGNAL
+		
 		operator fun remAssign(state: Any)
 	}
 	
@@ -183,7 +186,7 @@ private class KotlmataMachineImpl(
 	
 	init
 	{
-		block?.let {
+		block?.also {
 			ModifierImpl(init = it)
 		}
 	}
@@ -256,25 +259,68 @@ private class KotlmataMachineImpl(
 				{
 					expired should { return KotlmataMachine.Initialize.End() }
 					
-					stateMap[state]?.let {
+					stateMap[state]?.also {
 						this@KotlmataMachineImpl.state = it
-					} ?: Logger.e(key, state) { INVALID_ORIGIN_STATE }
+					} ?: KotlmataMutableState().also {
+						this@KotlmataMachineImpl.state = it
+						Logger.e(key, state) { INVALID_ORIGIN_STATE }
+					}
 					
 					return KotlmataMachine.Initialize.End()
 				}
 			}
 		}
 		
-		override val has: KotlmataMutableMachine.Modifier.Has = object :KotlmataMutableMachine.Modifier.Has
+		override val has: KotlmataMutableMachine.Modifier.Has = object : KotlmataMutableMachine.Modifier.Has
 		{
-			override fun state(state: Any): KotlmataMutableMachine.Modifier.Has.then
+			private fun or(): KotlmataMutableMachine.Modifier.Has.or
 			{
-				TODO("not implemented")
+				return object : KotlmataMutableMachine.Modifier.Has.or
+				{
+					override fun or(block: () -> Unit)
+					{
+						block()
+					}
+				}
 			}
 			
-			override fun transition(transitionLeft: KotlmataMachine.TransitionLeft): KotlmataMutableMachine.Modifier.Has.then
+			private fun stop(): KotlmataMutableMachine.Modifier.Has.or
 			{
-				TODO("not implemented")
+				return object : KotlmataMutableMachine.Modifier.Has.or
+				{
+					override fun or(block: () -> Unit)
+					{
+						/* do nothing */
+					}
+				}
+			}
+			
+			override fun state(state: Any): KotlmataMutableMachine.Modifier.Has.then = object : KotlmataMutableMachine.Modifier.Has.then
+			{
+				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
+				{
+					return stateMap.let {
+						it[state]
+					}?.let {
+						block()
+						stop()
+					} ?: or()
+				}
+			}
+			
+			override fun transition(transitionLeft: KotlmataMachine.TransitionLeft): KotlmataMutableMachine.Modifier.Has.then = object : KotlmataMutableMachine.Modifier.Has.then
+			{
+				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
+				{
+					return transitionMap.let {
+						it[transitionLeft.state]
+					}?.let {
+						it[transitionLeft.signal]
+					}?.let {
+						block()
+						stop()
+					} ?: or()
+				}
 			}
 		}
 		
@@ -289,7 +335,7 @@ private class KotlmataMachineImpl(
 		
 		init
 		{
-			init?.apply { this() } ?: modify?.apply { this() }
+			init?.also { it() } ?: modify?.also { it() }
 			expired = true
 		}
 		
