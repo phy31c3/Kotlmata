@@ -9,6 +9,9 @@ internal class Logs
 		
 		/* State */
 		const val INVALID_STATE_SETTER = "State[%s] : Use of invalid KotlmataMutableState.Modifier object: The object is only available within the initialization or modifying block."
+		
+		/* Machine */
+		const val INVALID_MACHINE_SETTER = "Machine[%s] : Use of invalid KotlmataMutableMachine.Modifier object: The object is only available within the initialization or modifying block."
 	}
 }
 

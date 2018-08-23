@@ -245,6 +245,9 @@ private class KotlmataMachineImpl(
 			modify: (KotlmataMutableMachine.Modifier.() -> Unit)? = null
 	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier
 	{
+		@Volatile
+		private var expired: Boolean = false
+		
 		override val initialize: KotlmataMachine.Initialize
 			get() = TODO("not implemented")
 		override val has: KotlmataMutableMachine.Modifier.Has
@@ -260,7 +263,8 @@ private class KotlmataMachineImpl(
 		
 		init
 		{
-			TODO("not implemented")
+			init?.apply { this() } ?: modify?.apply { this() }
+			expired = true
 		}
 		
 		override fun Any.invoke(block: KotlmataState.Initializer.() -> Unit)
@@ -296,6 +300,23 @@ private class KotlmataMachineImpl(
 		override fun any.x(keyword: any): KotlmataMachine.TransitionLeft
 		{
 			TODO("not implemented")
+		}
+		
+		private inline infix fun Boolean.should(block: () -> Unit)
+		{
+			if (expired)
+			{
+				Logger.e(key) { INVALID_MACHINE_SETTER }
+				block()
+			}
+		}
+		
+		private inline infix fun Boolean.not(block: () -> Unit)
+		{
+			if (!expired)
+			{
+				block()
+			}
 		}
 	}
 }
