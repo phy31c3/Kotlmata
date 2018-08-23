@@ -215,27 +215,21 @@ private class KotlmataStateImpl(
 				this@KotlmataStateImpl.entry = action
 			}
 			
-			override fun <T : Any> via(signal: KClass<T>): KotlmataState.action<T, Any?>
+			override fun <T : Any> via(signal: KClass<T>): KotlmataState.action<T, Any?> = object : KotlmataState.action<T, Any?>
 			{
-				return object : KotlmataState.action<T, Any?>
+				override fun action(action: (signal: T) -> Any?)
 				{
-					override fun action(action: (signal: T) -> Any?)
-					{
-						expired should { return }
-						entryMap[signal] = action as (Any) -> Any?
-					}
+					expired should { return }
+					entryMap[signal] = action as (Any) -> Any?
 				}
 			}
 			
-			override fun <T : Any> via(signal: T): KotlmataState.action<T, Any?>
+			override fun <T : Any> via(signal: T): KotlmataState.action<T, Any?> = object : KotlmataState.action<T, Any?>
 			{
-				return object : KotlmataState.action<T, Any?>
+				override fun action(action: (signal: T) -> Any?)
 				{
-					override fun action(action: (signal: T) -> Any?)
-					{
-						expired should { return }
-						entryMap[signal] = action as (Any) -> Any?
-					}
+					expired should { return }
+					entryMap[signal] = action as (Any) -> Any?
 				}
 			}
 		}
@@ -249,27 +243,21 @@ private class KotlmataStateImpl(
 				this@KotlmataStateImpl.input = action
 			}
 			
-			override fun <T : Any> signal(signal: KClass<T>): KotlmataState.action<T, Unit>
+			override fun <T : Any> signal(signal: KClass<T>): KotlmataState.action<T, Unit> = object : KotlmataState.action<T, Unit>
 			{
-				return object : KotlmataState.action<T, Unit>
+				override fun action(action: (signal: T) -> Unit)
 				{
-					override fun action(action: (signal: T) -> Unit)
-					{
-						expired should { return }
-						inputMap[signal] = action as (Any) -> Unit
-					}
+					expired should { return }
+					inputMap[signal] = action as (Any) -> Unit
 				}
 			}
 			
-			override fun <T : Any> signal(signal: T): KotlmataState.action<T, Unit>
+			override fun <T : Any> signal(signal: T): KotlmataState.action<T, Unit> = object : KotlmataState.action<T, Unit>
 			{
-				return object : KotlmataState.action<T, Unit>
+				override fun action(action: (signal: T) -> Unit)
 				{
-					override fun action(action: (signal: T) -> Unit)
-					{
-						expired should { return }
-						inputMap[signal] = action as (Any) -> Unit
-					}
+					expired should { return }
+					inputMap[signal] = action as (Any) -> Unit
 				}
 			}
 		}
