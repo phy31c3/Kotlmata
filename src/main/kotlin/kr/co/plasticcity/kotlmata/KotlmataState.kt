@@ -73,6 +73,11 @@ interface KotlmataMutableState : KotlmataState
 				name: String? = null,
 				block: (KotlmataState.Initializer.() -> Unit)? = null
 		): KotlmataMutableState = KotlmataStateImpl(name, block)
+		
+		internal operator fun invoke(
+				key: Any,
+				block: (KotlmataState.Initializer.() -> Unit)
+		): KotlmataMutableState = KotlmataStateImpl(key, block)
 	}
 	
 	interface Modifier : KotlmataState.Initializer
