@@ -371,8 +371,18 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override val replace: KotlmataMutableMachine.Modifier.Replace
-			get() = TODO("not implemented")
+		override val replace = object : KotlmataMutableMachine.Modifier.Replace
+		{
+			override fun state(state: Any) = object : KotlmataMutableMachine.Modifier.Replace.of
+			{
+				override fun of(block: KotlmataState.Initializer.() -> Unit)
+				{
+					expired should { return }
+					stateMap[state]?.also { state.invoke(block) }
+				}
+			}
+		}
+		
 		override val update: KotlmataMutableMachine.Modifier.Update
 			get() = TODO("not implemented")
 		override val delete: KotlmataMutableMachine.Modifier.Delete
