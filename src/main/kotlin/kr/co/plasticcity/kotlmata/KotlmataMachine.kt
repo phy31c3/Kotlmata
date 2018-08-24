@@ -324,7 +324,7 @@ private class KotlmataMachineImpl(
 			{
 				override fun of(block: KotlmataState.Initializer.() -> Unit)
 				{
-					TODO("not implemented")
+					stateMap[state] ?: state.invoke(block)
 				}
 			}
 			
@@ -332,7 +332,13 @@ private class KotlmataMachineImpl(
 			{
 				override fun remAssign(state: Any)
 				{
-					TODO("not implemented")
+					transitionMap.let {
+						it[transitionLeft.state]
+					}?.let {
+						it[transitionLeft.signal]
+					} ?: also {
+						transitionLeft %= state
+					}
 				}
 			}
 			
@@ -342,7 +348,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun of(block: KotlmataState.Initializer.() -> Unit)
 					{
-						TODO("not implemented")
+						state.invoke(block)
 					}
 				}
 			}
@@ -353,7 +359,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun remAssign(state: Any)
 					{
-						TODO("not implemented")
+						transitionLeft %= state
 					}
 				}
 			}
