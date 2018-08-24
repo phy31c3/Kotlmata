@@ -277,6 +277,7 @@ private class KotlmataMachineImpl(
 			{
 				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
 				{
+					expired should { return stop() }
 					return stateMap.let {
 						it[state]
 					}?.let {
@@ -290,6 +291,7 @@ private class KotlmataMachineImpl(
 			{
 				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
 				{
+					expired should { return stop() }
 					return transitionMap.let {
 						it[transitionLeft.state]
 					}?.let {
@@ -324,6 +326,7 @@ private class KotlmataMachineImpl(
 			{
 				override fun of(block: KotlmataState.Initializer.() -> Unit)
 				{
+					expired should { return }
 					stateMap[state] ?: state.invoke(block)
 				}
 			}
@@ -332,6 +335,7 @@ private class KotlmataMachineImpl(
 			{
 				override fun remAssign(state: Any)
 				{
+					expired should { return }
 					transitionMap.let {
 						it[transitionLeft.state]
 					}?.let {
@@ -348,6 +352,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun of(block: KotlmataState.Initializer.() -> Unit)
 					{
+						expired should { return }
 						state.invoke(block)
 					}
 				}
@@ -359,6 +364,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun remAssign(state: Any)
 					{
+						expired should { return }
 						transitionLeft %= state
 					}
 				}
@@ -372,14 +378,9 @@ private class KotlmataMachineImpl(
 		override val delete: KotlmataMutableMachine.Modifier.Delete
 			get() = TODO("not implemented")
 		
-		init
-		{
-			init?.also { it() } ?: modify?.also { it() }
-			expired = true
-		}
-		
 		override fun Any.invoke(block: KotlmataState.Initializer.() -> Unit)
 		{
+			expired should { return }
 			stateMap[this] = KotlmataMutableState(this) { block() }
 		}
 		
@@ -398,11 +399,18 @@ private class KotlmataMachineImpl(
 			
 			override fun remAssign(state: Any)
 			{
+				expired should { return }
 				(transitionMap[from] ?: HashMap<SIGNAL, STATE>().let {
 					transitionMap[from] = it
 					it
 				})[signal] = state
 			}
+		}
+		
+		init
+		{
+			init?.also { it() } ?: modify?.also { it() }
+			expired = true
 		}
 		
 		private inline infix fun Boolean.should(block: () -> Unit)
