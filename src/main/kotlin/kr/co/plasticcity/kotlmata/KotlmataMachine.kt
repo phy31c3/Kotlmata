@@ -251,9 +251,9 @@ private class KotlmataMachineImpl(
 		@Volatile
 		private var expired: Boolean = false
 		
-		override val initialize: KotlmataMachine.Initialize = object : KotlmataMachine.Initialize
+		override val initialize = object : KotlmataMachine.Initialize
 		{
-			override fun origin(keyword: state): KotlmataMachine.Initialize.to = object : KotlmataMachine.Initialize.to
+			override fun origin(keyword: state) = object : KotlmataMachine.Initialize.to
 			{
 				override fun to(state: Any): KotlmataMachine.Initialize.End
 				{
@@ -271,9 +271,9 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override val has: KotlmataMutableMachine.Modifier.Has = object : KotlmataMutableMachine.Modifier.Has
+		override val has = object : KotlmataMutableMachine.Modifier.Has
 		{
-			override fun state(state: Any): KotlmataMutableMachine.Modifier.Has.then = object : KotlmataMutableMachine.Modifier.Has.then
+			override fun state(state: Any) = object : KotlmataMutableMachine.Modifier.Has.then
 			{
 				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
 				{
@@ -286,7 +286,7 @@ private class KotlmataMachineImpl(
 				}
 			}
 			
-			override fun transition(transitionLeft: KotlmataMachine.TransitionLeft): KotlmataMutableMachine.Modifier.Has.then = object : KotlmataMutableMachine.Modifier.Has.then
+			override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Has.then
 			{
 				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
 				{
@@ -318,8 +318,47 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override val insert: KotlmataMutableMachine.Modifier.Insert
-			get() = TODO("not implemented")
+		override val insert = object : KotlmataMutableMachine.Modifier.Insert
+		{
+			override fun state(state: Any) = object : KotlmataMutableMachine.Modifier.Insert.of
+			{
+				override fun of(block: KotlmataState.Initializer.() -> Unit)
+				{
+					TODO("not implemented")
+				}
+			}
+			
+			override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
+			{
+				override fun remAssign(state: Any)
+				{
+					TODO("not implemented")
+				}
+			}
+			
+			override fun or(keyword: KotlmataMutableMachine.Modifier.Replace) = object : KotlmataMutableMachine.Modifier.Insert.state
+			{
+				override fun state(state: Any) = object : KotlmataMutableMachine.Modifier.Insert.of
+				{
+					override fun of(block: KotlmataState.Initializer.() -> Unit)
+					{
+						TODO("not implemented")
+					}
+				}
+			}
+			
+			override fun or(keyword: KotlmataMutableMachine.Modifier.Update) = object : KotlmataMutableMachine.Modifier.Insert.transition
+			{
+				override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
+				{
+					override fun remAssign(state: Any)
+					{
+						TODO("not implemented")
+					}
+				}
+			}
+		}
+		
 		override val replace: KotlmataMutableMachine.Modifier.Replace
 			get() = TODO("not implemented")
 		override val update: KotlmataMutableMachine.Modifier.Update
@@ -338,15 +377,15 @@ private class KotlmataMachineImpl(
 			stateMap[this] = KotlmataMutableState(this) { block() }
 		}
 		
-		override fun Any.x(signal: Any): KotlmataMachine.TransitionLeft = transitionLeft(this, signal)
-		override fun Any.x(signal: KClass<out Any>): KotlmataMachine.TransitionLeft = transitionLeft(this, signal)
-		override fun Any.x(keyword: any): KotlmataMachine.TransitionLeft = transitionLeft(this, keyword)
+		override fun Any.x(signal: Any) = transitionLeft(this, signal)
+		override fun Any.x(signal: KClass<out Any>) = transitionLeft(this, signal)
+		override fun Any.x(keyword: any) = transitionLeft(this, keyword)
 		
-		override fun any.x(signal: Any): KotlmataMachine.TransitionLeft = transitionLeft(this, signal)
-		override fun any.x(signal: KClass<out Any>): KotlmataMachine.TransitionLeft = transitionLeft(this, signal)
-		override fun any.x(keyword: any): KotlmataMachine.TransitionLeft = transitionLeft(this, keyword)
+		override fun any.x(signal: Any) = transitionLeft(this, signal)
+		override fun any.x(signal: KClass<out Any>) = transitionLeft(this, signal)
+		override fun any.x(keyword: any) = transitionLeft(this, keyword)
 		
-		private fun transitionLeft(from: STATE, signal: SIGNAL): KotlmataMachine.TransitionLeft = object : KotlmataMachine.TransitionLeft
+		private fun transitionLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.TransitionLeft
 		{
 			override val state: STATE = from
 			override val signal: SIGNAL = signal

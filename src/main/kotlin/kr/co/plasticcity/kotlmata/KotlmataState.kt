@@ -212,7 +212,7 @@ private class KotlmataStateImpl(
 			}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val entry: KotlmataState.Entry = object : KotlmataState.Entry
+		override val entry = object : KotlmataState.Entry
 		{
 			override fun action(action: (signal: Any) -> Any?)
 			{
@@ -220,7 +220,7 @@ private class KotlmataStateImpl(
 				this@KotlmataStateImpl.entry = action
 			}
 			
-			override fun <T : Any> via(signal: KClass<T>): KotlmataState.action<T, Any?> = object : KotlmataState.action<T, Any?>
+			override fun <T : Any> via(signal: KClass<T>) = object : KotlmataState.action<T, Any?>
 			{
 				override fun action(action: (signal: T) -> Any?)
 				{
@@ -229,7 +229,7 @@ private class KotlmataStateImpl(
 				}
 			}
 			
-			override fun <T : Any> via(signal: T): KotlmataState.action<T, Any?> = object : KotlmataState.action<T, Any?>
+			override fun <T : Any> via(signal: T) = object : KotlmataState.action<T, Any?>
 			{
 				override fun action(action: (signal: T) -> Any?)
 				{
@@ -240,7 +240,7 @@ private class KotlmataStateImpl(
 		}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val input: KotlmataState.Input = object : KotlmataState.Input
+		override val input = object : KotlmataState.Input
 		{
 			override fun action(action: (signal: Any) -> Unit)
 			{
@@ -248,7 +248,7 @@ private class KotlmataStateImpl(
 				this@KotlmataStateImpl.input = action
 			}
 			
-			override fun <T : Any> signal(signal: KClass<T>): KotlmataState.action<T, Unit> = object : KotlmataState.action<T, Unit>
+			override fun <T : Any> signal(signal: KClass<T>) = object : KotlmataState.action<T, Unit>
 			{
 				override fun action(action: (signal: T) -> Unit)
 				{
@@ -257,7 +257,7 @@ private class KotlmataStateImpl(
 				}
 			}
 			
-			override fun <T : Any> signal(signal: T): KotlmataState.action<T, Unit> = object : KotlmataState.action<T, Unit>
+			override fun <T : Any> signal(signal: T) = object : KotlmataState.action<T, Unit>
 			{
 				override fun action(action: (signal: T) -> Unit)
 				{
@@ -267,7 +267,7 @@ private class KotlmataStateImpl(
 			}
 		}
 		
-		override val exit: KotlmataState.Exit = object : KotlmataState.Exit
+		override val exit = object : KotlmataState.Exit
 		{
 			override fun action(action: () -> Unit)
 			{
@@ -276,7 +276,7 @@ private class KotlmataStateImpl(
 			}
 		}
 		
-		override val delete: KotlmataMutableState.Delete = object : KotlmataMutableState.Delete
+		override val delete = object : KotlmataMutableState.Delete
 		{
 			override fun action(keyword: KotlmataState.Entry): KotlmataMutableState.Delete.Entry
 			{
