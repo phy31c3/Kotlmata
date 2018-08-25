@@ -55,7 +55,17 @@ interface KotlmataMachine
 	
 	val key: Any
 	
+	/**
+	 * @param block Called if the state transitions and the next state's entry function returns an signal.
+	 */
+	fun input(signal: Any, block: (signal: Any) -> Unit)
+	
 	fun input(signal: Any)
+	
+	/**
+	 * @param block Called if the state transitions and the next state's entry function returns an signal.
+	 */
+	fun <T : Any> input(signal: T, type: KClass<in T>, block: (signal: Any) -> Unit)
 	
 	fun <T : Any> input(signal: T, type: KClass<in T>)
 }
@@ -201,7 +211,7 @@ private class KotlmataMachineImpl(
 		ModifierImpl(modify = block)
 	}
 	
-	override fun input(signal: Any)
+	override fun input(signal: Any, block: (signal: Any) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
@@ -217,13 +227,18 @@ private class KotlmataMachineImpl(
 			Log.d(key, state.key, signal, it.key) { MACHINE_TRANSITION }
 			state.exit()
 			state = it
-			state.entry(signal) { signal ->
-				input(signal)
-			}
+			state.entry(signal, block)
 		}
 	}
 	
-	override fun <T : Any> input(signal: T, type: KClass<in T>)
+	override fun input(signal: Any)
+	{
+		input(signal) {
+			input(it)
+		}
+	}
+	
+	override fun <T : Any> input(signal: T, type: KClass<in T>, block: (signal: Any) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
@@ -239,9 +254,14 @@ private class KotlmataMachineImpl(
 			Log.d(key, state.key, signal, it.key) { MACHINE_TRANSITION }
 			state.exit()
 			state = it
-			state.entry(signal, type) { signal ->
-				input(signal)
-			}
+			state.entry(signal, type, block)
+		}
+	}
+	
+	override fun <T : Any> input(signal: T, type: KClass<in T>)
+	{
+		input(signal, type) {
+			input(signal)
 		}
 	}
 	
