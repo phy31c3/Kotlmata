@@ -429,8 +429,45 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override val delete: KotlmataMutableMachine.Modifier.Delete
-			get() = TODO("not implemented")
+		override val delete = object : KotlmataMutableMachine.Modifier.Delete
+		{
+			override fun state(state: Any)
+			{
+				expired should { return }
+				stateMap -= state
+			}
+			
+			override fun state(keyword: all)
+			{
+				expired should { return }
+				stateMap.clear()
+			}
+			
+			override fun transition(transitionLeft: KotlmataMachine.TransitionLeft)
+			{
+				expired should { return }
+				transitionMap.let {
+					it[transitionLeft.state]
+				}?.let {
+					it -= transitionLeft.signal
+				}
+			}
+			
+			override fun transition(keyword: of) = object : KotlmataMutableMachine.Modifier.Delete.state
+			{
+				override fun state(state: Any)
+				{
+					expired should { return }
+					transitionMap -= state
+				}
+			}
+			
+			override fun transition(keyword: all)
+			{
+				expired should { return }
+				transitionMap.clear()
+			}
+		}
 		
 		override fun Any.invoke(block: KotlmataState.Initializer.() -> Unit)
 		{
@@ -472,14 +509,6 @@ private class KotlmataMachineImpl(
 			if (expired)
 			{
 				Logger.e(key) { INVALID_MACHINE_SETTER }
-				block()
-			}
-		}
-		
-		private inline infix fun Boolean.not(block: () -> Unit)
-		{
-			if (!expired)
-			{
 				block()
 			}
 		}
