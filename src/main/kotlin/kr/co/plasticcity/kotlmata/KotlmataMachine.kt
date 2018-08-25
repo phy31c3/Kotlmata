@@ -383,8 +383,52 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override val update: KotlmataMutableMachine.Modifier.Update
-			get() = TODO("not implemented")
+		override val update = object : KotlmataMutableMachine.Modifier.Update
+		{
+			override fun state(state: Any) = object : KotlmataMutableMachine.Modifier.Update.set
+			{
+				override fun set(block: KotlmataMutableState.Modifier.() -> Unit): KotlmataMutableMachine.Modifier.Update.or
+				{
+					expired should { return stop() }
+					return stateMap.let {
+						it[state]
+					}?.let {
+						it.modify(block)
+						stop()
+					} ?: object : KotlmataMutableMachine.Modifier.Update.or
+					{
+						override fun or(block: KotlmataState.Initializer.() -> Unit)
+						{
+							state.invoke(block)
+						}
+					}
+				}
+			}
+			
+			override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Update.remAssign
+			{
+				override fun remAssign(state: Any)
+				{
+					expired should { return }
+					transitionMap.let {
+						it[transitionLeft.state]
+					}?.let {
+						it[transitionLeft.signal]
+					}.let {
+						transitionLeft %= state
+					}
+				}
+			}
+			
+			private fun stop() = object : KotlmataMutableMachine.Modifier.Update.or
+			{
+				override fun or(block: KotlmataState.Initializer.() -> Unit)
+				{
+					/* do nothing */
+				}
+			}
+		}
+		
 		override val delete: KotlmataMutableMachine.Modifier.Delete
 			get() = TODO("not implemented")
 		
