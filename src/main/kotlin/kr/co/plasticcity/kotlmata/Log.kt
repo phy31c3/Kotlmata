@@ -6,18 +6,18 @@ internal class Logs
 	{
 		/*########################## DEBUG ##########################*/
 		/* Machine */
-		const val MACHINE_TRANSITION = "Machine[%s] : %s x %s -> %s"
+		const val MACHINE_TRANSITION = "machine[%s]: (%s) x (%s) -> (%s)"
 		
 		/*########################## ERROR ##########################*/
 		/* Config */
 		const val INVALID_CONFIG = "** Use of invalid Config object: The object is only available within the 'Kotlmata.init' function."
 		
 		/* State */
-		const val INVALID_STATE_SETTER = "State[%s] : Use of invalid KotlmataMutableState.Modifier object: The object is only available within the initialization or modifying block."
+		const val INVALID_STATE_SETTER = "state[%s]: Use of invalid KotlmataMutableState.Modifier object: The object is only available within the initialization or modifying block."
 		
 		/* Machine */
-		const val INVALID_MACHINE_SETTER = "Machine[%s] : Use of invalid KotlmataMutableMachine.Modifier object: The object is only available within the initialization or modifying block."
-		const val INVALID_ORIGIN_STATE = "Machine[%s] : The origin state %s does not exist in machine."
+		const val INVALID_MACHINE_SETTER = "machine[%s]: Use of invalid KotlmataMutableMachine.Modifier object: The object is only available within the initialization or modifying block."
+		const val INVALID_ORIGIN_STATE = "machine[%s]: The origin state %s does not exist in machine."
 	}
 }
 
@@ -31,12 +31,12 @@ internal object Log
 	{
 		if (debug != none)
 		{
-			debug(Logs.log().format(args))
+			debug(Logs.log().format(*args))
 		}
 	}
 	
 	inline fun e(vararg args: Any, log: Logs.Companion.() -> String)
 	{
-		error(Logs.log().format(args))
+		error(Logs.log().format(*args))
 	}
 }

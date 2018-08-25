@@ -8,7 +8,7 @@ class Tests
 	fun init()
 	{
 		Kotlmata init {
-			debugLogger = ::println
+			debugLogger = {log -> println("Kotlmata: $log")}
 			errorLogger = ::error
 		}
 	}
