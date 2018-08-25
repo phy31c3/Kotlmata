@@ -367,7 +367,7 @@ private class KotlmataStateImpl(
 		{
 			if (expired)
 			{
-				Logger.e(key) { INVALID_STATE_SETTER }
+				Log.e(key) { INVALID_STATE_SETTER }
 				block()
 			}
 		}

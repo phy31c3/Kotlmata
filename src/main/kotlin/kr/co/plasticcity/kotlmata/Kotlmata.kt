@@ -8,19 +8,19 @@ object Kotlmata : KotlmataInterface by KotlmataImpl()
 		private var expired: Boolean = false
 		
 		var debugLogger: ((String) -> Unit)
-			get() = Logger.debugLogger
+			get() = Log.debug
 			set(value)
 			{
 				expired should { return }
-				Logger.debugLogger = value
+				Log.debug = value
 			}
 		
 		var errorLogger: ((String) -> Unit)
-			get() = Logger.errorLogger
+			get() = Log.error
 			set(value)
 			{
 				expired should { return }
-				Logger.errorLogger = value
+				Log.error = value
 			}
 		
 		init
@@ -33,7 +33,7 @@ object Kotlmata : KotlmataInterface by KotlmataImpl()
 		{
 			if (expired)
 			{
-				Logger.e { INVALID_CONFIG }
+				Log.e { INVALID_CONFIG }
 				block()
 			}
 		}

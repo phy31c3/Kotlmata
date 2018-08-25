@@ -203,18 +203,19 @@ private class KotlmataMachineImpl(
 	
 	override fun input(signal: Any)
 	{
-		fun MutableMap<SIGNAL, STATE>.getNext(): STATE?
+		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
 			return this[signal] ?: this[signal::class] ?: this[any]
 		}
 		
 		let {
 			state.input(signal)
-			transitionMap[state.key]?.getNext() ?: transitionMap[any]?.getNext()
+			transitionMap[state.key]?.next() ?: transitionMap[any]?.next()
 		}?.let {
 			stateMap[it]
 		}?.let {
 			state.exit()
+			Log.d(key, state.key, signal, it.key) { MACHINE_TRANSITION }
 			state = it
 			state.entry(signal) { signal ->
 				input(signal)
@@ -236,6 +237,7 @@ private class KotlmataMachineImpl(
 			stateMap[it]
 		}?.let {
 			state.exit()
+			Log.d(key, state.key, signal, it.key) { MACHINE_TRANSITION }
 			state = it
 			state.entry(signal, type) { signal ->
 				input(signal)
@@ -263,7 +265,7 @@ private class KotlmataMachineImpl(
 						this@KotlmataMachineImpl.state = it
 					} ?: KotlmataMutableState().also {
 						this@KotlmataMachineImpl.state = it
-						Logger.e(key, state) { INVALID_ORIGIN_STATE }
+						Log.e(key, state) { INVALID_ORIGIN_STATE }
 					}
 					
 					return KotlmataMachine.Initialize.End()
@@ -508,7 +510,7 @@ private class KotlmataMachineImpl(
 		{
 			if (expired)
 			{
-				Logger.e(key) { INVALID_MACHINE_SETTER }
+				Log.e(key) { INVALID_MACHINE_SETTER }
 				block()
 			}
 		}

@@ -4,6 +4,11 @@ internal class Logs
 {
 	companion object
 	{
+		/*########################## DEBUG ##########################*/
+		/* Machine */
+		const val MACHINE_TRANSITION = "Machine[%s] : %s x %s -> %s"
+		
+		/*########################## ERROR ##########################*/
 		/* Config */
 		const val INVALID_CONFIG = "** Use of invalid Config object: The object is only available within the 'Kotlmata.init' function."
 		
@@ -16,22 +21,22 @@ internal class Logs
 	}
 }
 
-internal object Logger
+internal object Log
 {
 	private val none: (String) -> Unit = {}
-	var debugLogger: (String) -> Unit = none
-	var errorLogger: (String) -> Unit = ::error
+	var debug: (String) -> Unit = none
+	var error: (String) -> Unit = ::error
 	
 	inline fun d(vararg args: Any, log: Logs.Companion.() -> String)
 	{
-		if (debugLogger != none)
+		if (debug != none)
 		{
-			debugLogger(String.format(Logs.log(), args))
+			debug(Logs.log().format(args))
 		}
 	}
 	
 	inline fun e(vararg args: Any, log: Logs.Companion.() -> String)
 	{
-		errorLogger(String.format(Logs.log(), args))
+		error(Logs.log().format(args))
 	}
 }
