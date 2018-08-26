@@ -212,148 +212,156 @@ private class KotlmataStateImpl(
 			}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val entry = object : KotlmataState.Entry
-		{
-			override fun action(action: (signal: SIGNAL) -> SIGNAL?)
+		override val entry by lazy {
+			object : KotlmataState.Entry
 			{
-				expired should { return }
-				this@KotlmataStateImpl.entry = action
-			}
-			
-			override fun <T : Any> via(signal: KClass<T>) = object : KotlmataState.action<T, SIGNAL?>
-			{
-				override fun action(action: (signal: T) -> SIGNAL?)
+				override fun action(action: (signal: SIGNAL) -> SIGNAL?)
 				{
 					expired should { return }
-					entryMap[signal] = action as (SIGNAL) -> SIGNAL?
+					this@KotlmataStateImpl.entry = action
 				}
-			}
-			
-			override fun <T : Any> via(signal: T) = object : KotlmataState.action<T, SIGNAL?>
-			{
-				override fun action(action: (signal: T) -> SIGNAL?)
+				
+				override fun <T : Any> via(signal: KClass<T>) = object : KotlmataState.action<T, SIGNAL?>
 				{
-					expired should { return }
-					entryMap[signal] = action as (SIGNAL) -> SIGNAL?
+					override fun action(action: (signal: T) -> SIGNAL?)
+					{
+						expired should { return }
+						entryMap[signal] = action as (SIGNAL) -> SIGNAL?
+					}
+				}
+				
+				override fun <T : Any> via(signal: T) = object : KotlmataState.action<T, SIGNAL?>
+				{
+					override fun action(action: (signal: T) -> SIGNAL?)
+					{
+						expired should { return }
+						entryMap[signal] = action as (SIGNAL) -> SIGNAL?
+					}
 				}
 			}
 		}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val input = object : KotlmataState.Input
-		{
-			override fun action(action: (signal: SIGNAL) -> Unit)
+		override val input by lazy {
+			object : KotlmataState.Input
 			{
-				expired should { return }
-				this@KotlmataStateImpl.input = action
-			}
-			
-			override fun <T : Any> signal(signal: KClass<T>) = object : KotlmataState.action<T, Unit>
-			{
-				override fun action(action: (signal: T) -> Unit)
+				override fun action(action: (signal: SIGNAL) -> Unit)
 				{
 					expired should { return }
-					inputMap[signal] = action as (SIGNAL) -> Unit
+					this@KotlmataStateImpl.input = action
 				}
-			}
-			
-			override fun <T : Any> signal(signal: T) = object : KotlmataState.action<T, Unit>
-			{
-				override fun action(action: (signal: T) -> Unit)
+				
+				override fun <T : Any> signal(signal: KClass<T>) = object : KotlmataState.action<T, Unit>
 				{
-					expired should { return }
-					inputMap[signal] = action as (SIGNAL) -> Unit
+					override fun action(action: (signal: T) -> Unit)
+					{
+						expired should { return }
+						inputMap[signal] = action as (SIGNAL) -> Unit
+					}
+				}
+				
+				override fun <T : Any> signal(signal: T) = object : KotlmataState.action<T, Unit>
+				{
+					override fun action(action: (signal: T) -> Unit)
+					{
+						expired should { return }
+						inputMap[signal] = action as (SIGNAL) -> Unit
+					}
 				}
 			}
 		}
 		
-		override val exit = object : KotlmataState.Exit
-		{
-			override fun action(action: () -> Unit)
+		override val exit by lazy {
+			object : KotlmataState.Exit
 			{
-				expired should { return }
-				this@KotlmataStateImpl.exit = action
+				override fun action(action: () -> Unit)
+				{
+					expired should { return }
+					this@KotlmataStateImpl.exit = action
+				}
 			}
 		}
 		
-		override val delete = object : KotlmataMutableState.Delete
-		{
-			override fun action(keyword: KotlmataState.Entry): KotlmataMutableState.Delete.Entry
+		override val delete by lazy {
+			object : KotlmataMutableState.Delete
 			{
-				val stash = this@KotlmataStateImpl.entry
-				expired not {
+				override fun action(keyword: KotlmataState.Entry): KotlmataMutableState.Delete.Entry
+				{
+					val stash = this@KotlmataStateImpl.entry
+					expired not {
+						this@KotlmataStateImpl.entry = null
+					}
+					return object : KotlmataMutableState.Delete.Entry
+					{
+						override fun <T : Any> via(signal: KClass<T>)
+						{
+							expired should { return }
+							this@KotlmataStateImpl.entry = stash
+							entryMap.remove(signal)
+						}
+						
+						override fun <T : Any> via(signal: T)
+						{
+							expired should { return }
+							this@KotlmataStateImpl.entry = stash
+							entryMap.remove(signal)
+						}
+						
+						override fun via(keyword: all)
+						{
+							expired should { return }
+							this@KotlmataStateImpl.entry = stash
+							this@KotlmataStateImpl.entryMap = null
+						}
+					}
+				}
+				
+				override fun action(keyword: KotlmataState.Input): KotlmataMutableState.Delete.Input
+				{
+					val stash = this@KotlmataStateImpl.input
+					expired not {
+						this@KotlmataStateImpl.input = null
+					}
+					return object : KotlmataMutableState.Delete.Input
+					{
+						override fun <T : Any> signal(signal: KClass<T>)
+						{
+							expired should { return }
+							this@KotlmataStateImpl.input = stash
+							inputMap.remove(signal)
+						}
+						
+						override fun <T : Any> signal(signal: T)
+						{
+							expired should { return }
+							this@KotlmataStateImpl.input = stash
+							inputMap.remove(signal)
+						}
+						
+						override fun signal(keyword: all)
+						{
+							expired should { return }
+							this@KotlmataStateImpl.input = stash
+							this@KotlmataStateImpl.inputMap = null
+						}
+					}
+				}
+				
+				override fun action(keyword: KotlmataState.Exit)
+				{
+					expired should { return }
+					this@KotlmataStateImpl.exit = null
+				}
+				
+				override fun action(keyword: all)
+				{
+					expired should { return }
 					this@KotlmataStateImpl.entry = null
-				}
-				return object : KotlmataMutableState.Delete.Entry
-				{
-					override fun <T : Any> via(signal: KClass<T>)
-					{
-						expired should { return }
-						this@KotlmataStateImpl.entry = stash
-						entryMap.remove(signal)
-					}
-					
-					override fun <T : Any> via(signal: T)
-					{
-						expired should { return }
-						this@KotlmataStateImpl.entry = stash
-						entryMap.remove(signal)
-					}
-					
-					override fun via(keyword: all)
-					{
-						expired should { return }
-						this@KotlmataStateImpl.entry = stash
-						this@KotlmataStateImpl.entryMap = null
-					}
-				}
-			}
-			
-			override fun action(keyword: KotlmataState.Input): KotlmataMutableState.Delete.Input
-			{
-				val stash = this@KotlmataStateImpl.input
-				expired not {
 					this@KotlmataStateImpl.input = null
+					this@KotlmataStateImpl.exit = null
+					this@KotlmataStateImpl.entryMap = null
+					this@KotlmataStateImpl.inputMap = null
 				}
-				return object : KotlmataMutableState.Delete.Input
-				{
-					override fun <T : Any> signal(signal: KClass<T>)
-					{
-						expired should { return }
-						this@KotlmataStateImpl.input = stash
-						inputMap.remove(signal)
-					}
-					
-					override fun <T : Any> signal(signal: T)
-					{
-						expired should { return }
-						this@KotlmataStateImpl.input = stash
-						inputMap.remove(signal)
-					}
-					
-					override fun signal(keyword: all)
-					{
-						expired should { return }
-						this@KotlmataStateImpl.input = stash
-						this@KotlmataStateImpl.inputMap = null
-					}
-				}
-			}
-			
-			override fun action(keyword: KotlmataState.Exit)
-			{
-				expired should { return }
-				this@KotlmataStateImpl.exit = null
-			}
-			
-			override fun action(keyword: all)
-			{
-				expired should { return }
-				this@KotlmataStateImpl.entry = null
-				this@KotlmataStateImpl.input = null
-				this@KotlmataStateImpl.exit = null
-				this@KotlmataStateImpl.entryMap = null
-				this@KotlmataStateImpl.inputMap = null
 			}
 		}
 		
