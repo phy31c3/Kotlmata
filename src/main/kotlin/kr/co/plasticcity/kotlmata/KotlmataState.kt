@@ -196,11 +196,8 @@ private class KotlmataStateImpl(
 	
 	private inner class ModifierImpl internal constructor(
 			block: KotlmataMutableState.Modifier.() -> Unit
-	) : KotlmataMutableState.Modifier
+	) : KotlmataMutableState.Modifier, CanExpire({ Log.e(key) { EXPIRED_STATE_SETTER } })
 	{
-		@Volatile
-		private var expired: Boolean = false
-		
 		private val entryMap: MutableMap<SIGNAL, (SIGNAL) -> SIGNAL?>
 			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, (SIGNAL) -> SIGNAL?>().apply {
 				this@KotlmataStateImpl.entryMap = this
@@ -217,7 +214,7 @@ private class KotlmataStateImpl(
 			{
 				override fun action(action: (signal: SIGNAL) -> SIGNAL?)
 				{
-					expired should { return }
+					this@ModifierImpl shouldNot expired
 					this@KotlmataStateImpl.entry = action
 				}
 				
@@ -225,7 +222,7 @@ private class KotlmataStateImpl(
 				{
 					override fun action(action: (signal: T) -> SIGNAL?)
 					{
-						expired should { return }
+						this@ModifierImpl shouldNot expired
 						entryMap[signal] = action as (SIGNAL) -> SIGNAL?
 					}
 				}
@@ -234,7 +231,7 @@ private class KotlmataStateImpl(
 				{
 					override fun action(action: (signal: T) -> SIGNAL?)
 					{
-						expired should { return }
+						this@ModifierImpl shouldNot expired
 						entryMap[signal] = action as (SIGNAL) -> SIGNAL?
 					}
 				}
@@ -247,7 +244,7 @@ private class KotlmataStateImpl(
 			{
 				override fun action(action: (signal: SIGNAL) -> Unit)
 				{
-					expired should { return }
+					this@ModifierImpl shouldNot expired
 					this@KotlmataStateImpl.input = action
 				}
 				
@@ -255,7 +252,7 @@ private class KotlmataStateImpl(
 				{
 					override fun action(action: (signal: T) -> Unit)
 					{
-						expired should { return }
+						this@ModifierImpl shouldNot expired
 						inputMap[signal] = action as (SIGNAL) -> Unit
 					}
 				}
@@ -264,7 +261,7 @@ private class KotlmataStateImpl(
 				{
 					override fun action(action: (signal: T) -> Unit)
 					{
-						expired should { return }
+						this@ModifierImpl shouldNot expired
 						inputMap[signal] = action as (SIGNAL) -> Unit
 					}
 				}
@@ -276,7 +273,7 @@ private class KotlmataStateImpl(
 			{
 				override fun action(action: () -> Unit)
 				{
-					expired should { return }
+					this@ModifierImpl shouldNot expired
 					this@KotlmataStateImpl.exit = action
 				}
 			}
@@ -288,28 +285,28 @@ private class KotlmataStateImpl(
 				override fun action(keyword: KotlmataState.Entry): KotlmataMutableState.Delete.Entry
 				{
 					val stash = this@KotlmataStateImpl.entry
-					expired not {
+					this@ModifierImpl not expired then {
 						this@KotlmataStateImpl.entry = null
 					}
 					return object : KotlmataMutableState.Delete.Entry
 					{
 						override fun <T : Any> via(signal: KClass<T>)
 						{
-							expired should { return }
+							this@ModifierImpl shouldNot expired
 							this@KotlmataStateImpl.entry = stash
 							entryMap.remove(signal)
 						}
 						
 						override fun <T : Any> via(signal: T)
 						{
-							expired should { return }
+							this@ModifierImpl shouldNot expired
 							this@KotlmataStateImpl.entry = stash
 							entryMap.remove(signal)
 						}
 						
 						override fun via(keyword: all)
 						{
-							expired should { return }
+							this@ModifierImpl shouldNot expired
 							this@KotlmataStateImpl.entry = stash
 							this@KotlmataStateImpl.entryMap = null
 						}
@@ -319,28 +316,28 @@ private class KotlmataStateImpl(
 				override fun action(keyword: KotlmataState.Input): KotlmataMutableState.Delete.Input
 				{
 					val stash = this@KotlmataStateImpl.input
-					expired not {
+					this@ModifierImpl not expired then {
 						this@KotlmataStateImpl.input = null
 					}
 					return object : KotlmataMutableState.Delete.Input
 					{
 						override fun <T : Any> signal(signal: KClass<T>)
 						{
-							expired should { return }
+							this@ModifierImpl shouldNot expired
 							this@KotlmataStateImpl.input = stash
 							inputMap.remove(signal)
 						}
 						
 						override fun <T : Any> signal(signal: T)
 						{
-							expired should { return }
+							this@ModifierImpl shouldNot expired
 							this@KotlmataStateImpl.input = stash
 							inputMap.remove(signal)
 						}
 						
 						override fun signal(keyword: all)
 						{
-							expired should { return }
+							this@ModifierImpl shouldNot expired
 							this@KotlmataStateImpl.input = stash
 							this@KotlmataStateImpl.inputMap = null
 						}
@@ -349,13 +346,13 @@ private class KotlmataStateImpl(
 				
 				override fun action(keyword: KotlmataState.Exit)
 				{
-					expired should { return }
+					this@ModifierImpl shouldNot expired
 					this@KotlmataStateImpl.exit = null
 				}
 				
 				override fun action(keyword: all)
 				{
-					expired should { return }
+					this@ModifierImpl shouldNot expired
 					this@KotlmataStateImpl.entry = null
 					this@KotlmataStateImpl.input = null
 					this@KotlmataStateImpl.exit = null
@@ -368,24 +365,7 @@ private class KotlmataStateImpl(
 		init
 		{
 			block()
-			expired = true
-		}
-		
-		private inline infix fun Boolean.should(block: () -> Unit)
-		{
-			if (this)
-			{
-				Log.e(key) { INVALID_STATE_SETTER }
-				block()
-			}
-		}
-		
-		private inline infix fun Boolean.not(block: () -> Unit)
-		{
-			if (!this)
-			{
-				block()
-			}
+			expire()
 		}
 	}
 }

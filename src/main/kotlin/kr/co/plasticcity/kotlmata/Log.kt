@@ -6,18 +6,18 @@ internal class Logs
 	{
 		/*########################## DEBUG ##########################*/
 		/* Machine */
-		const val MACHINE_TRANSITION = "machine[%s]: (%s) x (%s) -> (%s)"
+		const val MACHINE_TRANSITION = "KotlmataMachine[%s]: (%s) x (%s) -> (%s)"
 		
 		/*########################## ERROR ##########################*/
 		/* Config */
-		const val INVALID_CONFIG = "** Use of invalid Config object: The object is only available within the 'Kotlmata.init' function."
+		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available within the 'Kotlmata.init' block."
 		
 		/* State */
-		const val INVALID_STATE_SETTER = "state[%s]: Use of invalid KotlmataMutableState.Modifier object: The object is only available within the initialization or modifying block."
+		const val EXPIRED_STATE_SETTER = "KotlmataState[%s]: Use of expired 'KotlmataMutableState.Modifier' object: The object is only available within the initialization or modifying block."
 		
 		/* Machine */
-		const val INVALID_MACHINE_SETTER = "machine[%s]: Use of invalid KotlmataMutableMachine.Modifier object: The object is only available within the initialization or modifying block."
-		const val INVALID_ORIGIN_STATE = "machine[%s]: The origin state %s does not exist in machine."
+		const val EXPIRED_MACHINE_SETTER = "KotlmataMachine[%s]: Use of expired 'KotlmataMutableMachine.Modifier' object: The object is only available within the initialization or modifying block."
+		const val NULL_ORIGIN_STATE = "KotlmataMachine[%s]: The origin state %s does not exist in machine."
 	}
 }
 
@@ -35,7 +35,7 @@ internal object Log
 		}
 	}
 	
-	inline fun e(vararg args: Any, log: Logs.Companion.() -> String)
+	inline fun e(vararg args: Any, log: Logs.Companion.() -> String): Nothing
 	{
 		error(Logs.log().format(*args))
 		throw IllegalStateException(Logs.log())

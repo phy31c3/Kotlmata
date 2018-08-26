@@ -269,15 +269,12 @@ private class KotlmataMachineImpl(
 	private inner class ModifierImpl internal constructor(
 			init: (KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End)? = null,
 			modify: (KotlmataMutableMachine.Modifier.() -> Unit)? = null
-	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier
+	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, CanExpire({ Log.e(key) { EXPIRED_MACHINE_SETTER } })
 	{
-		@Volatile
-		private var expired: Boolean = false
-		
 		override val current: STATE
 			get()
 			{
-				expired should { return "Nothing" }
+				this@ModifierImpl shouldNot expired
 				return state.key
 			}
 		
@@ -288,14 +285,11 @@ private class KotlmataMachineImpl(
 				{
 					override fun to(state: STATE): KotlmataMachine.Initialize.End
 					{
-						expired should { return KotlmataMachine.Initialize.End() }
+						this@ModifierImpl shouldNot expired
 						
 						stateMap[state]?.also {
 							this@KotlmataMachineImpl.state = it
-						} ?: KotlmataMutableState().also {
-							this@KotlmataMachineImpl.state = it
-							Log.e(key, state) { INVALID_ORIGIN_STATE }
-						}
+						} ?: Log.e(key, state) { NULL_ORIGIN_STATE }
 						
 						return KotlmataMachine.Initialize.End()
 					}
@@ -310,7 +304,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
 					{
-						expired should { return stop() }
+						this@ModifierImpl shouldNot expired
 						return stateMap.let {
 							it[state]
 						}?.let {
@@ -324,7 +318,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
 					{
-						expired should { return stop() }
+						this@ModifierImpl shouldNot expired
 						return transitionMap.let {
 							it[transitionLeft.state]
 						}?.let {
@@ -361,7 +355,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun of(block: KotlmataState.Initializer.() -> Unit)
 					{
-						expired should { return }
+						this@ModifierImpl shouldNot expired
 						stateMap[state] ?: state.invoke(block)
 					}
 				}
@@ -370,7 +364,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun remAssign(state: STATE)
 					{
-						expired should { return }
+						this@ModifierImpl shouldNot expired
 						transitionMap.let {
 							it[transitionLeft.state]
 						}?.let {
@@ -387,7 +381,7 @@ private class KotlmataMachineImpl(
 					{
 						override fun of(block: KotlmataState.Initializer.() -> Unit)
 						{
-							expired should { return }
+							this@ModifierImpl shouldNot expired
 							state.invoke(block)
 						}
 					}
@@ -399,7 +393,7 @@ private class KotlmataMachineImpl(
 					{
 						override fun remAssign(state: STATE)
 						{
-							expired should { return }
+							this@ModifierImpl shouldNot expired
 							transitionLeft %= state
 						}
 					}
@@ -414,7 +408,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun of(block: KotlmataState.Initializer.() -> Unit)
 					{
-						expired should { return }
+						this@ModifierImpl shouldNot expired
 						stateMap[state]?.also { state.invoke(block) }
 					}
 				}
@@ -428,7 +422,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun set(block: KotlmataMutableState.Modifier.() -> Unit): KotlmataMutableMachine.Modifier.Update.or
 					{
-						expired should { return stop() }
+						this@ModifierImpl shouldNot expired
 						return stateMap.let {
 							it[state]
 						}?.let {
@@ -448,7 +442,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun remAssign(state: STATE)
 					{
-						expired should { return }
+						this@ModifierImpl shouldNot expired
 						transitionMap.let {
 							it[transitionLeft.state]
 						}?.let {
@@ -474,19 +468,19 @@ private class KotlmataMachineImpl(
 			{
 				override fun state(state: STATE)
 				{
-					expired should { return }
+					this@ModifierImpl shouldNot expired
 					stateMap -= state
 				}
 				
 				override fun state(keyword: all)
 				{
-					expired should { return }
+					this@ModifierImpl shouldNot expired
 					stateMap.clear()
 				}
 				
 				override fun transition(transitionLeft: KotlmataMachine.TransitionLeft)
 				{
-					expired should { return }
+					this@ModifierImpl shouldNot expired
 					transitionMap.let {
 						it[transitionLeft.state]
 					}?.let {
@@ -498,14 +492,14 @@ private class KotlmataMachineImpl(
 				{
 					override fun state(state: STATE)
 					{
-						expired should { return }
+						this@ModifierImpl shouldNot expired
 						transitionMap -= state
 					}
 				}
 				
 				override fun transition(keyword: all)
 				{
-					expired should { return }
+					this@ModifierImpl shouldNot expired
 					transitionMap.clear()
 				}
 			}
@@ -513,7 +507,7 @@ private class KotlmataMachineImpl(
 		
 		override fun STATE.invoke(block: KotlmataState.Initializer.() -> Unit)
 		{
-			expired should { return }
+			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this) { block() }
 		}
 		
@@ -532,7 +526,7 @@ private class KotlmataMachineImpl(
 			
 			override fun remAssign(state: STATE)
 			{
-				expired should { return }
+				this@ModifierImpl shouldNot expired
 				(transitionMap[from] ?: HashMap<SIGNAL, STATE>().let {
 					transitionMap[from] = it
 					it
@@ -543,16 +537,7 @@ private class KotlmataMachineImpl(
 		init
 		{
 			init?.also { it() } ?: modify?.also { it() }
-			expired = true
-		}
-		
-		private inline infix fun Boolean.should(block: () -> Unit)
-		{
-			if (this)
-			{
-				Log.e(key) { INVALID_MACHINE_SETTER }
-				block()
-			}
+			expire()
 		}
 	}
 }

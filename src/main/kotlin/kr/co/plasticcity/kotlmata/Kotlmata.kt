@@ -2,16 +2,13 @@ package kr.co.plasticcity.kotlmata
 
 object Kotlmata : KotlmataInterface by KotlmataImpl()
 {
-	class Config internal constructor(block: Config.() -> Unit)
+	class Config internal constructor(block: Config.() -> Unit) : CanExpire({ Log.e { EXPIRED_CONFIG } })
 	{
-		@Volatile
-		private var expired: Boolean = false
-		
 		var debugLogger: ((String) -> Unit)
 			get() = Log.debug
 			set(value)
 			{
-				expired should { return }
+				this shouldNot expired
 				Log.debug = value
 			}
 		
@@ -19,23 +16,14 @@ object Kotlmata : KotlmataInterface by KotlmataImpl()
 			get() = Log.error
 			set(value)
 			{
-				expired should { return }
+				this shouldNot expired
 				Log.error = value
 			}
 		
 		init
 		{
 			block()
-			expired = true
-		}
-		
-		private inline infix fun Boolean.should(block: () -> Unit)
-		{
-			if (this)
-			{
-				Log.e { INVALID_CONFIG }
-				block()
-			}
+			expire()
 		}
 	}
 }
