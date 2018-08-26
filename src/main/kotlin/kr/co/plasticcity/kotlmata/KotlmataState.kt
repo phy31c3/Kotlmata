@@ -49,12 +49,12 @@ interface KotlmataState
 	val key: Any
 	
 	/**
-	 * @param block If 'entry action' returns a next signal, the block is runned.
+	 * @param block If 'entry action' returns a next signal, the block is executed.
 	 */
 	fun entry(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
 	
 	/**
-	 * @param block If 'entry action' returns a next signal, the block is runned.
+	 * @param block If 'entry action' returns a next signal, the block is executed.
 	 */
 	fun <T : Any> entry(signal: SIGNAL, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	
