@@ -9,7 +9,7 @@ class Tests
 	{
 		Kotlmata init {
 			debugLogger = { log -> println("Kotlmata: $log") }
-			errorLogger = ::error
+			errorLogger = { log -> println("Kotlmata Error: $log") }
 		}
 	}
 	
@@ -17,7 +17,7 @@ class Tests
 	fun stateTest()
 	{
 		var initializer: KotlmataState.Initializer? = null
-		val state = KotlmataMutableState {
+		val state = KotlmataMutableState(name = "s1") {
 			initializer = this
 			
 			entry action { -> println("기본 진입함수") }
@@ -116,8 +116,12 @@ class Tests
 		machine.input("some string")
 		machine.input("goToState2")
 		
+		var modifier: KotlmataMutableMachine.Modifier? = null
 		machine {
 			println("현재 상태: $current")
+			modifier = this
 		}
+		
+		println("현재 상태를 외부에서 확인: ${modifier?.current}")
 	}
 }

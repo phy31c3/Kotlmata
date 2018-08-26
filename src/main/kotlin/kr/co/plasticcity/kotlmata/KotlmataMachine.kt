@@ -275,7 +275,11 @@ private class KotlmataMachineImpl(
 		private var expired: Boolean = false
 		
 		override val current: STATE
-			get() = state.key
+			get()
+			{
+				expired should { return "Nothing" }
+				return state.key
+			}
 		
 		override val initialize by lazy {
 			object : KotlmataMachine.Initialize

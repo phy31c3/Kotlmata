@@ -38,5 +38,6 @@ internal object Log
 	inline fun e(vararg args: Any, log: Logs.Companion.() -> String)
 	{
 		error(Logs.log().format(*args))
+		throw IllegalStateException(Logs.log())
 	}
 }
