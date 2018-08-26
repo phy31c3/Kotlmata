@@ -365,7 +365,7 @@ private class KotlmataStateImpl(
 		
 		private inline infix fun Boolean.should(block: () -> Unit)
 		{
-			if (expired)
+			if (this)
 			{
 				Log.e(key) { INVALID_STATE_SETTER }
 				block()
@@ -374,7 +374,7 @@ private class KotlmataStateImpl(
 		
 		private inline infix fun Boolean.not(block: () -> Unit)
 		{
-			if (!expired)
+			if (!this)
 			{
 				block()
 			}

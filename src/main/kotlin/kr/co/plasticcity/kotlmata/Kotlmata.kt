@@ -31,7 +31,7 @@ object Kotlmata : KotlmataInterface by KotlmataImpl()
 		
 		private inline infix fun Boolean.should(block: () -> Unit)
 		{
-			if (expired)
+			if (this)
 			{
 				Log.e { INVALID_CONFIG }
 				block()

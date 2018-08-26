@@ -528,7 +528,7 @@ private class KotlmataMachineImpl(
 		
 		private inline infix fun Boolean.should(block: () -> Unit)
 		{
-			if (expired)
+			if (this)
 			{
 				Log.e(key) { INVALID_MACHINE_SETTER }
 				block()
