@@ -82,6 +82,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 	
 	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.TransitionDefine
 	{
+		val current: STATE
 		val has: Has
 		val insert: Insert
 		val replace: Replace
@@ -272,6 +273,9 @@ private class KotlmataMachineImpl(
 	{
 		@Volatile
 		private var expired: Boolean = false
+		
+		override val current: STATE
+			get() = state.key
 		
 		override val initialize by lazy {
 			object : KotlmataMachine.Initialize

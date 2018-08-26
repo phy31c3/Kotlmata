@@ -115,5 +115,9 @@ class Tests
 		
 		machine.input("some string")
 		machine.input("goToState2")
+		
+		machine {
+			println("현재 상태: $current")
+		}
 	}
 }
