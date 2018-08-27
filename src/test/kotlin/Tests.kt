@@ -9,8 +9,8 @@ class Tests
 	fun init()
 	{
 		Kotlmata init {
-			print debug { log -> println("Kotlmata: $log") }
-			print error { log -> println("Kotlmata Error: $log") }
+			print debug ::println
+			print error ::println
 		}
 	}
 	
@@ -132,5 +132,15 @@ class Tests
 		}
 		
 		println("현재 상태를 외부에서 확인: ${modifier?.current}")
+	}
+	
+	@Test
+	fun daemonTest()
+	{
+		KotlmataDaemon {
+			on start { println("데몬이 시작됨") }
+			
+			initialize origin state to "state1"
+		}
 	}
 }
