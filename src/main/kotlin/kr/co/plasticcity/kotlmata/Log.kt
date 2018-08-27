@@ -10,13 +10,13 @@ internal class Logs
 		
 		/*########################## ERROR ##########################*/
 		/* Config */
-		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available within the 'Kotlmata.init' block."
+		const val EXPIRED_INITIALIZER = "Kotlmata: Use of expired 'Config' object: The object is only available within the 'Kotlmata.init' block."
 		
 		/* State */
-		const val EXPIRED_STATE_SETTER = "KotlmataState[%s]: Use of expired 'KotlmataMutableState.Modifier' object: The object is only available within the initialization or modifying block."
+		const val EXPIRED_STATE_MODIFIER = "KotlmataState[%s]: Use of expired 'KotlmataMutableState.Modifier' object: The object is only available within the initialization or modifying block."
 		
 		/* Machine */
-		const val EXPIRED_MACHINE_SETTER = "KotlmataMachine[%s]: Use of expired 'KotlmataMutableMachine.Modifier' object: The object is only available within the initialization or modifying block."
+		const val EXPIRED_MACHINE_MODIFIER = "KotlmataMachine[%s]: Use of expired 'KotlmataMutableMachine.Modifier' object: The object is only available within the initialization or modifying block."
 		const val NULL_ORIGIN_STATE = "KotlmataMachine[%s]: The origin state %s does not exist in machine."
 	}
 }

@@ -1,49 +1,59 @@
 package kr.co.plasticcity.kotlmata
 
-object Kotlmata : KotlmataInterface by KotlmataImpl()
+interface Kotlmata
 {
-	class Config internal constructor(block: Config.() -> Unit) : CanExpire({ Log.e { EXPIRED_CONFIG } })
+	companion object : Kotlmata by KotlmataImpl()
+	
+	infix fun init(block: Initializer.() -> Unit)
+	infix fun release(block: (() -> Unit))
+	
+	interface Initializer
 	{
-		var debugLogger: ((String) -> Unit)
-			get() = Log.debug
-			set(value)
+		val print: Print
+	}
+	
+	interface Print
+	{
+		infix fun debug(block: (String) -> Unit)
+		infix fun error(block: (String) -> Unit)
+	}
+}
+
+private class KotlmataImpl : Kotlmata
+{
+	override fun init(block: Kotlmata.Initializer.() -> Unit)
+	{
+		InitializerImpl(block)
+	}
+	
+	override fun release(block: () -> Unit)
+	{
+		TODO("not implemented")
+	}
+	
+	private inner class InitializerImpl internal constructor(
+			block: Kotlmata.Initializer.() -> Unit
+	) : Kotlmata.Initializer, CanExpire({ Log.e { EXPIRED_INITIALIZER } })
+	{
+		override val print = object : Kotlmata.Print
+		{
+			override fun debug(block: (String) -> Unit)
 			{
-				this shouldNot expired
-				Log.debug = value
+				this@InitializerImpl shouldNot expired
+				Log.debug = block
 			}
-		
-		var errorLogger: ((String) -> Unit)
-			get() = Log.error
-			set(value)
+			
+			override fun error(block: (String) -> Unit)
 			{
-				this shouldNot expired
-				Log.error = value
+				this@InitializerImpl shouldNot expired
+				Log.error = block
 			}
+		}
 		
 		init
 		{
 			block()
 			expire()
 		}
-	}
-}
-
-internal interface KotlmataInterface
-{
-	infix fun init(block: Kotlmata.Config.() -> Unit)
-	infix fun release(block: (() -> Unit))
-}
-
-private class KotlmataImpl : KotlmataInterface
-{
-	override fun init(block: Kotlmata.Config.() -> Unit)
-	{
-		Kotlmata.Config(block)
-		/* should implement */
-	}
-	
-	override fun release(block: () -> Unit)
-	{
-		/* should implement */
 	}
 }

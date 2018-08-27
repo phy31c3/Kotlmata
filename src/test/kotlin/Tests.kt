@@ -1,4 +1,5 @@
 import kr.co.plasticcity.kotlmata.*
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -8,8 +9,16 @@ class Tests
 	fun init()
 	{
 		Kotlmata init {
-			debugLogger = { log -> println("Kotlmata: $log") }
-			errorLogger = { log -> println("Kotlmata Error: $log") }
+			print debug { log -> println("Kotlmata: $log") }
+			print error { log -> println("Kotlmata Error: $log") }
+		}
+	}
+	
+	@After
+	fun release()
+	{
+		Kotlmata release {
+			/* do nothing */
 		}
 	}
 	

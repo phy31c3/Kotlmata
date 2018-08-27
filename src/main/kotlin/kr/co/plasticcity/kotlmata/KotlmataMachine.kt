@@ -269,7 +269,7 @@ private class KotlmataMachineImpl(
 	private inner class ModifierImpl internal constructor(
 			init: (KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End)? = null,
 			modify: (KotlmataMutableMachine.Modifier.() -> Unit)? = null
-	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, CanExpire({ Log.e(key) { EXPIRED_MACHINE_SETTER } })
+	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, CanExpire({ Log.e(key) { EXPIRED_MACHINE_MODIFIER } })
 	{
 		override val current: STATE
 			get()
