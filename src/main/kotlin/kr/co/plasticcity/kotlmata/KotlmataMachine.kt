@@ -76,8 +76,13 @@ interface KotlmataMutableMachine : KotlmataMachine
 	{
 		operator fun invoke(
 				name: String? = null,
-				block: (KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End)? = null
+				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End
 		): KotlmataMutableMachine = KotlmataMachineImpl(name, block)
+		
+		internal operator fun invoke(
+				key: Any,
+				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End
+		): KotlmataMutableMachine = KotlmataMachineImpl(key, block)
 	}
 	
 	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.TransitionDefine
@@ -187,7 +192,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 
 private class KotlmataMachineImpl(
 		key: Any? = null,
-		block: (KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End)? = null
+		block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End
 ) : KotlmataMutableMachine
 {
 	override val key: Any = key ?: this
@@ -197,9 +202,7 @@ private class KotlmataMachineImpl(
 	
 	init
 	{
-		block?.also {
-			ModifierImpl(init = it)
-		}
+		ModifierImpl(block)
 	}
 	
 	override fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
