@@ -18,6 +18,9 @@ internal class Logs
 		/* Machine */
 		const val EXPIRED_MACHINE_MODIFIER = "KotlmataMachine[%s]: Use of expired 'KotlmataMutableMachine.Modifier' object: The object is only available within the initialization or modifying block."
 		const val NULL_ORIGIN_STATE = "KotlmataMachine[%s]: The origin state %s does not exist in machine."
+		
+		/* Daemon */
+		const val EXPIRED_DAEMON_MODIFIER = "KotlmataDaemon[%s]: Use of expired 'KotlmataDaemon.Initializer' object: The object is only available within the initialization block."
 	}
 }
 

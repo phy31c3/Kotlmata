@@ -66,7 +66,7 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		val machine = KotlmataMutableMachine("m1") {
+		val machine = KotlmataMutableMachine(name = "m1") {
 			"state1" {
 				entry action { -> println("state1: 기본 진입함수") }
 				input signal String::class action { s -> println("state1: String타입 진입함수: $s") }
