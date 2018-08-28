@@ -278,7 +278,8 @@ private class KotlmataMachineImpl(
 			get()
 			{
 				this@ModifierImpl shouldNot expired
-				return state.key
+				return if (state.key == DaemonOriginState) Log.d(key) { OBTAINE_DAEMON_ORIGIN }
+				else state.key
 			}
 		
 		override val initialize by lazy {

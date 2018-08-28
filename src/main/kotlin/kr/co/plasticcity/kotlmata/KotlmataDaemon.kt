@@ -11,7 +11,7 @@ interface KotlmataDaemon
 		operator fun invoke(
 				name: String? = null,
 				block: Initializer.() -> KotlmataMachine.Initialize.End
-		): KotlmataDaemon? = null
+		): KotlmataDaemon = KotlmataDaemonImpl(name, block)
 	}
 	
 	interface Initializer : KotlmataMachine.Initializer
@@ -52,7 +52,7 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 		operator fun invoke(
 				name: String? = null,
 				block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initialize.End
-		): KotlmataDaemon? = null
+		): KotlmataDaemon = KotlmataDaemonImpl(name, block)
 	}
 	
 	operator fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
@@ -74,16 +74,19 @@ private class KotlmataDaemonImpl(
 	
 	val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
 	val machine: KotlmataMutableMachine
-	val fractal: KotlmataMachine?
+	val fractal: KotlmataMachine
 	
 	init
 	{
-		val start = Any()
 		machine = KotlmataMutableMachine(this.key) {
-			start {}
-			initialize origin state to start
+			val initializer = InitializerImpl(block, this)
+			DaemonOriginState {}
+			DaemonOriginState x Message.Run::class %= initializer.origin
+			initialize origin state to DaemonOriginState
 		}
-		fractal = null
+		fractal = KotlmataMachine {
+			TODO("구현해야 됨")
+		}
 	}
 	
 	override fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
@@ -127,47 +130,62 @@ private class KotlmataDaemonImpl(
 	}
 	
 	private inner class InitializerImpl internal constructor(
-			block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initialize.End
-	) : KotlmataDaemon.Initializer, CanExpire({ Log.e(key) { EXPIRED_DAEMON_MODIFIER } })
+			block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initialize.End,
+			initializer: KotlmataMachine.Initializer
+	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, CanExpire({ Log.e(key) { EXPIRED_DAEMON_MODIFIER } })
 	{
-		override val on: KotlmataDaemon.On
-			get() = TODO("not implemented")
-		override val initialize: KotlmataMachine.Initialize
-			get() = TODO("not implemented")
+		lateinit var origin: STATE
 		
-		override fun STATE.invoke(block: KotlmataState.Initializer.() -> Unit)
+		override val on: KotlmataDaemon.On = object : KotlmataDaemon.On
 		{
-			TODO("not implemented")
+			override fun start(block: () -> Unit)
+			{
+				this@InitializerImpl shouldNot expired
+				start = block
+			}
+			
+			override fun pause(block: () -> Unit)
+			{
+				this@InitializerImpl shouldNot expired
+				pause = block
+			}
+			
+			override fun stop(block: () -> Unit)
+			{
+				this@InitializerImpl shouldNot expired
+				stop = block
+			}
+			
+			override fun resume(block: () -> Unit)
+			{
+				this@InitializerImpl shouldNot expired
+				resume = block
+			}
+			
+			override fun terminate(block: () -> Unit)
+			{
+				this@InitializerImpl shouldNot expired
+				terminate = block
+			}
 		}
 		
-		override fun STATE.x(signal: SIGNAL): KotlmataMachine.TransitionLeft
+		override val initialize: KotlmataMachine.Initialize = object : KotlmataMachine.Initialize
 		{
-			TODO("not implemented")
+			override fun origin(keyword: state) = object : KotlmataMachine.Initialize.to
+			{
+				override fun to(state: STATE): KotlmataMachine.Initialize.End
+				{
+					this@InitializerImpl shouldNot expired
+					origin = state
+					return KotlmataMachine.Initialize.End()
+				}
+			}
 		}
 		
-		override fun STATE.x(signal: KClass<out Any>): KotlmataMachine.TransitionLeft
+		init
 		{
-			TODO("not implemented")
-		}
-		
-		override fun STATE.x(keyword: any): KotlmataMachine.TransitionLeft
-		{
-			TODO("not implemented")
-		}
-		
-		override fun any.x(signal: SIGNAL): KotlmataMachine.TransitionLeft
-		{
-			TODO("not implemented")
-		}
-		
-		override fun any.x(signal: KClass<out Any>): KotlmataMachine.TransitionLeft
-		{
-			TODO("not implemented")
-		}
-		
-		override fun any.x(keyword: any): KotlmataMachine.TransitionLeft
-		{
-			TODO("not implemented")
+			block()
+			expire()
 		}
 	}
 }
