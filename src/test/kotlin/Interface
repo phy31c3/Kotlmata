@@ -72,15 +72,15 @@ KotlmataMachine("name") {
 	any x "signal" %= "state1"
 	any x any %= "state2"
 
-	initialize origin state to "state0"
+	init origin state to "state0"
 }
 
 val immutableMachine = KotlmataMachine {
-	initialize origin state to "state0"
+	init origin state to "state0"
 }
 
 val mutableMachine = KotlmataMutableMachine {
-	initialize origin state to "state0"
+	init origin state to "state0"
 }
 
 mutableMachine {
@@ -157,12 +157,12 @@ KotlmataDaemon("name") {
 
 	// Machine init 블럭과 동일
 
-	initialize origin state to "state0"
+	init origin state to "state0"
 }
 
 val mutableDaemon = KotlmataMutableDaemon {
 	on start [action]
-	initialize origin state to "state0"
+	init origin state to "state0"
 }
 
 mutableDaemon {
@@ -201,7 +201,7 @@ Kotlmata fork "daemon" of { // Daemon init 블럭과 동일
 
 	"state0" x "signal" %= "state1"
 
-	initialize origin state to "state0"
+	init origin state to "state0"
 }
 
 Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일
@@ -233,7 +233,7 @@ Kotlmata has "daemon" then { Kotlmata ->
 
 		"state0" x "signal" %= "state1"
 
-		initialize origin state to "state0"
+		init origin state to "state0"
 	}
 }
 
@@ -264,7 +264,7 @@ Kotlmata has "daemon" then { Kotlmata ->
 
 		"state0" x "signal" %= "state1"
 
-		initialize origin state to "state0"
+		init origin state to "state0"
 	}
 }
 

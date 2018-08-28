@@ -91,7 +91,7 @@ class Tests
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
 			
-			initialize origin state to "state1"
+			init origin state to "state1"
 		}
 		
 		machine.input("some string")
@@ -164,7 +164,7 @@ class Tests
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
 			
-			initialize origin state to "state1"
+			init origin state to "state1"
 		}
 	}
 }

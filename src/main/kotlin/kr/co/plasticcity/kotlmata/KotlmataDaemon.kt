@@ -10,14 +10,14 @@ interface KotlmataDaemon
 	{
 		operator fun invoke(
 				name: String? = null,
-				block: Initializer.() -> KotlmataMachine.Initialize.End
+				block: Initializer.() -> KotlmataMachine.Init.End
 		): KotlmataDaemon = KotlmataDaemonImpl(name, block)
 	}
 	
 	interface Initializer : KotlmataMachine.Initializer
 	{
 		val on: On
-		override val initialize: KotlmataMachine.Initialize
+		override val init: KotlmataMachine.Init
 	}
 	
 	interface On
@@ -51,7 +51,7 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 	{
 		operator fun invoke(
 				name: String? = null,
-				block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initialize.End
+				block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Init.End
 		): KotlmataDaemon = KotlmataDaemonImpl(name, block)
 	}
 	
@@ -62,7 +62,7 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 
 private class KotlmataDaemonImpl(
 		key: Any? = null,
-		block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initialize.End
+		block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Init.End
 ) : KotlmataMutableDaemon
 {
 	override val key: Any = key ?: this
@@ -82,7 +82,7 @@ private class KotlmataDaemonImpl(
 			val initializer = InitializerImpl(block, this)
 			DaemonOriginState {}
 			DaemonOriginState x Message.Run::class %= initializer.origin
-			initialize origin state to DaemonOriginState
+			init origin state to DaemonOriginState
 		}
 		
 		fractal = KotlmataMachine {
@@ -131,7 +131,7 @@ private class KotlmataDaemonImpl(
 	}
 	
 	private inner class InitializerImpl internal constructor(
-			block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initialize.End,
+			block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Init.End,
 			initializer: KotlmataMachine.Initializer
 	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e(key) { EXPIRED_DAEMON_MODIFIER } })
 	{
@@ -170,15 +170,15 @@ private class KotlmataDaemonImpl(
 			}
 		}
 		
-		override val initialize: KotlmataMachine.Initialize = object : KotlmataMachine.Initialize
+		override val init: KotlmataMachine.Init = object : KotlmataMachine.Init
 		{
-			override fun origin(keyword: state) = object : KotlmataMachine.Initialize.to
+			override fun origin(keyword: state) = object : KotlmataMachine.Init.to
 			{
-				override fun to(state: STATE): KotlmataMachine.Initialize.End
+				override fun to(state: STATE): KotlmataMachine.Init.End
 				{
 					this@InitializerImpl shouldNot expired
 					origin = state
-					return KotlmataMachine.Initialize.End()
+					return KotlmataMachine.Init.End()
 				}
 			}
 		}

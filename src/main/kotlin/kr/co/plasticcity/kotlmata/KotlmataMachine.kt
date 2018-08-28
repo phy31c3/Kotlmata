@@ -8,16 +8,16 @@ interface KotlmataMachine
 	{
 		operator fun invoke(
 				name: String? = null,
-				block: Initializer.() -> Initialize.End
+				block: Initializer.() -> Init.End
 		): KotlmataMachine = KotlmataMachineImpl(name, block)
 	}
 	
 	interface Initializer : StateDefine, TransitionDefine
 	{
-		val initialize: Initialize
+		val init: Init
 	}
 	
-	interface Initialize
+	interface Init
 	{
 		infix fun origin(keyword: state): to
 		
@@ -76,12 +76,12 @@ interface KotlmataMutableMachine : KotlmataMachine
 	{
 		operator fun invoke(
 				name: String? = null,
-				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End
+				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End
 		): KotlmataMutableMachine = KotlmataMachineImpl(name, block)
 		
 		internal operator fun invoke(
 				key: Any,
-				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End
+				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End
 		): KotlmataMutableMachine = KotlmataMachineImpl(key, block)
 	}
 	
@@ -192,7 +192,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 
 private class KotlmataMachineImpl(
 		key: Any? = null,
-		block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End
+		block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End
 ) : KotlmataMutableMachine
 {
 	override val key: Any = key ?: this
@@ -270,7 +270,7 @@ private class KotlmataMachineImpl(
 	}
 	
 	private inner class ModifierImpl internal constructor(
-			init: (KotlmataMachine.Initializer.() -> KotlmataMachine.Initialize.End)? = null,
+			init: (KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End)? = null,
 			modify: (KotlmataMutableMachine.Modifier.() -> Unit)? = null
 	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(key) { EXPIRED_MACHINE_MODIFIER } })
 	{
@@ -282,12 +282,12 @@ private class KotlmataMachineImpl(
 				else state.key
 			}
 		
-		override val initialize by lazy {
-			object : KotlmataMachine.Initialize
+		override val init by lazy {
+			object : KotlmataMachine.Init
 			{
-				override fun origin(keyword: state) = object : KotlmataMachine.Initialize.to
+				override fun origin(keyword: state) = object : KotlmataMachine.Init.to
 				{
-					override fun to(state: STATE): KotlmataMachine.Initialize.End
+					override fun to(state: STATE): KotlmataMachine.Init.End
 					{
 						this@ModifierImpl shouldNot expired
 						
@@ -295,7 +295,7 @@ private class KotlmataMachineImpl(
 							this@KotlmataMachineImpl.state = it
 						} ?: Log.e(key, state) { NULL_ORIGIN_STATE }
 						
-						return KotlmataMachine.Initialize.End()
+						return KotlmataMachine.Init.End()
 					}
 				}
 			}
