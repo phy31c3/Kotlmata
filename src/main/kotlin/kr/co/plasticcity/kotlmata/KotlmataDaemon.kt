@@ -84,8 +84,9 @@ private class KotlmataDaemonImpl(
 			DaemonOriginState x Message.Run::class %= initializer.origin
 			initialize origin state to DaemonOriginState
 		}
+		
 		fractal = KotlmataMachine {
-			TODO("구현해야 됨")
+			TODO("not implemented")
 		}
 	}
 	
@@ -132,7 +133,7 @@ private class KotlmataDaemonImpl(
 	private inner class InitializerImpl internal constructor(
 			block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initialize.End,
 			initializer: KotlmataMachine.Initializer
-	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, CanExpire({ Log.e(key) { EXPIRED_DAEMON_MODIFIER } })
+	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e(key) { EXPIRED_DAEMON_MODIFIER } })
 	{
 		lateinit var origin: STATE
 		

@@ -1,6 +1,6 @@
 package kr.co.plasticcity.kotlmata
 
-internal open class CanExpire internal constructor(private val block: () -> Nothing)
+internal open class Expirable internal constructor(private val block: () -> Nothing)
 {
 	@Volatile
 	private var expire = false

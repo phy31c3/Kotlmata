@@ -33,7 +33,7 @@ private class KotlmataImpl : Kotlmata
 	
 	private inner class InitializerImpl internal constructor(
 			block: Kotlmata.Initializer.() -> Unit
-	) : Kotlmata.Initializer, CanExpire({ Log.e { EXPIRED_INITIALIZER } })
+	) : Kotlmata.Initializer, Expirable({ Log.e { EXPIRED_INITIALIZER } })
 	{
 		override val print = object : Kotlmata.Print
 		{
