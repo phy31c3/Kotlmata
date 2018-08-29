@@ -80,9 +80,9 @@ private class KotlmataDaemonImpl(
 	{
 		machine = KotlmataMutableMachine(this.key) {
 			val initializer = InitializerImpl(block, this)
-			DaemonOriginState {}
-			DaemonOriginState x Message.Run::class %= initializer.origin
-			init origin state to DaemonOriginState
+			DaemonOrigin {}
+			DaemonOrigin x Message.Run::class %= initializer.origin
+			init origin state to DaemonOrigin
 		}
 		
 		fractal = KotlmataMachine {

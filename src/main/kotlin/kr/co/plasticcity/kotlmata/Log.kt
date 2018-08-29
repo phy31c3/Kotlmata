@@ -10,7 +10,7 @@ internal class Logs
 		
 		/*########################## WARNING ##########################*/
 		/* Machine */
-		const val OBTAINE_DAEMON_ORIGIN = "KotlmataMachine[%s]: Attempt to get 'Daemon origin state': Daemon origin state can not be obtained."
+		const val OBTAIN_DAEMON_ORIGIN = "KotlmataMachine[%s]: Attempt to get 'Daemon origin state': Daemon origin state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		/* Config */

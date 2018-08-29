@@ -278,7 +278,7 @@ private class KotlmataMachineImpl(
 			get()
 			{
 				this@ModifierImpl shouldNot expired
-				return if (state.key == DaemonOriginState) Log.d(key) { OBTAINE_DAEMON_ORIGIN }
+				return if (state.key == DaemonOrigin) Log.d(key) { OBTAIN_DAEMON_ORIGIN }
 				else state.key
 			}
 		

@@ -3,7 +3,7 @@ package kr.co.plasticcity.kotlmata
 internal typealias STATE = Any
 internal typealias SIGNAL = Any
 
-internal object DaemonOriginState
+internal object DaemonOrigin
 
 object all
 object any
