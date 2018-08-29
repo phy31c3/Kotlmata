@@ -2,6 +2,7 @@ package kr.co.plasticcity.kotlmata
 
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.concurrent.thread
 import kotlin.reflect.KClass
 
 interface KotlmataDaemon
@@ -73,8 +74,9 @@ private class KotlmataDaemonImpl(
 	override var terminate: () -> Unit = {}
 	
 	val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
+	val engine: KotlmataMachine = KotlmataMachine { createEngine() }
 	val machine: KotlmataMutableMachine
-	val fractal: KotlmataMachine
+	val thread: Thread
 	
 	init
 	{
@@ -85,49 +87,69 @@ private class KotlmataDaemonImpl(
 			init origin state to DaemonOrigin
 		}
 		
-		fractal = KotlmataMachine {
-			TODO("not implemented")
+		thread = thread(name = "KotlmataDaemon[key]", isDaemon = true, start = true) {
+			while (true)
+			{
+				engine.input(queue.take())
+			}
 		}
 	}
 	
 	override fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
-		queue.add(Message.Modify(block))
+		synchronized(queue) {
+			queue.offer(Message.Modify(block))
+		}
 	}
 	
 	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
-		queue.add(Message.Modify(block))
+		synchronized(queue) {
+			queue.offer(Message.Modify(block))
+		}
 	}
 	
 	override fun input(signal: SIGNAL)
 	{
-		queue.add(Message.Signal(signal))
+		synchronized(queue) {
+			queue.offer(Message.Signal(signal))
+		}
 	}
 	
+	@Suppress("UNCHECKED_CAST")
 	override fun <T : Any> input(signal: T, type: KClass<in T>)
 	{
-		queue.add(Message.TypedSignal(signal, type))
+		synchronized(queue) {
+			queue.offer(Message.TypedSignal(signal, type as KClass<Any>))
+		}
 	}
 	
 	override fun run()
 	{
-		queue.add(Message.Run())
+		synchronized(queue) {
+			queue.offer(Message.Run())
+		}
 	}
 	
 	override fun pause()
 	{
-		queue.add(Message.Pause())
+		synchronized(queue) {
+			queue.offer(Message.Pause())
+		}
 	}
 	
 	override fun stop()
 	{
-		queue.add(Message.Stop())
+		synchronized(queue) {
+			queue.offer(Message.Stop())
+		}
 	}
 	
 	override fun terminate()
 	{
-		queue.add(Message.Terminate())
+		synchronized(queue) {
+			queue.offer(Message.Terminate())
+		}
 	}
 	
 	private inner class InitializerImpl internal constructor(
@@ -194,7 +216,7 @@ private class KotlmataDaemonImpl(
 private sealed class Message(val priority: Int) : Comparable<Message>
 {
 	class Signal(val signal: SIGNAL) : Message(0)
-	class TypedSignal(val signal: SIGNAL, val type: KClass<out Any>) : Message(0)
+	class TypedSignal(val signal: SIGNAL, val type: KClass<Any>) : Message(0)
 	class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(0)
 	class Stash(val signal: SIGNAL) : Message(1)
 	class Run : Message(2)
@@ -215,4 +237,44 @@ private sealed class Message(val priority: Int) : Comparable<Message>
 		return if (dP != 0) dP
 		else (timestamp - other.timestamp).toInt()
 	}
+}
+
+private fun KotlmataMachine.Initializer.createEngine(): KotlmataMachine.Init.End
+{
+	DaemonOrigin {
+		TODO("not implemented")
+	}
+	
+	Message.Run::class {
+		TODO("not implemented")
+	}
+	
+	Message.Pause::class {
+		TODO("not implemented")
+	}
+	
+	Message.Stop::class {
+		TODO("not implemented")
+	}
+	
+	Message.Terminate::class{
+		TODO("not implemented")
+	}
+	
+	DaemonOrigin x Message.Run::class %= Message.Run::class
+	DaemonOrigin x Message.Pause::class %= Message.Pause::class
+	DaemonOrigin x Message.Stop::class %= Message.Stop::class
+	
+	Message.Run::class x Message.Pause::class %= Message.Pause::class
+	Message.Run::class x Message.Stop::class %= Message.Stop::class
+	
+	Message.Pause::class x Message.Run::class %= Message.Run::class
+	Message.Pause::class x Message.Stop::class %= Message.Stop::class
+	
+	Message.Stop::class x Message.Run::class %= Message.Run::class
+	Message.Stop::class x Message.Pause::class %= Message.Pause::class
+	
+	any x Message.Terminate::class %= Message.Terminate::class
+	
+	return init origin state to DaemonOrigin
 }
