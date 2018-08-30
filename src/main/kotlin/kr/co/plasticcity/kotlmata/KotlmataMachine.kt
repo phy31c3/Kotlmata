@@ -265,7 +265,7 @@ private class KotlmataMachineImpl(
 	override fun <T : Any> input(signal: T, type: KClass<in T>)
 	{
 		input(signal, type) {
-			input(signal)
+			input(it)
 		}
 	}
 	
