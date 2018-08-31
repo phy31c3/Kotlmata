@@ -1,5 +1,6 @@
 package kr.co.plasticcity.kotlmata
 
+import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
@@ -74,9 +75,8 @@ private class KotlmataDaemonImpl(
 	override var terminate: () -> Unit = {}
 	
 	val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
-	val engine: KotlmataMachine = KotlmataMachine { createEngine() }
+	val engine: KotlmataMachine
 	val machine: KotlmataMutableMachine
-	val thread: Thread
 	
 	init
 	{
@@ -87,10 +87,128 @@ private class KotlmataDaemonImpl(
 			init origin state to DaemonOrigin
 		}
 		
-		thread = thread(name = "KotlmataDaemon[key]", isDaemon = true, start = true) {
-			while (true)
+		engine = KotlmataMachine {
+			DaemonOrigin {
+				input signal Message.Run::class action start
+				input signal Message.Pause::class action start
+				input signal Message.Stop::class action start
+				input signal Message.Terminate::class action start
+				
+				input signal Message.Modify::class action { m ->
+					machine modify m.block
+				}
+			}
+			
+			Message.Run::class {
+				entry via Message.Pause::class action resume
+				entry via Message.Stop::class action resume
+				
+				input signal Message.Stash::class action { m ->
+					machine.input(m.signal) { queue.offer(Message.Stash(it)) }
+				}
+				input signal Message.Signal::class action { m ->
+					machine.input(m.signal) { queue.offer(Message.Stash(it)) }
+				}
+				input signal Message.TypedSignal::class action { m ->
+					machine.input(m.signal, m.type) { queue.offer(Message.Stash(it)) }
+				}
+				input signal Message.Modify::class action { m ->
+					machine modify m.block
+				}
+			}
+			
+			Message.Pause::class {
+				val temp: MutableList<Message> = ArrayList()
+				
+				entry action pause
+				
+				input signal Message.Stash::class action { m ->
+					temp += m
+				}
+				input signal Message.Signal::class action { m ->
+					temp += m
+				}
+				input signal Message.TypedSignal::class action { m ->
+					temp += m
+				}
+				input signal Message.Modify::class action { m ->
+					machine modify m.block
+				}
+				
+				exit action {
+					queue += temp
+					temp.clear()
+				}
+			}
+			
+			Message.Stop::class {
+				var stash: Message.Stash?
+				
+				entry action { _ ->
+					stop().also loop@{ _ ->
+						queue.forEach {
+							when (it.priority)
+							{
+								Message.stash -> stash = it as Message.Stash
+								Message.operation -> return@loop
+							}
+						}
+						TODO(" 아니야... lock을 걸고 stash는 저장, operation 중 Stop보다 순서 빠른 애들 삭제해야될듯..")
+					}
+				}
+				
+				input signal Message.Run::class action { _ ->
+					TODO("Stash 복구 & 우선순위(2) 중 Run보다 순서 빠른 애들 삭제")
+				}
+				input signal Message.Pause::class action { _ ->
+					TODO("Stash 복구 & 우선순위(2) 중 Pause보다 순서 빠른 애들 삭제")
+				}
+				
+				input signal Message.Modify::class action { m ->
+					machine modify m.block
+				}
+				
+				exit action {
+				
+				}
+			}
+			
+			Message.Terminate::class{
+				entry action { _ ->
+					terminate()
+					Thread.currentThread().interrupt()
+				}
+			}
+			
+			DaemonOrigin x Message.Run::class %= Message.Run::class
+			DaemonOrigin x Message.Pause::class %= Message.Pause::class
+			DaemonOrigin x Message.Stop::class %= Message.Stop::class
+			
+			Message.Run::class x Message.Pause::class %= Message.Pause::class
+			Message.Run::class x Message.Stop::class %= Message.Stop::class
+			
+			Message.Pause::class x Message.Run::class %= Message.Run::class
+			Message.Pause::class x Message.Stop::class %= Message.Stop::class
+			
+			Message.Stop::class x Message.Run::class %= Message.Run::class
+			Message.Stop::class x Message.Pause::class %= Message.Pause::class
+			
+			any x Message.Terminate::class %= Message.Terminate::class
+			
+			init origin state to DaemonOrigin
+		}
+		
+		thread(name = "KotlmataDaemon[key]", isDaemon = true, start = true) {
+			try
 			{
-				engine.input(queue.take())
+				while (true)
+				{
+					engine.input(queue.take())
+				}
+			}
+			catch (e: InterruptedException)
+			{
+				queue.clear()
 			}
 		}
 	}
@@ -215,66 +333,32 @@ private class KotlmataDaemonImpl(
 
 private sealed class Message(val priority: Int) : Comparable<Message>
 {
-	class Signal(val signal: SIGNAL) : Message(0)
-	class TypedSignal(val signal: SIGNAL, val type: KClass<Any>) : Message(0)
-	class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(0)
-	class Stash(val signal: SIGNAL) : Message(1)
-	class Run : Message(2)
-	class Pause : Message(2)
-	class Stop : Message(2)
-	class Terminate : Message(2)
+	class Run : Message(lifecycle)
+	class Pause : Message(lifecycle)
+	class Stop : Message(lifecycle)
+	class Terminate : Message(lifecycle)
+	
+	class Stash(val signal: SIGNAL) : Message(stash)
+	
+	class Signal(val signal: SIGNAL) : Message(operation)
+	class TypedSignal(val signal: SIGNAL, val type: KClass<Any>) : Message(operation)
+	class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(operation)
 	
 	companion object
 	{
-		val stamp: AtomicLong = AtomicLong(Long.MAX_VALUE)
+		const val lifecycle = 2
+		const val stash = 1
+		const val operation = 0
+		
+		val ticket: AtomicLong = AtomicLong(0)
 	}
 	
-	val timestamp = stamp.decrementAndGet()
+	val order = ticket.getAndIncrement()
 	
 	override fun compareTo(other: Message): Int
 	{
 		val dP = priority - other.priority
 		return if (dP != 0) dP
-		else (timestamp - other.timestamp).toInt()
+		else (other.order - order).toInt()
 	}
-}
-
-private fun KotlmataMachine.Initializer.createEngine(): KotlmataMachine.Init.End
-{
-	DaemonOrigin {
-		TODO("not implemented")
-	}
-	
-	Message.Run::class {
-		TODO("not implemented")
-	}
-	
-	Message.Pause::class {
-		TODO("not implemented")
-	}
-	
-	Message.Stop::class {
-		TODO("not implemented")
-	}
-	
-	Message.Terminate::class{
-		TODO("not implemented")
-	}
-	
-	DaemonOrigin x Message.Run::class %= Message.Run::class
-	DaemonOrigin x Message.Pause::class %= Message.Pause::class
-	DaemonOrigin x Message.Stop::class %= Message.Stop::class
-	
-	Message.Run::class x Message.Pause::class %= Message.Pause::class
-	Message.Run::class x Message.Stop::class %= Message.Stop::class
-	
-	Message.Pause::class x Message.Run::class %= Message.Run::class
-	Message.Pause::class x Message.Stop::class %= Message.Stop::class
-	
-	Message.Stop::class x Message.Run::class %= Message.Run::class
-	Message.Stop::class x Message.Pause::class %= Message.Pause::class
-	
-	any x Message.Terminate::class %= Message.Terminate::class
-	
-	return init origin state to DaemonOrigin
 }
