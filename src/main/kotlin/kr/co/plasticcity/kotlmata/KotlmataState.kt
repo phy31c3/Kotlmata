@@ -151,7 +151,9 @@ private class KotlmataStateImpl(
 				else -> null
 			}
 		} ?: entry?.invoke(signal)
-		next?.apply(block)
+		next?.also {
+			if (it !is Unit) block(it)
+		}
 	}
 	
 	override fun <T : Any> entry(signal: SIGNAL, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
@@ -163,7 +165,9 @@ private class KotlmataStateImpl(
 				else -> null
 			}
 		} ?: entry?.invoke(signal)
-		next?.apply(block)
+		next?.also {
+			if (it !is Unit) block(it)
+		}
 	}
 	
 	override fun input(signal: SIGNAL)

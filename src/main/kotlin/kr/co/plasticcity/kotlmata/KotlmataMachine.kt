@@ -227,7 +227,7 @@ private class KotlmataMachineImpl(
 			transitionMap[state.key]?.next() ?: transitionMap[any]?.next()
 		}?.let {
 			stateMap[it]
-		}?.let {
+		}?.also {
 			Log.d(key, state.key, signal, it.key) { MACHINE_TRANSITION }
 			state.exit()
 			state = it
@@ -254,7 +254,7 @@ private class KotlmataMachineImpl(
 			transitionMap[state.key]?.next() ?: transitionMap[any]?.next()
 		}?.let {
 			stateMap[it]
-		}?.let {
+		}?.also {
 			Log.d(key, state.key, signal, it.key) { MACHINE_TRANSITION }
 			state.exit()
 			state = it
@@ -451,7 +451,7 @@ private class KotlmataMachineImpl(
 							it[transitionLeft.state]
 						}?.let {
 							it[transitionLeft.signal]
-						}.let {
+						}.also {
 							transitionLeft %= state
 						}
 					}
@@ -487,7 +487,7 @@ private class KotlmataMachineImpl(
 					this@ModifierImpl shouldNot expired
 					transitionMap.let {
 						it[transitionLeft.state]
-					}?.let {
+					}?.also {
 						it -= transitionLeft.signal
 					}
 				}
