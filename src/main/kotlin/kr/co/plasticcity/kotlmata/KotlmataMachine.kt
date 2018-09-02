@@ -229,7 +229,7 @@ private class KotlmataMachineImpl(
 			stateMap[it]
 		}?.also {
 			Log.d(key, state.key, signal, it.key) { MACHINE_TRANSITION }
-			state.exit()
+			state.exit(signal)
 			state = it
 			state.entry(signal, block)
 		}
@@ -256,7 +256,7 @@ private class KotlmataMachineImpl(
 			stateMap[it]
 		}?.also {
 			Log.d(key, state.key, signal, it.key) { MACHINE_TRANSITION }
-			state.exit()
+			state.exit(signal)
 			state = it
 			state.entry(signal, type, block)
 		}

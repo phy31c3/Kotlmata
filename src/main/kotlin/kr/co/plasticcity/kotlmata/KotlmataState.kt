@@ -21,7 +21,6 @@ interface KotlmataState
 	
 	interface Entry
 	{
-		infix fun action(action: () -> SIGNAL?) = this.action { _ -> action() }
 		infix fun action(action: (signal: SIGNAL) -> SIGNAL?)
 		infix fun <T : Any> via(signal: KClass<T>): action<T, SIGNAL?>
 		infix fun <T : Any> via(signal: T): action<T, SIGNAL?>
@@ -29,7 +28,6 @@ interface KotlmataState
 	
 	interface Input
 	{
-		infix fun action(action: () -> Unit) = this.action { _ -> action() }
 		infix fun action(action: (signal: SIGNAL) -> Unit)
 		infix fun <T : Any> signal(signal: KClass<T>): action<T, Unit>
 		infix fun <T : Any> signal(signal: T): action<T, Unit>
@@ -37,12 +35,11 @@ interface KotlmataState
 	
 	interface Exit
 	{
-		infix fun action(action: () -> Unit)
+		infix fun action(action: (signal: SIGNAL) -> Unit)
 	}
 	
 	interface action<T, U>
 	{
-		infix fun action(action: () -> U) = this.action { _ -> action() }
 		infix fun action(action: (signal: T) -> U)
 	}
 	
@@ -62,7 +59,7 @@ interface KotlmataState
 	
 	fun <T : Any> input(signal: T, type: KClass<in T>)
 	
-	fun exit()
+	fun exit(signal: SIGNAL)
 }
 
 interface KotlmataMutableState : KotlmataState
@@ -120,7 +117,7 @@ private class KotlmataStateImpl(
 	override val key: Any = key ?: this
 	private var entry: ((SIGNAL) -> SIGNAL?)? = null
 	private var input: ((SIGNAL) -> Unit)? = null
-	private var exit: (() -> Unit)? = null
+	private var exit: ((SIGNAL) -> Unit)? = null
 	private var entryMap: MutableMap<SIGNAL, (SIGNAL) -> SIGNAL?>? = null
 	private var inputMap: MutableMap<SIGNAL, (SIGNAL) -> Unit>? = null
 	
@@ -193,9 +190,9 @@ private class KotlmataStateImpl(
 		} ?: input?.invoke(signal)
 	}
 	
-	override fun exit()
+	override fun exit(signal: SIGNAL)
 	{
-		exit?.invoke()
+		exit?.invoke(signal)
 	}
 	
 	private inner class ModifierImpl internal constructor(
@@ -275,7 +272,7 @@ private class KotlmataStateImpl(
 		override val exit by lazy {
 			object : KotlmataState.Exit
 			{
-				override fun action(action: () -> Unit)
+				override fun action(action: (signal: SIGNAL) -> Unit)
 				{
 					this@ModifierImpl shouldNot expired
 					this@KotlmataStateImpl.exit = action

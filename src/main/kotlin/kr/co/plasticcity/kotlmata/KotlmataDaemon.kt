@@ -32,11 +32,6 @@ interface KotlmataDaemon
 	}
 	
 	val key: Any
-	var start: () -> Unit
-	var pause: () -> Unit
-	var stop: () -> Unit
-	var resume: () -> Unit
-	var terminate: () -> Unit
 	
 	fun run()
 	fun pause()
@@ -68,11 +63,12 @@ private class KotlmataDaemonImpl(
 ) : KotlmataMutableDaemon
 {
 	override val key: Any = key ?: this
-	override var start: () -> Unit = {}
-	override var pause: () -> Unit = {}
-	override var stop: () -> Unit = {}
-	override var resume: () -> Unit = {}
-	override var terminate: () -> Unit = {}
+	
+	var start: () -> Unit = {}
+	var pause: () -> Unit = {}
+	var stop: () -> Unit = {}
+	var resume: () -> Unit = {}
+	var terminate: () -> Unit = {}
 	
 	val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
 	val engine: KotlmataMachine
@@ -89,19 +85,19 @@ private class KotlmataDaemonImpl(
 		
 		engine = KotlmataMachine {
 			DaemonOrigin {
-				input signal Message.Run::class action start
-				input signal Message.Pause::class action start
-				input signal Message.Stop::class action start
-				input signal Message.Terminate::class action start
+				input signal Message.Run::class action { start() }
+				input signal Message.Pause::class action { start() }
+				input signal Message.Stop::class action { start() }
+				input signal Message.Terminate::class action { start() }
 				
-				input signal Message.Modify::class action { m ->
-					machine modify m.block
+				input signal Message.Modify::class action {
+					machine modify it.block
 				}
 			}
 			
 			Message.Run::class {
-				entry via Message.Pause::class action resume
-				entry via Message.Stop::class action resume
+				entry via Message.Pause::class action { resume() }
+				entry via Message.Stop::class action { resume() }
 				
 				input signal Message.Stash::class action { m ->
 					machine.input(m.signal) { queue.offer(Message.Stash(it)) }
@@ -112,31 +108,31 @@ private class KotlmataDaemonImpl(
 				input signal Message.TypedSignal::class action { m ->
 					machine.input(m.signal, m.type) { queue.offer(Message.Stash(it)) }
 				}
-				input signal Message.Modify::class action { m ->
-					machine modify m.block
+				input signal Message.Modify::class action {
+					machine modify it.block
 				}
 			}
 			
 			Message.Pause::class {
 				val temp: MutableList<Message> = ArrayList()
 				
-				entry action pause
+				entry action { pause() }
 				
-				input signal Message.Run::class action { _ ->
+				input signal Message.Run::class action {
 					queue += temp
 				}
 				
-				input signal Message.Stash::class action { m ->
-					temp += m
+				input signal Message.Stash::class action {
+					temp += it
 				}
-				input signal Message.Signal::class action { m ->
-					temp += m
+				input signal Message.Signal::class action {
+					temp += it
 				}
-				input signal Message.TypedSignal::class action { m ->
-					temp += m
+				input signal Message.TypedSignal::class action {
+					temp += it
 				}
-				input signal Message.Modify::class action { m ->
-					machine modify m.block
+				input signal Message.Modify::class action {
+					machine modify it.block
 				}
 				
 				exit action {
@@ -160,15 +156,15 @@ private class KotlmataDaemonImpl(
 					}
 				}
 				
-				input signal Message.Run::class action { _ ->
+				input signal Message.Run::class action {
 					TODO("Stash 복구 & 우선순위(2) 중 Run보다 순서 빠른 애들 삭제(2의 시작점을 찾고 뒤에서부터 검색하여 속도를 높인다)")
 				}
-				input signal Message.Pause::class action { _ ->
+				input signal Message.Pause::class action {
 					TODO("Stash 복구 & 우선순위(2) 중 Pause보다 순서 빠른 애들 삭제(2의 시작점을 찾고 뒤에서부터 검색하여 속도를 높인다)")
 				}
 				
-				input signal Message.Modify::class action { m ->
-					machine modify m.block
+				input signal Message.Modify::class action {
+					machine modify it.block
 				}
 				
 				TODO("여러 신호에 대한 정의를 한번에 할 수 있도록 해줄까?")
@@ -176,7 +172,7 @@ private class KotlmataDaemonImpl(
 			}
 			
 			Message.Terminate::class{
-				entry action { _ ->
+				entry action {
 					terminate()
 					Thread.currentThread().interrupt()
 				}
