@@ -31,7 +31,7 @@ interface KotlmataDaemon
 		infix fun terminate(block: () -> Unit)
 	}
 	
-	val key: Any
+	val key: KEY
 	
 	fun run()
 	fun pause()
@@ -39,7 +39,7 @@ interface KotlmataDaemon
 	fun terminate()
 	
 	fun input(signal: SIGNAL)
-	fun <T : Any> input(signal: T, type: KClass<in T>)
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 }
 
 interface KotlmataMutableDaemon : KotlmataDaemon
@@ -58,11 +58,11 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 }
 
 private class KotlmataDaemonImpl(
-		key: Any? = null,
+		key: KEY? = null,
 		block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Init.End
 ) : KotlmataMutableDaemon
 {
-	override val key: Any = key ?: this
+	override val key: KEY = key ?: this
 	
 	var start: () -> Unit = {}
 	var pause: () -> Unit = {}
@@ -233,10 +233,10 @@ private class KotlmataDaemonImpl(
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun <T : Any> input(signal: T, type: KClass<in T>)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	{
 		synchronized(queue) {
-			queue.offer(Message.TypedSignal(signal, type as KClass<Any>))
+			queue.offer(Message.TypedSignal(signal, type as KClass<SIGNAL>))
 		}
 	}
 	
@@ -339,7 +339,7 @@ private sealed class Message(val priority: Int) : Comparable<Message>
 	class Stash(val signal: SIGNAL) : Message(stash)
 	
 	class Signal(val signal: SIGNAL) : Message(operation)
-	class TypedSignal(val signal: SIGNAL, val type: KClass<Any>) : Message(operation)
+	class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(operation)
 	class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(operation)
 	
 	companion object

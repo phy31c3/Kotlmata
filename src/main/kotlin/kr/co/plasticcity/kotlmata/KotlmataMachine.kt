@@ -37,11 +37,11 @@ interface KotlmataMachine
 	interface TransitionDefine
 	{
 		infix fun STATE.x(signal: SIGNAL): TransitionLeft
-		infix fun STATE.x(signal: KClass<out Any>): TransitionLeft
+		infix fun STATE.x(signal: KClass<out SIGNAL>): TransitionLeft
 		infix fun STATE.x(keyword: any): TransitionLeft
 		
 		infix fun any.x(signal: SIGNAL): TransitionLeft
-		infix fun any.x(signal: KClass<out Any>): TransitionLeft
+		infix fun any.x(signal: KClass<out SIGNAL>): TransitionLeft
 		infix fun any.x(keyword: any): TransitionLeft
 	}
 	
@@ -53,7 +53,7 @@ interface KotlmataMachine
 		operator fun remAssign(state: STATE)
 	}
 	
-	val key: Any
+	val key: KEY
 	
 	/**
 	 * @param block Called if the state transitions and the next state's entry function returns an signal.
@@ -65,9 +65,9 @@ interface KotlmataMachine
 	/**
 	 * @param block Called if the state transitions and the next state's entry function returns an signal.
 	 */
-	fun <T : Any> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	
-	fun <T : Any> input(signal: T, type: KClass<in T>)
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 }
 
 interface KotlmataMutableMachine : KotlmataMachine
@@ -80,7 +80,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 		): KotlmataMutableMachine = KotlmataMachineImpl(name, block)
 		
 		internal operator fun invoke(
-				key: Any,
+				key: KEY,
 				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End
 		): KotlmataMutableMachine = KotlmataMachineImpl(key, block)
 	}
@@ -191,11 +191,11 @@ interface KotlmataMutableMachine : KotlmataMachine
 }
 
 private class KotlmataMachineImpl(
-		key: Any? = null,
+		key: KEY? = null,
 		block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End
 ) : KotlmataMutableMachine
 {
-	override val key: Any = key ?: this
+	override val key: KEY = key ?: this
 	private val stateMap: MutableMap<STATE, KotlmataMutableState> = HashMap()
 	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	private lateinit var state: KotlmataState
@@ -242,7 +242,7 @@ private class KotlmataMachineImpl(
 		}
 	}
 	
-	override fun <T : Any> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
@@ -262,7 +262,7 @@ private class KotlmataMachineImpl(
 		}
 	}
 	
-	override fun <T : Any> input(signal: T, type: KClass<in T>)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	{
 		input(signal, type) {
 			input(it)
@@ -516,11 +516,11 @@ private class KotlmataMachineImpl(
 		}
 		
 		override fun STATE.x(signal: SIGNAL) = transitionLeft(this, signal)
-		override fun STATE.x(signal: KClass<out Any>) = transitionLeft(this, signal)
+		override fun STATE.x(signal: KClass<out SIGNAL>) = transitionLeft(this, signal)
 		override fun STATE.x(keyword: any) = transitionLeft(this, keyword)
 		
 		override fun any.x(signal: SIGNAL) = transitionLeft(this, signal)
-		override fun any.x(signal: KClass<out Any>) = transitionLeft(this, signal)
+		override fun any.x(signal: KClass<out SIGNAL>) = transitionLeft(this, signal)
 		override fun any.x(keyword: any) = transitionLeft(this, keyword)
 		
 		private fun transitionLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.TransitionLeft
