@@ -122,6 +122,10 @@ private class KotlmataDaemonImpl(
 				
 				entry action pause
 				
+				input signal Message.Run::class action { _ ->
+					queue += temp
+				}
+				
 				input signal Message.Stash::class action { m ->
 					temp += m
 				}
@@ -136,7 +140,6 @@ private class KotlmataDaemonImpl(
 				}
 				
 				exit action {
-					queue += temp
 					temp.clear()
 				}
 			}
@@ -153,24 +156,23 @@ private class KotlmataDaemonImpl(
 								Message.operation -> return@loop
 							}
 						}
-						TODO(" 아니야... lock을 걸고 stash는 저장, operation 중 Stop보다 순서 빠른 애들 삭제해야될듯..")
+						TODO("여기서는 stash만 저장한다")
 					}
 				}
 				
 				input signal Message.Run::class action { _ ->
-					TODO("Stash 복구 & 우선순위(2) 중 Run보다 순서 빠른 애들 삭제")
+					TODO("Stash 복구 & 우선순위(2) 중 Run보다 순서 빠른 애들 삭제(2의 시작점을 찾고 뒤에서부터 검색하여 속도를 높인다)")
 				}
 				input signal Message.Pause::class action { _ ->
-					TODO("Stash 복구 & 우선순위(2) 중 Pause보다 순서 빠른 애들 삭제")
+					TODO("Stash 복구 & 우선순위(2) 중 Pause보다 순서 빠른 애들 삭제(2의 시작점을 찾고 뒤에서부터 검색하여 속도를 높인다)")
 				}
 				
 				input signal Message.Modify::class action { m ->
 					machine modify m.block
 				}
 				
-				exit action {
-				
-				}
+				TODO("여러 신호에 대한 정의를 한번에 할 수 있도록 해줄까?")
+				TODO("exit 동작에도 신호를 전달해줄까?")
 			}
 			
 			Message.Terminate::class{
