@@ -89,7 +89,6 @@ private class KotlmataDaemonImpl(
 				input signal Message.Pause::class action { start() }
 				input signal Message.Stop::class action { start() }
 				input signal Message.Terminate::class action { start() }
-				
 				input signal Message.Modify::class action {
 					machine modify it.block
 				}
@@ -100,13 +99,19 @@ private class KotlmataDaemonImpl(
 				entry via Message.Stop::class action { resume() }
 				
 				input signal Message.Stash::class action { m ->
-					machine.input(m.signal) { queue.offer(Message.Stash(it)) }
+					machine.input(m.signal) {
+						queue.offer(Message.Stash(it))
+					}
 				}
 				input signal Message.Signal::class action { m ->
-					machine.input(m.signal) { queue.offer(Message.Stash(it)) }
+					machine.input(m.signal) {
+						queue.offer(Message.Stash(it))
+					}
 				}
 				input signal Message.TypedSignal::class action { m ->
-					machine.input(m.signal, m.type) { queue.offer(Message.Stash(it)) }
+					machine.input(m.signal, m.type) {
+						queue.offer(Message.Stash(it))
+					}
 				}
 				input signal Message.Modify::class action {
 					machine modify it.block
@@ -118,22 +123,11 @@ private class KotlmataDaemonImpl(
 				
 				entry action { pause() }
 				
-				input signal Message.Run::class action {
-					queue += temp
-				}
-				
-				input signal Message.Stash::class action {
-					temp += it
-				}
-				input signal Message.Signal::class action {
-					temp += it
-				}
-				input signal Message.TypedSignal::class action {
-					temp += it
-				}
-				input signal Message.Modify::class action {
-					temp += it
-				}
+				input signal Message.Run::class action { queue += temp }
+				input signal Message.Stash::class action { temp += it }
+				input signal Message.Signal::class action { temp += it }
+				input signal Message.TypedSignal::class action { temp += it }
+				input signal Message.Modify::class action { temp += it }
 				
 				exit action {
 					temp.clear()
