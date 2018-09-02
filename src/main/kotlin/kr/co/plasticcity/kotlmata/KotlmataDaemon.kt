@@ -132,7 +132,7 @@ private class KotlmataDaemonImpl(
 					temp += it
 				}
 				input signal Message.Modify::class action {
-					machine modify it.block
+					temp += it
 				}
 				
 				exit action {
@@ -141,34 +141,18 @@ private class KotlmataDaemonImpl(
 			}
 			
 			Message.Stop::class {
-				var stash: Message.Stash?
+				entry action { stop() }
 				
-				entry action { _ ->
-					stop().also loop@{ _ ->
-						queue.forEach {
-							when (it.priority)
-							{
-								Message.stash -> stash = it as Message.Stash
-								Message.operation -> return@loop
-							}
-						}
-						TODO("여기서는 stash만 저장한다")
+				input signal Message.Run::class action { m ->
+					queue.removeIf {
+						it.isEvent() && it.isEarlierThan(m)
 					}
 				}
-				
-				input signal Message.Run::class action {
-					TODO("Stash 복구 & 우선순위(2) 중 Run보다 순서 빠른 애들 삭제(2의 시작점을 찾고 뒤에서부터 검색하여 속도를 높인다)")
+				input signal Message.Pause::class action { m ->
+					queue.removeIf {
+						it.isEvent() && it.isEarlierThan(m)
+					}
 				}
-				input signal Message.Pause::class action {
-					TODO("Stash 복구 & 우선순위(2) 중 Pause보다 순서 빠른 애들 삭제(2의 시작점을 찾고 뒤에서부터 검색하여 속도를 높인다)")
-				}
-				
-				input signal Message.Modify::class action {
-					machine modify it.block
-				}
-				
-				TODO("여러 신호에 대한 정의를 한번에 할 수 있도록 해줄까?")
-				TODO("exit 동작에도 신호를 전달해줄까?")
 			}
 			
 			Message.Terminate::class{
@@ -331,22 +315,22 @@ private class KotlmataDaemonImpl(
 
 private sealed class Message(val priority: Int) : Comparable<Message>
 {
-	class Run : Message(lifecycle)
-	class Pause : Message(lifecycle)
-	class Stop : Message(lifecycle)
-	class Terminate : Message(lifecycle)
+	class Run : Message(CONTROL)
+	class Pause : Message(CONTROL)
+	class Stop : Message(CONTROL)
+	class Terminate : Message(CONTROL)
 	
-	class Stash(val signal: SIGNAL) : Message(stash)
+	class Stash(val signal: SIGNAL) : Message(STASH)
 	
-	class Signal(val signal: SIGNAL) : Message(operation)
-	class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(operation)
-	class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(operation)
+	class Signal(val signal: SIGNAL) : Message(EVENT)
+	class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(EVENT)
+	class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(EVENT)
 	
 	companion object
 	{
-		const val lifecycle = 2
-		const val stash = 1
-		const val operation = 0
+		private const val CONTROL = 2
+		private const val STASH = 1
+		private const val EVENT = 0
 		
 		val ticket: AtomicLong = AtomicLong(0)
 	}
@@ -359,4 +343,7 @@ private sealed class Message(val priority: Int) : Comparable<Message>
 		return if (dP != 0) dP
 		else (other.order - order).toInt()
 	}
+	
+	fun isEvent(): Boolean = priority == EVENT
+	fun isEarlierThan(other: Message): Boolean = order < other.order
 }
