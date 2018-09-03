@@ -64,11 +64,11 @@ private class KotlmataDaemonImpl(
 {
 	override val key: KEY = key ?: this
 	
-	var start: () -> Unit = {}
-	var pause: () -> Unit = {}
-	var stop: () -> Unit = {}
-	var resume: () -> Unit = {}
-	var terminate: () -> Unit = {}
+	var onStart: () -> Unit = {}
+	var onPause: () -> Unit = {}
+	var onStop: () -> Unit = {}
+	var onResume: () -> Unit = {}
+	var onTerminate: () -> Unit = {}
 	
 	val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
 	val engine: KotlmataMachine
@@ -83,21 +83,27 @@ private class KotlmataDaemonImpl(
 			init origin state to DaemonOrigin
 		}
 		
-		engine = KotlmataMachine {
-			DaemonOrigin {
-				input signal Message.Run::class action { start() }
-				input signal Message.Pause::class action { start() }
-				input signal Message.Stop::class action { start() }
-				input signal Message.Terminate::class action { start() }
+		engine = KotlmataMachine("${this@KotlmataDaemonImpl.key}@engine") {
+			"origin" {
+				input signal Message.Run::class action {
+					onStart()
+					machine.input(Message.Run())
+				}
+				input signal Message.Pause::class action {
+					onStart()
+					machine.input(Message.Run())
+				}
+				input signal Message.Stop::class action {
+					onStart()
+					machine.input(Message.Run())
+				}
+				
 				input signal Message.Modify::class action {
 					machine modify it.block
 				}
 			}
 			
-			Message.Run::class {
-				entry via Message.Pause::class action { resume() }
-				entry via Message.Stop::class action { resume() }
-				
+			"run" {
 				input signal Message.Stash::class action { m ->
 					machine.input(m.signal) {
 						queue.offer(Message.Stash(it))
@@ -118,12 +124,15 @@ private class KotlmataDaemonImpl(
 				}
 			}
 			
-			Message.Pause::class {
+			"pause" {
 				val temp: MutableList<Message> = ArrayList()
 				
-				entry action { pause() }
+				entry action { onPause() }
 				
-				input signal Message.Run::class action { queue += temp }
+				input signal Message.Run::class action {
+					queue += temp
+					onResume()
+				}
 				input signal Message.Stash::class action { temp += it }
 				input signal Message.Signal::class action { temp += it }
 				input signal Message.TypedSignal::class action { temp += it }
@@ -134,47 +143,54 @@ private class KotlmataDaemonImpl(
 				}
 			}
 			
-			Message.Stop::class {
-				entry action { stop() }
+			"stop" {
+				entry action { onStop() }
 				
-				input signal Message.Run::class action { m ->
-					queue.removeIf {
-						it.isEvent() && it.isEarlierThan(m)
+				fun arrange(m: Message)
+				{
+					synchronized(queue)
+					{
+						queue.removeIf {
+							it.isEvent && it.isEarlierThan(m)
+						}
 					}
 				}
+				
+				input signal Message.Run::class action { m ->
+					arrange(m)
+					onResume()
+				}
 				input signal Message.Pause::class action { m ->
-					queue.removeIf {
-						it.isEvent() && it.isEarlierThan(m)
-					}
+					arrange(m)
 				}
 			}
 			
-			Message.Terminate::class{
+			"terminate" {
 				entry action {
-					terminate()
+					onTerminate()
 					Thread.currentThread().interrupt()
 				}
 			}
 			
-			DaemonOrigin x Message.Run::class %= Message.Run::class
-			DaemonOrigin x Message.Pause::class %= Message.Pause::class
-			DaemonOrigin x Message.Stop::class %= Message.Stop::class
+			"origin" x Message.Run::class %= "run"
+			"origin" x Message.Pause::class %= "pause"
+			"origin" x Message.Stop::class %= "stop"
 			
-			Message.Run::class x Message.Pause::class %= Message.Pause::class
-			Message.Run::class x Message.Stop::class %= Message.Stop::class
+			"run" x Message.Pause::class %= "pause"
+			"run" x Message.Stop::class %= "stop"
 			
-			Message.Pause::class x Message.Run::class %= Message.Run::class
-			Message.Pause::class x Message.Stop::class %= Message.Stop::class
+			"pause" x Message.Run::class %= "run"
+			"pause" x Message.Stop::class %= "stop"
 			
-			Message.Stop::class x Message.Run::class %= Message.Run::class
-			Message.Stop::class x Message.Pause::class %= Message.Pause::class
+			"stop" x Message.Run::class %= "run"
+			"stop" x Message.Pause::class %= "pause"
 			
-			any x Message.Terminate::class %= Message.Terminate::class
+			any x Message.Terminate::class %= "terminate"
 			
-			init origin state to DaemonOrigin
+			init origin state to "origin"
 		}
 		
-		thread(name = "KotlmataDaemon[key]", isDaemon = true, start = true) {
+		thread(name = "KotlmataDaemon[${this@KotlmataDaemonImpl.key}]", isDaemon = true, start = true) {
 			try
 			{
 				while (true)
@@ -258,31 +274,31 @@ private class KotlmataDaemonImpl(
 			override fun start(block: () -> Unit)
 			{
 				this@InitializerImpl shouldNot expired
-				start = block
+				onStart = block
 			}
 			
 			override fun pause(block: () -> Unit)
 			{
 				this@InitializerImpl shouldNot expired
-				pause = block
+				onPause = block
 			}
 			
 			override fun stop(block: () -> Unit)
 			{
 				this@InitializerImpl shouldNot expired
-				stop = block
+				onStop = block
 			}
 			
 			override fun resume(block: () -> Unit)
 			{
 				this@InitializerImpl shouldNot expired
-				resume = block
+				onResume = block
 			}
 			
 			override fun terminate(block: () -> Unit)
 			{
 				this@InitializerImpl shouldNot expired
-				terminate = block
+				onTerminate = block
 			}
 		}
 		
@@ -304,6 +320,11 @@ private class KotlmataDaemonImpl(
 			block()
 			expire()
 		}
+	}
+	
+	override fun toString(): String
+	{
+		return hashCode().toString(16)
 	}
 }
 
@@ -330,14 +351,19 @@ private sealed class Message(val priority: Int) : Comparable<Message>
 	}
 	
 	val order = ticket.getAndIncrement()
+	val isEvent = priority == EVENT
+	
+	fun isEarlierThan(other: Message): Boolean = order < other.order
 	
 	override fun compareTo(other: Message): Int
 	{
-		val dP = priority - other.priority
+		val dP = other.priority - priority
 		return if (dP != 0) dP
-		else (other.order - order).toInt()
+		else (order - other.order).toInt()
 	}
 	
-	fun isEvent(): Boolean = priority == EVENT
-	fun isEarlierThan(other: Message): Boolean = order < other.order
+	override fun toString(): String
+	{
+		return this::class.simpleName ?: super.toString()
+	}
 }

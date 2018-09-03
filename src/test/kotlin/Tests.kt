@@ -30,14 +30,14 @@ class Tests
 			initializer = this
 			
 			entry action { println("기본 진입함수") }
-			entry via String::class action { s -> println("String타입 진입함수: $s") }
+			entry via String::class action { println("String타입 진입함수: $it") }
 			entry via "a" action { println("a 진입함수") }
 			entry via "b" action {
 				println("b 진입함수")
 				"next"
 			}
 			input action { println("기본 입력함수") }
-			input signal Any::class action { s -> println("Any타입 입력함수: $s") }
+			input signal Any::class action { println("Any타입 입력함수: $it") }
 			input signal "next" action { println("진입함수에서 흘러들어옴") }
 			exit action { println("퇴장함수") }
 		}
@@ -69,21 +69,21 @@ class Tests
 		val machine = KotlmataMutableMachine(name = "m1") {
 			"state1" {
 				entry action { println("state1: 기본 진입함수") }
-				input signal String::class action { s -> println("state1: String타입 진입함수: $s") }
+				input signal String::class action { println("state1: String타입 입력함수: $it") }
 				input signal "goToState2" action { println("state2로 이동") }
 				exit action { println("state1: 퇴장함수") }
 			}
 			
 			"state2" {
 				entry action { println("state2: 기본 진입함수") }
-				input signal Number::class action { s -> println("state2: Number타입 진입함수: $s") }
+				input signal Number::class action { println("state2: Number타입 입력함수: $it") }
 				input signal 5 action { println("state3로 이동") }
 				exit action { println("state2: 퇴장함수") }
 			}
 			
 			"state3" {
 				entry action { println("state3: 기본 진입함수") }
-				input signal String::class action { s -> println("state3: String타입 진입함수: $s") }
+				input signal String::class action { println("state3: String타입 입력함수: $it") }
 				exit action { println("state3: 퇴장함수") }
 			}
 			
@@ -110,7 +110,7 @@ class Tests
 			}
 			
 			update state "state1" set {
-				input signal String::class action { s -> println("state1: 수정된 String타입 진입함수: $s") }
+				input signal String::class action { println("state1: 수정된 String타입 입력함수: $it") }
 				delete action exit
 			}
 			
@@ -137,26 +137,30 @@ class Tests
 	@Test
 	fun daemonTest()
 	{
-		KotlmataDaemon {
-			on start { println("데몬이 시작됨") }
+		val daemon = KotlmataDaemon {
+			on start { println("데몬 start") }
+			on pause { println("데몬 pause") }
+			on stop { println("데몬 stop") }
+			on resume { println("데몬 resume") }
+			on terminate { println("데몬 terminate") }
 			
 			"state1" {
 				entry action { println("state1: 기본 진입함수") }
-				input signal String::class action { s -> println("state1: String타입 진입함수: $s") }
+				input signal String::class action { println("state1: String타입 입력함수: $it") }
 				input signal "goToState2" action { println("state2로 이동") }
 				exit action { println("state1: 퇴장함수") }
 			}
 			
 			"state2" {
 				entry action { println("state2: 기본 진입함수") }
-				input signal Number::class action { s -> println("state2: Number타입 진입함수: $s") }
+				input signal Integer::class action { println("state2: Number타입 입력함수: $it") }
 				input signal 5 action { println("state3로 이동") }
 				exit action { println("state2: 퇴장함수") }
 			}
 			
 			"state3" {
 				entry action { println("state3: 기본 진입함수") }
-				input signal String::class action { s -> println("state3: String타입 진입함수: $s") }
+				input signal String::class action { println("state3: String타입 입력함수: $it") }
 				exit action { println("state3: 퇴장함수") }
 			}
 			
@@ -166,5 +170,30 @@ class Tests
 			
 			init origin state to "state1"
 		}
+		
+		daemon.input("any1")
+		daemon.run()
+		daemon.input("1")
+		daemon.input("2")
+		daemon.pause()
+		daemon.input("goToState2")
+		daemon.run()
+		
+		Thread.sleep(100)
+		
+		daemon.input(3)
+		daemon.input(5)
+		daemon.stop()
+		daemon.input(4)
+		daemon.input(5)
+		daemon.pause()
+		daemon.input(3)
+		daemon.input(5)
+		daemon.input("goToState1")
+		daemon.run()
+		
+		Thread.sleep(500)
+		
+		daemon.terminate()
 	}
 }

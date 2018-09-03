@@ -544,4 +544,9 @@ private class KotlmataMachineImpl(
 			expire()
 		}
 	}
+	
+	override fun toString(): String
+	{
+		return hashCode().toString(16)
+	}
 }
