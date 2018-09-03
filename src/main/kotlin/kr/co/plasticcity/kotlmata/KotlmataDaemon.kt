@@ -309,6 +309,10 @@ private class KotlmataDaemonImpl(
 				override fun to(state: STATE): KotlmataMachine.Init.End
 				{
 					this@InitializerImpl shouldNot expired
+					
+					/* for checking undefined origin state */
+					initializer.init origin kr.co.plasticcity.kotlmata.state to state
+					
 					origin = state
 					return KotlmataMachine.Init.End()
 				}

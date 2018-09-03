@@ -82,7 +82,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 		internal operator fun invoke(
 				key: KEY,
 				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End
-		): KotlmataMutableMachine = KotlmataMachineImpl(key, block)
+		): KotlmataMutableMachine = KotlmataMachineImpl(key, block, "Daemon")
 	}
 	
 	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.TransitionDefine
@@ -192,12 +192,15 @@ interface KotlmataMutableMachine : KotlmataMachine
 
 private class KotlmataMachineImpl(
 		key: KEY? = null,
-		block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End
+		block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End,
+		val agent: String = "Machine"
 ) : KotlmataMutableMachine
 {
 	override val key: KEY = key ?: this
+	
 	private val stateMap: MutableMap<STATE, KotlmataMutableState> = HashMap()
 	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
+	
 	private lateinit var state: KotlmataState
 	
 	init
@@ -228,7 +231,7 @@ private class KotlmataMachineImpl(
 		}?.let {
 			stateMap[it]
 		}?.also {
-			Log.d(key, state.key, signal, it.key) { MACHINE_TRANSITION }
+			Log.d(agent, key, state.key, signal, it.key) { AGENT_TRANSITION }
 			state.exit(signal)
 			state = it
 			state.entry(signal, block)
@@ -255,7 +258,7 @@ private class KotlmataMachineImpl(
 		}?.let {
 			stateMap[it]
 		}?.also {
-			Log.d(key, state.key, signal, it.key) { MACHINE_TRANSITION }
+			Log.d(agent, key, state.key, signal, it.key) { AGENT_TRANSITION }
 			state.exit(signal)
 			state = it
 			state.entry(signal, type, block)
@@ -272,13 +275,13 @@ private class KotlmataMachineImpl(
 	private inner class ModifierImpl internal constructor(
 			init: (KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End)? = null,
 			modify: (KotlmataMutableMachine.Modifier.() -> Unit)? = null
-	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(key) { EXPIRED_MACHINE_MODIFIER } })
+	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(agent, key) { EXPIRED_AGENT_MODIFIER } })
 	{
 		override val current: STATE
 			get()
 			{
 				this@ModifierImpl shouldNot expired
-				return if (state.key == DaemonOrigin) Log.d(key) { OBTAIN_DAEMON_ORIGIN }
+				return if (state.key == DaemonOrigin) Log.d(agent, key) { OBTAIN_DAEMON_ORIGIN }
 				else state.key
 			}
 		
@@ -293,7 +296,7 @@ private class KotlmataMachineImpl(
 						
 						stateMap[state]?.also {
 							this@KotlmataMachineImpl.state = it
-						} ?: Log.e(key, state) { NULL_ORIGIN_STATE }
+						} ?: Log.e(agent, key, state) { UNDEFINED_ORIGIN_STATE }
 						
 						return KotlmataMachine.Init.End()
 					}

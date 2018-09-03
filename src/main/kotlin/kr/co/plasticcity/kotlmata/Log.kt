@@ -5,12 +5,12 @@ internal class Logs
 	companion object
 	{
 		/*########################## DEBUG ##########################*/
-		/* Machine */
-		const val MACHINE_TRANSITION = "KotlmataMachine[%s]: (%s) x (%s) -> (%s)"
+		/* Agent */
+		const val AGENT_TRANSITION = "Kotlmata%s[%s]: (%s) x (%s) -> (%s)"
 		
 		/*########################## WARNING ##########################*/
-		/* Machine */
-		const val OBTAIN_DAEMON_ORIGIN = "KotlmataMachine[%s]: Attempt to get 'Daemon origin state': Daemon origin state can not be obtained."
+		/* Agent */
+		const val OBTAIN_DAEMON_ORIGIN = "Kotlmata%s[%s]: Attempt to get 'Daemon origin state': Daemon origin state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		/* Config */
@@ -19,9 +19,9 @@ internal class Logs
 		/* State */
 		const val EXPIRED_STATE_MODIFIER = "KotlmataState[%s]: Use of expired 'KotlmataMutableState.Modifier' object: The object is only available within the initialization or modifying block."
 		
-		/* Machine */
-		const val EXPIRED_MACHINE_MODIFIER = "KotlmataMachine[%s]: Use of expired 'KotlmataMutableMachine.Modifier' object: The object is only available within the initialization or modifying block."
-		const val NULL_ORIGIN_STATE = "KotlmataMachine[%s]: The origin state %s does not exist in machine."
+		/* Agent */
+		const val EXPIRED_AGENT_MODIFIER = "Kotlmata%s[%s]: Use of expired modifier object: The object is only available within the initialization or modifying block."
+		const val UNDEFINED_ORIGIN_STATE = "Kotlmata%s[%s]: The origin state '%s' is not defined."
 		
 		/* Daemon */
 		const val EXPIRED_DAEMON_MODIFIER = "KotlmataDaemon[%s]: Use of expired 'KotlmataDaemon.Initializer' object: The object is only available within the initialization block."

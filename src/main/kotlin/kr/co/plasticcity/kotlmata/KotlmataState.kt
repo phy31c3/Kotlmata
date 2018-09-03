@@ -115,6 +115,7 @@ private class KotlmataStateImpl(
 ) : KotlmataMutableState
 {
 	override val key: KEY = key ?: this
+	
 	private var entry: ((SIGNAL) -> SIGNAL?)? = null
 	private var input: ((SIGNAL) -> Unit)? = null
 	private var exit: ((SIGNAL) -> Unit)? = null
