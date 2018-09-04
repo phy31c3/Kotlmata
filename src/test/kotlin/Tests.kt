@@ -30,14 +30,14 @@ class Tests
 			initializer = this
 			
 			entry action { println("기본 진입함수") }
-			entry via String::class action { println("String타입 진입함수: $it") }
+			entry via String::class action { println("String 타입 진입함수: $it") }
 			entry via "a" action { println("a 진입함수") }
 			entry via "b" action {
 				println("b 진입함수")
 				"next"
 			}
 			input action { println("기본 입력함수") }
-			input signal Any::class action { println("Any타입 입력함수: $it") }
+			input signal Any::class action { println("Any 타입 입력함수: $it") }
 			input signal "next" action { println("진입함수에서 흘러들어옴") }
 			exit action { println("퇴장함수") }
 		}
@@ -69,21 +69,21 @@ class Tests
 		val machine = KotlmataMutableMachine(name = "m1") {
 			"state1" {
 				entry action { println("state1: 기본 진입함수") }
-				input signal String::class action { println("state1: String타입 입력함수: $it") }
+				input signal String::class action { println("state1: String 타입 입력함수: $it") }
 				input signal "goToState2" action { println("state2로 이동") }
 				exit action { println("state1: 퇴장함수") }
 			}
 			
 			"state2" {
 				entry action { println("state2: 기본 진입함수") }
-				input signal Number::class action { println("state2: Number타입 입력함수: $it") }
+				input signal Number::class action { println("state2: Number 타입 입력함수: $it") }
 				input signal 5 action { println("state3로 이동") }
 				exit action { println("state2: 퇴장함수") }
 			}
 			
 			"state3" {
 				entry action { println("state3: 기본 진입함수") }
-				input signal String::class action { println("state3: String타입 입력함수: $it") }
+				input signal String::class action { println("state3: String 타입 입력함수: $it") }
 				exit action { println("state3: 퇴장함수") }
 			}
 			
@@ -91,7 +91,7 @@ class Tests
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
 			
-			init origin state to "state1"
+			start at "state1"
 		}
 		
 		machine.input("some string")
@@ -110,7 +110,7 @@ class Tests
 			}
 			
 			update state "state1" set {
-				input signal String::class action { println("state1: 수정된 String타입 입력함수: $it") }
+				input signal String::class action { println("state1: 수정된 String 타입 입력함수: $it") }
 				delete action exit
 			}
 			
@@ -146,21 +146,21 @@ class Tests
 			
 			"state1" {
 				entry action { println("state1: 기본 진입함수") }
-				input signal String::class action { println("state1: String타입 입력함수: $it") }
+				input signal String::class action { println("state1: String 타입 입력함수: $it") }
 				input signal "goToState2" action { println("state2로 이동") }
 				exit action { println("state1: 퇴장함수") }
 			}
 			
 			"state2" {
 				entry action { println("state2: 기본 진입함수") }
-				input signal Integer::class action { println("state2: Number타입 입력함수: $it") }
+				input signal Integer::class action { println("state2: Number 타입 입력함수: $it") }
 				input signal 5 action { println("state3로 이동") }
 				exit action { println("state2: 퇴장함수") }
 			}
 			
 			"state3" {
 				entry action { println("state3: 기본 진입함수") }
-				input signal String::class action { println("state3: String타입 입력함수: $it") }
+				input signal String::class action { println("state3: String 타입 입력함수: $it") }
 				exit action { println("state3: 퇴장함수") }
 			}
 			
@@ -168,7 +168,7 @@ class Tests
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
 			
-			init origin state to "state1"
+			start at "state1"
 		}
 		
 		daemon.input("any1")

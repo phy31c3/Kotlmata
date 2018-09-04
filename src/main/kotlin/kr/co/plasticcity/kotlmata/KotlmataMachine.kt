@@ -8,25 +8,20 @@ interface KotlmataMachine
 	{
 		operator fun invoke(
 				name: String? = null,
-				block: Initializer.() -> Init.End
+				block: Initializer.() -> Initializer.End
 		): KotlmataMachine = KotlmataMachineImpl(name, block)
 	}
 	
 	interface Initializer : StateDefine, TransitionDefine
 	{
-		val init: Init
-	}
-	
-	interface Init
-	{
-		infix fun origin(keyword: state): to
-		
-		interface to
-		{
-			infix fun to(state: STATE): End
-		}
+		val start: Start
 		
 		class End internal constructor()
+	}
+	
+	interface Start
+	{
+		infix fun at(state: STATE): Initializer.End
 	}
 	
 	interface StateDefine
@@ -76,12 +71,12 @@ interface KotlmataMutableMachine : KotlmataMachine
 	{
 		operator fun invoke(
 				name: String? = null,
-				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End
+				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine = KotlmataMachineImpl(name, block)
 		
 		internal operator fun invoke(
 				key: KEY,
-				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End
+				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine = KotlmataMachineImpl(key, block, "Daemon")
 	}
 	
@@ -192,7 +187,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 
 private class KotlmataMachineImpl(
 		key: KEY? = null,
-		block: KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End,
+		block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initializer.End,
 		val agent: String = "Machine"
 ) : KotlmataMutableMachine
 {
@@ -273,7 +268,7 @@ private class KotlmataMachineImpl(
 	}
 	
 	private inner class ModifierImpl internal constructor(
-			init: (KotlmataMachine.Initializer.() -> KotlmataMachine.Init.End)? = null,
+			init: (KotlmataMachine.Initializer.() -> KotlmataMachine.Initializer.End)? = null,
 			modify: (KotlmataMutableMachine.Modifier.() -> Unit)? = null
 	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(agent, key) { EXPIRED_AGENT_MODIFIER } })
 	{
@@ -285,21 +280,18 @@ private class KotlmataMachineImpl(
 				else state.key
 			}
 		
-		override val init by lazy {
-			object : KotlmataMachine.Init
+		override val start by lazy {
+			object : KotlmataMachine.Start
 			{
-				override fun origin(keyword: state) = object : KotlmataMachine.Init.to
+				override fun at(state: STATE): KotlmataMachine.Initializer.End
 				{
-					override fun to(state: STATE): KotlmataMachine.Init.End
-					{
-						this@ModifierImpl shouldNot expired
-						
-						stateMap[state]?.also {
-							this@KotlmataMachineImpl.state = it
-						} ?: Log.e(agent, key, state) { UNDEFINED_ORIGIN_STATE }
-						
-						return KotlmataMachine.Init.End()
-					}
+					this@ModifierImpl shouldNot expired
+					
+					stateMap[state]?.also {
+						this@KotlmataMachineImpl.state = it
+					} ?: Log.e(agent, key, state) { UNDEFINED_ORIGIN_STATE }
+					
+					return KotlmataMachine.Initializer.End()
 				}
 			}
 		}

@@ -12,4 +12,3 @@ internal object DaemonOrigin
 object all
 object any
 object of
-object state

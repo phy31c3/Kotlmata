@@ -12,14 +12,14 @@ interface KotlmataDaemon
 	{
 		operator fun invoke(
 				name: String? = null,
-				block: Initializer.() -> KotlmataMachine.Init.End
+				block: Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataDaemon = KotlmataDaemonImpl(name, block)
 	}
 	
 	interface Initializer : KotlmataMachine.Initializer
 	{
 		val on: On
-		override val init: KotlmataMachine.Init
+		override val start: KotlmataMachine.Start
 	}
 	
 	interface On
@@ -48,7 +48,7 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 	{
 		operator fun invoke(
 				name: String? = null,
-				block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Init.End
+				block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataDaemon = KotlmataDaemonImpl(name, block)
 	}
 	
@@ -59,7 +59,7 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 
 private class KotlmataDaemonImpl(
 		key: KEY? = null,
-		block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Init.End
+		block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End
 ) : KotlmataMutableDaemon
 {
 	override val key: KEY = key ?: this
@@ -80,7 +80,7 @@ private class KotlmataDaemonImpl(
 			val initializer = InitializerImpl(block, this)
 			DaemonOrigin {}
 			DaemonOrigin x Message.Run::class %= initializer.origin
-			init origin state to DaemonOrigin
+			start at DaemonOrigin
 		}
 		
 		engine = KotlmataMachine("${this@KotlmataDaemonImpl.key}@engine") {
@@ -187,7 +187,7 @@ private class KotlmataDaemonImpl(
 			
 			any x Message.Terminate::class %= "terminate"
 			
-			init origin state to "origin"
+			start at "origin"
 		}
 		
 		thread(name = "KotlmataDaemon[${this@KotlmataDaemonImpl.key}]", isDaemon = true, start = true) {
@@ -263,7 +263,7 @@ private class KotlmataDaemonImpl(
 	}
 	
 	private inner class InitializerImpl internal constructor(
-			block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Init.End,
+			block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End,
 			initializer: KotlmataMachine.Initializer
 	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e(key) { EXPIRED_DAEMON_MODIFIER } })
 	{
@@ -302,20 +302,17 @@ private class KotlmataDaemonImpl(
 			}
 		}
 		
-		override val init: KotlmataMachine.Init = object : KotlmataMachine.Init
+		override val start: KotlmataMachine.Start = object : KotlmataMachine.Start
 		{
-			override fun origin(keyword: state) = object : KotlmataMachine.Init.to
+			override fun at(state: STATE): KotlmataMachine.Initializer.End
 			{
-				override fun to(state: STATE): KotlmataMachine.Init.End
-				{
-					this@InitializerImpl shouldNot expired
-					
-					/* for checking undefined origin state */
-					initializer.init origin kr.co.plasticcity.kotlmata.state to state
-					
-					origin = state
-					return KotlmataMachine.Init.End()
-				}
+				this@InitializerImpl shouldNot expired
+				
+				/* for checking undefined origin state */
+				initializer.start at state
+				
+				origin = state
+				return KotlmataMachine.Initializer.End()
 			}
 		}
 		
