@@ -16,12 +16,12 @@ interface KotlmataMachine
 	{
 		val start: Start
 		
+		interface Start
+		{
+			infix fun at(state: STATE): Initializer.End
+		}
+		
 		class End internal constructor()
-	}
-	
-	interface Start
-	{
-		infix fun at(state: STATE): Initializer.End
 	}
 	
 	interface StateDefine
@@ -281,7 +281,7 @@ private class KotlmataMachineImpl(
 			}
 		
 		override val start by lazy {
-			object : KotlmataMachine.Start
+			object : KotlmataMachine.Initializer.Start
 			{
 				override fun at(state: STATE): KotlmataMachine.Initializer.End
 				{

@@ -19,7 +19,7 @@ interface KotlmataDaemon
 	interface Initializer : KotlmataMachine.Initializer
 	{
 		val on: On
-		override val start: KotlmataMachine.Start
+		override val start: KotlmataMachine.Initializer.Start
 	}
 	
 	interface On
@@ -269,7 +269,7 @@ private class KotlmataDaemonImpl(
 	{
 		lateinit var initial: STATE
 		
-		override val on: KotlmataDaemon.On = object : KotlmataDaemon.On
+		override val on = object : KotlmataDaemon.On
 		{
 			override fun start(block: () -> Unit)
 			{
@@ -302,7 +302,7 @@ private class KotlmataDaemonImpl(
 			}
 		}
 		
-		override val start: KotlmataMachine.Start = object : KotlmataMachine.Start
+		override val start = object : KotlmataMachine.Initializer.Start
 		{
 			override fun at(state: STATE): KotlmataMachine.Initializer.End
 			{
