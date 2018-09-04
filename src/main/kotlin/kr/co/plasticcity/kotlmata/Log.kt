@@ -32,6 +32,7 @@ internal object Log
 {
 	private val none: (String) -> Unit = {}
 	var debug: (String) -> Unit = none
+	var warning: (String) -> Unit = none
 	var error: (String) -> Unit = ::error
 	
 	inline fun d(vararg args: Any, log: Logs.Companion.() -> String)
@@ -39,6 +40,14 @@ internal object Log
 		if (debug != none)
 		{
 			debug(Logs.log().format(*args))
+		}
+	}
+	
+	inline fun w(vararg args: Any, log: Logs.Companion.() -> String)
+	{
+		if (warning != none)
+		{
+			warning(Logs.log().format(*args))
 		}
 	}
 	
