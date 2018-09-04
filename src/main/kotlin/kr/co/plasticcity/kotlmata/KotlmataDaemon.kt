@@ -63,15 +63,15 @@ private class KotlmataDaemonImpl(
 {
 	override val key: KEY = key ?: this
 	
+	private val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
+	private val engine: KotlmataMachine
+	private val machine: KotlmataMutableMachine
+	
 	private var onStart: () -> Unit = {}
 	private var onPause: () -> Unit = {}
 	private var onStop: () -> Unit = {}
 	private var onResume: () -> Unit = {}
 	private var onTerminate: () -> Unit = {}
-	
-	private val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
-	private val engine: KotlmataMachine
-	private val machine: KotlmataMutableMachine
 	
 	private var logLevel = 2
 	
