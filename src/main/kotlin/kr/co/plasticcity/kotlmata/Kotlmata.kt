@@ -15,6 +15,7 @@ interface Kotlmata
 	interface Print
 	{
 		infix fun debug(block: (String) -> Unit)
+		infix fun warn(block: (String) -> Unit)
 		infix fun error(block: (String) -> Unit)
 	}
 }
@@ -41,6 +42,12 @@ private class KotlmataImpl : Kotlmata
 			{
 				this@InitializerImpl shouldNot expired
 				Log.debug = block
+			}
+			
+			override fun warn(block: (String) -> Unit)
+			{
+				this@InitializerImpl shouldNot expired
+				Log.warn = block
 			}
 			
 			override fun error(block: (String) -> Unit)

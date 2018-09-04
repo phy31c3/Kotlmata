@@ -8,7 +8,7 @@ internal class Logs
 		/* Agent */
 		const val AGENT_TRANSITION = "Kotlmata%s[%s]: (%s) x (%s) -> (%s)"
 		
-		/*########################## WARNING ##########################*/
+		/*########################## WARN ##########################*/
 		/* Agent */
 		const val OBTAIN_DAEMON_INITIAL = "Kotlmata%s[%s]: Attempt to get 'Daemon initial state': Daemon initial state can not be obtained."
 		
@@ -29,7 +29,7 @@ internal object Log
 {
 	private val none: (String) -> Unit = {}
 	var debug: (String) -> Unit = none
-	var warning: (String) -> Unit = none
+	var warn: (String) -> Unit = none
 	var error: (String) -> Unit = ::error
 	
 	inline fun d(vararg args: Any, log: Logs.Companion.() -> String)
@@ -42,9 +42,9 @@ internal object Log
 	
 	inline fun w(vararg args: Any, log: Logs.Companion.() -> String)
 	{
-		if (warning != none)
+		if (warn != none)
 		{
-			warning(Logs.log().format(*args))
+			warn(Logs.log().format(*args))
 		}
 	}
 	

@@ -10,6 +10,7 @@ class Tests
 	{
 		Kotlmata init {
 			print debug ::println
+			print warn ::println
 			print error ::println
 		}
 	}
