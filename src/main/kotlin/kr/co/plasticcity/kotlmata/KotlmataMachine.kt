@@ -276,7 +276,7 @@ private class KotlmataMachineImpl(
 			get()
 			{
 				this@ModifierImpl shouldNot expired
-				return if (state.key == DaemonOrigin) Log.d(agent, key) { OBTAIN_DAEMON_ORIGIN }
+				return if (state.key == DaemonInitial) Log.d(agent, key) { OBTAIN_DAEMON_INITIAL }
 				else state.key
 			}
 		
@@ -289,7 +289,7 @@ private class KotlmataMachineImpl(
 					
 					stateMap[state]?.also {
 						this@KotlmataMachineImpl.state = it
-					} ?: Log.e(agent, key, state) { UNDEFINED_ORIGIN_STATE }
+					} ?: Log.e(agent, key, state) { UNDEFINED_INITIAL_STATE }
 					
 					return KotlmataMachine.Initializer.End()
 				}

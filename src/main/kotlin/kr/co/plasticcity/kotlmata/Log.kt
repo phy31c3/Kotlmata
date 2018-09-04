@@ -10,7 +10,7 @@ internal class Logs
 		
 		/*########################## WARNING ##########################*/
 		/* Agent */
-		const val OBTAIN_DAEMON_ORIGIN = "Kotlmata%s[%s]: Attempt to get 'Daemon origin state': Daemon origin state can not be obtained."
+		const val OBTAIN_DAEMON_INITIAL = "Kotlmata%s[%s]: Attempt to get 'Daemon initial state': Daemon initial state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		/* Config */
@@ -21,7 +21,7 @@ internal class Logs
 		
 		/* Agent */
 		const val EXPIRED_AGENT_MODIFIER = "Kotlmata%s[%s]: Use of expired modifier object: The object is only available within the initialization or modifying block."
-		const val UNDEFINED_ORIGIN_STATE = "Kotlmata%s[%s]: The origin state '%s' is not defined."
+		const val UNDEFINED_INITIAL_STATE = "Kotlmata%s[%s]: The initial state '%s' is not defined."
 		
 		/* Daemon */
 		const val EXPIRED_DAEMON_MODIFIER = "KotlmataDaemon[%s]: Use of expired 'KotlmataDaemon.Initializer' object: The object is only available within the initialization block."

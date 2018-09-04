@@ -78,13 +78,13 @@ private class KotlmataDaemonImpl(
 	{
 		machine = KotlmataMutableMachine(this.key) {
 			val initializer = InitializerImpl(block, this)
-			DaemonOrigin {}
-			DaemonOrigin x Message.Run::class %= initializer.origin
-			start at DaemonOrigin
+			DaemonInitial {}
+			DaemonInitial x Message.Run::class %= initializer.initial
+			start at DaemonInitial
 		}
 		
 		engine = KotlmataMachine("${this@KotlmataDaemonImpl.key}@engine") {
-			"origin" {
+			"initial" {
 				input signal Message.Run::class action {
 					onStart()
 					machine.input(Message.Run())
@@ -172,9 +172,9 @@ private class KotlmataDaemonImpl(
 				}
 			}
 			
-			"origin" x Message.Run::class %= "run"
-			"origin" x Message.Pause::class %= "pause"
-			"origin" x Message.Stop::class %= "stop"
+			"initial" x Message.Run::class %= "run"
+			"initial" x Message.Pause::class %= "pause"
+			"initial" x Message.Stop::class %= "stop"
 			
 			"run" x Message.Pause::class %= "pause"
 			"run" x Message.Stop::class %= "stop"
@@ -187,7 +187,7 @@ private class KotlmataDaemonImpl(
 			
 			any x Message.Terminate::class %= "terminate"
 			
-			start at "origin"
+			start at "initial"
 		}
 		
 		thread(name = "KotlmataDaemon[${this@KotlmataDaemonImpl.key}]", isDaemon = true, start = true) {
@@ -267,7 +267,7 @@ private class KotlmataDaemonImpl(
 			initializer: KotlmataMachine.Initializer
 	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e(key) { EXPIRED_DAEMON_MODIFIER } })
 	{
-		lateinit var origin: STATE
+		lateinit var initial: STATE
 		
 		override val on: KotlmataDaemon.On = object : KotlmataDaemon.On
 		{
@@ -308,10 +308,10 @@ private class KotlmataDaemonImpl(
 			{
 				this@InitializerImpl shouldNot expired
 				
-				/* for checking undefined origin state */
+				/* for checking undefined initial state */
 				initializer.start at state
 				
-				origin = state
+				initial = state
 				return KotlmataMachine.Initializer.End()
 			}
 		}
