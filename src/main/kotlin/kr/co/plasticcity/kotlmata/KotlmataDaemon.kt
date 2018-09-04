@@ -19,16 +19,15 @@ interface KotlmataDaemon
 	interface Initializer : KotlmataMachine.Initializer
 	{
 		val on: On
-		override val start: KotlmataMachine.Initializer.Start
-	}
-	
-	interface On
-	{
-		infix fun start(block: () -> Unit)
-		infix fun pause(block: () -> Unit)
-		infix fun stop(block: () -> Unit)
-		infix fun resume(block: () -> Unit)
-		infix fun terminate(block: () -> Unit)
+		
+		interface On
+		{
+			infix fun start(block: () -> Unit)
+			infix fun pause(block: () -> Unit)
+			infix fun stop(block: () -> Unit)
+			infix fun resume(block: () -> Unit)
+			infix fun terminate(block: () -> Unit)
+		}
 	}
 	
 	val key: KEY
@@ -49,7 +48,7 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 		operator fun invoke(
 				name: String? = null,
 				block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End
-		): KotlmataDaemon = KotlmataDaemonImpl(name, block)
+		): KotlmataMutableDaemon = KotlmataDaemonImpl(name, block)
 	}
 	
 	operator fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
@@ -64,15 +63,17 @@ private class KotlmataDaemonImpl(
 {
 	override val key: KEY = key ?: this
 	
-	var onStart: () -> Unit = {}
-	var onPause: () -> Unit = {}
-	var onStop: () -> Unit = {}
-	var onResume: () -> Unit = {}
-	var onTerminate: () -> Unit = {}
+	private var onStart: () -> Unit = {}
+	private var onPause: () -> Unit = {}
+	private var onStop: () -> Unit = {}
+	private var onResume: () -> Unit = {}
+	private var onTerminate: () -> Unit = {}
 	
-	val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
-	val engine: KotlmataMachine
-	val machine: KotlmataMutableMachine
+	private val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
+	private val engine: KotlmataMachine
+	private val machine: KotlmataMutableMachine
+	
+	private var logLevel = 2
 	
 	init
 	{
@@ -84,6 +85,8 @@ private class KotlmataDaemonImpl(
 		}
 		
 		engine = KotlmataMachine("${this@KotlmataDaemonImpl.key}@engine") {
+			log level 0
+			
 			"initial" {
 				input signal Message.Run::class action {
 					onStart()
@@ -265,11 +268,11 @@ private class KotlmataDaemonImpl(
 	private inner class InitializerImpl internal constructor(
 			block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End,
 			initializer: KotlmataMachine.Initializer
-	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e(key) { EXPIRED_DAEMON_MODIFIER } })
+	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e("Daemon", key) { EXPIRED_AGENT_MODIFIER } })
 	{
 		lateinit var initial: STATE
 		
-		override val on = object : KotlmataDaemon.On
+		override val on = object : KotlmataDaemon.Initializer.On
 		{
 			override fun start(block: () -> Unit)
 			{
@@ -299,6 +302,16 @@ private class KotlmataDaemonImpl(
 			{
 				this@InitializerImpl shouldNot expired
 				onTerminate = block
+			}
+		}
+		
+		override val log = object : KotlmataMachine.Initializer.Log
+		{
+			override fun level(level: Int)
+			{
+				this@InitializerImpl shouldNot expired
+				initializer.log level level
+				this@KotlmataDaemonImpl.logLevel = level
 			}
 		}
 		

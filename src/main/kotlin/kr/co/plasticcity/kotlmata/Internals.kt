@@ -1,5 +1,14 @@
 package kr.co.plasticcity.kotlmata
 
+internal typealias KEY = Any
+internal typealias STATE = Any
+internal typealias SIGNAL = Any
+
+internal object DaemonInitial
+{
+	override fun toString(): String = "initial"
+}
+
 internal open class Expirable internal constructor(private val block: () -> Nothing)
 {
 	@Volatile
@@ -37,4 +46,9 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	{
 		expire = true
 	}
+}
+
+internal fun Int.higher(num: Int, block: () -> Unit)
+{
+	if (this > num) block()
 }

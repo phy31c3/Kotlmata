@@ -14,7 +14,16 @@ interface KotlmataMachine
 	
 	interface Initializer : StateDefine, TransitionDefine
 	{
+		val log: Log
 		val start: Start
+		
+		interface Log
+		{
+			/**
+			 * @param level **0**: no log, **1**: simple, **2**: detail (default value is **2**)
+			 */
+			infix fun level(level: Int)
+		}
 		
 		interface Start
 		{
@@ -198,6 +207,8 @@ private class KotlmataMachineImpl(
 	
 	private lateinit var state: KotlmataState
 	
+	private var logLevel = 2
+	
 	init
 	{
 		ModifierImpl(block)
@@ -226,7 +237,7 @@ private class KotlmataMachineImpl(
 		}?.let {
 			stateMap[it]
 		}?.also {
-			Log.d(agent, key, state.key, signal, it.key) { AGENT_TRANSITION }
+			logLevel.higher(0) { Log.d(agent, key, state.key, signal, it.key) { AGENT_TRANSITION } }
 			state.exit(signal)
 			state = it
 			state.entry(signal, block)
@@ -253,7 +264,7 @@ private class KotlmataMachineImpl(
 		}?.let {
 			stateMap[it]
 		}?.also {
-			Log.d(agent, key, state.key, signal, it.key) { AGENT_TRANSITION }
+			logLevel.higher(0) { Log.d(agent, key, state.key, signal, it.key) { AGENT_TRANSITION } }
 			state.exit(signal)
 			state = it
 			state.entry(signal, type, block)
@@ -272,13 +283,13 @@ private class KotlmataMachineImpl(
 			modify: (KotlmataMutableMachine.Modifier.() -> Unit)? = null
 	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(agent, key) { EXPIRED_AGENT_MODIFIER } })
 	{
-		override val current: STATE
-			get()
+		override val log = object : KotlmataMachine.Initializer.Log
+		{
+			override fun level(level: Int)
 			{
-				this@ModifierImpl shouldNot expired
-				return if (state.key == DaemonInitial) Log.w(agent, key) { OBTAIN_DAEMON_INITIAL }
-				else state.key
+				logLevel = level
 			}
+		}
 		
 		override val start by lazy {
 			object : KotlmataMachine.Initializer.Start
@@ -295,6 +306,14 @@ private class KotlmataMachineImpl(
 				}
 			}
 		}
+		
+		override val current: STATE
+			get()
+			{
+				this@ModifierImpl shouldNot expired
+				return if (state.key == DaemonInitial) Log.w(agent, key) { OBTAIN_DAEMON_INITIAL }
+				else state.key
+			}
 		
 		override val has by lazy {
 			object : KotlmataMutableMachine.Modifier.Has

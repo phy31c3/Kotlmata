@@ -137,7 +137,10 @@ class Tests
 	@Test
 	fun daemonTest()
 	{
-		val daemon = KotlmataDaemon {
+		var initializer: KotlmataDaemon.Initializer? = null
+		val daemon = KotlmataMutableDaemon {
+			log level 2
+			
 			on start { println("데몬 start") }
 			on pause { println("데몬 pause") }
 			on stop { println("데몬 stop") }
@@ -168,6 +171,8 @@ class Tests
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
 			
+			initializer = this
+			
 			start at "state1"
 		}
 		
@@ -191,9 +196,15 @@ class Tests
 		daemon.input(5)
 		daemon.input("goToState1")
 		daemon.run()
+		daemon {
+			"state1" x "goToState3" %= "state3"
+		}
+		daemon.input("goToState3")
 		
 		Thread.sleep(500)
 		
 		daemon.terminate()
+		
+		initializer?.log?.level(0)
 	}
 }
