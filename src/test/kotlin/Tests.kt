@@ -142,12 +142,6 @@ class Tests
 		val daemon = KotlmataMutableDaemon {
 			log level 2
 			
-			on start { println("데몬 start") }
-			on pause { println("데몬 pause") }
-			on stop { println("데몬 stop") }
-			on resume { println("데몬 resume") }
-			on terminate { println("데몬 terminate") }
-			
 			"state1" {
 				entry action { println("state1: 기본 진입함수") }
 				input signal String::class action { println("state1: String 타입 입력함수: $it") }

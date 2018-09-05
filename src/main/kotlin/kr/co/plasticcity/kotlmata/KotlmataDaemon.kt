@@ -93,6 +93,7 @@ private class KotlmataDaemonImpl(
 			
 			"initial" {
 				val startMachine: (Message) -> Unit = {
+					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
 					onStart()
 					machine.input(Message.Run())
 				}
@@ -125,10 +126,14 @@ private class KotlmataDaemonImpl(
 			"pause" {
 				val temp: MutableList<Message> = ArrayList()
 				
-				entry action { onPause() }
+				entry action {
+					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_PAUSE }
+					onPause()
+				}
 				
 				input signal Message.Run::class action {
 					queue += temp
+					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
 					onResume()
 				}
 				input signal Message.Stash::class action { temp += it }
@@ -142,7 +147,10 @@ private class KotlmataDaemonImpl(
 			}
 			
 			"stop" {
-				entry action { onStop() }
+				entry action {
+					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_STOP }
+					onStop()
+				}
 				
 				fun arrange(m: Message)
 				{
@@ -156,6 +164,7 @@ private class KotlmataDaemonImpl(
 				
 				input signal Message.Run::class action { m ->
 					arrange(m)
+					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
 					onResume()
 				}
 				input signal Message.Pause::class action { m ->
@@ -165,6 +174,7 @@ private class KotlmataDaemonImpl(
 			
 			"terminate" {
 				entry action {
+					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_TERMINATE }
 					onTerminate()
 					Thread.currentThread().interrupt()
 				}

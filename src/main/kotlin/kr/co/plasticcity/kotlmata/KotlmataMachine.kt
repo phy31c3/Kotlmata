@@ -237,7 +237,7 @@ private class KotlmataMachineImpl(
 		}?.let {
 			stateMap[it]
 		}?.also {
-			logLevel.higher(0) { Log.d(agent, key, state.key, signal, it.key) { AGENT_TRANSITION } }
+			logLevel.simple(agent, key, state.key, signal, it.key) { AGENT_TRANSITION }
 			state.exit(signal)
 			state = it
 			state.entry(signal, block)
@@ -264,7 +264,7 @@ private class KotlmataMachineImpl(
 		}?.let {
 			stateMap[it]
 		}?.also {
-			logLevel.higher(0) { Log.d(agent, key, state.key, signal, it.key) { AGENT_TRANSITION } }
+			logLevel.simple(agent, key, state.key, signal, it.key) { AGENT_TRANSITION }
 			state.exit(signal)
 			state = it
 			state.entry(signal, type, block)
