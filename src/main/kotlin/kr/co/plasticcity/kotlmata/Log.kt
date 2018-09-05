@@ -14,6 +14,13 @@ internal class Logs
 		const val DAEMON_STOP = "KotlmataDaemon[%s]: --------------------------------------- STOP ----------------------------------------"
 		const val DAEMON_RESUME = "KotlmataDaemon[%s]: --------------------------------------- RESUME --------------------------------------"
 		const val DAEMON_TERMINATE = "KotlmataDaemon[%s]: --------------------------------------- TERMINATE ------------------------------------"
+		const val DAEMON_REQUEST_MODIFY = "KotlmataDaemon[%s]: Machine modification requested."
+		const val DAEMON_REQUEST_SIGNAL = "KotlmataDaemon[%s]: Signal input requested. (signal: %s)"
+		const val DAEMON_REQUEST_TYPED_SIGNAL = "KotlmataDaemon[%s]: TypedSignal input requested. (signal: %s, type: %s)"
+		const val DAEMON_REQUEST_RUN = "KotlmataDaemon[%s]: Run requested."
+		const val DAEMON_REQUEST_PAUSE = "KotlmataDaemon[%s]: Pause requested."
+		const val DAEMON_REQUEST_STOP = "KotlmataDaemon[%s]: Stop requested."
+		const val DAEMON_REQUEST_TERMINATE = "KotlmataDaemon[%s]: Terminate requested."
 		
 		/*########################## WARN ##########################*/
 		/* Agent */

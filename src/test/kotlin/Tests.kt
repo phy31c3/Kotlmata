@@ -189,6 +189,7 @@ class Tests
 		daemon.pause()
 		daemon.input(3)
 		daemon.input(5)
+		daemon.input("goToState1", String::class)
 		daemon.input("goToState1")
 		daemon.run()
 		daemon {

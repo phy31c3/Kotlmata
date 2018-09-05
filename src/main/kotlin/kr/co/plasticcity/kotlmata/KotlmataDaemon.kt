@@ -216,6 +216,7 @@ private class KotlmataDaemonImpl(
 	override fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
 		synchronized(queue) {
+			logLevel.detail(key) { DAEMON_REQUEST_MODIFY }
 			queue.offer(Message.Modify(block))
 		}
 	}
@@ -223,6 +224,7 @@ private class KotlmataDaemonImpl(
 	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
 		synchronized(queue) {
+			logLevel.detail(key) { DAEMON_REQUEST_MODIFY }
 			queue.offer(Message.Modify(block))
 		}
 	}
@@ -230,6 +232,7 @@ private class KotlmataDaemonImpl(
 	override fun input(signal: SIGNAL)
 	{
 		synchronized(queue) {
+			logLevel.detail(key, signal) { DAEMON_REQUEST_SIGNAL }
 			queue.offer(Message.Signal(signal))
 		}
 	}
@@ -238,6 +241,7 @@ private class KotlmataDaemonImpl(
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	{
 		synchronized(queue) {
+			logLevel.detail(key, signal, type) { DAEMON_REQUEST_TYPED_SIGNAL }
 			queue.offer(Message.TypedSignal(signal, type as KClass<SIGNAL>))
 		}
 	}
@@ -245,6 +249,7 @@ private class KotlmataDaemonImpl(
 	override fun run()
 	{
 		synchronized(queue) {
+			logLevel.detail(key) { DAEMON_REQUEST_RUN }
 			queue.offer(Message.Run())
 		}
 	}
@@ -252,6 +257,7 @@ private class KotlmataDaemonImpl(
 	override fun pause()
 	{
 		synchronized(queue) {
+			logLevel.detail(key) { DAEMON_REQUEST_PAUSE }
 			queue.offer(Message.Pause())
 		}
 	}
@@ -259,6 +265,7 @@ private class KotlmataDaemonImpl(
 	override fun stop()
 	{
 		synchronized(queue) {
+			logLevel.detail(key) { DAEMON_REQUEST_STOP }
 			queue.offer(Message.Stop())
 		}
 	}
@@ -266,6 +273,7 @@ private class KotlmataDaemonImpl(
 	override fun terminate()
 	{
 		synchronized(queue) {
+			logLevel.detail(key) { DAEMON_REQUEST_TERMINATE }
 			queue.offer(Message.Terminate())
 		}
 	}
