@@ -105,19 +105,19 @@ private class KotlmataDaemonImpl(
 			}
 			
 			"run" {
-				input signal Message.Stash::class action { m ->
+				input signal Message.QuickInput::class action { m ->
 					machine.input(m.signal) {
-						queue.offer(Message.Stash(it))
+						queue.offer(Message.QuickInput(it))
 					}
 				}
 				input signal Message.Signal::class action { m ->
 					machine.input(m.signal) {
-						queue.offer(Message.Stash(it))
+						queue.offer(Message.QuickInput(it))
 					}
 				}
 				input signal Message.TypedSignal::class action { m ->
 					machine.input(m.signal, m.type) {
-						queue.offer(Message.Stash(it))
+						queue.offer(Message.QuickInput(it))
 					}
 				}
 				input signal Message.Modify::class action modifyMachine
@@ -136,7 +136,7 @@ private class KotlmataDaemonImpl(
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
 					onResume()
 				}
-				input signal Message.Stash::class action { temp += it }
+				input signal Message.QuickInput::class action { temp += it }
 				input signal Message.Signal::class action { temp += it }
 				input signal Message.TypedSignal::class action { temp += it }
 				input signal Message.Modify::class action { temp += it }
@@ -362,7 +362,7 @@ private sealed class Message(val priority: Int) : Comparable<Message>
 	class Stop : Message(CONTROL)
 	class Terminate : Message(CONTROL)
 	
-	class Stash(val signal: SIGNAL) : Message(STASH)
+	class QuickInput(val signal: SIGNAL) : Message(QUICK)
 	
 	class Signal(val signal: SIGNAL) : Message(EVENT)
 	class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(EVENT)
@@ -371,7 +371,7 @@ private sealed class Message(val priority: Int) : Comparable<Message>
 	companion object
 	{
 		private const val CONTROL = 2
-		private const val STASH = 1
+		private const val QUICK = 1
 		private const val EVENT = 0
 		
 		val ticket: AtomicLong = AtomicLong(0)
