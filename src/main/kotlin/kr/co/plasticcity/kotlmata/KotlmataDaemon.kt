@@ -87,23 +87,20 @@ private class KotlmataDaemonImpl(
 		engine = KotlmataMachine("${this@KotlmataDaemonImpl.key}@engine") {
 			log level 0
 			
+			val modifyMachine: (Message.Modify) -> Unit = {
+				machine modify it.block
+			}
+			
 			"initial" {
-				input signal Message.Run::class action {
-					onStart()
-					machine.input(Message.Run())
-				}
-				input signal Message.Pause::class action {
-					onStart()
-					machine.input(Message.Run())
-				}
-				input signal Message.Stop::class action {
+				val startMachine: (Message) -> Unit = {
 					onStart()
 					machine.input(Message.Run())
 				}
 				
-				input signal Message.Modify::class action {
-					machine modify it.block
-				}
+				input signal Message.Run::class action startMachine
+				input signal Message.Pause::class action startMachine
+				input signal Message.Stop::class action startMachine
+				input signal Message.Modify::class action modifyMachine
 			}
 			
 			"run" {
@@ -122,9 +119,7 @@ private class KotlmataDaemonImpl(
 						queue.offer(Message.Stash(it))
 					}
 				}
-				input signal Message.Modify::class action {
-					machine modify it.block
-				}
+				input signal Message.Modify::class action modifyMachine
 			}
 			
 			"pause" {
