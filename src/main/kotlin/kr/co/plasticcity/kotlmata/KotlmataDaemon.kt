@@ -124,7 +124,7 @@ private class KotlmataDaemonImpl(
 			}
 			
 			"pause" {
-				val temp: MutableList<Message> = ArrayList()
+				val stash: MutableList<Message> = ArrayList()
 				
 				entry action {
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_PAUSE }
@@ -132,17 +132,17 @@ private class KotlmataDaemonImpl(
 				}
 				
 				input signal Message.Run::class action {
-					queue += temp
+					queue += stash
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
 					onResume()
 				}
-				input signal Message.QuickInput::class action { temp += it }
-				input signal Message.Signal::class action { temp += it }
-				input signal Message.TypedSignal::class action { temp += it }
-				input signal Message.Modify::class action { temp += it }
+				input signal Message.QuickInput::class action { stash += it }
+				input signal Message.Signal::class action { stash += it }
+				input signal Message.TypedSignal::class action { stash += it }
+				input signal Message.Modify::class action { stash += it }
 				
 				exit action {
-					temp.clear()
+					stash.clear()
 				}
 			}
 			
