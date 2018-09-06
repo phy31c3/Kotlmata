@@ -91,10 +91,10 @@ private class KotlmataDaemonImpl(
 				machine modify it.block
 			}
 			
-			val ignoreMessage: (SIGNAL) -> Unit = {
-				if (logLevel.isDetail() && it is Message)
+			val ignoreMessage: (SIGNAL, String) -> Unit = { message, current ->
+				if (logLevel.isDetail() && message is Message)
 				{
-					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_MESSAGE_IGNORED }
+					logLevel.detail(this@KotlmataDaemonImpl.key, message.id, current) { DAEMON_MESSAGE_IGNORED }
 				}
 			}
 			
@@ -112,7 +112,7 @@ private class KotlmataDaemonImpl(
 				
 				input signal Message.Modify::class action modifyMachine
 				
-				input action ignoreMessage
+				input action { ignoreMessage(it, "initial") }
 			}
 			
 			"run" {
@@ -137,11 +137,16 @@ private class KotlmataDaemonImpl(
 				}
 				input signal Message.Modify::class action modifyMachine
 				
-				input action ignoreMessage
+				input action { ignoreMessage(it, "run") }
 			}
 			
 			"pause" {
 				val stash: MutableList<Message> = ArrayList()
+				
+				val putInStash: (Message) -> Unit = {
+					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_STASH_MESSAGE }
+					stash += it
+				}
 				
 				entry action {
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_PAUSE }
@@ -156,12 +161,12 @@ private class KotlmataDaemonImpl(
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.QuickInput::class action { stash += it }
-				input signal Message.Signal::class action { stash += it }
-				input signal Message.TypedSignal::class action { stash += it }
-				input signal Message.Modify::class action { stash += it }
+				input signal Message.QuickInput::class action putInStash
+				input signal Message.Signal::class action putInStash
+				input signal Message.TypedSignal::class action putInStash
+				input signal Message.Modify::class action putInStash
 				
-				input action ignoreMessage
+				input action { ignoreMessage(it, "pause") }
 				
 				exit action {
 					stash.clear()
@@ -179,7 +184,15 @@ private class KotlmataDaemonImpl(
 					synchronized(queue)
 					{
 						queue.removeIf {
-							it.isEvent && it.isEarlierThan(m)
+							if (it.isEvent && it.isEarlierThan(m))
+							{
+								logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_MESSAGE_DROPPED }
+								true
+							}
+							else
+							{
+								false
+							}
 						}
 					}
 				}
@@ -194,7 +207,7 @@ private class KotlmataDaemonImpl(
 				}
 				input signal Message.Terminate::class action {}
 				
-				input action ignoreMessage
+				input action { ignoreMessage(it, "stop") }
 			}
 			
 			"terminate" {

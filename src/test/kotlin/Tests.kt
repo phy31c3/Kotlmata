@@ -184,13 +184,24 @@ class Tests
 		daemon.input(3)
 		daemon.input(5)
 		daemon.stop()
+		daemon.input(100)
+		daemon.input(100)
+		daemon.run()
+		daemon.input(200)
+		daemon.stop()
 		daemon.input(4)
 		daemon.input(5)
+		
+		Thread.sleep(100)
+		
 		daemon.pause()
 		daemon.input(3)
 		daemon.input(5)
 		daemon.input("goToState1", String::class)
 		daemon.input("goToState1")
+		
+		Thread.sleep(100)
+		
 		daemon.run()
 		daemon {
 			"state1" x "goToState3" %= "state3"
