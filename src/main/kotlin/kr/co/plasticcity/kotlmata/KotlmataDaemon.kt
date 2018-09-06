@@ -73,7 +73,7 @@ private class KotlmataDaemonImpl(
 	private var onResume: () -> Unit = {}
 	private var onTerminate: () -> Unit = {}
 	
-	private var logLevel = 2
+	private var logLevel = NORMAL
 	
 	init
 	{
@@ -369,7 +369,7 @@ private class KotlmataDaemonImpl(
 			{
 				this@InitializerImpl shouldNot expired
 				initializer.log level level
-				this@KotlmataDaemonImpl.logLevel = level
+				logLevel = level
 			}
 		}
 		

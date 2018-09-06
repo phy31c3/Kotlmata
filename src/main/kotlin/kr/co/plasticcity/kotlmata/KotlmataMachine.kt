@@ -20,7 +20,7 @@ interface KotlmataMachine
 		interface Log
 		{
 			/**
-			 * @param level **0**: no log, **1**: simple, **2**: detail (default value is **2**)
+			 * @param level **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **2**)
 			 */
 			infix fun level(level: Int)
 		}
@@ -207,7 +207,7 @@ private class KotlmataMachineImpl(
 	
 	private lateinit var state: KotlmataState
 	
-	private var logLevel = 2
+	private var logLevel = NORMAL
 	
 	init
 	{
