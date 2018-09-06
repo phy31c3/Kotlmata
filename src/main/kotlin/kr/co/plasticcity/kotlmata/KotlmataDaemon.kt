@@ -91,6 +91,13 @@ private class KotlmataDaemonImpl(
 				machine modify it.block
 			}
 			
+			val ignoreMessage: (SIGNAL) -> Unit = {
+				if (logLevel.isDetail() && it is Message)
+				{
+					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_MESSAGE_IGNORED }
+				}
+			}
+			
 			"initial" {
 				val startMachine: (Message) -> Unit = {
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
@@ -101,10 +108,18 @@ private class KotlmataDaemonImpl(
 				input signal Message.Run::class action startMachine
 				input signal Message.Pause::class action startMachine
 				input signal Message.Stop::class action startMachine
+				input signal Message.Terminate::class action {}
+				
 				input signal Message.Modify::class action modifyMachine
+				
+				input action ignoreMessage
 			}
 			
 			"run" {
+				input signal Message.Pause::class action {}
+				input signal Message.Stop::class action {}
+				input signal Message.Terminate::class action {}
+				
 				input signal Message.QuickInput::class action { m ->
 					machine.input(m.signal) {
 						queue.offer(Message.QuickInput(it))
@@ -121,6 +136,8 @@ private class KotlmataDaemonImpl(
 					}
 				}
 				input signal Message.Modify::class action modifyMachine
+				
+				input action ignoreMessage
 			}
 			
 			"pause" {
@@ -136,10 +153,15 @@ private class KotlmataDaemonImpl(
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
 					onResume()
 				}
+				input signal Message.Stop::class action {}
+				input signal Message.Terminate::class action {}
+				
 				input signal Message.QuickInput::class action { stash += it }
 				input signal Message.Signal::class action { stash += it }
 				input signal Message.TypedSignal::class action { stash += it }
 				input signal Message.Modify::class action { stash += it }
+				
+				input action ignoreMessage
 				
 				exit action {
 					stash.clear()
@@ -170,6 +192,9 @@ private class KotlmataDaemonImpl(
 				input signal Message.Pause::class action { m ->
 					arrange(m)
 				}
+				input signal Message.Terminate::class action {}
+				
+				input action ignoreMessage
 			}
 			
 			"terminate" {
@@ -203,7 +228,10 @@ private class KotlmataDaemonImpl(
 			{
 				while (true)
 				{
-					engine.input(queue.take())
+					val m = queue.take()
+					logLevel.detail(this@KotlmataDaemonImpl.key, m.id) { DAEMON_START_MESSAGE }
+					engine.input(m)
+					logLevel.detail(this@KotlmataDaemonImpl.key, m.id) { DAEMON_END_MESSAGE }
 				}
 			}
 			catch (e: InterruptedException)
@@ -215,25 +243,24 @@ private class KotlmataDaemonImpl(
 	
 	override fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
-		synchronized(queue) {
-			logLevel.detail(key) { DAEMON_REQUEST_MODIFY }
-			queue.offer(Message.Modify(block))
-		}
+		modify(block)
 	}
 	
 	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
 		synchronized(queue) {
-			logLevel.detail(key) { DAEMON_REQUEST_MODIFY }
-			queue.offer(Message.Modify(block))
+			val m = Message.Modify(block)
+			logLevel.detail(key, m.id) { DAEMON_POST_MODIFY }
+			queue.offer(m)
 		}
 	}
 	
 	override fun input(signal: SIGNAL)
 	{
 		synchronized(queue) {
-			logLevel.detail(key, signal) { DAEMON_REQUEST_SIGNAL }
-			queue.offer(Message.Signal(signal))
+			val m = Message.Signal(signal)
+			logLevel.detail(key, m.signal, m.id) { DAEMON_POST_SIGNAL }
+			queue.offer(m)
 		}
 	}
 	
@@ -241,40 +268,45 @@ private class KotlmataDaemonImpl(
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	{
 		synchronized(queue) {
-			logLevel.detail(key, signal, type) { DAEMON_REQUEST_TYPED_SIGNAL }
-			queue.offer(Message.TypedSignal(signal, type as KClass<SIGNAL>))
+			val m = Message.TypedSignal(signal, type as KClass<SIGNAL>)
+			logLevel.detail(key, m.signal, m.type, m.id) { DAEMON_POST_TYPED_SIGNAL }
+			queue.offer(m)
 		}
 	}
 	
 	override fun run()
 	{
 		synchronized(queue) {
-			logLevel.detail(key) { DAEMON_REQUEST_RUN }
-			queue.offer(Message.Run())
+			val m = Message.Run()
+			logLevel.detail(key, m.id) { DAEMON_POST_RUN }
+			queue.offer(m)
 		}
 	}
 	
 	override fun pause()
 	{
 		synchronized(queue) {
-			logLevel.detail(key) { DAEMON_REQUEST_PAUSE }
-			queue.offer(Message.Pause())
+			val m = Message.Pause()
+			logLevel.detail(key, m.id) { DAEMON_POST_PAUSE }
+			queue.offer(m)
 		}
 	}
 	
 	override fun stop()
 	{
 		synchronized(queue) {
-			logLevel.detail(key) { DAEMON_REQUEST_STOP }
-			queue.offer(Message.Stop())
+			val m = Message.Stop()
+			logLevel.detail(key, m.id) { DAEMON_POST_STOP }
+			queue.offer(m)
 		}
 	}
 	
 	override fun terminate()
 	{
 		synchronized(queue) {
-			logLevel.detail(key) { DAEMON_REQUEST_TERMINATE }
-			queue.offer(Message.Terminate())
+			val m = Message.Terminate()
+			logLevel.detail(key, m.id) { DAEMON_POST_TERMINATE }
+			queue.offer(m)
 		}
 	}
 	
@@ -378,6 +410,8 @@ private sealed class Message(val priority: Int) : Comparable<Message>
 	}
 	
 	val order = ticket.getAndIncrement()
+	
+	val id by lazy { hashCode().toString(16) }
 	val isEvent = priority == EVENT
 	
 	fun isEarlierThan(other: Message): Boolean = order < other.order

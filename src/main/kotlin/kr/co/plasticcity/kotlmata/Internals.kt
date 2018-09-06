@@ -48,12 +48,14 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	}
 }
 
-internal fun Int.simple(vararg args: Any, log: Logs.Companion.() -> String)
+internal inline fun Int.simple(vararg args: Any, log: Logs.Companion.() -> String)
 {
 	if (this >= 1) Log.d(args = *args, log = log)
 }
 
-internal fun Int.detail(vararg args: Any, log: Logs.Companion.() -> String)
+internal inline fun Int.detail(vararg args: Any, log: Logs.Companion.() -> String)
 {
 	if (this >= 2) Log.d(args = *args, log = log)
 }
+
+internal fun Int.isDetail() = this >= 2

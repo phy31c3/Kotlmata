@@ -14,13 +14,16 @@ internal class Logs
 		const val DAEMON_STOP = "KotlmataDaemon[%s]: --------------------------------------- STOP ----------------------------------------"
 		const val DAEMON_RESUME = "KotlmataDaemon[%s]: --------------------------------------- RESUME --------------------------------------"
 		const val DAEMON_TERMINATE = "KotlmataDaemon[%s]: --------------------------------------- TERMINATE ------------------------------------"
-		const val DAEMON_REQUEST_MODIFY = "KotlmataDaemon[%s]: Machine modification requested."
-		const val DAEMON_REQUEST_SIGNAL = "KotlmataDaemon[%s]: Signal input requested. (signal: %s)"
-		const val DAEMON_REQUEST_TYPED_SIGNAL = "KotlmataDaemon[%s]: TypedSignal input requested. (signal: %s, type: %s)"
-		const val DAEMON_REQUEST_RUN = "KotlmataDaemon[%s]: Run requested."
-		const val DAEMON_REQUEST_PAUSE = "KotlmataDaemon[%s]: Pause requested."
-		const val DAEMON_REQUEST_STOP = "KotlmataDaemon[%s]: Stop requested."
-		const val DAEMON_REQUEST_TERMINATE = "KotlmataDaemon[%s]: Terminate requested."
+		const val DAEMON_POST_MODIFY = "KotlmataDaemon[%s]: Post modification. {id: %s}"
+		const val DAEMON_POST_SIGNAL = "KotlmataDaemon[%s]: Post signal. {signal: %s} {id: %s}"
+		const val DAEMON_POST_TYPED_SIGNAL = "KotlmataDaemon[%s]: Post typedSignal. {signal: %s, type: %s} {id: %s}"
+		const val DAEMON_POST_RUN = "KotlmataDaemon[%s]: Post run. {id: %s}"
+		const val DAEMON_POST_PAUSE = "KotlmataDaemon[%s]: Post pause. {id: %s}"
+		const val DAEMON_POST_STOP = "KotlmataDaemon[%s]: Post stop. {id: %s}"
+		const val DAEMON_POST_TERMINATE = "KotlmataDaemon[%s]: Post terminate. {id: %s}"
+		const val DAEMON_START_MESSAGE = "KotlmataDaemon[%s]: Start message. {id: %s}"
+		const val DAEMON_MESSAGE_IGNORED = "KotlmataDaemon[%s]: Message ignored. {id: %s}"
+		const val DAEMON_END_MESSAGE = "KotlmataDaemon[%s]: End message. {id: %s}"
 		
 		/*########################## WARN ##########################*/
 		/* Agent */
