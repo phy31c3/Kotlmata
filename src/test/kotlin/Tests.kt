@@ -140,7 +140,7 @@ class Tests
 	{
 		var initializer: KotlmataDaemon.Initializer? = null
 		val daemon = KotlmataMutableDaemon {
-			log level 2
+			log level 3
 			
 			"state1" {
 				entry action { println("state1: 기본 진입함수") }
@@ -157,7 +157,10 @@ class Tests
 			}
 			
 			"state3" {
-				entry action { println("state3: 기본 진입함수") }
+				entry action {
+					println("state3: 기본 진입함수")
+					"quick input"
+				}
 				input signal String::class action { println("state3: String 타입 입력함수: $it") }
 				exit action { println("state3: 퇴장함수") }
 			}

@@ -116,25 +116,19 @@ private class KotlmataDaemonImpl(
 			}
 			
 			"run" {
+				val quickInput: (SIGNAL) -> Unit = {
+					val m = Message.QuickInput(it)
+					logLevel.detail(this@KotlmataDaemonImpl.key, m, m.signal, m.id) { DAEMON_POST_QUICK_INPUT }
+					queue.offer(m)
+				}
+				
 				input signal Message.Pause::class action {}
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.QuickInput::class action { m ->
-					machine.input(m.signal) {
-						queue.offer(Message.QuickInput(it))
-					}
-				}
-				input signal Message.Signal::class action { m ->
-					machine.input(m.signal) {
-						queue.offer(Message.QuickInput(it))
-					}
-				}
-				input signal Message.TypedSignal::class action { m ->
-					machine.input(m.signal, m.type) {
-						queue.offer(Message.QuickInput(it))
-					}
-				}
+				input signal Message.QuickInput::class action { m -> machine.input(m.signal, quickInput) }
+				input signal Message.Input::class action { m -> machine.input(m.signal, quickInput) }
+				input signal Message.TypedInput::class action { m -> machine.input(m.signal, m.type, quickInput) }
 				input signal Message.Modify::class action modifyMachine
 				
 				input action { ignoreMessage(it, "run") }
@@ -143,8 +137,8 @@ private class KotlmataDaemonImpl(
 			"pause" {
 				val stash: MutableList<Message> = ArrayList()
 				
-				val putInStash: (Message) -> Unit = {
-					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_STASH_MESSAGE }
+				val keep: (Message) -> Unit = {
+					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_MESSAGE }
 					stash += it
 				}
 				
@@ -161,10 +155,10 @@ private class KotlmataDaemonImpl(
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.QuickInput::class action putInStash
-				input signal Message.Signal::class action putInStash
-				input signal Message.TypedSignal::class action putInStash
-				input signal Message.Modify::class action putInStash
+				input signal Message.QuickInput::class action keep
+				input signal Message.Input::class action keep
+				input signal Message.TypedInput::class action keep
+				input signal Message.Modify::class action keep
 				
 				input action { ignoreMessage(it, "pause") }
 				
@@ -174,6 +168,8 @@ private class KotlmataDaemonImpl(
 			}
 			
 			"stop" {
+				var stash: Message.QuickInput? = null
+				
 				entry action {
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_STOP }
 					onStop()
@@ -194,6 +190,7 @@ private class KotlmataDaemonImpl(
 								false
 							}
 						}
+						stash?.also { queue.offer(it) }
 					}
 				}
 				
@@ -202,12 +199,19 @@ private class KotlmataDaemonImpl(
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
 					onResume()
 				}
-				input signal Message.Pause::class action { m ->
-					arrange(m)
-				}
+				input signal Message.Pause::class action { m -> arrange(m) }
 				input signal Message.Terminate::class action {}
 				
+				input signal Message.QuickInput::class action {
+					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_QUICK_INPUT }
+					stash = it
+				}
+				
 				input action { ignoreMessage(it, "stop") }
+				
+				exit action {
+					stash = null
+				}
 			}
 			
 			"terminate" {
@@ -263,7 +267,7 @@ private class KotlmataDaemonImpl(
 	{
 		synchronized(queue) {
 			val m = Message.Modify(block)
-			logLevel.detail(key, m.id) { DAEMON_POST_MODIFY }
+			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue.offer(m)
 		}
 	}
@@ -271,8 +275,8 @@ private class KotlmataDaemonImpl(
 	override fun input(signal: SIGNAL)
 	{
 		synchronized(queue) {
-			val m = Message.Signal(signal)
-			logLevel.detail(key, m.signal, m.id) { DAEMON_POST_SIGNAL }
+			val m = Message.Input(signal)
+			logLevel.detail(key, m, m.signal, m.id) { DAEMON_POST_INPUT }
 			queue.offer(m)
 		}
 	}
@@ -281,8 +285,8 @@ private class KotlmataDaemonImpl(
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	{
 		synchronized(queue) {
-			val m = Message.TypedSignal(signal, type as KClass<SIGNAL>)
-			logLevel.detail(key, m.signal, m.type, m.id) { DAEMON_POST_TYPED_SIGNAL }
+			val m = Message.TypedInput(signal, type as KClass<SIGNAL>)
+			logLevel.detail(key, m, m.signal, m.type, m.id) { DAEMON_POST_TYPED_INPUT }
 			queue.offer(m)
 		}
 	}
@@ -291,7 +295,7 @@ private class KotlmataDaemonImpl(
 	{
 		synchronized(queue) {
 			val m = Message.Run()
-			logLevel.detail(key, m.id) { DAEMON_POST_RUN }
+			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue.offer(m)
 		}
 	}
@@ -300,7 +304,7 @@ private class KotlmataDaemonImpl(
 	{
 		synchronized(queue) {
 			val m = Message.Pause()
-			logLevel.detail(key, m.id) { DAEMON_POST_PAUSE }
+			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue.offer(m)
 		}
 	}
@@ -309,7 +313,7 @@ private class KotlmataDaemonImpl(
 	{
 		synchronized(queue) {
 			val m = Message.Stop()
-			logLevel.detail(key, m.id) { DAEMON_POST_STOP }
+			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue.offer(m)
 		}
 	}
@@ -318,7 +322,7 @@ private class KotlmataDaemonImpl(
 	{
 		synchronized(queue) {
 			val m = Message.Terminate()
-			logLevel.detail(key, m.id) { DAEMON_POST_TERMINATE }
+			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue.offer(m)
 		}
 	}
@@ -409,8 +413,8 @@ private sealed class Message(val priority: Int) : Comparable<Message>
 	
 	class QuickInput(val signal: SIGNAL) : Message(QUICK)
 	
-	class Signal(val signal: SIGNAL) : Message(EVENT)
-	class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(EVENT)
+	class Input(val signal: SIGNAL) : Message(EVENT)
+	class TypedInput(val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(EVENT)
 	class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(EVENT)
 	
 	companion object
