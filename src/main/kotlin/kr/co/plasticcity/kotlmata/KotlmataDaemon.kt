@@ -286,7 +286,7 @@ private class KotlmataDaemonImpl(
 	{
 		synchronized(queue) {
 			val m = Message.TypedInput(signal, type as KClass<SIGNAL>)
-			logLevel.detail(key, m, m.signal, m.type, m.id) { DAEMON_POST_TYPED_INPUT }
+			logLevel.detail(key, m, m.signal, m.type.simpleName, m.id) { DAEMON_POST_TYPED_INPUT }
 			queue.offer(m)
 		}
 	}

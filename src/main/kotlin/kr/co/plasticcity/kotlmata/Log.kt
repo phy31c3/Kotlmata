@@ -7,6 +7,10 @@ internal class Logs
 		/*########################## DEBUG ##########################*/
 		/* Agent */
 		const val AGENT_TRANSITION = "Kotlmata%s[%s]: (%s) x (%s) -> (%s)"
+		const val AGENT_TYPED_TRANSITION = "Kotlmata%s[%s]: (%s) x (%s as %s) -> (%s)"
+		const val AGENT_INPUT = "Kotlmata%s[%s]: Input(%s). {current state: %s}"
+		const val AGENT_TYPED_INPUT = "Kotlmata%s[%s]: Input(%s as %s). {current state: %s}"
+		const val AGENT_MODIFY = "Kotlmata%s[%s]: Modify. {current state: %s}"
 		
 		/* Daemon */
 		const val DAEMON_START = "KotlmataDaemon[%s]: --------------------------------------- START ---------------------------------------"
@@ -14,10 +18,10 @@ internal class Logs
 		const val DAEMON_STOP = "KotlmataDaemon[%s]: --------------------------------------- STOP ----------------------------------------"
 		const val DAEMON_RESUME = "KotlmataDaemon[%s]: --------------------------------------- RESUME --------------------------------------"
 		const val DAEMON_TERMINATE = "KotlmataDaemon[%s]: --------------------------------------- TERMINATE ------------------------------------"
-		const val DAEMON_POST_MESSAGE = "KotlmataDaemon[%s]: Post@ %s. {id: %s}"
-		const val DAEMON_POST_INPUT = "KotlmataDaemon[%s]: Post@ %s. {signal: %s} {id: %s}"
-		const val DAEMON_POST_TYPED_INPUT = "KotlmataDaemon[%s]: Post@ %s. {signal: %s, type: %s} {id: %s}"
-		const val DAEMON_POST_QUICK_INPUT = "KotlmataDaemon[%s]: Post@ %s. {signal: %s} {id: %s}"
+		const val DAEMON_POST_MESSAGE = "KotlmataDaemon[%s]: Post@%s. {id: %s}"
+		const val DAEMON_POST_INPUT = "KotlmataDaemon[%s]: Post@%s. {signal: %s} {id: %s}"
+		const val DAEMON_POST_TYPED_INPUT = "KotlmataDaemon[%s]: Post@%s. {signal: %s, type: %s} {id: %s}"
+		const val DAEMON_POST_QUICK_INPUT = "KotlmataDaemon[%s]: Post@%s. {signal: %s} {id: %s}"
 		const val DAEMON_START_MESSAGE = "KotlmataDaemon[%s]: >> Start message. {id: %s}"
 		const val DAEMON_KEEP_MESSAGE = "KotlmataDaemon[%s]:    Keep message. {id: %s}"
 		const val DAEMON_KEEP_QUICK_INPUT = "KotlmataDaemon[%s]:    Keep QuickInput. {id: %s}"
@@ -49,7 +53,7 @@ internal object Log
 	var warn: (String) -> Unit = none
 	var error: (String) -> Unit = ::error
 	
-	inline fun d(vararg args: Any, log: Logs.Companion.() -> String)
+	inline fun d(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
 		if (debug != none)
 		{
@@ -57,7 +61,7 @@ internal object Log
 		}
 	}
 	
-	inline fun w(vararg args: Any, log: Logs.Companion.() -> String)
+	inline fun w(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
 		if (warn != none)
 		{
@@ -65,7 +69,7 @@ internal object Log
 		}
 	}
 	
-	inline fun e(vararg args: Any, log: Logs.Companion.() -> String): Nothing
+	inline fun e(vararg args: Any?, log: Logs.Companion.() -> String): Nothing
 	{
 		error(Logs.log().format(*args))
 		throw IllegalStateException(Logs.log().format(*args))

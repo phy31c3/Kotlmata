@@ -140,7 +140,7 @@ class Tests
 	{
 		var initializer: KotlmataDaemon.Initializer? = null
 		val daemon = KotlmataMutableDaemon {
-			log level 3
+			log level 2
 			
 			"state1" {
 				entry action { println("state1: 기본 진입함수") }

@@ -221,6 +221,7 @@ private class KotlmataMachineImpl(
 	
 	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
+		logLevel.normal(agent, key, state.key) { AGENT_MODIFY }
 		ModifierImpl(modify = block)
 	}
 	
@@ -232,6 +233,7 @@ private class KotlmataMachineImpl(
 		}
 		
 		let {
+			logLevel.normal(agent, key, signal, state.key) { AGENT_INPUT }
 			state.input(signal)
 			transitionMap[state.key]?.next() ?: transitionMap[any]?.next()
 		}?.let {
@@ -259,12 +261,13 @@ private class KotlmataMachineImpl(
 		}
 		
 		let {
+			logLevel.normal(agent, key, signal, type.simpleName, state.key) { AGENT_TYPED_INPUT }
 			state.input(signal, type)
 			transitionMap[state.key]?.next() ?: transitionMap[any]?.next()
 		}?.let {
 			stateMap[it]
 		}?.also {
-			logLevel.simple(agent, key, state.key, signal, it.key) { AGENT_TRANSITION }
+			logLevel.simple(agent, key, state.key, signal, type.simpleName, it.key) { AGENT_TYPED_TRANSITION }
 			state.exit(signal)
 			state = it
 			state.entry(signal, type, block)
