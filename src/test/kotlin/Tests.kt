@@ -217,4 +217,10 @@ class Tests
 		
 		initializer?.log?.level(0)
 	}
+	
+	@Test
+	fun kotlmataTest()
+	{
+	
+	}
 }

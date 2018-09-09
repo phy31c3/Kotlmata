@@ -314,7 +314,7 @@ private class KotlmataMachineImpl(
 			get()
 			{
 				this@ModifierImpl shouldNot expired
-				return if (state.key == DaemonInitial) Log.w(agent, key) { OBTAIN_DAEMON_INITIAL }
+				return if (state.key == Initial) Log.w(agent, key) { OBTAIN_INITIAL }
 				else state.key
 			}
 		

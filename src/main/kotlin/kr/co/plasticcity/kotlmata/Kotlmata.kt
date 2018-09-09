@@ -22,6 +22,11 @@ interface Kotlmata
 
 private class KotlmataImpl : Kotlmata
 {
+	init
+	{
+		TODO("not implemented")
+	}
+	
 	override fun init(block: Kotlmata.Initializer.() -> Unit)
 	{
 		InitializerImpl(block)

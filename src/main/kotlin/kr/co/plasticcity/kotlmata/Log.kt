@@ -31,7 +31,7 @@ internal class Logs
 		
 		/*########################## WARN ##########################*/
 		/* Agent */
-		const val OBTAIN_DAEMON_INITIAL = "Kotlmata%s[%s]: Attempt to get 'Daemon initial state': Daemon initial state can not be obtained."
+		const val OBTAIN_INITIAL = "Kotlmata%s[%s]: Attempt to get 'initial state': The initial state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		/* Config */

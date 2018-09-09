@@ -79,9 +79,9 @@ private class KotlmataDaemonImpl(
 	{
 		machine = KotlmataMutableMachine(this.key) {
 			val initializer = InitializerImpl(block, this)
-			DaemonInitial {}
-			DaemonInitial x Message.Run::class %= initializer.initial
-			start at DaemonInitial
+			Initial {}
+			Initial x Message.Run::class %= initializer.initial
+			start at Initial
 		}
 		
 		engine = KotlmataMachine("${this@KotlmataDaemonImpl.key}@engine") {

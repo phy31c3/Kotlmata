@@ -4,7 +4,7 @@ internal typealias KEY = Any
 internal typealias STATE = Any
 internal typealias SIGNAL = Any
 
-internal object DaemonInitial
+internal object Initial
 {
 	override fun toString(): String = "initial"
 }
