@@ -170,28 +170,22 @@ private class KotlmataDaemonImpl(
 			"stop" {
 				var stash: Message.QuickInput? = null
 				
-				entry action {
-					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_STOP }
-					onStop()
-				}
-				
 				fun arrange(m: Message)
 				{
 					synchronized(queue)
 					{
 						queue.removeIf {
-							if (it.isEvent && it.isEarlierThan(m))
-							{
-								logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_MESSAGE_DROPPED }
-								true
-							}
-							else
-							{
-								false
+							(it.isEvent && it.isEarlierThan(m)).apply {
+								if (this) logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_MESSAGE_DROPPED }
 							}
 						}
 						stash?.also { queue.offer(it) }
 					}
+				}
+				
+				entry action {
+					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_STOP }
+					onStop()
 				}
 				
 				input signal Message.Run::class action { m ->
