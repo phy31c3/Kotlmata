@@ -63,17 +63,17 @@ private class KotlmataDaemonImpl(
 {
 	override val key: KEY = key ?: this
 	
+	private var logLevel = NORMAL
+	
 	private val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
-	private val engine: KotlmataMachine
 	private val machine: KotlmataMutableMachine
+	private val engine: KotlmataMachine
 	
 	private var onStart: () -> Unit = {}
 	private var onPause: () -> Unit = {}
 	private var onStop: () -> Unit = {}
 	private var onResume: () -> Unit = {}
 	private var onTerminate: () -> Unit = {}
-	
-	private var logLevel = NORMAL
 	
 	init
 	{
@@ -84,7 +84,7 @@ private class KotlmataDaemonImpl(
 			start at Initial
 		}
 		
-		engine = KotlmataMachine("${this@KotlmataDaemonImpl.key}@engine") {
+		engine = KotlmataMachine("${this.key}@engine") {
 			log level 0
 			
 			val modifyMachine: (Message.Modify) -> Unit = {
@@ -321,6 +321,11 @@ private class KotlmataDaemonImpl(
 		}
 	}
 	
+	override fun toString(): String
+	{
+		return hashCode().toString(16)
+	}
+	
 	private inner class InitializerImpl internal constructor(
 			block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End,
 			initializer: KotlmataMachine.Initializer
@@ -392,50 +397,45 @@ private class KotlmataDaemonImpl(
 		}
 	}
 	
-	override fun toString(): String
+	private sealed class Message(val priority: Int) : Comparable<Message>
 	{
-		return hashCode().toString(16)
-	}
-}
-
-private sealed class Message(val priority: Int) : Comparable<Message>
-{
-	class Run : Message(CONTROL)
-	class Pause : Message(CONTROL)
-	class Stop : Message(CONTROL)
-	class Terminate : Message(CONTROL)
-	
-	class QuickInput(val signal: SIGNAL) : Message(QUICK)
-	
-	class Input(val signal: SIGNAL) : Message(EVENT)
-	class TypedInput(val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(EVENT)
-	class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(EVENT)
-	
-	companion object
-	{
-		private const val CONTROL = 2
-		private const val QUICK = 1
-		private const val EVENT = 0
+		class Run : Message(CONTROL)
+		class Pause : Message(CONTROL)
+		class Stop : Message(CONTROL)
+		class Terminate : Message(CONTROL)
 		
-		val ticket: AtomicLong = AtomicLong(0)
-	}
-	
-	val order = ticket.getAndIncrement()
-	
-	val id by lazy { hashCode().toString(16) }
-	val isEvent = priority == EVENT
-	
-	fun isEarlierThan(other: Message): Boolean = order < other.order
-	
-	override fun compareTo(other: Message): Int
-	{
-		val dP = other.priority - priority
-		return if (dP != 0) dP
-		else (order - other.order).toInt()
-	}
-	
-	override fun toString(): String
-	{
-		return this::class.simpleName ?: super.toString()
+		class QuickInput(val signal: SIGNAL) : Message(QUICK)
+		
+		class Input(val signal: SIGNAL) : Message(EVENT)
+		class TypedInput(val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(EVENT)
+		class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(EVENT)
+		
+		companion object
+		{
+			private const val CONTROL = 2
+			private const val QUICK = 1
+			private const val EVENT = 0
+			
+			val ticket: AtomicLong = AtomicLong(0)
+		}
+		
+		val order = ticket.getAndIncrement()
+		val id by lazy { hashCode().toString(16) }
+		
+		val isEvent = priority == EVENT
+		
+		fun isEarlierThan(other: Message): Boolean = order < other.order
+		
+		override fun compareTo(other: Message): Int
+		{
+			val dP = other.priority - priority
+			return if (dP != 0) dP
+			else (order - other.order).toInt()
+		}
+		
+		override fun toString(): String
+		{
+			return this::class.simpleName ?: super.toString()
+		}
 	}
 }

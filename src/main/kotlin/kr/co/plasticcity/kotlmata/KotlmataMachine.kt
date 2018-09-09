@@ -202,12 +202,12 @@ private class KotlmataMachineImpl(
 {
 	override val key: KEY = key ?: this
 	
+	private var logLevel = NORMAL
+	
 	private val stateMap: MutableMap<STATE, KotlmataMutableState> = HashMap()
 	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
 	private lateinit var state: KotlmataState
-	
-	private var logLevel = NORMAL
 	
 	init
 	{
@@ -279,6 +279,11 @@ private class KotlmataMachineImpl(
 		input(signal, type) {
 			input(it)
 		}
+	}
+	
+	override fun toString(): String
+	{
+		return hashCode().toString(16)
 	}
 	
 	private inner class ModifierImpl internal constructor(
@@ -560,10 +565,5 @@ private class KotlmataMachineImpl(
 			init?.also { it() } ?: modify?.also { it() }
 			expire()
 		}
-	}
-	
-	override fun toString(): String
-	{
-		return hashCode().toString(16)
 	}
 }

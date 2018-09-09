@@ -179,7 +179,11 @@ mutableDaemon.input(object, Any::class)
 
 [Kotlmata]————————————————————————————————————————————————————————————————————————————————
 Kotlmata init {
+	log level 3
 	print debug { log ->
+		// 로그 출력
+	}
+	print error { log ->
 		// 로그 출력
 	}
 	print error { log ->

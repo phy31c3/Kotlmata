@@ -196,6 +196,11 @@ private class KotlmataStateImpl(
 		exit?.invoke(signal)
 	}
 	
+	override fun toString(): String
+	{
+		return hashCode().toString(16)
+	}
+	
 	private inner class ModifierImpl internal constructor(
 			block: KotlmataMutableState.Modifier.() -> Unit
 	) : KotlmataMutableState.Modifier, Expirable({ Log.e(key) { EXPIRED_STATE_MODIFIER } })
@@ -369,10 +374,5 @@ private class KotlmataStateImpl(
 			block()
 			expire()
 		}
-	}
-	
-	override fun toString(): String
-	{
-		return hashCode().toString(16)
 	}
 }
