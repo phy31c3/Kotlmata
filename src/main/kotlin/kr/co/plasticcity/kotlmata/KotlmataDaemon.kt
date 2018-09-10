@@ -51,9 +51,9 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 		): KotlmataMutableDaemon = KotlmataDaemonImpl(name, block)
 	}
 	
-	operator fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit) = modify(block)
-	
 	infix fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	
+	operator fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit) = modify(block)
 }
 
 private class KotlmataDaemonImpl(
@@ -252,15 +252,6 @@ private class KotlmataDaemonImpl(
 		}
 	}
 	
-	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
-	{
-		synchronized(queue) {
-			val m = Message.Modify(block)
-			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
-			queue.offer(m)
-		}
-	}
-	
 	override fun input(signal: SIGNAL)
 	{
 		synchronized(queue) {
@@ -311,6 +302,15 @@ private class KotlmataDaemonImpl(
 	{
 		synchronized(queue) {
 			val m = Message.Terminate()
+			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
+			queue.offer(m)
+		}
+	}
+	
+	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	{
+		synchronized(queue) {
+			val m = Message.Modify(block)
 			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue.offer(m)
 		}

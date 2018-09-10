@@ -189,9 +189,9 @@ interface KotlmataMutableMachine : KotlmataMachine
 		}
 	}
 	
-	operator fun invoke(block: Modifier.() -> Unit) = modify(block)
-	
 	infix fun modify(block: Modifier.() -> Unit)
+	
+	operator fun invoke(block: Modifier.() -> Unit) = modify(block)
 }
 
 private class KotlmataMachineImpl(
@@ -212,12 +212,6 @@ private class KotlmataMachineImpl(
 	init
 	{
 		ModifierImpl(block)
-	}
-	
-	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
-	{
-		logLevel.normal(agent, key, state.key) { AGENT_MODIFY }
-		ModifierImpl(modify = block)
 	}
 	
 	override fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
@@ -274,6 +268,12 @@ private class KotlmataMachineImpl(
 		input(signal, type) {
 			input(it)
 		}
+	}
+	
+	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	{
+		logLevel.normal(agent, key, state.key) { AGENT_MODIFY }
+		ModifierImpl(modify = block)
 	}
 	
 	override fun toString(): String

@@ -22,6 +22,10 @@ interface Kotlmata
 	
 	infix fun <T : SIGNAL> input(signal: T): Type<T>
 	
+	infix fun post(block: Post.() -> Unit)
+	
+	operator fun invoke(block: Post.() -> Unit) = post(block)
+	
 	interface Initializer
 	{
 		val log: Log
@@ -61,6 +65,11 @@ interface Kotlmata
 	interface To
 	{
 		infix fun to(daemon: KEY)
+	}
+	
+	interface Post
+	{
+	
 	}
 }
 
@@ -165,6 +174,11 @@ private class KotlmataImpl : Kotlmata
 		{
 			queue.offer(Message.Input(daemon, signal))
 		}
+	}
+	
+	override fun post(block: Kotlmata.Post.() -> Unit)
+	{
+		TODO("not implemented")
 	}
 	
 	private inner class InitializerImpl internal constructor(
