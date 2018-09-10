@@ -220,58 +220,6 @@ Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일
 	}
 }
 
-Kotlmata has "daemon" then { Kotlmata ->
-	terminate("daemon")
-} finally { Kotlmata ->
-	fork("daemon") of {
-		on start [action]
-		on terminate [action]
-
-		"state1" {
-			extends template "base"
-			entry action [action]
-			entry via "signal" action [action]
-			input signal "signal" action [action]
-			exit action [action]
-		}
-
-		"state0" x "signal" %= "state1"
-
-		start at "state0"
-	}
-}
-
-Kotlmata has "daemon" then { Kotlmata ->
-	modify("daemon") set {
-		update state "state1" set {
-			input signal "signal" action [action]
-		} or insert state "state1" of {
-			extends template "base"
-			entry action [action]
-			entry via "signal" action [action]
-			input signal "signal" action [action]
-			exit action [action]
-		}
-	}
-} or {
-	fork("daemon") of {
-		on start [action]
-		on terminate [action]
-
-		"state1" {
-			extends template "base"
-			entry action [action]
-			entry via "signal" action [action]
-			input signal "signal" action [action]
-			exit action [action]
-		}
-
-		"state0" x "signal" %= "state1"
-
-		start at "state0"
-	}
-}
-
 Kotlmata run "daemon"
 Kotlmata pause "daemon"
 Kotlmata stop "daemon"
@@ -279,6 +227,61 @@ Kotlmata terminate "daemon"
 
 Kotlmata input "signal" to "daemon"
 Kotlmata input "signal" type KClass<String> to "daemon"
+
+Kotlmata post {
+	// 손봐야 됨
+	has "daemon" then {
+		modify("daemon") set {
+			update state "state1" set {
+				input signal "signal" action [action]
+			} or insert state "state1" of {
+				extends template "base"
+				entry action [action]
+				entry via "signal" action [action]
+				input signal "signal" action [action]
+				exit action [action]
+			}
+		}
+	} or {
+		fork("daemon") of {
+			on start [action]
+			on terminate [action]
+
+			"state1" {
+				extends template "base"
+				entry action [action]
+				entry via "signal" action [action]
+				input signal "signal" action [action]
+				exit action [action]
+			}
+
+			"state0" x "signal" %= "state1"
+
+			start at "state0"
+		}
+	} finally {
+		fork("daemon") of {
+			on start [action]
+			on terminate [action]
+
+			"state1" {
+				extends template "base"
+				entry action [action]
+				entry via "signal" action [action]
+				input signal "signal" action [action]
+				exit action [action]
+			}
+
+			"state0" x "signal" %= "state1"
+
+			start at "state0"
+		}
+	}
+}
+
+Kotlmata {
+	// Kotlmata post 와 동일
+}
 
 Kotlmata release {
 	// 자원 해제 등의 동작이 필요하면 여기에

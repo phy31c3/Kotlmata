@@ -14,7 +14,6 @@ interface Kotlmata
 	
 	infix fun fork(daemon: KEY): Of
 	infix fun modify(daemon: KEY): Set
-	infix fun has(daemon: KEY): Then
 	
 	infix fun run(daemon: KEY)
 	infix fun pause(daemon: KEY)
@@ -54,21 +53,6 @@ interface Kotlmata
 		infix fun set(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	}
 	
-	interface Then
-	{
-		infix fun then(block: Kotlmata.() -> Unit): Or
-		
-		interface Or : Finally
-		{
-			infix fun or(block: Kotlmata.() -> Unit): Finally
-		}
-		
-		interface Finally
-		{
-			infix fun finally(block: Kotlmata.() -> Unit)
-		}
-	}
-	
 	interface Type<T : SIGNAL> : To
 	{
 		infix fun type(type: KClass<in T>): To
@@ -85,6 +69,7 @@ private class KotlmataImpl : Kotlmata
 	private var logLevel = NORMAL
 	
 	private val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
+	private val map: MutableMap<KEY, KotlmataMutableDaemon> = HashMap()
 	
 	private val engine: KotlmataMachine = KotlmataMachine("Kotlmata@engine") {
 		"initial" {
@@ -121,23 +106,19 @@ private class KotlmataImpl : Kotlmata
 	
 	override fun init(block: Kotlmata.Initializer.() -> Unit)
 	{
-		synchronized(queue) {
-			queue.offer(Message.Init(block))
-		}
+		queue.offer(Message.Init(block))
 	}
 	
 	override fun release(block: () -> Unit)
 	{
-		synchronized(queue) {
-			queue.offer(Message.Release(block))
-		}
+		queue.offer(Message.Release(block))
 	}
 	
 	override fun fork(daemon: KEY) = object : Kotlmata.Of
 	{
 		override fun of(block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End)
 		{
-			TODO("not implemented")
+			queue.offer(Message.Fork(daemon, block))
 		}
 	}
 	
@@ -145,56 +126,44 @@ private class KotlmataImpl : Kotlmata
 	{
 		override fun set(block: KotlmataMutableMachine.Modifier.() -> Unit)
 		{
-			TODO("not implemented")
-		}
-	}
-	
-	override fun has(daemon: KEY) = object : Kotlmata.Then
-	{
-		override fun then(block: Kotlmata.() -> Unit) = object : Kotlmata.Then.Or
-		{
-			override fun or(block: Kotlmata.() -> Unit): Kotlmata.Then.Finally
-			{
-				TODO("not implemented")
-			}
-			
-			override fun finally(block: Kotlmata.() -> Unit)
-			{
-				TODO("not implemented")
-			}
+			queue.offer(Message.Modify(daemon, block))
 		}
 	}
 	
 	override fun run(daemon: KEY)
 	{
-		TODO("not implemented")
+		queue.offer(Message.Run(daemon))
 	}
 	
 	override fun pause(daemon: KEY)
 	{
-		TODO("not implemented")
+		queue.offer(Message.Pause(daemon))
 	}
 	
 	override fun stop(daemon: KEY)
 	{
-		TODO("not implemented")
+		queue.offer(Message.Stop(daemon))
 	}
 	
 	override fun terminate(daemon: KEY)
 	{
-		TODO("not implemented")
+		queue.offer(Message.Terminate(daemon))
 	}
 	
 	override fun <T : SIGNAL> input(signal: T) = object : Kotlmata.Type<T>
 	{
-		override fun type(type: KClass<in T>): Kotlmata.To
+		override fun type(type: KClass<in T>) = object : Kotlmata.To
 		{
-			TODO("not implemented")
+			@Suppress("UNCHECKED_CAST")
+			override fun to(daemon: KEY)
+			{
+				queue.offer(Message.TypedInput(daemon, signal, type as KClass<SIGNAL>))
+			}
 		}
 		
 		override fun to(daemon: KEY)
 		{
-			TODO("not implemented")
+			queue.offer(Message.Input(daemon, signal))
 		}
 	}
 	
@@ -245,7 +214,6 @@ private class KotlmataImpl : Kotlmata
 		
 		class Fork(val daemon: KEY, val block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End) : Message(EVENT)
 		class Modify(val daemon: KEY, val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(EVENT)
-		class Has(val daemon: KEY, val block: Kotlmata.() -> Unit) : Message(EVENT)
 		
 		class Run(val daemon: KEY) : Message(EVENT)
 		class Pause(val daemon: KEY) : Message(EVENT)
