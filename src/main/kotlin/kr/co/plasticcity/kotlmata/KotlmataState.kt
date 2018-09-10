@@ -104,7 +104,7 @@ interface KotlmataMutableState : KotlmataState
 		}
 	}
 	
-	operator fun invoke(block: Modifier.() -> Unit)
+	operator fun invoke(block: Modifier.() -> Unit) = modify(block)
 	
 	infix fun modify(block: Modifier.() -> Unit)
 }
@@ -127,11 +127,6 @@ private class KotlmataStateImpl(
 		block?.also {
 			modify(it)
 		}
-	}
-	
-	override fun invoke(block: KotlmataMutableState.Modifier.() -> Unit)
-	{
-		modify(block)
 	}
 	
 	override fun modify(block: KotlmataMutableState.Modifier.() -> Unit)

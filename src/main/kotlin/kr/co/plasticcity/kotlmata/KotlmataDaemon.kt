@@ -51,7 +51,7 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 		): KotlmataMutableDaemon = KotlmataDaemonImpl(name, block)
 	}
 	
-	operator fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	operator fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit) = modify(block)
 	
 	infix fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
 }
@@ -250,11 +250,6 @@ private class KotlmataDaemonImpl(
 				queue.clear()
 			}
 		}
-	}
-	
-	override fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit)
-	{
-		modify(block)
 	}
 	
 	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
