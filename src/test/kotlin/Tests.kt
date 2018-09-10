@@ -220,6 +220,35 @@ class Tests
 	@Test
 	fun kotlmataTest()
 	{
-	
+		Kotlmata fork "daemon" of {
+			"state1" {
+				entry action { println("state1: 기본 진입함수") }
+				input signal String::class action { println("state1: String 타입 입력함수: $it") }
+				input signal "goToState2" action { println("state2로 이동") }
+				exit action { println("state1: 퇴장함수") }
+			}
+			
+			"state2" {
+				entry action { println("state2: 기본 진입함수") }
+				input signal Integer::class action { println("state2: Number 타입 입력함수: $it") }
+				input signal 5 action { println("state3로 이동") }
+				exit action { println("state2: 퇴장함수") }
+			}
+			
+			"state3" {
+				entry action {
+					println("state3: 기본 진입함수")
+					"quick input"
+				}
+				input signal String::class action { println("state3: String 타입 입력함수: $it") }
+				exit action { println("state3: 퇴장함수") }
+			}
+			
+			"state1" x "goToState2" %= "state2"
+			"state2" x 5 %= "state3"
+			"state3" x "goToState1" %= "state1"
+			
+			start at "state1"
+		}
 	}
 }

@@ -222,7 +222,7 @@ Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일
 
 Kotlmata has "daemon" then { Kotlmata ->
 	terminate("daemon")
-} and { Kotlmata ->
+} finally { Kotlmata ->
 	fork("daemon") of {
 		on start [action]
 		on terminate [action]
