@@ -284,65 +284,69 @@ private class KotlmataStateImpl(
 		override val delete by lazy {
 			object : KotlmataMutableState.Delete
 			{
-				override fun action(keyword: KotlmataState.Entry): KotlmataMutableState.Delete.Entry
+				override fun action(keyword: KotlmataState.Entry) = object : KotlmataMutableState.Delete.Entry
 				{
 					val stash = this@KotlmataStateImpl.entry
-					this@ModifierImpl not expired then {
-						this@KotlmataStateImpl.entry = null
-					}
-					return object : KotlmataMutableState.Delete.Entry
+					
+					init
 					{
-						override fun <T : SIGNAL> via(signal: KClass<T>)
-						{
-							this@ModifierImpl shouldNot expired
-							this@KotlmataStateImpl.entry = stash
-							entryMap.remove(signal)
+						this@ModifierImpl not expired then {
+							this@KotlmataStateImpl.entry = null
 						}
-						
-						override fun <T : SIGNAL> via(signal: T)
-						{
-							this@ModifierImpl shouldNot expired
-							this@KotlmataStateImpl.entry = stash
-							entryMap.remove(signal)
-						}
-						
-						override fun via(keyword: all)
-						{
-							this@ModifierImpl shouldNot expired
-							this@KotlmataStateImpl.entry = stash
-							this@KotlmataStateImpl.entryMap = null
-						}
+					}
+					
+					override fun <T : SIGNAL> via(signal: KClass<T>)
+					{
+						this@ModifierImpl shouldNot expired
+						this@KotlmataStateImpl.entry = stash
+						entryMap.remove(signal)
+					}
+					
+					override fun <T : SIGNAL> via(signal: T)
+					{
+						this@ModifierImpl shouldNot expired
+						this@KotlmataStateImpl.entry = stash
+						entryMap.remove(signal)
+					}
+					
+					override fun via(keyword: all)
+					{
+						this@ModifierImpl shouldNot expired
+						this@KotlmataStateImpl.entry = stash
+						this@KotlmataStateImpl.entryMap = null
 					}
 				}
 				
-				override fun action(keyword: KotlmataState.Input): KotlmataMutableState.Delete.Input
+				override fun action(keyword: KotlmataState.Input) = object : KotlmataMutableState.Delete.Input
 				{
 					val stash = this@KotlmataStateImpl.input
-					this@ModifierImpl not expired then {
-						this@KotlmataStateImpl.input = null
-					}
-					return object : KotlmataMutableState.Delete.Input
+					
+					init
 					{
-						override fun <T : SIGNAL> signal(signal: KClass<T>)
-						{
-							this@ModifierImpl shouldNot expired
-							this@KotlmataStateImpl.input = stash
-							inputMap.remove(signal)
+						this@ModifierImpl not expired then {
+							this@KotlmataStateImpl.input = null
 						}
-						
-						override fun <T : SIGNAL> signal(signal: T)
-						{
-							this@ModifierImpl shouldNot expired
-							this@KotlmataStateImpl.input = stash
-							inputMap.remove(signal)
-						}
-						
-						override fun signal(keyword: all)
-						{
-							this@ModifierImpl shouldNot expired
-							this@KotlmataStateImpl.input = stash
-							this@KotlmataStateImpl.inputMap = null
-						}
+					}
+					
+					override fun <T : SIGNAL> signal(signal: KClass<T>)
+					{
+						this@ModifierImpl shouldNot expired
+						this@KotlmataStateImpl.input = stash
+						inputMap.remove(signal)
+					}
+					
+					override fun <T : SIGNAL> signal(signal: T)
+					{
+						this@ModifierImpl shouldNot expired
+						this@KotlmataStateImpl.input = stash
+						inputMap.remove(signal)
+					}
+					
+					override fun signal(keyword: all)
+					{
+						this@ModifierImpl shouldNot expired
+						this@KotlmataStateImpl.input = stash
+						this@KotlmataStateImpl.inputMap = null
 					}
 				}
 				

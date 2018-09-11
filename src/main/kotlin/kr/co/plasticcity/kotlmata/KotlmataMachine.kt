@@ -321,6 +321,22 @@ private class KotlmataMachineImpl(
 		override val has by lazy {
 			object : KotlmataMutableMachine.Modifier.Has
 			{
+				val stop = object : KotlmataMutableMachine.Modifier.Has.or
+				{
+					override fun or(block: () -> Unit)
+					{
+						/* do nothing */
+					}
+				}
+				
+				val or = object : KotlmataMutableMachine.Modifier.Has.or
+				{
+					override fun or(block: () -> Unit)
+					{
+						block()
+					}
+				}
+				
 				override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Has.then
 				{
 					override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
@@ -330,8 +346,8 @@ private class KotlmataMachineImpl(
 							it[state]
 						}?.let {
 							block()
-							stop()
-						} ?: or()
+							stop
+						} ?: or
 					}
 				}
 				
@@ -346,24 +362,8 @@ private class KotlmataMachineImpl(
 							it[transitionLeft.signal]
 						}?.let {
 							block()
-							stop()
-						} ?: or()
-					}
-				}
-				
-				private fun stop() = object : KotlmataMutableMachine.Modifier.Has.or
-				{
-					override fun or(block: () -> Unit)
-					{
-						/* do nothing */
-					}
-				}
-				
-				private fun or() = object : KotlmataMutableMachine.Modifier.Has.or
-				{
-					override fun or(block: () -> Unit)
-					{
-						block()
+							stop
+						} ?: or
 					}
 				}
 			}
@@ -439,6 +439,14 @@ private class KotlmataMachineImpl(
 		override val update by lazy {
 			object : KotlmataMutableMachine.Modifier.Update
 			{
+				val stop = object : KotlmataMutableMachine.Modifier.Update.or
+				{
+					override fun or(block: KotlmataState.Initializer.() -> Unit)
+					{
+						/* do nothing */
+					}
+				}
+				
 				override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Update.set
 				{
 					override fun set(block: KotlmataMutableState.Modifier.() -> Unit): KotlmataMutableMachine.Modifier.Update.or
@@ -448,7 +456,7 @@ private class KotlmataMachineImpl(
 							it[state]
 						}?.let {
 							it.modify(block)
-							stop()
+							stop
 						} ?: object : KotlmataMutableMachine.Modifier.Update.or
 						{
 							override fun or(block: KotlmataState.Initializer.() -> Unit)
@@ -471,14 +479,6 @@ private class KotlmataMachineImpl(
 						}.also {
 							transitionLeft %= state
 						}
-					}
-				}
-				
-				private fun stop() = object : KotlmataMutableMachine.Modifier.Update.or
-				{
-					override fun or(block: KotlmataState.Initializer.() -> Unit)
-					{
-						/* do nothing */
 					}
 				}
 			}
