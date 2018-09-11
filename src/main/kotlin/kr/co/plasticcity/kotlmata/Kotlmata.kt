@@ -69,7 +69,89 @@ interface Kotlmata
 	
 	interface Post
 	{
-	
+		val has: Has
+		val fork: Fork
+		val modify: Modify
+		val run: Run
+		val pause: Pause
+		val stop: Stop
+		val terminate: Terminate
+		val input: Input
+		
+		interface Has
+		{
+			infix fun daemon(daemon: KEY): Then
+			
+			interface Then
+			{
+				infix fun then(block: Post.() -> Unit): Or
+			}
+			
+			interface Or : Finally
+			{
+				infix fun or(block: Post.() -> Unit): Finally
+			}
+			
+			interface Finally
+			{
+				infix fun finally(block: Post.() -> Unit)
+			}
+		}
+		
+		interface Fork
+		{
+			infix fun daemon(daemon: KEY): Of
+			
+			interface Of
+			{
+				infix fun of(block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End)
+			}
+		}
+		
+		interface Modify
+		{
+			infix fun daemon(daemon: KEY): Set
+			
+			interface Set
+			{
+				infix fun set(block: KotlmataMutableMachine.Modifier.() -> Unit)
+			}
+		}
+		
+		interface Run
+		{
+			infix fun daemon(daemon: KEY)
+		}
+		
+		interface Pause
+		{
+			infix fun daemon(daemon: KEY)
+		}
+		
+		interface Stop
+		{
+			infix fun daemon(daemon: KEY)
+		}
+		
+		interface Terminate
+		{
+			infix fun daemon(daemon: KEY)
+		}
+		
+		interface Input
+		{
+			infix fun <T : SIGNAL> signal(signal: T): Type<T>
+			
+			interface Type<T : SIGNAL> : To
+			{
+				infix fun type(type: KClass<in T>): To
+			}
+			
+			interface To
+			{
+				infix fun to(daemon: KEY)
+			}
+		}
 	}
 }
 
@@ -178,7 +260,7 @@ private class KotlmataImpl : Kotlmata
 	
 	override fun post(block: Kotlmata.Post.() -> Unit)
 	{
-		TODO("not implemented")
+		queue.offer(Message.Post(block))
 	}
 	
 	private inner class InitializerImpl internal constructor(
@@ -221,6 +303,106 @@ private class KotlmataImpl : Kotlmata
 		}
 	}
 	
+	private inner class PostImpl internal constructor(
+			block: Kotlmata.Post.() -> Unit
+	) : Kotlmata.Post, Expirable({ Log.e { EXPIRED_INITIALIZER } })
+	{
+		override val has = object : Kotlmata.Post.Has
+		{
+			override fun daemon(daemon: KEY) = object : Kotlmata.Post.Has.Then
+			{
+				override fun then(block: Kotlmata.Post.() -> Unit) = object : Kotlmata.Post.Has.Or
+				{
+					override fun or(block: Kotlmata.Post.() -> Unit) = object : Kotlmata.Post.Has.Finally
+					{
+						override fun finally(block: Kotlmata.Post.() -> Unit)
+						{
+							TODO("not implemented")
+						}
+					}
+					
+					override fun finally(block: Kotlmata.Post.() -> Unit)
+					{
+						TODO("not implemented")
+					}
+				}
+			}
+		}
+		
+		override val fork = object : Kotlmata.Post.Fork
+		{
+			override fun daemon(daemon: KEY) = object : Kotlmata.Post.Fork.Of
+			{
+				override fun of(block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End)
+				{
+					TODO("not implemented")
+				}
+			}
+		}
+		
+		override val modify = object : Kotlmata.Post.Modify
+		{
+			override fun daemon(daemon: KEY) = object : Kotlmata.Post.Modify.Set
+			{
+				override fun set(block: KotlmataMutableMachine.Modifier.() -> Unit)
+				{
+					TODO("not implemented")
+				}
+			}
+		}
+		
+		override val run = object : Kotlmata.Post.Run
+		{
+			override fun daemon(daemon: KEY)
+			{
+				TODO("not implemented")
+			}
+		}
+		
+		override val pause = object : Kotlmata.Post.Pause
+		{
+			override fun daemon(daemon: KEY)
+			{
+				TODO("not implemented")
+			}
+		}
+		
+		override val stop = object : Kotlmata.Post.Stop
+		{
+			override fun daemon(daemon: KEY)
+			{
+				TODO("not implemented")
+			}
+		}
+		
+		override val terminate = object : Kotlmata.Post.Terminate
+		{
+			override fun daemon(daemon: KEY)
+			{
+				TODO("not implemented")
+			}
+		}
+		
+		override val input = object : Kotlmata.Post.Input
+		{
+			override fun <T : SIGNAL> signal(signal: T) = object : Kotlmata.Post.Input.Type<T>
+			{
+				override fun type(type: KClass<in T>) = object : Kotlmata.Post.Input.To
+				{
+					override fun to(daemon: KEY)
+					{
+						TODO("not implemented")
+					}
+				}
+				
+				override fun to(daemon: KEY)
+				{
+					TODO("not implemented")
+				}
+			}
+		}
+	}
+	
 	private sealed class Message(val priority: Int) : Comparable<Message>
 	{
 		class Init(val block: Kotlmata.Initializer.() -> Unit) : Message(CONTROL)
@@ -236,6 +418,8 @@ private class KotlmataImpl : Kotlmata
 		
 		class Input(val daemon: KEY, val signal: SIGNAL) : Message(EVENT)
 		class TypedInput(val daemon: KEY, val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(EVENT)
+		
+		class Post(val block: Kotlmata.Post.() -> Unit) : Message(EVENT)
 		
 		companion object
 		{

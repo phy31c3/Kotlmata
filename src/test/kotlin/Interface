@@ -230,8 +230,8 @@ Kotlmata input "signal" type KClass<String> to "daemon"
 
 Kotlmata post {
 	// 손봐야 됨
-	has "daemon" then {
-		modify("daemon") set {
+	has daemon "daemon" then {
+		modify daemon "daemon" set {
 			update state "state1" set {
 				input signal "signal" action [action]
 			} or insert state "state1" of {
@@ -243,7 +243,7 @@ Kotlmata post {
 			}
 		}
 	} or {
-		fork("daemon") of {
+		fork daemon "daemon" of {
 			on start [action]
 			on terminate [action]
 
@@ -260,7 +260,7 @@ Kotlmata post {
 			start at "state0"
 		}
 	} finally {
-		fork("daemon") of {
+		fork daemon "daemon" of {
 			on start [action]
 			on terminate [action]
 
@@ -277,6 +277,12 @@ Kotlmata post {
 			start at "state0"
 		}
 	}
+
+	run daemon "daemon"
+	pause daemon "daemon"
+
+	input signal "signal" type Type::class to "daemon"
+	input signal "signal" to "daemon"
 }
 
 Kotlmata {
