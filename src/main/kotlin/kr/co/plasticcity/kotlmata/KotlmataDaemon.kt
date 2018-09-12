@@ -49,6 +49,11 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 				name: String? = null,
 				block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableDaemon = KotlmataDaemonImpl(name, block)
+		
+		internal operator fun invoke(
+				key: KEY,
+				block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End
+		): KotlmataMutableDaemon = KotlmataDaemonImpl(key, block)
 	}
 	
 	infix fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)

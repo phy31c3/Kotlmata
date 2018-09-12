@@ -191,7 +191,7 @@ Kotlmata init {
 	}
 }
 
-Kotlmata fork "daemon" of { // Daemon init 블럭과 동일
+Kotlmata fork "daemon" of { // Daemon init 블럭과 동일 (존재하면 무시)
 	on start [action]
 	on terminate [action]
 
@@ -208,7 +208,7 @@ Kotlmata fork "daemon" of { // Daemon init 블럭과 동일
 	start at "state0"
 }
 
-Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일
+Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일 (존재하지 않으면 무시)
 	update state "state1" set {
 		input signal "signal" action [action]
 	} or insert state "state1" of {

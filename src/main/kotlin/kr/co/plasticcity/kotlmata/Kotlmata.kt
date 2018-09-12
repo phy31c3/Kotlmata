@@ -350,7 +350,11 @@ private class KotlmataImpl : Kotlmata
 			{
 				override fun of(block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End)
 				{
-					TODO("not implemented")
+					this@PostImpl shouldNot expired
+					if (daemon !in map)
+					{
+						map[daemon] = KotlmataMutableDaemon(daemon) { block() }
+					}
 				}
 			}
 		}
@@ -361,7 +365,11 @@ private class KotlmataImpl : Kotlmata
 			{
 				override fun set(block: KotlmataMutableMachine.Modifier.() -> Unit)
 				{
-					TODO("not implemented")
+					this@PostImpl shouldNot expired
+					if (daemon in map)
+					{
+						map[daemon]!! modify block
+					}
 				}
 			}
 		}
@@ -370,7 +378,8 @@ private class KotlmataImpl : Kotlmata
 		{
 			override fun daemon(daemon: KEY)
 			{
-				TODO("not implemented")
+				this@PostImpl shouldNot expired
+				map[daemon]?.run()
 			}
 		}
 		
@@ -378,7 +387,8 @@ private class KotlmataImpl : Kotlmata
 		{
 			override fun daemon(daemon: KEY)
 			{
-				TODO("not implemented")
+				this@PostImpl shouldNot expired
+				map[daemon]?.pause()
 			}
 		}
 		
@@ -386,7 +396,8 @@ private class KotlmataImpl : Kotlmata
 		{
 			override fun daemon(daemon: KEY)
 			{
-				TODO("not implemented")
+				this@PostImpl shouldNot expired
+				map[daemon]?.stop()
 			}
 		}
 		
@@ -394,7 +405,11 @@ private class KotlmataImpl : Kotlmata
 		{
 			override fun daemon(daemon: KEY)
 			{
-				TODO("not implemented")
+				this@PostImpl shouldNot expired
+				map[daemon]?.let {
+					it.terminate()
+					map -= daemon
+				}
 			}
 		}
 		
@@ -406,15 +421,23 @@ private class KotlmataImpl : Kotlmata
 				{
 					override fun to(daemon: KEY)
 					{
-						TODO("not implemented")
+						this@PostImpl shouldNot expired
+						map[daemon]?.input(signal, type)
 					}
 				}
 				
 				override fun to(daemon: KEY)
 				{
-					TODO("not implemented")
+					this@PostImpl shouldNot expired
+					map[daemon]?.input(signal)
 				}
 			}
+		}
+		
+		init
+		{
+			block()
+			expire()
 		}
 	}
 	
