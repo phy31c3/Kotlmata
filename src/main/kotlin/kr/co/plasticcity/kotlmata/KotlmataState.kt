@@ -124,7 +124,7 @@ private class KotlmataStateImpl(
 	
 	init
 	{
-		block?.also {
+		block?.let {
 			modify(it)
 		}
 	}
@@ -134,12 +134,12 @@ private class KotlmataStateImpl(
 		val next = entryMap?.let {
 			when
 			{
-				it.containsKey(signal) -> it[signal]?.invoke(signal)
-				it.containsKey(signal::class) -> it[signal::class]?.invoke(signal)
-				else -> null
+				signal in it -> it[signal]!!(signal)
+				signal::class in it -> it[signal::class]!!(signal)
+				else -> entry?.invoke(signal)
 			}
-		} ?: entry?.invoke(signal)
-		next?.also {
+		}
+		next?.let {
 			if (it !is Unit) block(it)
 		}
 	}
@@ -147,13 +147,13 @@ private class KotlmataStateImpl(
 	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	{
 		val next = entryMap?.let {
-			when
+			when (type)
 			{
-				it.containsKey(signal::class) -> it[signal::class]?.invoke(signal)
-				else -> null
+				in it -> it[type]!!(signal)
+				else -> entry?.invoke(signal)
 			}
-		} ?: entry?.invoke(signal)
-		next?.also {
+		}
+		next?.let {
 			if (it !is Unit) block(it)
 		}
 	}
@@ -163,22 +163,22 @@ private class KotlmataStateImpl(
 		inputMap?.let {
 			when
 			{
-				it.containsKey(signal) -> it[signal]?.invoke(signal)
-				it.containsKey(signal::class) -> it[signal::class]?.invoke(signal)
-				else -> null
+				signal in it -> it[signal]!!(signal)
+				signal::class in it -> it[signal::class]!!(signal)
+				else -> input?.invoke(signal)
 			}
-		} ?: input?.invoke(signal)
+		}
 	}
 	
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	{
 		inputMap?.let {
-			when
+			when (type)
 			{
-				it.containsKey(type) -> it[type]?.invoke(signal)
-				else -> null
+				in it -> it[type]!!(signal)
+				else -> input?.invoke(signal)
 			}
-		} ?: input?.invoke(signal)
+		}
 	}
 	
 	override fun exit(signal: SIGNAL)

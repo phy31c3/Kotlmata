@@ -176,10 +176,13 @@ private class KotlmataDaemonImpl(
 					{
 						queue.removeIf {
 							(it.isEvent && it.isEarlierThan(m)).apply {
-								if (this) logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_MESSAGE_DROPPED }
+								if (this)
+								{
+									logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_MESSAGE_DROPPED }
+								}
 							}
 						}
-						stash?.also { queue.offer(it) }
+						stash?.let { queue.offer(it) }
 					}
 				}
 				

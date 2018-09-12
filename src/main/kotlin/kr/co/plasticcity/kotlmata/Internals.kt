@@ -1,7 +1,7 @@
 package kr.co.plasticcity.kotlmata
 
 internal typealias KEY = Any
-internal typealias STATE = Any
+internal typealias STATE = KEY
 internal typealias SIGNAL = Any
 
 internal object Initial

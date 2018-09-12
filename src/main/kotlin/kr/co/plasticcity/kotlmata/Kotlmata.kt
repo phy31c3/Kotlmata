@@ -313,17 +313,32 @@ private class KotlmataImpl : Kotlmata
 			{
 				override fun then(block: Kotlmata.Post.() -> Unit) = object : Kotlmata.Post.Has.Or
 				{
-					override fun or(block: Kotlmata.Post.() -> Unit) = object : Kotlmata.Post.Has.Finally
+					var or = true
+					
+					init
 					{
-						override fun finally(block: Kotlmata.Post.() -> Unit)
+						this@PostImpl shouldNot expired
+						if (daemon in map)
 						{
-							TODO("not implemented")
+							block()
+							or = false
 						}
+					}
+					
+					override fun or(block: Kotlmata.Post.() -> Unit): Kotlmata.Post.Has.Finally
+					{
+						this@PostImpl shouldNot expired
+						if (or)
+						{
+							block()
+						}
+						return this
 					}
 					
 					override fun finally(block: Kotlmata.Post.() -> Unit)
 					{
-						TODO("not implemented")
+						this@PostImpl shouldNot expired
+						block()
 					}
 				}
 			}

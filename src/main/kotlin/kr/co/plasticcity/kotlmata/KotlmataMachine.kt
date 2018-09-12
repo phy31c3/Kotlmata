@@ -207,7 +207,7 @@ private class KotlmataMachineImpl(
 	private val stateMap: MutableMap<STATE, KotlmataMutableState> = HashMap()
 	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
-	private lateinit var state: KotlmataState
+	private lateinit var current: KotlmataState
 	
 	init
 	{
@@ -221,17 +221,17 @@ private class KotlmataMachineImpl(
 			return this[signal] ?: this[signal::class] ?: this[any]
 		}
 		
-		let {
-			logLevel.normal(agent, key, signal, state.key) { AGENT_INPUT }
-			state.input(signal)
-			transitionMap[state.key]?.next() ?: transitionMap[any]?.next()
+		transitionMap.let {
+			logLevel.normal(agent, key, signal, current.key) { AGENT_INPUT }
+			current.input(signal)
+			it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			stateMap[it]
-		}?.also {
-			logLevel.simple(agent, key, state.key, signal, it.key) { AGENT_TRANSITION }
-			state.exit(signal)
-			state = it
-			state.entry(signal, block)
+		}?.let { next ->
+			logLevel.simple(agent, key, current.key, signal, next.key) { AGENT_TRANSITION }
+			current.exit(signal)
+			current = next
+			current.entry(signal, block)
 		}
 	}
 	
@@ -249,17 +249,17 @@ private class KotlmataMachineImpl(
 			return this[type] ?: this[any]
 		}
 		
-		let {
-			logLevel.normal(agent, key, signal, type.simpleName, state.key) { AGENT_TYPED_INPUT }
-			state.input(signal, type)
-			transitionMap[state.key]?.next() ?: transitionMap[any]?.next()
+		transitionMap.let {
+			logLevel.normal(agent, key, signal, type.simpleName, current.key) { AGENT_TYPED_INPUT }
+			current.input(signal, type)
+			it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			stateMap[it]
-		}?.also {
-			logLevel.simple(agent, key, state.key, signal, type.simpleName, it.key) { AGENT_TYPED_TRANSITION }
-			state.exit(signal)
-			state = it
-			state.entry(signal, type, block)
+		}?.let { next ->
+			logLevel.simple(agent, key, current.key, signal, type.simpleName, next.key) { AGENT_TYPED_TRANSITION }
+			current.exit(signal)
+			current = next
+			current.entry(signal, type, block)
 		}
 	}
 	
@@ -272,7 +272,7 @@ private class KotlmataMachineImpl(
 	
 	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
-		logLevel.normal(agent, key, state.key) { AGENT_MODIFY }
+		logLevel.normal(agent, key, current.key) { AGENT_MODIFY }
 		ModifierImpl(modify = block)
 	}
 	
@@ -301,8 +301,8 @@ private class KotlmataMachineImpl(
 				{
 					this@ModifierImpl shouldNot expired
 					
-					stateMap[state]?.also {
-						this@KotlmataMachineImpl.state = it
+					stateMap[state]?.let {
+						this@KotlmataMachineImpl.current = it
 					} ?: Log.e(agent, key, state) { UNDEFINED_INITIAL_STATE }
 					
 					return KotlmataMachine.Initializer.End()
@@ -314,8 +314,9 @@ private class KotlmataMachineImpl(
 			get()
 			{
 				this@ModifierImpl shouldNot expired
-				return if (state.key == Initial) Log.w(agent, key) { OBTAIN_INITIAL }
-				else state.key
+				return this@KotlmataMachineImpl.current.key.takeIf {
+					it != Initial
+				} ?: Log.w(agent, key) { OBTAIN_INITIAL }
 			}
 		
 		override val has by lazy {
@@ -342,12 +343,15 @@ private class KotlmataMachineImpl(
 					override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
 					{
 						this@ModifierImpl shouldNot expired
-						return stateMap.let {
-							it[state]
-						}?.let {
+						return if (state in stateMap)
+						{
 							block()
 							stop
-						} ?: or
+						}
+						else
+						{
+							or
+						}
 					}
 				}
 				
@@ -390,7 +394,7 @@ private class KotlmataMachineImpl(
 							it[transitionLeft.state]
 						}?.let {
 							it[transitionLeft.signal]
-						} ?: also {
+						} ?: let {
 							transitionLeft %= state
 						}
 					}
@@ -430,7 +434,10 @@ private class KotlmataMachineImpl(
 					override fun of(block: KotlmataState.Initializer.() -> Unit)
 					{
 						this@ModifierImpl shouldNot expired
-						stateMap[state]?.also { state.invoke(block) }
+						if (state in stateMap)
+						{
+							state.invoke(block)
+						}
 					}
 				}
 			}
@@ -476,7 +483,7 @@ private class KotlmataMachineImpl(
 							it[transitionLeft.state]
 						}?.let {
 							it[transitionLeft.signal]
-						}.also {
+						}.let {
 							transitionLeft %= state
 						}
 					}
@@ -504,7 +511,7 @@ private class KotlmataMachineImpl(
 					this@ModifierImpl shouldNot expired
 					transitionMap.let {
 						it[transitionLeft.state]
-					}?.also {
+					}?.let {
 						it -= transitionLeft.signal
 					}
 				}
@@ -557,7 +564,7 @@ private class KotlmataMachineImpl(
 		
 		init
 		{
-			init?.also { it() } ?: modify?.also { it() }
+			init?.let { it() } ?: modify?.let { it() }
 			expire()
 		}
 	}
