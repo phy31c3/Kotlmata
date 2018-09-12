@@ -536,7 +536,7 @@ private class KotlmataMachineImpl(
 		override fun STATE.invoke(block: KotlmataState.Initializer.() -> Unit)
 		{
 			this@ModifierImpl shouldNot expired
-			stateMap[this] = KotlmataMutableState(this) { block() }
+			stateMap[this] = KotlmataMutableState(this, block)
 		}
 		
 		override fun STATE.x(signal: SIGNAL) = transitionLeft(this, signal)

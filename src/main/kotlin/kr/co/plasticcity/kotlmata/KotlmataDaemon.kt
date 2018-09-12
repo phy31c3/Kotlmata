@@ -131,9 +131,15 @@ private class KotlmataDaemonImpl(
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.QuickInput::class action { m -> machine.input(m.signal, quickInput) }
-				input signal Message.Input::class action { m -> machine.input(m.signal, quickInput) }
-				input signal Message.TypedInput::class action { m -> machine.input(m.signal, m.type, quickInput) }
+				input signal Message.QuickInput::class action {
+					machine.input(it.signal, quickInput)
+				}
+				input signal Message.Input::class action {
+					machine.input(it.signal, quickInput)
+				}
+				input signal Message.TypedInput::class action {
+					machine.input(it.signal, it.type, quickInput)
+				}
 				input signal Message.Modify::class action modifyMachine
 				
 				input action { ignoreMessage(it, "run") }
@@ -196,12 +202,12 @@ private class KotlmataDaemonImpl(
 					onStop()
 				}
 				
-				input signal Message.Run::class action { m ->
-					arrange(m)
+				input signal Message.Run::class action {
+					arrange(it)
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
 					onResume()
 				}
-				input signal Message.Pause::class action { m -> arrange(m) }
+				input signal Message.Pause::class action ::arrange
 				input signal Message.Terminate::class action {}
 				
 				input signal Message.QuickInput::class action {
