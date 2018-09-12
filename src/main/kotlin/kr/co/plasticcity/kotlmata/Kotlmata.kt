@@ -164,16 +164,64 @@ private class KotlmataImpl : Kotlmata
 	
 	private val engine: KotlmataMachine = KotlmataMachine("Kotlmata@engine") {
 		"initial" {
-			TODO("not implemented")
+			input signal Message.Init::class action {
+				InitializerImpl(it.block)
+			}
 		}
 		
 		"run" {
-			TODO("not implemented")
+			input signal Message.Fork::class action {
+				if (it.daemon !in map)
+				{
+					map[it.daemon] = KotlmataMutableDaemon(it.daemon) {
+						log level logLevel
+						it.block.invoke(this)
+					}
+				}
+			}
+			input signal Message.Modify::class action {
+				if (it.daemon in map)
+				{
+					map[it.daemon]!! modify it.block
+				}
+			}
+			input signal Message.Run::class action {
+				map[it.daemon]?.run()
+			}
+			input signal Message.Pause::class action {
+				map[it.daemon]?.pause()
+			}
+			input signal Message.Stop::class action {
+				map[it.daemon]?.stop()
+			}
+			input signal Message.Terminate::class action {
+				map[it.daemon]?.terminate()
+				map -= it.daemon
+			}
+			input signal Message.Input::class action {
+				map[it.daemon]?.input(it.signal)
+			}
+			input signal Message.TypedInput::class action {
+				map[it.daemon]?.input(it.signal, it.type)
+			}
+			input signal Message.Post::class action {
+				PostImpl(it.block)
+			}
 		}
 		
 		"release" {
-			TODO("not implemented")
+			entry via Message.Release::class action {
+				map.forEach { _, daemon ->
+					daemon.terminate()
+				}
+				map.clear()
+				it.block()
+				Thread.currentThread().interrupt()
+			}
 		}
+		
+		"initial" x Message.Init::class %= "run"
+		any x Message.Release::class %= "release"
 		
 		start at "initial"
 	}
@@ -271,6 +319,7 @@ private class KotlmataImpl : Kotlmata
 		{
 			override fun level(level: Int)
 			{
+				this@InitializerImpl shouldNot expired
 				logLevel = level
 			}
 		}
@@ -353,7 +402,10 @@ private class KotlmataImpl : Kotlmata
 					this@PostImpl shouldNot expired
 					if (daemon !in map)
 					{
-						map[daemon] = KotlmataMutableDaemon(daemon) { block() }
+						map[daemon] = KotlmataMutableDaemon(daemon) {
+							log level logLevel
+							block()
+						}
 					}
 				}
 			}
