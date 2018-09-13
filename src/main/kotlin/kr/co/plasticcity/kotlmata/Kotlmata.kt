@@ -163,6 +163,8 @@ private class KotlmataImpl : Kotlmata
 	private val map: MutableMap<KEY, KotlmataMutableDaemon> = HashMap()
 	
 	private val engine: KotlmataMachine = KotlmataMachine("Kotlmata@engine") {
+		log level 0
+		
 		"initial" {
 			input signal Message.Init::class action {
 				InitializerImpl(it.block)

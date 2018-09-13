@@ -92,6 +92,12 @@ private class KotlmataDaemonImpl(
 		engine = KotlmataMachine("${this.key}@engine") {
 			log level 0
 			
+			val quickInput: (SIGNAL) -> Unit = {
+				val m = Message.QuickInput(it)
+				logLevel.detail(this@KotlmataDaemonImpl.key, m, m.signal, m.id) { DAEMON_POST_QUICK_INPUT }
+				queue.offer(m)
+			}
+			
 			val modifyMachine: (Message.Modify) -> Unit = {
 				machine modify it.block
 			}
@@ -107,7 +113,7 @@ private class KotlmataDaemonImpl(
 				val startMachine: (Message) -> Unit = {
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
 					onStart()
-					machine.input(Message.Run())
+					machine.input(Message.Run(), quickInput)
 				}
 				
 				input signal Message.Run::class action startMachine
@@ -121,12 +127,6 @@ private class KotlmataDaemonImpl(
 			}
 			
 			"run" {
-				val quickInput: (SIGNAL) -> Unit = {
-					val m = Message.QuickInput(it)
-					logLevel.detail(this@KotlmataDaemonImpl.key, m, m.signal, m.id) { DAEMON_POST_QUICK_INPUT }
-					queue.offer(m)
-				}
-				
 				input signal Message.Pause::class action {}
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}

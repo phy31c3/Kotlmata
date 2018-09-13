@@ -222,7 +222,10 @@ class Tests
 	{
 		Kotlmata fork "daemon" of {
 			"state1" {
-				entry action { println("state1: 기본 진입함수") }
+				entry action {
+					println("state1: 기본 진입함수")
+					"빠른 입력"
+				}
 				input signal String::class action { println("state1: String 타입 입력함수: $it") }
 				input signal "goToState2" action { println("state2로 이동") }
 				exit action { println("state1: 퇴장함수") }
@@ -230,6 +233,10 @@ class Tests
 			
 			"state2" {
 				entry action { println("state2: 기본 진입함수") }
+				entry via "goToState2" action {
+					println("null을 리턴할거임")
+					null
+				}
 				input signal Integer::class action { println("state2: Number 타입 입력함수: $it") }
 				input signal 5 action { println("state3로 이동") }
 				exit action { println("state2: 퇴장함수") }
@@ -250,5 +257,11 @@ class Tests
 			
 			start at "state1"
 		}
+		
+		Kotlmata input "아몰랑" to "daemon"
+		Kotlmata run "daemon"
+		Kotlmata input "goToState2" to "daemon"
+		
+		Thread.sleep(500)
 	}
 }
