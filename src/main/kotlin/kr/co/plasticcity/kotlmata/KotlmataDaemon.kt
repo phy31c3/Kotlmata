@@ -92,7 +92,7 @@ private class KotlmataDaemonImpl(
 		engine = KotlmataMachine("${this.key}@engine") {
 			log level 0
 			
-			val quickInput: (SIGNAL) -> Unit = {
+			val postQuickInput: (SIGNAL) -> Unit = {
 				val m = Message.QuickInput(it)
 				logLevel.detail(this@KotlmataDaemonImpl.key, m, m.signal, m.id) { DAEMON_POST_QUICK_INPUT }
 				queue.offer(m)
@@ -113,7 +113,7 @@ private class KotlmataDaemonImpl(
 				val startMachine: (Message) -> Unit = {
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
 					onStart()
-					machine.input(Message.Run(), quickInput)
+					machine.input(Message.Run(), postQuickInput)
 				}
 				
 				input signal Message.Run::class action startMachine
@@ -132,13 +132,13 @@ private class KotlmataDaemonImpl(
 				input signal Message.Terminate::class action {}
 				
 				input signal Message.QuickInput::class action {
-					machine.input(it.signal, quickInput)
+					machine.input(it.signal, postQuickInput)
 				}
 				input signal Message.Input::class action {
-					machine.input(it.signal, quickInput)
+					machine.input(it.signal, postQuickInput)
 				}
 				input signal Message.TypedInput::class action {
-					machine.input(it.signal, it.type, quickInput)
+					machine.input(it.signal, it.type, postQuickInput)
 				}
 				input signal Message.Modify::class action modifyMachine
 				
@@ -179,9 +179,9 @@ private class KotlmataDaemonImpl(
 			}
 			
 			"stop" {
-				var stash: Message.QuickInput? = null
+				var quickInput: Message.QuickInput? = null
 				
-				fun arrange(m: Message)
+				fun cleanup(m: Message)
 				{
 					synchronized(queue)
 					{
@@ -193,7 +193,7 @@ private class KotlmataDaemonImpl(
 								}
 							}
 						}
-						stash?.let { queue.offer(it) }
+						quickInput?.let { queue.offer(it) }
 					}
 				}
 				
@@ -203,22 +203,22 @@ private class KotlmataDaemonImpl(
 				}
 				
 				input signal Message.Run::class action {
-					arrange(it)
+					cleanup(it)
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
 					onResume()
 				}
-				input signal Message.Pause::class action ::arrange
+				input signal Message.Pause::class action ::cleanup
 				input signal Message.Terminate::class action {}
 				
 				input signal Message.QuickInput::class action {
 					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_QUICK_INPUT }
-					stash = it
+					quickInput = it
 				}
 				
 				input action { ignoreMessage(it, "stop") }
 				
 				exit action {
-					stash = null
+					quickInput = null
 				}
 			}
 			
