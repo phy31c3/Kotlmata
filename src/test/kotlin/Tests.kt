@@ -141,6 +141,8 @@ class Tests
 	{
 		var initializer: KotlmataDaemon.Initializer? = null
 		val daemon = KotlmataMutableDaemon {
+			log level 3
+			
 			"state1" {
 				entry action { println("state1: 기본 진입함수") }
 				input signal String::class action { println("state1: String 타입 입력함수: $it") }
@@ -222,10 +224,7 @@ class Tests
 	{
 		Kotlmata fork "daemon" of {
 			"state1" {
-				entry action {
-					println("state1: 기본 진입함수")
-					"빠른 입력"
-				}
+				entry action { println("데몬이 시작됨") }
 				input signal String::class action { println("state1: String 타입 입력함수: $it") }
 				input signal "goToState2" action { println("state2로 이동") }
 				exit action { println("state1: 퇴장함수") }
@@ -258,7 +257,11 @@ class Tests
 			start at "state1"
 		}
 		
-		Kotlmata input "아몰랑" to "daemon"
+		Kotlmata input "무시해라1" to "daemon"
+		Kotlmata input "무시해라2" to "daemon"
+		
+		Thread.sleep(100)
+		
 		Kotlmata run "daemon"
 		Kotlmata input "goToState2" to "daemon"
 		

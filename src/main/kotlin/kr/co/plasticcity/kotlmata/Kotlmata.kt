@@ -168,6 +168,7 @@ private class KotlmataImpl : Kotlmata
 		"initial" {
 			input signal Message.Init::class action {
 				InitializerImpl(it.block)
+				logLevel.simple { KOTLMATA_START }
 			}
 		}
 		
@@ -213,6 +214,7 @@ private class KotlmataImpl : Kotlmata
 		
 		"release" {
 			entry via Message.Release::class action {
+				logLevel.simple { KOTLMATA_RELEASE }
 				map.forEach { _, daemon ->
 					daemon.terminate()
 				}
@@ -247,19 +249,24 @@ private class KotlmataImpl : Kotlmata
 	
 	override fun init(block: Kotlmata.Initializer.() -> Unit)
 	{
+		/* Can't print log because Kotlmata isn't initialized yet */
 		queue.offer(Message.Init(block))
 	}
 	
 	override fun release(block: () -> Unit)
 	{
-		queue.offer(Message.Release(block))
+		val m = Message.Release(block)
+		logLevel.detail(m, m.id) { KOTLMATA_POST_MESSAGE }
+		queue.offer(m)
 	}
 	
 	override fun fork(daemon: KEY) = object : Kotlmata.Of
 	{
 		override fun of(block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End)
 		{
-			queue.offer(Message.Fork(daemon, block))
+			val m = Message.Fork(daemon, block)
+			logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
+			queue.offer(m)
 		}
 	}
 	
@@ -267,28 +274,38 @@ private class KotlmataImpl : Kotlmata
 	{
 		override fun set(block: KotlmataMutableMachine.Modifier.() -> Unit)
 		{
-			queue.offer(Message.Modify(daemon, block))
+			val m = Message.Modify(daemon, block)
+			logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
+			queue.offer(m)
 		}
 	}
 	
 	override fun run(daemon: KEY)
 	{
-		queue.offer(Message.Run(daemon))
+		val m = Message.Run(daemon)
+		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
+		queue.offer(m)
 	}
 	
 	override fun pause(daemon: KEY)
 	{
-		queue.offer(Message.Pause(daemon))
+		val m = Message.Pause(daemon)
+		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
+		queue.offer(m)
 	}
 	
 	override fun stop(daemon: KEY)
 	{
-		queue.offer(Message.Stop(daemon))
+		val m = Message.Stop(daemon)
+		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
+		queue.offer(m)
 	}
 	
 	override fun terminate(daemon: KEY)
 	{
-		queue.offer(Message.Terminate(daemon))
+		val m = Message.Terminate(daemon)
+		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
+		queue.offer(m)
 	}
 	
 	override fun <T : SIGNAL> input(signal: T) = object : Kotlmata.Type<T>
@@ -298,19 +315,25 @@ private class KotlmataImpl : Kotlmata
 			@Suppress("UNCHECKED_CAST")
 			override fun to(daemon: KEY)
 			{
-				queue.offer(Message.TypedInput(daemon, signal, type as KClass<SIGNAL>))
+				val m = Message.TypedInput(daemon, signal, type as KClass<SIGNAL>)
+				logLevel.detail(m, m.signal, m.type, daemon, m.id) { KOTLMATA_POST_MESSAGE_TYPED_INPUT }
+				queue.offer(m)
 			}
 		}
 		
 		override fun to(daemon: KEY)
 		{
-			queue.offer(Message.Input(daemon, signal))
+			val m = Message.Input(daemon, signal)
+			logLevel.detail(m, m.signal, daemon, m.id) { KOTLMATA_POST_MESSAGE_INPUT }
+			queue.offer(m)
 		}
 	}
 	
 	override fun post(block: Kotlmata.Post.() -> Unit)
 	{
-		queue.offer(Message.Post(block))
+		val m = Message.Post(block)
+		logLevel.detail(m, m.id) { KOTLMATA_POST_MESSAGE }
+		queue.offer(m)
 	}
 	
 	private inner class InitializerImpl internal constructor(

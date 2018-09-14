@@ -105,7 +105,7 @@ private class KotlmataDaemonImpl(
 			val ignoreMessage: (SIGNAL, String) -> Unit = { message, current ->
 				if (logLevel.isDetail() && message is Message)
 				{
-					logLevel.detail(this@KotlmataDaemonImpl.key, message.id, current) { DAEMON_MESSAGE_IGNORED }
+					logLevel.detail(this@KotlmataDaemonImpl.key, current, message.id) { DAEMON_MESSAGE_IGNORED }
 				}
 			}
 			
@@ -391,7 +391,7 @@ private class KotlmataDaemonImpl(
 			{
 				this@InitializerImpl shouldNot expired
 				
-				/* for checking undefined initial state */
+				/* For checking undefined initial state */
 				initializer.start at state
 				
 				initial = state
