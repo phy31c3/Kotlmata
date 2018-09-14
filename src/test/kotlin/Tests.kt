@@ -177,8 +177,8 @@ class Tests
 		
 		daemon.input("any1")
 		daemon.run()
-		daemon.input("1")
-		daemon.input("2")
+		daemon.input("우선순위 1", 1)
+		daemon.input("우선순위 -10", -10)
 		daemon.pause()
 		daemon.input("goToState2")
 		daemon.run()

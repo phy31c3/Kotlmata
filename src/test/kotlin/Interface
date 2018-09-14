@@ -175,6 +175,8 @@ mutableDaemon.stop()
 mutableDaemon.terminate()
 
 mutableDaemon.input("signal")
+mutableDaemon.input("signal")
+mutableDaemon.input(object, Any::class)
 mutableDaemon.input(object, Any::class)
 
 [Kotlmata]————————————————————————————————————————————————————————————————————————————————

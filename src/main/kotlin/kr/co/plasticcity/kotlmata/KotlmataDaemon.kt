@@ -37,8 +37,15 @@ interface KotlmataDaemon
 	fun stop()
 	fun terminate()
 	
-	fun input(signal: SIGNAL)
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
+	/**
+	 * @param priority Smaller means higher. Priority must be greater than zero.
+	 */
+	fun input(signal: SIGNAL, priority: Int = 0)
+	
+	/**
+	 * @param priority Smaller means higher. Priority must be greater than zero.
+	 */
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int = 0)
 }
 
 interface KotlmataMutableDaemon : KotlmataDaemon
@@ -266,21 +273,21 @@ private class KotlmataDaemonImpl(
 		}
 	}
 	
-	override fun input(signal: SIGNAL)
+	override fun input(signal: SIGNAL, priority: Int)
 	{
 		synchronized(queue) {
-			val m = Message.Input(signal)
-			logLevel.detail(key, m, m.signal, m.id) { DAEMON_POST_INPUT }
+			val m = Message.Input(signal, priority)
+			logLevel.detail(key, m, m.signal, m.priority, m.id) { DAEMON_POST_INPUT }
 			queue.offer(m)
 		}
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int)
 	{
 		synchronized(queue) {
-			val m = Message.TypedInput(signal, type as KClass<SIGNAL>)
-			logLevel.detail(key, m, m.signal, m.type.simpleName, m.id) { DAEMON_POST_TYPED_INPUT }
+			val m = Message.TypedInput(signal, type as KClass<SIGNAL>, priority)
+			logLevel.detail(key, m, m.signal, m.type.simpleName, m.priority, m.id) { DAEMON_POST_TYPED_INPUT }
 			queue.offer(m)
 		}
 	}
@@ -415,14 +422,18 @@ private class KotlmataDaemonImpl(
 		
 		class QuickInput(val signal: SIGNAL) : Message(QUICK)
 		
-		class Input(val signal: SIGNAL) : Message(EVENT)
-		class TypedInput(val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(EVENT)
+		class Input(val signal: SIGNAL, priority: Int)
+			: Message(if (priority > 0) EVENT + priority else EVENT)
+		
+		class TypedInput(val signal: SIGNAL, val type: KClass<SIGNAL>, priority: Int)
+			: Message(if (priority > 0) EVENT + priority else EVENT)
+		
 		class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(EVENT)
 		
 		companion object
 		{
-			private const val CONTROL = 2
-			private const val QUICK = 1
+			private const val CONTROL = -2
+			private const val QUICK = -1
 			private const val EVENT = 0
 			
 			val ticket: AtomicLong = AtomicLong(0)
@@ -431,13 +442,13 @@ private class KotlmataDaemonImpl(
 		val order = ticket.getAndIncrement()
 		val id by lazy { hashCode().toString(16) }
 		
-		val isEvent = priority == EVENT
+		val isEvent = priority >= EVENT
 		
 		fun isEarlierThan(other: Message): Boolean = order < other.order
 		
 		override fun compareTo(other: Message): Int
 		{
-			val dP = other.priority - priority
+			val dP = priority - other.priority
 			return if (dP != 0) dP
 			else (order - other.order).toInt()
 		}
