@@ -7,7 +7,7 @@ interface KotlmataState
 	companion object
 	{
 		operator fun invoke(
-				name: String? = null,
+				name: String,
 				block: Initializer.() -> Unit
 		): KotlmataState = KotlmataStateImpl(name, block)
 	}
@@ -67,7 +67,7 @@ interface KotlmataMutableState : KotlmataState
 	companion object
 	{
 		operator fun invoke(
-				name: String? = null,
+				name: String,
 				block: (KotlmataState.Initializer.() -> Unit)? = null
 		): KotlmataMutableState = KotlmataStateImpl(name, block)
 		
@@ -110,12 +110,10 @@ interface KotlmataMutableState : KotlmataState
 }
 
 private class KotlmataStateImpl(
-		key: STATE? = null,
+		override val key: STATE,
 		block: (KotlmataState.Initializer.() -> Unit)? = null
 ) : KotlmataMutableState
 {
-	override val key: STATE = key ?: this
-	
 	private var entry: ((SIGNAL) -> SIGNAL?)? = null
 	private var input: ((SIGNAL) -> Unit)? = null
 	private var exit: ((SIGNAL) -> Unit)? = null

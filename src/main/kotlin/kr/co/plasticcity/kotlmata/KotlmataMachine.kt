@@ -7,7 +7,7 @@ interface KotlmataMachine
 	companion object
 	{
 		operator fun invoke(
-				name: String? = null,
+				name: String,
 				block: Initializer.() -> Initializer.End
 		): KotlmataMachine = KotlmataMachineImpl(name, block)
 	}
@@ -79,7 +79,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 	companion object
 	{
 		operator fun invoke(
-				name: String? = null,
+				name: String,
 				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine = KotlmataMachineImpl(name, block)
 		
@@ -195,13 +195,11 @@ interface KotlmataMutableMachine : KotlmataMachine
 }
 
 private class KotlmataMachineImpl(
-		key: MACHINE? = null,
+		override val key: MACHINE,
 		block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initializer.End,
 		val agent: String = "Machine"
 ) : KotlmataMutableMachine
 {
-	override val key: MACHINE = key ?: this
-	
 	private var logLevel = NORMAL
 	
 	private val stateMap: MutableMap<STATE, KotlmataMutableState> = HashMap()

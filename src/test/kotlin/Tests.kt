@@ -10,7 +10,6 @@ class Tests
 	fun init()
 	{
 		Kotlmata.config {
-			log level 3
 			print debug ::println
 			print warn ::println
 			print error ::println
@@ -141,9 +140,7 @@ class Tests
 	fun daemonTest()
 	{
 		var initializer: KotlmataDaemon.Initializer? = null
-		val daemon = KotlmataMutableDaemon {
-			log level 3
-			
+		val daemon = KotlmataMutableDaemon("d1") {
 			"state1" {
 				entry action { println("state1: 기본 진입함수") }
 				input signal String::class action { println("state1: String 타입 입력함수: $it") }

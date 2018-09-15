@@ -20,11 +20,6 @@ KotlmataState("name") {
 	exit action [action]
 }
 
-KotlmataState {
-	entry action [action]
-	exit action [action]
-}
-
 val immutableState = KotlmataState() // 불가
 val mutableState = KotlmataMutableState()
 
@@ -75,11 +70,11 @@ KotlmataMachine("name") {
 	start at "state0"
 }
 
-val immutableMachine = KotlmataMachine {
+val immutableMachine = KotlmataMachine("name") {
 	start at "state0"
 }
 
-val mutableMachine = KotlmataMutableMachine {
+val mutableMachine = KotlmataMutableMachine("name") {
 	start at "state0"
 }
 
@@ -160,7 +155,7 @@ KotlmataDaemon("name") {
 	start at "state0"
 }
 
-val mutableDaemon = KotlmataMutableDaemon {
+val mutableDaemon = KotlmataMutableDaemon("name") {
 	on start [action]
 	start at "state0"
 }

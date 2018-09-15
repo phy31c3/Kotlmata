@@ -11,7 +11,7 @@ interface KotlmataDaemon
 	companion object
 	{
 		operator fun invoke(
-				name: String? = null,
+				name: String,
 				block: Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataDaemon = KotlmataDaemonImpl(name, block)
 	}
@@ -53,7 +53,7 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 	companion object
 	{
 		operator fun invoke(
-				name: String? = null,
+				name: String,
 				block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableDaemon = KotlmataDaemonImpl(name, block)
 		
@@ -69,12 +69,10 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 }
 
 private class KotlmataDaemonImpl(
-		key: DAEMON? = null,
+		override val key: DAEMON,
 		block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End
 ) : KotlmataMutableDaemon
 {
-	override val key: DAEMON = key ?: this
-	
 	private var logLevel = NORMAL
 	
 	private val machine: KotlmataMutableMachine
