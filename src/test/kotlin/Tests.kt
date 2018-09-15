@@ -2,6 +2,7 @@ import kr.co.plasticcity.kotlmata.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.PriorityBlockingQueue
 
 class Tests
 {
@@ -270,5 +271,22 @@ class Tests
 		Thread.sleep(500)
 		
 		Kotlmata.input("shutdown 보다 더 빨리 실행될까?")
+	}
+	
+	@Test
+	fun commonTest()
+	{
+		val queue: PriorityBlockingQueue<Int> = PriorityBlockingQueue()
+		
+		Thread.currentThread().interrupt()
+		
+		queue.offer(0)
+		queue.offer(1)
+		queue.offer(2)
+		
+		println("이제 take 한다.")
+		println("${queue.take()}")
+		println("${queue.take()}")
+		println("${queue.take()}")
 	}
 }
