@@ -290,6 +290,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun level(level: Int)
 			{
+				this@ModifierImpl shouldNot expired
 				logLevel = level
 			}
 		}
