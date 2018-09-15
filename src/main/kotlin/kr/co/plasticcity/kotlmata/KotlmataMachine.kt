@@ -57,7 +57,7 @@ interface KotlmataMachine
 		operator fun remAssign(state: STATE)
 	}
 	
-	val key: KEY
+	val key: MACHINE
 	
 	/**
 	 * @param block Called if the state transitions and the next state's entry function returns an signal.
@@ -84,7 +84,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 		): KotlmataMutableMachine = KotlmataMachineImpl(name, block)
 		
 		internal operator fun invoke(
-				key: KEY,
+				key: MACHINE,
 				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine = KotlmataMachineImpl(key, block, "Daemon")
 	}
@@ -195,12 +195,12 @@ interface KotlmataMutableMachine : KotlmataMachine
 }
 
 private class KotlmataMachineImpl(
-		key: KEY? = null,
+		key: MACHINE? = null,
 		block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initializer.End,
 		val agent: String = "Machine"
 ) : KotlmataMutableMachine
 {
-	override val key: KEY = key ?: this
+	override val key: MACHINE = key ?: this
 	
 	private var logLevel = NORMAL
 	

@@ -30,7 +30,7 @@ interface KotlmataDaemon
 		}
 	}
 	
-	val key: KEY
+	val key: DAEMON
 	
 	fun run()
 	fun pause()
@@ -58,7 +58,7 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 		): KotlmataMutableDaemon = KotlmataDaemonImpl(name, block)
 		
 		internal operator fun invoke(
-				key: KEY,
+				key: DAEMON,
 				block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableDaemon = KotlmataDaemonImpl(key, block)
 	}
@@ -69,11 +69,11 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 }
 
 private class KotlmataDaemonImpl(
-		key: KEY? = null,
+		key: DAEMON? = null,
 		block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End
 ) : KotlmataMutableDaemon
 {
-	override val key: KEY = key ?: this
+	override val key: DAEMON = key ?: this
 	
 	private var logLevel = NORMAL
 	

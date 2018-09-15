@@ -43,7 +43,7 @@ interface KotlmataState
 		infix fun action(action: (signal: T) -> U)
 	}
 	
-	val key: KEY
+	val key: STATE
 	
 	/**
 	 * @param block If 'entry action' returns a next signal, the block is executed.
@@ -72,7 +72,7 @@ interface KotlmataMutableState : KotlmataState
 		): KotlmataMutableState = KotlmataStateImpl(name, block)
 		
 		internal operator fun invoke(
-				key: KEY,
+				key: STATE,
 				block: (KotlmataState.Initializer.() -> Unit)
 		): KotlmataMutableState = KotlmataStateImpl(key, block)
 	}
@@ -110,11 +110,11 @@ interface KotlmataMutableState : KotlmataState
 }
 
 private class KotlmataStateImpl(
-		key: KEY? = null,
+		key: STATE? = null,
 		block: (KotlmataState.Initializer.() -> Unit)? = null
 ) : KotlmataMutableState
 {
-	override val key: KEY = key ?: this
+	override val key: STATE = key ?: this
 	
 	private var entry: ((SIGNAL) -> SIGNAL?)? = null
 	private var input: ((SIGNAL) -> Unit)? = null
