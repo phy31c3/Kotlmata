@@ -109,20 +109,20 @@ private class KotlmataDaemonImpl(
 				queue!!.offer(m)
 			}
 			
-			val ignore: (SIGNAL, String) -> Unit = { message, current ->
+			val ignore: (SIGNAL, STATE) -> Unit = { message, state ->
 				if (logLevel.isDetail() && message is Message)
 				{
-					logLevel.detail(this@KotlmataDaemonImpl.key, current, message.id) { DAEMON_MESSAGE_IGNORED }
+					logLevel.detail(this@KotlmataDaemonImpl.key, state, message.id) { DAEMON_MESSAGE_IGNORED }
 				}
 			}
 			
+			val startMachine: (Message) -> Unit = {
+				logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
+				onStart()
+				machine.input(Message.Run(), postQuickInput)
+			}
+			
 			"pre-start" {
-				val startMachine: (Message) -> Unit = {
-					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
-					onStart()
-					machine.input(Message.Run(), postQuickInput)
-				}
-				
 				input signal Message.Run::class action startMachine
 				input signal Message.Pause::class action startMachine
 				input signal Message.Stop::class action startMachine

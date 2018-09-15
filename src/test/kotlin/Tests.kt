@@ -2,6 +2,7 @@ import kr.co.plasticcity.kotlmata.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.lang.ref.WeakReference
 import java.util.concurrent.PriorityBlockingQueue
 
 class Tests
@@ -27,10 +28,7 @@ class Tests
 	@Test
 	fun stateTest()
 	{
-		var initializer: KotlmataState.Initializer? = null
 		val state = KotlmataMutableState(name = "s1") {
-			initializer = this
-			
 			entry action { println("기본 진입함수") }
 			entry via String::class action { println("String 타입 진입함수: $it") }
 			entry via "a" action { println("a 진입함수") }
@@ -61,8 +59,6 @@ class Tests
 		state.entry("b") { signal ->
 			state.input(signal)
 		}
-		
-		initializer?.entry?.action {}
 	}
 	
 	@Test
@@ -139,8 +135,10 @@ class Tests
 	@Test
 	fun daemonTest()
 	{
-		var initializer: KotlmataDaemon.Initializer? = null
+		var shouldGC: WeakReference<KotlmataDaemon.Initializer>? = null
 		val daemon = KotlmataMutableDaemon("d1") {
+			shouldGC = WeakReference(this)
+			
 			"state1" {
 				entry action { println("state1: 기본 진입함수") }
 				input signal String::class action { println("state1: String 타입 입력함수: $it") }
@@ -167,8 +165,6 @@ class Tests
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
-			
-			initializer = this
 			
 			start at "state1"
 		}
@@ -214,7 +210,8 @@ class Tests
 		
 		daemon.terminate()
 		
-		initializer?.log?.level(0)
+		System.gc()
+		println("과연 GC 되었을까: ${shouldGC?.get()}")
 	}
 	
 	@Test
