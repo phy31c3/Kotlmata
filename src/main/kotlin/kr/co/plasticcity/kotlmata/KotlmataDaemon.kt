@@ -91,13 +91,17 @@ private class KotlmataDaemonImpl(
 	{
 		machine = KotlmataMutableMachine(this.key) {
 			val initializer = InitializerImpl(block, this)
-			Initial {}
-			Initial x Message.Run::class %= initializer.initial
-			start at Initial
+			PreStart {}
+			PreStart x Message.Run::class %= initializer.initial
+			start at PreStart
 		}
 		
 		engine = KotlmataMachine("${this.key}@engine") {
 			log level 0
+			
+			val modifyMachine: (Message.Modify) -> Unit = {
+				machine modify it.block
+			}
 			
 			val postQuickInput: (SIGNAL) -> Unit = {
 				val m = Message.QuickInput(it)
@@ -105,18 +109,14 @@ private class KotlmataDaemonImpl(
 				queue.offer(m)
 			}
 			
-			val modifyMachine: (Message.Modify) -> Unit = {
-				machine modify it.block
-			}
-			
-			val ignoreMessage: (SIGNAL, String) -> Unit = { message, current ->
+			val ignore: (SIGNAL, String) -> Unit = { message, current ->
 				if (logLevel.isDetail() && message is Message)
 				{
 					logLevel.detail(this@KotlmataDaemonImpl.key, current, message.id) { DAEMON_MESSAGE_IGNORED }
 				}
 			}
 			
-			"initial" {
+			"pre-start" {
 				val startMachine: (Message) -> Unit = {
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
 					onStart()
@@ -130,7 +130,7 @@ private class KotlmataDaemonImpl(
 				
 				input signal Message.Modify::class action modifyMachine
 				
-				input action { ignoreMessage(it, "initial") }
+				input action { ignore(it, "pre-start") }
 			}
 			
 			"run" {
@@ -149,7 +149,7 @@ private class KotlmataDaemonImpl(
 				}
 				input signal Message.Modify::class action modifyMachine
 				
-				input action { ignoreMessage(it, "run") }
+				input action { ignore(it, "run") }
 			}
 			
 			"pause" {
@@ -178,7 +178,7 @@ private class KotlmataDaemonImpl(
 				input signal Message.TypedInput::class action keep
 				input signal Message.Modify::class action keep
 				
-				input action { ignoreMessage(it, "pause") }
+				input action { ignore(it, "pause") }
 				
 				exit action {
 					stash.clear()
@@ -222,7 +222,7 @@ private class KotlmataDaemonImpl(
 					quickInput = it
 				}
 				
-				input action { ignoreMessage(it, "stop") }
+				input action { ignore(it, "stop") }
 				
 				exit action {
 					quickInput = null
@@ -237,9 +237,9 @@ private class KotlmataDaemonImpl(
 				}
 			}
 			
-			"initial" x Message.Run::class %= "run"
-			"initial" x Message.Pause::class %= "pause"
-			"initial" x Message.Stop::class %= "stop"
+			"pre-start" x Message.Run::class %= "run"
+			"pre-start" x Message.Pause::class %= "pause"
+			"pre-start" x Message.Stop::class %= "stop"
 			
 			"run" x Message.Pause::class %= "pause"
 			"run" x Message.Stop::class %= "stop"
@@ -252,7 +252,7 @@ private class KotlmataDaemonImpl(
 			
 			any x Message.Terminate::class %= "terminate"
 			
-			start at "initial"
+			start at "pre-start"
 		}
 		
 		thread(name = "KotlmataDaemon[${this@KotlmataDaemonImpl.key}]", isDaemon = true, start = true) {

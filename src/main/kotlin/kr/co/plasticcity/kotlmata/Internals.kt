@@ -4,9 +4,9 @@ internal typealias KEY = Any
 internal typealias STATE = KEY
 internal typealias SIGNAL = Any
 
-internal object Initial
+internal object PreStart
 {
-	override fun toString(): String = "initial"
+	override fun toString(): String = "pre-start"
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing)

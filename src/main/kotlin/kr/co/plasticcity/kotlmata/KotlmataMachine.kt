@@ -315,7 +315,7 @@ private class KotlmataMachineImpl(
 			{
 				this@ModifierImpl shouldNot expired
 				return this@KotlmataMachineImpl.current.key.takeIf {
-					it != Initial
+					it != PreStart
 				} ?: Log.w(agent, key) { OBTAIN_INITIAL }
 			}
 		

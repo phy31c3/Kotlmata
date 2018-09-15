@@ -1,16 +1,14 @@
 package kr.co.plasticcity.kotlmata
 
-import java.util.concurrent.PriorityBlockingQueue
-import java.util.concurrent.atomic.AtomicLong
-import kotlin.concurrent.thread
 import kotlin.reflect.KClass
 
 interface Kotlmata
 {
 	companion object : Kotlmata by KotlmataImpl()
 	
-	infix fun init(block: Initializer.() -> Unit)
-	infix fun release(block: (() -> Unit))
+	fun config(block: Config.() -> Unit)
+	fun start()
+	fun shutdown()
 	
 	infix fun fork(daemon: KEY): Of
 	infix fun modify(daemon: KEY): Set
@@ -26,7 +24,7 @@ interface Kotlmata
 	
 	operator fun invoke(block: Post.() -> Unit) = post(block)
 	
-	interface Initializer
+	interface Config
 	{
 		val log: Log
 		val print: Print
@@ -57,9 +55,14 @@ interface Kotlmata
 		infix fun set(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	}
 	
-	interface Type<T : SIGNAL> : To
+	interface Type<T : SIGNAL> : Priority
 	{
-		infix fun type(type: KClass<in T>): To
+		infix fun type(type: KClass<in T>): Priority
+	}
+	
+	interface Priority : To
+	{
+		infix fun priority(priority: Int): To
 	}
 	
 	interface To
@@ -141,16 +144,6 @@ interface Kotlmata
 		interface Input
 		{
 			infix fun <T : SIGNAL> signal(signal: T): Type<T>
-			
-			interface Type<T : SIGNAL> : To
-			{
-				infix fun type(type: KClass<in T>): To
-			}
-			
-			interface To
-			{
-				infix fun to(daemon: KEY)
-			}
 		}
 	}
 }
@@ -159,20 +152,24 @@ private class KotlmataImpl : Kotlmata
 {
 	private var logLevel = NORMAL
 	
-	private val queue: PriorityBlockingQueue<Message> = PriorityBlockingQueue()
 	private val map: MutableMap<KEY, KotlmataMutableDaemon> = HashMap()
 	
-	private val engine: KotlmataMachine = KotlmataMachine("Kotlmata@engine") {
+	private val engine = KotlmataDaemon("Kotlmata") {
 		log level 0
 		
-		"initial" {
-			input signal Message.Init::class action {
-				InitializerImpl(it.block)
-				logLevel.simple { KOTLMATA_START }
-			}
+		on start {
+			logLevel.simple { KOTLMATA_START }
 		}
 		
-		"run" {
+		on stop {
+			logLevel.simple { KOTLMATA_SHUTDOWN }
+			map.forEach { _, daemon ->
+				daemon.terminate()
+			}
+			map.clear()
+		}
+		
+		"kotlmata" {
 			input signal Message.Fork::class action {
 				if (it.daemon !in map)
 				{
@@ -202,62 +199,32 @@ private class KotlmataImpl : Kotlmata
 				map -= it.daemon
 			}
 			input signal Message.Input::class action {
-				map[it.daemon]?.input(it.signal)
+				map[it.daemon]?.input(it.signal, it.priority)
 			}
 			input signal Message.TypedInput::class action {
-				map[it.daemon]?.input(it.signal, it.type)
+				map[it.daemon]?.input(it.signal, it.type, it.priority)
 			}
 			input signal Message.Post::class action {
 				PostImpl(it.block)
 			}
 		}
 		
-		"release" {
-			entry via Message.Release::class action {
-				logLevel.simple { KOTLMATA_RELEASE }
-				map.forEach { _, daemon ->
-					daemon.terminate()
-				}
-				map.clear()
-				it.block()
-				Thread.currentThread().interrupt()
-			}
-		}
-		
-		"initial" x Message.Init::class %= "run"
-		any x Message.Release::class %= "release"
-		
-		start at "initial"
+		start at "kotlmata"
 	}
 	
-	init
+	override fun config(block: Kotlmata.Config.() -> Unit)
 	{
-		thread(name = "Kotlmata", isDaemon = true, start = true) {
-			try
-			{
-				while (true)
-				{
-					engine.input(queue.take())
-				}
-			}
-			catch (e: InterruptedException)
-			{
-				queue.clear()
-			}
-		}
+		ConfigImpl(block)
 	}
 	
-	override fun init(block: Kotlmata.Initializer.() -> Unit)
+	override fun start()
 	{
-		/* Can't print log because Kotlmata isn't initialized yet */
-		queue.offer(Message.Init(block))
+		engine.run()
 	}
 	
-	override fun release(block: () -> Unit)
+	override fun shutdown()
 	{
-		val m = Message.Release(block)
-		logLevel.detail(m, m.id) { KOTLMATA_POST_MESSAGE }
-		queue.offer(m)
+		engine.stop()
 	}
 	
 	override fun fork(daemon: KEY) = object : Kotlmata.Of
@@ -266,7 +233,7 @@ private class KotlmataImpl : Kotlmata
 		{
 			val m = Message.Fork(daemon, block)
 			logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-			queue.offer(m)
+			engine.input(m)
 		}
 	}
 	
@@ -276,7 +243,7 @@ private class KotlmataImpl : Kotlmata
 		{
 			val m = Message.Modify(daemon, block)
 			logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-			queue.offer(m)
+			engine.input(m)
 		}
 	}
 	
@@ -284,48 +251,68 @@ private class KotlmataImpl : Kotlmata
 	{
 		val m = Message.Run(daemon)
 		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		queue.offer(m)
+		engine.input(m)
 	}
 	
 	override fun pause(daemon: KEY)
 	{
 		val m = Message.Pause(daemon)
 		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		queue.offer(m)
+		engine.input(m)
 	}
 	
 	override fun stop(daemon: KEY)
 	{
 		val m = Message.Stop(daemon)
 		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		queue.offer(m)
+		engine.input(m)
 	}
 	
 	override fun terminate(daemon: KEY)
 	{
 		val m = Message.Terminate(daemon)
 		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		queue.offer(m)
+		engine.input(m)
 	}
 	
 	override fun <T : SIGNAL> input(signal: T) = object : Kotlmata.Type<T>
 	{
-		override fun type(type: KClass<in T>) = object : Kotlmata.To
+		@Suppress("UNCHECKED_CAST")
+		override fun type(type: KClass<in T>) = object : Kotlmata.Priority
 		{
-			@Suppress("UNCHECKED_CAST")
+			override fun priority(priority: Int) = object : Kotlmata.To
+			{
+				override fun to(daemon: KEY)
+				{
+					val m = Message.TypedInput(daemon, signal, type as KClass<SIGNAL>, priority)
+					logLevel.detail(m, m.signal, m.type, daemon, m.id) { KOTLMATA_POST_MESSAGE_TYPED_INPUT }
+					engine.input(m)
+				}
+			}
+			
 			override fun to(daemon: KEY)
 			{
-				val m = Message.TypedInput(daemon, signal, type as KClass<SIGNAL>)
+				val m = Message.TypedInput(daemon, signal, type as KClass<SIGNAL>, 0)
 				logLevel.detail(m, m.signal, m.type, daemon, m.id) { KOTLMATA_POST_MESSAGE_TYPED_INPUT }
-				queue.offer(m)
+				engine.input(m)
+			}
+		}
+		
+		override fun priority(priority: Int) = object : Kotlmata.To
+		{
+			override fun to(daemon: KEY)
+			{
+				val m = Message.Input(daemon, signal, priority)
+				logLevel.detail(m, m.signal, daemon, m.id) { KOTLMATA_POST_MESSAGE_INPUT }
+				engine.input(m)
 			}
 		}
 		
 		override fun to(daemon: KEY)
 		{
-			val m = Message.Input(daemon, signal)
+			val m = Message.Input(daemon, signal, 0)
 			logLevel.detail(m, m.signal, daemon, m.id) { KOTLMATA_POST_MESSAGE_INPUT }
-			queue.offer(m)
+			engine.input(m)
 		}
 	}
 	
@@ -333,39 +320,39 @@ private class KotlmataImpl : Kotlmata
 	{
 		val m = Message.Post(block)
 		logLevel.detail(m, m.id) { KOTLMATA_POST_MESSAGE }
-		queue.offer(m)
+		engine.input(m)
 	}
 	
-	private inner class InitializerImpl internal constructor(
-			block: Kotlmata.Initializer.() -> Unit
-	) : Kotlmata.Initializer, Expirable({ Log.e { EXPIRED_INITIALIZER } })
+	private inner class ConfigImpl internal constructor(
+			block: Kotlmata.Config.() -> Unit
+	) : Kotlmata.Config, Expirable({ Log.e { EXPIRED_CONFIG } })
 	{
-		override val log = object : Kotlmata.Initializer.Log
+		override val log = object : Kotlmata.Config.Log
 		{
 			override fun level(level: Int)
 			{
-				this@InitializerImpl shouldNot expired
+				this@ConfigImpl shouldNot expired
 				logLevel = level
 			}
 		}
 		
-		override val print = object : Kotlmata.Initializer.Print
+		override val print = object : Kotlmata.Config.Print
 		{
 			override fun debug(block: (String) -> Unit)
 			{
-				this@InitializerImpl shouldNot expired
+				this@ConfigImpl shouldNot expired
 				Log.debug = block
 			}
 			
 			override fun warn(block: (String) -> Unit)
 			{
-				this@InitializerImpl shouldNot expired
+				this@ConfigImpl shouldNot expired
 				Log.warn = block
 			}
 			
 			override fun error(block: (String) -> Unit)
 			{
-				this@InitializerImpl shouldNot expired
+				this@ConfigImpl shouldNot expired
 				Log.error = block
 			}
 		}
@@ -379,7 +366,7 @@ private class KotlmataImpl : Kotlmata
 	
 	private inner class PostImpl internal constructor(
 			block: Kotlmata.Post.() -> Unit
-	) : Kotlmata.Post, Expirable({ Log.e { EXPIRED_INITIALIZER } })
+	) : Kotlmata.Post, Expirable({ Log.e { EXPIRED_CONFIG } })
 	{
 		override val has = object : Kotlmata.Post.Has
 		{
@@ -492,14 +479,32 @@ private class KotlmataImpl : Kotlmata
 		
 		override val input = object : Kotlmata.Post.Input
 		{
-			override fun <T : SIGNAL> signal(signal: T) = object : Kotlmata.Post.Input.Type<T>
+			override fun <T : SIGNAL> signal(signal: T) = object : Kotlmata.Type<T>
 			{
-				override fun type(type: KClass<in T>) = object : Kotlmata.Post.Input.To
+				override fun type(type: KClass<in T>) = object : Kotlmata.Priority
 				{
+					override fun priority(priority: Int) = object : Kotlmata.To
+					{
+						override fun to(daemon: KEY)
+						{
+							this@PostImpl shouldNot expired
+							map[daemon]?.input(signal, type, priority)
+						}
+					}
+					
 					override fun to(daemon: KEY)
 					{
 						this@PostImpl shouldNot expired
 						map[daemon]?.input(signal, type)
+					}
+				}
+				
+				override fun priority(priority: Int) = object : Kotlmata.To
+				{
+					override fun to(daemon: KEY)
+					{
+						this@PostImpl shouldNot expired
+						map[daemon]?.input(signal, priority)
 					}
 				}
 				
@@ -518,41 +523,22 @@ private class KotlmataImpl : Kotlmata
 		}
 	}
 	
-	private sealed class Message(val priority: Int) : Comparable<Message>
+	private sealed class Message
 	{
-		class Init(val block: Kotlmata.Initializer.() -> Unit) : Message(CONTROL)
-		class Release(val block: () -> Unit) : Message(CONTROL)
+		class Fork(val daemon: KEY, val block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End) : Message()
+		class Modify(val daemon: KEY, val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message()
 		
-		class Fork(val daemon: KEY, val block: KotlmataDaemon.Initializer.() -> KotlmataMachine.Initializer.End) : Message(EVENT)
-		class Modify(val daemon: KEY, val block: KotlmataMutableMachine.Modifier.() -> Unit) : Message(EVENT)
+		class Run(val daemon: KEY) : Message()
+		class Pause(val daemon: KEY) : Message()
+		class Stop(val daemon: KEY) : Message()
+		class Terminate(val daemon: KEY) : Message()
 		
-		class Run(val daemon: KEY) : Message(EVENT)
-		class Pause(val daemon: KEY) : Message(EVENT)
-		class Stop(val daemon: KEY) : Message(EVENT)
-		class Terminate(val daemon: KEY) : Message(EVENT)
+		class Input(val daemon: KEY, val signal: SIGNAL, val priority: Int) : Message()
+		class TypedInput(val daemon: KEY, val signal: SIGNAL, val type: KClass<SIGNAL>, val priority: Int) : Message()
 		
-		class Input(val daemon: KEY, val signal: SIGNAL) : Message(EVENT)
-		class TypedInput(val daemon: KEY, val signal: SIGNAL, val type: KClass<SIGNAL>) : Message(EVENT)
+		class Post(val block: Kotlmata.Post.() -> Unit) : Message()
 		
-		class Post(val block: Kotlmata.Post.() -> Unit) : Message(EVENT)
-		
-		companion object
-		{
-			private const val CONTROL = 1
-			private const val EVENT = 0
-			
-			val ticket: AtomicLong = AtomicLong(0)
-		}
-		
-		val order = ticket.getAndIncrement()
 		val id by lazy { hashCode().toString(16) }
-		
-		override fun compareTo(other: Message): Int
-		{
-			val dP = other.priority - priority
-			return if (dP != 0) dP
-			else (order - other.order).toInt()
-		}
 		
 		override fun toString(): String
 		{

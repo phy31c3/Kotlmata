@@ -7,7 +7,7 @@ internal class Logs
 		/*########################## DEBUG ##########################*/
 		/* Kotlmata */
 		const val KOTLMATA_START = "Kotlmata: START"
-		const val KOTLMATA_RELEASE = "Kotlmata: RELEASE"
+		const val KOTLMATA_SHUTDOWN = "Kotlmata: SHUTDOWN"
 		const val KOTLMATA_POST_MESSAGE = "Kotlmata: Post@%s. {id: %s}"
 		const val KOTLMATA_POST_MESSAGE_DAEMON = "Kotlmata: Post@%s. {daemon: %s} {id: %s}"
 		const val KOTLMATA_POST_MESSAGE_INPUT = "Kotlmata: Post@%s. {signal: %s} {daemon: %s} {id: %s}"
@@ -43,7 +43,7 @@ internal class Logs
 		
 		/*########################## ERROR ##########################*/
 		/* Kotlmata */
-		const val EXPIRED_INITIALIZER = "Kotlmata: Use of expired 'Config' object: The object is only available within the 'Kotlmata.init' block."
+		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available within the 'Kotlmata.config' block."
 		
 		/* Agent */
 		const val EXPIRED_AGENT_MODIFIER = "Kotlmata%s[%s]: Use of expired modifier object: The object is only available within the initialization or modification block."

@@ -180,7 +180,7 @@ mutableDaemon.input(object, Any::class)
 mutableDaemon.input(object, Any::class)
 
 [Kotlmata]————————————————————————————————————————————————————————————————————————————————
-Kotlmata init {
+Kotlmata.config {
 	log level 3
 	print debug { log ->
 		// 로그 출력
@@ -192,6 +192,9 @@ Kotlmata init {
 		// 로그 출력
 	}
 }
+
+Kotlmata.start()
+Kotlmata.shutdown()
 
 Kotlmata fork "daemon" of { // Daemon init 블럭과 동일 (존재하면 무시)
 	on start [action]
@@ -230,8 +233,7 @@ Kotlmata terminate "daemon"
 Kotlmata input "signal" to "daemon"
 Kotlmata input "signal" type KClass<String> to "daemon"
 
-Kotlmata post {
-	// 손봐야 됨
+Kotlmata { // Kotlmata post 와 동일
 	has daemon "daemon" then {
 		modify daemon "daemon" set {
 			update state "state1" set {
@@ -283,14 +285,8 @@ Kotlmata post {
 	run daemon "daemon"
 	pause daemon "daemon"
 
-	input signal "signal" type Type::class to "daemon"
 	input signal "signal" to "daemon"
-}
-
-Kotlmata {
-	// Kotlmata post 와 동일
-}
-
-Kotlmata release {
-	// 자원 해제 등의 동작이 필요하면 여기에
+	input signal "signal" priority 1 to "daemon"
+	input signal "signal" type Type::class to "daemon"
+	input signal "signal" type Type::class priority 2 to "daemon"
 }

@@ -8,20 +8,20 @@ class Tests
 	@Before
 	fun init()
 	{
-		Kotlmata init {
+		Kotlmata.config {
 			log level 3
 			print debug ::println
 			print warn ::println
 			print error ::println
 		}
+		
+		Kotlmata.start()
 	}
 	
 	@After
 	fun release()
 	{
-		Kotlmata release {
-			/* do nothing */
-		}
+		Kotlmata.shutdown()
 	}
 	
 	@Test
@@ -233,7 +233,7 @@ class Tests
 			"state2" {
 				entry action { println("state2: 기본 진입함수") }
 				entry via "goToState2" action {
-					println("null을 리턴할거임")
+					println("null 리턴할거임")
 					null
 				}
 				input signal Integer::class action { println("state2: Number 타입 입력함수: $it") }
@@ -264,7 +264,11 @@ class Tests
 		
 		Kotlmata run "daemon"
 		Kotlmata input "goToState2" to "daemon"
+		Kotlmata input "우선순위 10" priority 10 to "daemon"
+		Kotlmata input "우선순위 1" priority 1 to "daemon"
 		
 		Thread.sleep(500)
+		
+		Kotlmata.input("shutdown 보다 더 빨리 실행될까?")
 	}
 }
