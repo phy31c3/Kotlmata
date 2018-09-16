@@ -169,7 +169,7 @@ private class KotlmataImpl : Kotlmata
 			map.clear()
 		}
 		
-		"kotlmata" {
+		"kotlmata" { _ ->
 			input signal Message.Fork::class action {
 				if (it.daemon !in map)
 				{

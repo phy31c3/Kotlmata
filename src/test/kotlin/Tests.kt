@@ -28,7 +28,7 @@ class Tests
 	@Test
 	fun stateTest()
 	{
-		val state = KotlmataMutableState(name = "s1") {
+		val state = KotlmataMutableState("s1") { _ ->
 			entry action { println("기본 진입함수") }
 			entry via String::class action { println("String 타입 진입함수: $it") }
 			entry via "a" action { println("a 진입함수") }
@@ -64,25 +64,25 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		val machine = KotlmataMutableMachine(name = "m1") {
-			"state1" {
-				entry action { println("state1: 기본 진입함수") }
-				input signal String::class action { println("state1: String 타입 입력함수: $it") }
+		val machine = KotlmataMutableMachine("m1") {
+			"state1" { state ->
+				entry action { println("$state: 기본 진입함수") }
+				input signal String::class action { println("$state: String 타입 입력함수: $it") }
 				input signal "goToState2" action { println("state2로 이동") }
-				exit action { println("state1: 퇴장함수") }
+				exit action { println("$state: 퇴장함수") }
 			}
 			
-			"state2" {
-				entry action { println("state2: 기본 진입함수") }
-				input signal Number::class action { println("state2: Number 타입 입력함수: $it") }
+			"state2" { state ->
+				entry action { println("$state: 기본 진입함수") }
+				input signal Number::class action { println("$state: Number 타입 입력함수: $it") }
 				input signal 5 action { println("state3로 이동") }
-				exit action { println("state2: 퇴장함수") }
+				exit action { println("$state: 퇴장함수") }
 			}
 			
-			"state3" {
-				entry action { println("state3: 기본 진입함수") }
-				input signal String::class action { println("state3: String 타입 입력함수: $it") }
-				exit action { println("state3: 퇴장함수") }
+			"state3" { state ->
+				entry action { println("$state: 기본 진입함수") }
+				input signal String::class action { println("$state: String 타입 입력함수: $it") }
+				exit action { println("$state: 퇴장함수") }
 			}
 			
 			"state1" x "goToState2" %= "state2"
@@ -107,13 +107,13 @@ class Tests
 				println("state1 없음")
 			}
 			
-			update state "state1" set {
-				input signal String::class action { println("state1: 수정된 String 타입 입력함수: $it") }
+			update state "state1" set { state ->
+				input signal String::class action { println("$state: 수정된 String 타입 입력함수: $it") }
 				delete action exit
 			}
 			
-			insert state "state2" of {
-				entry action { println("삽입된 state2") }
+			insert state "state2" of { state ->
+				entry action { println("삽입된 $state") }
 			}
 			
 			insert transition ("state1" x "goToState2") %= "state3"
@@ -135,31 +135,30 @@ class Tests
 	@Test
 	fun daemonTest()
 	{
-		var shouldGC: WeakReference<KotlmataDaemon.Initializer>? = null
+		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
 		val daemon = KotlmataMutableDaemon("d1") {
-			shouldGC = WeakReference(this)
-			
-			"state1" {
-				entry action { println("state1: 기본 진입함수") }
-				input signal String::class action { println("state1: String 타입 입력함수: $it") }
+			"state1" { state ->
+				entry action { println("$state: 기본 진입함수") }
+				input signal String::class action { println("$state: String 타입 입력함수: $it") }
 				input signal "goToState2" action { println("state2로 이동") }
-				exit action { println("state1: 퇴장함수") }
+				exit action { println("$state: 퇴장함수") }
+				shouldGC = WeakReference(this)
 			}
 			
-			"state2" {
-				entry action { println("state2: 기본 진입함수") }
-				input signal Integer::class action { println("state2: Number 타입 입력함수: $it") }
+			"state2" { state ->
+				entry action { println("$state: 기본 진입함수") }
+				input signal Integer::class action { println("$state: Number 타입 입력함수: $it") }
 				input signal 5 action { println("state3로 이동") }
-				exit action { println("state2: 퇴장함수") }
+				exit action { println("$state: 퇴장함수") }
 			}
 			
-			"state3" {
+			"state3" { state ->
 				entry action {
-					println("state3: 기본 진입함수")
+					println("$state: 기본 진입함수")
 					"quick input"
 				}
-				input signal String::class action { println("state3: String 타입 입력함수: $it") }
-				exit action { println("state3: 퇴장함수") }
+				input signal String::class action { println("$state: String 타입 입력함수: $it") }
+				exit action { println("$state: 퇴장함수") }
 			}
 			
 			"state1" x "goToState2" %= "state2"
@@ -203,6 +202,13 @@ class Tests
 		daemon.run()
 		daemon {
 			"state1" x "goToState3" %= "state3"
+			
+			"state3" { state ->
+				entry action {
+					println("$state: 수정된 기본 진입함수")
+					"quick input"
+				}
+			}
 		}
 		daemon.input("goToState3")
 		
@@ -218,31 +224,31 @@ class Tests
 	fun kotlmataTest()
 	{
 		Kotlmata fork "daemon" of {
-			"state1" {
+			"state1" { state ->
 				entry action { println("데몬이 시작됨") }
-				input signal String::class action { println("state1: String 타입 입력함수: $it") }
+				input signal String::class action { println("$state: String 타입 입력함수: $it") }
 				input signal "goToState2" action { println("state2로 이동") }
-				exit action { println("state1: 퇴장함수") }
+				exit action { println("$state: 퇴장함수") }
 			}
 			
-			"state2" {
-				entry action { println("state2: 기본 진입함수") }
+			"state2" { state ->
+				entry action { println("$state: 기본 진입함수") }
 				entry via "goToState2" action {
 					println("null 리턴할거임")
 					null
 				}
-				input signal Integer::class action { println("state2: Number 타입 입력함수: $it") }
+				input signal Integer::class action { println("$state: Number 타입 입력함수: $it") }
 				input signal 5 action { println("state3로 이동") }
-				exit action { println("state2: 퇴장함수") }
+				exit action { println("$state: 퇴장함수") }
 			}
 			
-			"state3" {
+			"state3" { state ->
 				entry action {
-					println("state3: 기본 진입함수")
+					println("$state: 기본 진입함수")
 					"quick input"
 				}
-				input signal String::class action { println("state3: String 타입 입력함수: $it") }
-				exit action { println("state3: 퇴장함수") }
+				input signal String::class action { println("$state: String 타입 입력함수: $it") }
+				exit action { println("$state: 퇴장함수") }
 			}
 			
 			"state1" x "goToState2" %= "state2"

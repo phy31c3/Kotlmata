@@ -8,7 +8,7 @@ interface KotlmataState
 	{
 		operator fun invoke(
 				name: String,
-				block: Initializer.() -> Unit
+				block: Initializer.(name: String) -> Unit
 		): KotlmataState = KotlmataStateImpl(name, block)
 	}
 	
@@ -62,19 +62,19 @@ interface KotlmataState
 	fun exit(signal: SIGNAL)
 }
 
-interface KotlmataMutableState : KotlmataState
+interface KotlmataMutableState<out T : STATE> : KotlmataState
 {
 	companion object
 	{
 		operator fun invoke(
 				name: String,
-				block: (KotlmataState.Initializer.() -> Unit)? = null
-		): KotlmataMutableState = KotlmataStateImpl(name, block)
+				block: (KotlmataState.Initializer.(name: String) -> Unit)? = null
+		): KotlmataMutableState<String> = KotlmataStateImpl(name, block)
 		
-		internal operator fun invoke(
-				key: STATE,
-				block: (KotlmataState.Initializer.() -> Unit)
-		): KotlmataMutableState = KotlmataStateImpl(key, block)
+		internal operator fun <T : STATE> invoke(
+				key: T,
+				block: (KotlmataState.Initializer.(key: T) -> Unit)
+		): KotlmataMutableState<T> = KotlmataStateImpl(key, block)
 	}
 	
 	interface Modifier : KotlmataState.Initializer
@@ -104,15 +104,15 @@ interface KotlmataMutableState : KotlmataState
 		}
 	}
 	
-	infix fun modify(block: Modifier.() -> Unit)
+	infix fun modify(block: Modifier.(key: T) -> Unit)
 	
-	operator fun invoke(block: Modifier.() -> Unit) = modify(block)
+	operator fun invoke(block: Modifier.(key: T) -> Unit) = modify(block)
 }
 
-private class KotlmataStateImpl(
-		override val key: STATE,
-		block: (KotlmataState.Initializer.() -> Unit)? = null
-) : KotlmataMutableState
+private class KotlmataStateImpl<T : STATE>(
+		override val key: T,
+		block: (KotlmataState.Initializer.(key: T) -> Unit)? = null
+) : KotlmataMutableState<T>
 {
 	private var entry: ((SIGNAL) -> SIGNAL?)? = null
 	private var input: ((SIGNAL) -> Unit)? = null
@@ -182,7 +182,7 @@ private class KotlmataStateImpl(
 		exit?.invoke(signal)
 	}
 	
-	override fun modify(block: KotlmataMutableState.Modifier.() -> Unit)
+	override fun modify(block: KotlmataMutableState.Modifier.(key: T) -> Unit)
 	{
 		ModifierImpl(block)
 	}
@@ -193,7 +193,7 @@ private class KotlmataStateImpl(
 	}
 	
 	private inner class ModifierImpl internal constructor(
-			block: KotlmataMutableState.Modifier.() -> Unit
+			block: KotlmataMutableState.Modifier.(key: T) -> Unit
 	) : KotlmataMutableState.Modifier, Expirable({ Log.e(key) { EXPIRED_STATE_MODIFIER } })
 	{
 		private val entryMap: MutableMap<SIGNAL, (SIGNAL) -> SIGNAL?>
@@ -366,7 +366,7 @@ private class KotlmataStateImpl(
 		
 		init
 		{
-			block()
+			block(this@KotlmataStateImpl.key)
 			expire()
 		}
 	}

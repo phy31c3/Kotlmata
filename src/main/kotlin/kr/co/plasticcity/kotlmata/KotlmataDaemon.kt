@@ -122,7 +122,7 @@ private class KotlmataDaemonImpl(
 				machine.input(Message.Run(), postQuickInput)
 			}
 			
-			"pre-start" {
+			"pre-start" { state ->
 				input signal Message.Run::class action startMachine
 				input signal Message.Pause::class action startMachine
 				input signal Message.Stop::class action startMachine
@@ -130,10 +130,10 @@ private class KotlmataDaemonImpl(
 				
 				input signal Message.Modify::class action modifyMachine
 				
-				input action { ignore(it, "pre-start") }
+				input action { ignore(it, state) }
 			}
 			
-			"run" {
+			"run" { state ->
 				input signal Message.Pause::class action {}
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}
@@ -149,10 +149,10 @@ private class KotlmataDaemonImpl(
 				}
 				input signal Message.Modify::class action modifyMachine
 				
-				input action { ignore(it, "run") }
+				input action { ignore(it, state) }
 			}
 			
-			"pause" {
+			"pause" { state ->
 				val stash: MutableList<Message> = ArrayList()
 				
 				val keep: (Message) -> Unit = {
@@ -178,14 +178,14 @@ private class KotlmataDaemonImpl(
 				input signal Message.TypedInput::class action keep
 				input signal Message.Modify::class action keep
 				
-				input action { ignore(it, "pause") }
+				input action { ignore(it, state) }
 				
 				exit action {
 					stash.clear()
 				}
 			}
 			
-			"stop" {
+			"stop" { state ->
 				var quickInput: Message.QuickInput? = null
 				
 				fun cleanup(m: Message)
@@ -222,14 +222,14 @@ private class KotlmataDaemonImpl(
 					quickInput = it
 				}
 				
-				input action { ignore(it, "stop") }
+				input action { ignore(it, state) }
 				
 				exit action {
 					quickInput = null
 				}
 			}
 			
-			"terminate" {
+			"terminate" { _ ->
 				entry action {
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_TERMINATE }
 					onTerminate()

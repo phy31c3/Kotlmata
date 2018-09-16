@@ -35,7 +35,7 @@ interface KotlmataMachine
 	
 	interface StateDefine
 	{
-		operator fun STATE.invoke(block: KotlmataState.Initializer.() -> Unit)
+		operator fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(state: T) -> Unit)
 	}
 	
 	interface TransitionDefine
@@ -116,14 +116,14 @@ interface KotlmataMutableMachine : KotlmataMachine
 		
 		interface Insert
 		{
-			infix fun state(state: STATE): of
+			infix fun <T : STATE> state(state: T): of<T>
 			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
 			infix fun or(keyword: Replace): state
 			infix fun or(keyword: Update): transition
 			
 			interface state
 			{
-				infix fun state(state: STATE): of
+				infix fun <T : STATE> state(state: T): of<T>
 			}
 			
 			interface transition
@@ -131,9 +131,9 @@ interface KotlmataMutableMachine : KotlmataMachine
 				infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
 			}
 			
-			interface of
+			interface of<T : STATE>
 			{
-				infix fun of(block: KotlmataState.Initializer.() -> Unit)
+				infix fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
 			}
 			
 			interface remAssign
@@ -144,27 +144,27 @@ interface KotlmataMutableMachine : KotlmataMachine
 		
 		interface Replace
 		{
-			infix fun state(state: STATE): of
+			infix fun <T : STATE> state(state: T): of<T>
 			
-			interface of
+			interface of<T : STATE>
 			{
-				infix fun of(block: KotlmataState.Initializer.() -> Unit)
+				infix fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
 			}
 		}
 		
 		interface Update
 		{
-			infix fun state(state: STATE): set
+			infix fun <T : STATE> state(state: T): set<T>
 			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
 			
-			interface set
+			interface set<T : STATE>
 			{
-				infix fun set(block: KotlmataMutableState.Modifier.() -> Unit): or
+				infix fun set(block: KotlmataMutableState.Modifier.(state: T) -> Unit): or<T>
 			}
 			
-			interface or
+			interface or<T : STATE>
 			{
-				infix fun or(block: KotlmataState.Initializer.() -> Unit)
+				infix fun or(block: KotlmataState.Initializer.(state: T) -> Unit)
 			}
 			
 			interface remAssign
@@ -202,7 +202,7 @@ private class KotlmataMachineImpl(
 {
 	private var logLevel = NORMAL
 	
-	private val stateMap: MutableMap<STATE, KotlmataMutableState> = HashMap()
+	private val stateMap: MutableMap<STATE, KotlmataMutableState<STATE>> = HashMap()
 	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
 	private lateinit var current: KotlmataState
@@ -375,9 +375,9 @@ private class KotlmataMachineImpl(
 		override val insert by lazy {
 			object : KotlmataMutableMachine.Modifier.Insert
 			{
-				override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Insert.of
+				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
 				{
-					override fun of(block: KotlmataState.Initializer.() -> Unit)
+					override fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[state] ?: state.invoke(block)
@@ -401,9 +401,9 @@ private class KotlmataMachineImpl(
 				
 				override fun or(keyword: KotlmataMutableMachine.Modifier.Replace) = object : KotlmataMutableMachine.Modifier.Insert.state
 				{
-					override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Insert.of
+					override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
 					{
-						override fun of(block: KotlmataState.Initializer.() -> Unit)
+						override fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
 						{
 							this@ModifierImpl shouldNot expired
 							state.invoke(block)
@@ -428,9 +428,9 @@ private class KotlmataMachineImpl(
 		override val replace by lazy {
 			object : KotlmataMutableMachine.Modifier.Replace
 			{
-				override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Replace.of
+				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Replace.of<T>
 				{
-					override fun of(block: KotlmataState.Initializer.() -> Unit)
+					override fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
 					{
 						this@ModifierImpl shouldNot expired
 						if (state in stateMap)
@@ -445,31 +445,34 @@ private class KotlmataMachineImpl(
 		override val update by lazy {
 			object : KotlmataMutableMachine.Modifier.Update
 			{
-				val stop = object : KotlmataMutableMachine.Modifier.Update.or
+				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Update.set<T>
 				{
-					override fun or(block: KotlmataState.Initializer.() -> Unit)
+					val stop = object : KotlmataMutableMachine.Modifier.Update.or<T>
 					{
-						/* do nothing */
+						override fun or(block: KotlmataState.Initializer.(state: T) -> Unit)
+						{
+							/* do nothing */
+						}
 					}
-				}
-				
-				override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Update.set
-				{
-					override fun set(block: KotlmataMutableState.Modifier.() -> Unit): KotlmataMutableMachine.Modifier.Update.or
+					
+					val or = object : KotlmataMutableMachine.Modifier.Update.or<T>
+					{
+						override fun or(block: KotlmataState.Initializer.(state: T) -> Unit)
+						{
+							state.invoke(block)
+						}
+					}
+					
+					@Suppress("UNCHECKED_CAST")
+					override fun set(block: KotlmataMutableState.Modifier.(state: T) -> Unit): KotlmataMutableMachine.Modifier.Update.or<T>
 					{
 						this@ModifierImpl shouldNot expired
 						return stateMap.let {
 							it[state]
 						}?.let {
-							it.modify(block)
+							it.modify(block as KotlmataMutableState.Modifier.(STATE) -> Unit)
 							stop
-						} ?: object : KotlmataMutableMachine.Modifier.Update.or
-						{
-							override fun or(block: KotlmataState.Initializer.() -> Unit)
-							{
-								state.invoke(block)
-							}
-						}
+						} ?: or
 					}
 				}
 				
@@ -532,7 +535,7 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override fun STATE.invoke(block: KotlmataState.Initializer.() -> Unit)
+		override fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(state: T) -> Unit)
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this, block)
