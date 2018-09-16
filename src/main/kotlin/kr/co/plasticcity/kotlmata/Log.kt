@@ -7,7 +7,9 @@ internal class Logs
 		/*########################## DEBUG ##########################*/
 		/* Kotlmata */
 		const val KOTLMATA_START = "Kotlmata: START"
+		const val KOTLMATA_RESTART = "Kotlmata: RESTART"
 		const val KOTLMATA_SHUTDOWN = "Kotlmata: SHUTDOWN"
+		const val KOTLMATA_RELEASE = "Kotlmata: RELEASE"
 		const val KOTLMATA_POST_MESSAGE = "Kotlmata: Post@%s. {id: %s}"
 		const val KOTLMATA_POST_MESSAGE_DAEMON = "Kotlmata: Post@%s. {daemon: %s} {id: %s}"
 		const val KOTLMATA_POST_MESSAGE_SIGNAL = "Kotlmata: Post@%s. {signal: %s} {daemon: %s} {id: %s}"

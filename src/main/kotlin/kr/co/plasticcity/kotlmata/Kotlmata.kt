@@ -9,6 +9,7 @@ interface Kotlmata
 	fun config(block: Config.() -> Unit)
 	fun start()
 	fun shutdown()
+	fun release()
 	
 	infix fun <T : DAEMON> fork(daemon: T): Of<T>
 	infix fun <T : DAEMON> modify(daemon: T): Set<T>
@@ -154,62 +155,80 @@ private class KotlmataImpl : Kotlmata
 	
 	private val map: MutableMap<DAEMON, KotlmataMutableDaemon<DAEMON>> = HashMap()
 	
-	private val engine = KotlmataDaemon("Kotlmata") { _ ->
-		log level 0
-		
-		on start {
-			logLevel.simple { KOTLMATA_START }
-		}
-		
-		on stop {
-			logLevel.simple { KOTLMATA_SHUTDOWN }
+	private val engine: KotlmataDaemon
+	
+	init
+	{
+		val cleanup = {
 			map.forEach { _, daemon ->
 				daemon.terminate()
 			}
 			map.clear()
 		}
 		
-		"kotlmata" { _ ->
-			input signal Message.Fork::class action {
-				if (it.daemon !in map)
-				{
-					map[it.daemon] = KotlmataMutableDaemon(it.daemon) { _ ->
-						log level logLevel
-						(it.block)(it.daemon)
+		engine = KotlmataDaemon("Kotlmata") { _ ->
+			log level 0
+			
+			on start {
+				logLevel.simple { KOTLMATA_START }
+			}
+			
+			on resume {
+				logLevel.simple { KOTLMATA_RESTART }
+			}
+			
+			on stop {
+				logLevel.simple { KOTLMATA_SHUTDOWN }
+				cleanup()
+			}
+			
+			on terminate {
+				logLevel.simple { KOTLMATA_RELEASE }
+				cleanup()
+			}
+			
+			"kotlmata" { _ ->
+				input signal Message.Fork::class action {
+					if (it.daemon !in map)
+					{
+						map[it.daemon] = KotlmataMutableDaemon(it.daemon) { _ ->
+							log level logLevel
+							(it.block)(it.daemon)
+						}
 					}
 				}
-			}
-			input signal Message.Modify::class action {
-				if (it.daemon in map)
-				{
-					map[it.daemon]!! modify it.block
+				input signal Message.Modify::class action {
+					if (it.daemon in map)
+					{
+						map[it.daemon]!! modify it.block
+					}
+				}
+				input signal Message.Run::class action {
+					map[it.daemon]?.run()
+				}
+				input signal Message.Pause::class action {
+					map[it.daemon]?.pause()
+				}
+				input signal Message.Stop::class action {
+					map[it.daemon]?.stop()
+				}
+				input signal Message.Terminate::class action {
+					map[it.daemon]?.terminate()
+					map -= it.daemon
+				}
+				input signal Message.Signal::class action {
+					map[it.daemon]?.input(it.signal, it.priority)
+				}
+				input signal Message.TypedSignal::class action {
+					map[it.daemon]?.input(it.signal, it.type, it.priority)
+				}
+				input signal Message.Post::class action {
+					PostImpl(it.block)
 				}
 			}
-			input signal Message.Run::class action {
-				map[it.daemon]?.run()
-			}
-			input signal Message.Pause::class action {
-				map[it.daemon]?.pause()
-			}
-			input signal Message.Stop::class action {
-				map[it.daemon]?.stop()
-			}
-			input signal Message.Terminate::class action {
-				map[it.daemon]?.terminate()
-				map -= it.daemon
-			}
-			input signal Message.Signal::class action {
-				map[it.daemon]?.input(it.signal, it.priority)
-			}
-			input signal Message.TypedSignal::class action {
-				map[it.daemon]?.input(it.signal, it.type, it.priority)
-			}
-			input signal Message.Post::class action {
-				PostImpl(it.block)
-			}
+			
+			start at "kotlmata"
 		}
-		
-		start at "kotlmata"
 	}
 	
 	override fun config(block: Kotlmata.Config.() -> Unit)
@@ -225,6 +244,11 @@ private class KotlmataImpl : Kotlmata
 	override fun shutdown()
 	{
 		engine.stop()
+	}
+	
+	override fun release()
+	{
+		engine.terminate()
 	}
 	
 	override fun <T : DAEMON> fork(daemon: T) = object : Kotlmata.Of<T>

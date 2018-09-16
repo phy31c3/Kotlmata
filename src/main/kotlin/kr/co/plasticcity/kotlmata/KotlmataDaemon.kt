@@ -113,16 +113,16 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 		}
 		
-		val startMachine: (Message) -> Unit = {
-			logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
-			onStart()
-			machine.input(Message.Run(), postQuickInput)
-		}
-		
 		engine = KotlmataMachine("${this.key}@engine") { _ ->
 			log level 0
 			
 			"pre-start" { state ->
+				val startMachine: (Message) -> Unit = {
+					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
+					onStart()
+					machine.input(Message.Run(), postQuickInput)
+				}
+				
 				input signal Message.Run::class action startMachine
 				input signal Message.Pause::class action startMachine
 				input signal Message.Stop::class action startMachine
@@ -188,9 +188,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"stop" { state ->
 				var quickInput: Message.QuickInput? = null
 				
-				fun cleanup(m: Message)
-				{
-					synchronized(lock)
+				val cleanup = { m: Message ->
+					synchronized<Unit>(lock)
 					{
 						queue!!.removeIf {
 							(it.isEvent && it.isEarlierThan(m)).apply {
@@ -214,7 +213,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
 					onResume()
 				}
-				input signal Message.Pause::class action ::cleanup
+				input signal Message.Pause::class action cleanup
 				input signal Message.Terminate::class action {}
 				
 				input signal Message.QuickInput::class action {
@@ -278,7 +277,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	override fun input(signal: SIGNAL, priority: Int)
 	{
-		synchronized(lock) {
+		synchronized<Unit>(lock) {
 			val m = Message.Signal(signal, priority)
 			logLevel.detail(key, m, m.signal, m.priority, m.id) { DAEMON_POST_SIGNAL }
 			queue?.offer(m)
@@ -288,7 +287,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	@Suppress("UNCHECKED_CAST")
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int)
 	{
-		synchronized(lock) {
+		synchronized<Unit>(lock) {
 			val m = Message.TypedSignal(signal, type as KClass<SIGNAL>, priority)
 			logLevel.detail(key, m, m.signal, m.type.simpleName, m.priority, m.id) { DAEMON_POST_TYPED_SIGNAL }
 			queue?.offer(m)
@@ -297,7 +296,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	override fun run()
 	{
-		synchronized(lock) {
+		synchronized<Unit>(lock) {
 			val m = Message.Run()
 			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue?.offer(m)
@@ -306,7 +305,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	override fun pause()
 	{
-		synchronized(lock) {
+		synchronized<Unit>(lock) {
 			val m = Message.Pause()
 			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue?.offer(m)
@@ -315,7 +314,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	override fun stop()
 	{
-		synchronized(lock) {
+		synchronized<Unit>(lock) {
 			val m = Message.Stop()
 			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue?.offer(m)
@@ -324,7 +323,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	override fun terminate()
 	{
-		synchronized(lock) {
+		synchronized<Unit>(lock) {
 			val m = Message.Terminate()
 			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue?.offer(m)
@@ -334,7 +333,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	@Suppress("UNCHECKED_CAST")
 	override fun modify(block: KotlmataMutableMachine.Modifier.(key: T) -> Unit)
 	{
-		synchronized(lock) {
+		synchronized<Unit>(lock) {
 			val m = Message.Modify(block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit)
 			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
 			queue?.offer(m)

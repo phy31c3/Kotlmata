@@ -11,6 +11,7 @@ class Tests
 	fun init()
 	{
 		Kotlmata.config {
+			log level 1
 			print debug ::println
 			print warn ::println
 			print error ::println
@@ -22,7 +23,7 @@ class Tests
 	@After
 	fun release()
 	{
-		Kotlmata.shutdown()
+		Kotlmata.release()
 	}
 	
 	@Test
@@ -224,7 +225,7 @@ class Tests
 	fun kotlmataTest()
 	{
 		Kotlmata fork "daemon" of { _ ->
-			log level 3
+			log level 0
 			
 			"state1" { state ->
 				entry action { println("데몬이 시작됨") }
@@ -270,7 +271,7 @@ class Tests
 		Kotlmata input "우선순위 10" priority 10 to "daemon"
 		Kotlmata input "우선순위 1" priority 1 to "daemon"
 		
-		Thread.sleep(500)
+		Thread.sleep(100)
 		
 		Kotlmata {
 			has daemon "daemon" then {
@@ -285,9 +286,12 @@ class Tests
 		}
 		Kotlmata input 5 to "daemon"
 		
-		Thread.sleep(500)
+		Thread.sleep(100)
 		
 		Kotlmata.input("shutdown 보다 더 빨리 실행될까?")
+		Kotlmata.shutdown()
+		
+		Thread.sleep(100)
 	}
 	
 	@Test
