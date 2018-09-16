@@ -10,8 +10,8 @@ internal class Logs
 		const val KOTLMATA_SHUTDOWN = "Kotlmata: SHUTDOWN"
 		const val KOTLMATA_POST_MESSAGE = "Kotlmata: Post@%s. {id: %s}"
 		const val KOTLMATA_POST_MESSAGE_DAEMON = "Kotlmata: Post@%s. {daemon: %s} {id: %s}"
-		const val KOTLMATA_POST_MESSAGE_INPUT = "Kotlmata: Post@%s. {signal: %s} {daemon: %s} {id: %s}"
-		const val KOTLMATA_POST_MESSAGE_TYPED_INPUT = "Kotlmata: Post@%s. {signal: %s, type: %s} {daemon: %s} {id: %s}"
+		const val KOTLMATA_POST_MESSAGE_SIGNAL = "Kotlmata: Post@%s. {signal: %s} {daemon: %s} {id: %s}"
+		const val KOTLMATA_POST_MESSAGE_TYPED_SIGNAL = "Kotlmata: Post@%s. {signal: %s, type: %s} {daemon: %s} {id: %s}"
 		
 		/* Daemon */
 		const val DAEMON_START = "KotlmataDaemon[%s]: --------------------------------------- START ---------------------------------------"
@@ -20,8 +20,8 @@ internal class Logs
 		const val DAEMON_RESUME = "KotlmataDaemon[%s]: --------------------------------------- RESUME --------------------------------------"
 		const val DAEMON_TERMINATE = "KotlmataDaemon[%s]: --------------------------------------- TERMINATE ------------------------------------"
 		const val DAEMON_POST_MESSAGE = "KotlmataDaemon[%s]: Post@%s. {id: %s}"
-		const val DAEMON_POST_INPUT = "KotlmataDaemon[%s]: Post@%s. {signal: %s, priority: %s} {id: %s}"
-		const val DAEMON_POST_TYPED_INPUT = "KotlmataDaemon[%s]: Post@%s. {signal: %s, type: %s, priority: %s} {id: %s}"
+		const val DAEMON_POST_SIGNAL = "KotlmataDaemon[%s]: Post@%s. {signal: %s, priority: %s} {id: %s}"
+		const val DAEMON_POST_TYPED_SIGNAL = "KotlmataDaemon[%s]: Post@%s. {signal: %s, type: %s, priority: %s} {id: %s}"
 		const val DAEMON_POST_QUICK_INPUT = "KotlmataDaemon[%s]: Post@%s. {signal: %s} {id: %s}"
 		const val DAEMON_START_MESSAGE = "KotlmataDaemon[%s]: >> Start message. {id: %s}"
 		const val DAEMON_KEEP_MESSAGE = "KotlmataDaemon[%s]:    Keep message. {id: %s}"

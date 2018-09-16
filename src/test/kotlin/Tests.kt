@@ -64,7 +64,7 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		val machine = KotlmataMutableMachine("m1") {
+		val machine = KotlmataMutableMachine("m1") { _ ->
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { println("$state: String 타입 입력함수: $it") }
@@ -100,7 +100,7 @@ class Tests
 		
 		println("-----------------------------------")
 		
-		machine {
+		machine { _ ->
 			has state "state1" then {
 				println("state1 있음")
 			} or {
@@ -136,7 +136,7 @@ class Tests
 	fun daemonTest()
 	{
 		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
-		val daemon = KotlmataMutableDaemon("d1") {
+		val daemon = KotlmataMutableDaemon("d1") { _ ->
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { println("$state: String 타입 입력함수: $it") }
@@ -200,7 +200,7 @@ class Tests
 		Thread.sleep(100)
 		
 		daemon.run()
-		daemon {
+		daemon { _ ->
 			"state1" x "goToState3" %= "state3"
 			
 			"state3" { state ->
@@ -223,7 +223,9 @@ class Tests
 	@Test
 	fun kotlmataTest()
 	{
-		Kotlmata fork "daemon" of {
+		Kotlmata fork "daemon" of { _ ->
+			log level 3
+			
 			"state1" { state ->
 				entry action { println("데몬이 시작됨") }
 				input signal String::class action { println("$state: String 타입 입력함수: $it") }
@@ -267,6 +269,21 @@ class Tests
 		Kotlmata input "goToState2" to "daemon"
 		Kotlmata input "우선순위 10" priority 10 to "daemon"
 		Kotlmata input "우선순위 1" priority 1 to "daemon"
+		
+		Thread.sleep(500)
+		
+		Kotlmata {
+			has daemon "daemon" then {
+				modify daemon "daemon" set { _ ->
+					update state "state2" set { state ->
+						exit action { println("$state: Post 에서 수정된 퇴장함수") }
+					}
+				}
+			}
+			
+			input signal 3 to "daemon"
+		}
+		Kotlmata input 5 to "daemon"
 		
 		Thread.sleep(500)
 		
