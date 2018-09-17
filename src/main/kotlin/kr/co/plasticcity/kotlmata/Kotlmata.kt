@@ -153,20 +153,20 @@ private class KotlmataImpl : Kotlmata
 {
 	private var logLevel = NORMAL
 	
-	private val map: MutableMap<DAEMON, KotlmataMutableDaemon<DAEMON>> = HashMap()
+	private val daemons: MutableMap<DAEMON, KotlmataMutableDaemon<DAEMON>> = HashMap()
 	
-	private val engine: KotlmataDaemon
+	private val kotlmata: KotlmataDaemon
 	
 	init
 	{
 		val cleanup = {
-			map.forEach { _, daemon ->
+			daemons.forEach { _, daemon ->
 				daemon.terminate()
 			}
-			map.clear()
+			daemons.clear()
 		}
 		
-		engine = KotlmataDaemon("Kotlmata") { _ ->
+		kotlmata = KotlmataDaemon("Kotlmata") { _ ->
 			log level 0
 			
 			on start {
@@ -189,38 +189,38 @@ private class KotlmataImpl : Kotlmata
 			
 			"kotlmata" { _ ->
 				input signal Message.Fork::class action {
-					if (it.daemon !in map)
+					if (it.daemon !in daemons)
 					{
-						map[it.daemon] = KotlmataMutableDaemon(it.daemon) { _ ->
+						daemons[it.daemon] = KotlmataMutableDaemon(it.daemon) { _ ->
 							log level logLevel
 							(it.block)(it.daemon)
 						}
 					}
 				}
 				input signal Message.Modify::class action {
-					if (it.daemon in map)
+					if (it.daemon in daemons)
 					{
-						map[it.daemon]!! modify it.block
+						daemons[it.daemon]!! modify it.block
 					}
 				}
 				input signal Message.Run::class action {
-					map[it.daemon]?.run()
+					daemons[it.daemon]?.run()
 				}
 				input signal Message.Pause::class action {
-					map[it.daemon]?.pause()
+					daemons[it.daemon]?.pause()
 				}
 				input signal Message.Stop::class action {
-					map[it.daemon]?.stop()
+					daemons[it.daemon]?.stop()
 				}
 				input signal Message.Terminate::class action {
-					map[it.daemon]?.terminate()
-					map -= it.daemon
+					daemons[it.daemon]?.terminate()
+					daemons -= it.daemon
 				}
 				input signal Message.Signal::class action {
-					map[it.daemon]?.input(it.signal, it.priority)
+					daemons[it.daemon]?.input(it.signal, it.priority)
 				}
 				input signal Message.TypedSignal::class action {
-					map[it.daemon]?.input(it.signal, it.type, it.priority)
+					daemons[it.daemon]?.input(it.signal, it.type, it.priority)
 				}
 				input signal Message.Post::class action {
 					PostImpl(it.block)
@@ -238,17 +238,17 @@ private class KotlmataImpl : Kotlmata
 	
 	override fun start()
 	{
-		engine.run()
+		kotlmata.run()
 	}
 	
 	override fun shutdown()
 	{
-		engine.stop()
+		kotlmata.stop()
 	}
 	
 	override fun release()
 	{
-		engine.terminate()
+		kotlmata.terminate()
 	}
 	
 	override fun <T : DAEMON> fork(daemon: T) = object : Kotlmata.Of<T>
@@ -258,7 +258,7 @@ private class KotlmataImpl : Kotlmata
 		{
 			val m = Message.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End)
 			logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-			engine.input(m)
+			kotlmata.input(m)
 		}
 	}
 	
@@ -269,7 +269,7 @@ private class KotlmataImpl : Kotlmata
 		{
 			val m = Message.Modify(daemon, block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit)
 			logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-			engine.input(m)
+			kotlmata.input(m)
 		}
 	}
 	
@@ -277,28 +277,28 @@ private class KotlmataImpl : Kotlmata
 	{
 		val m = Message.Run(daemon)
 		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		engine.input(m)
+		kotlmata.input(m)
 	}
 	
 	override fun pause(daemon: DAEMON)
 	{
 		val m = Message.Pause(daemon)
 		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		engine.input(m)
+		kotlmata.input(m)
 	}
 	
 	override fun stop(daemon: DAEMON)
 	{
 		val m = Message.Stop(daemon)
 		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		engine.input(m)
+		kotlmata.input(m)
 	}
 	
 	override fun terminate(daemon: DAEMON)
 	{
 		val m = Message.Terminate(daemon)
 		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		engine.input(m)
+		kotlmata.input(m)
 	}
 	
 	override fun <T : SIGNAL> input(signal: T) = object : Kotlmata.Type<T>
@@ -312,7 +312,7 @@ private class KotlmataImpl : Kotlmata
 				{
 					val m = Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, priority)
 					logLevel.detail(m, m.signal, m.type, daemon, m.id) { KOTLMATA_POST_MESSAGE_TYPED_SIGNAL }
-					engine.input(m)
+					kotlmata.input(m)
 				}
 			}
 			
@@ -320,7 +320,7 @@ private class KotlmataImpl : Kotlmata
 			{
 				val m = Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, 0)
 				logLevel.detail(m, m.signal, m.type, daemon, m.id) { KOTLMATA_POST_MESSAGE_TYPED_SIGNAL }
-				engine.input(m)
+				kotlmata.input(m)
 			}
 		}
 		
@@ -330,7 +330,7 @@ private class KotlmataImpl : Kotlmata
 			{
 				val m = Message.Signal(daemon, signal, priority)
 				logLevel.detail(m, m.signal, daemon, m.id) { KOTLMATA_POST_MESSAGE_SIGNAL }
-				engine.input(m)
+				kotlmata.input(m)
 			}
 		}
 		
@@ -338,7 +338,7 @@ private class KotlmataImpl : Kotlmata
 		{
 			val m = Message.Signal(daemon, signal, 0)
 			logLevel.detail(m, m.signal, daemon, m.id) { KOTLMATA_POST_MESSAGE_SIGNAL }
-			engine.input(m)
+			kotlmata.input(m)
 		}
 	}
 	
@@ -346,7 +346,7 @@ private class KotlmataImpl : Kotlmata
 	{
 		val m = Message.Post(block)
 		logLevel.detail(m, m.id) { KOTLMATA_POST_MESSAGE }
-		engine.input(m)
+		kotlmata.input(m)
 	}
 	
 	private inner class ConfigImpl internal constructor(
@@ -405,7 +405,7 @@ private class KotlmataImpl : Kotlmata
 					init
 					{
 						this@PostImpl shouldNot expired
-						if (daemon in map)
+						if (daemon in daemons)
 						{
 							block()
 							or = false
@@ -438,9 +438,9 @@ private class KotlmataImpl : Kotlmata
 				override fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
 				{
 					this@PostImpl shouldNot expired
-					if (daemon !in map)
+					if (daemon !in daemons)
 					{
-						map[daemon] = KotlmataMutableDaemon(daemon) {
+						daemons[daemon] = KotlmataMutableDaemon(daemon) {
 							log level logLevel
 							block(daemon)
 						}
@@ -457,9 +457,9 @@ private class KotlmataImpl : Kotlmata
 				override fun set(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 				{
 					this@PostImpl shouldNot expired
-					if (daemon in map)
+					if (daemon in daemons)
 					{
-						map[daemon]!! modify block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit
+						daemons[daemon]!! modify block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit
 					}
 				}
 			}
@@ -470,7 +470,7 @@ private class KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON)
 			{
 				this@PostImpl shouldNot expired
-				map[daemon]?.run()
+				daemons[daemon]?.run()
 			}
 		}
 		
@@ -479,7 +479,7 @@ private class KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON)
 			{
 				this@PostImpl shouldNot expired
-				map[daemon]?.pause()
+				daemons[daemon]?.pause()
 			}
 		}
 		
@@ -488,7 +488,7 @@ private class KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON)
 			{
 				this@PostImpl shouldNot expired
-				map[daemon]?.stop()
+				daemons[daemon]?.stop()
 			}
 		}
 		
@@ -497,9 +497,9 @@ private class KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON)
 			{
 				this@PostImpl shouldNot expired
-				map[daemon]?.let {
+				daemons[daemon]?.let {
 					it.terminate()
-					map -= daemon
+					daemons -= daemon
 				}
 			}
 		}
@@ -515,14 +515,14 @@ private class KotlmataImpl : Kotlmata
 						override fun to(daemon: DAEMON)
 						{
 							this@PostImpl shouldNot expired
-							map[daemon]?.input(signal, type, priority)
+							daemons[daemon]?.input(signal, type, priority)
 						}
 					}
 					
 					override fun to(daemon: DAEMON)
 					{
 						this@PostImpl shouldNot expired
-						map[daemon]?.input(signal, type)
+						daemons[daemon]?.input(signal, type)
 					}
 				}
 				
@@ -531,14 +531,14 @@ private class KotlmataImpl : Kotlmata
 					override fun to(daemon: DAEMON)
 					{
 						this@PostImpl shouldNot expired
-						map[daemon]?.input(signal, priority)
+						daemons[daemon]?.input(signal, priority)
 					}
 				}
 				
 				override fun to(daemon: DAEMON)
 				{
 					this@PostImpl shouldNot expired
-					map[daemon]?.input(signal)
+					daemons[daemon]?.input(signal)
 				}
 			}
 		}
