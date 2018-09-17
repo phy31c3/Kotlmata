@@ -68,5 +68,3 @@ internal inline fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> Stri
 {
 	if (this >= DETAIL) Log.d(args = *args, log = log)
 }
-
-internal fun Int.isDetail() = this >= DETAIL

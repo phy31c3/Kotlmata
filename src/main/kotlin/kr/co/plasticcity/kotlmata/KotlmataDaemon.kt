@@ -107,7 +107,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		val ignore: (SIGNAL, STATE) -> Unit = { message, state ->
-			if (logLevel.isDetail() && message is Message)
+			if (message is Message)
 			{
 				logLevel.detail(this@KotlmataDaemonImpl.key, state, message.id) { DAEMON_MESSAGE_IGNORED }
 			}
