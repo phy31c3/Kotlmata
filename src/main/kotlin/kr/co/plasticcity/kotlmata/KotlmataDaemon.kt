@@ -100,9 +100,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			machine modify it.block
 		}
 		
-		val postQuickInput: (SIGNAL) -> Unit = {
-			val m = Message.QuickInput(it)
-			logLevel.detail(this@KotlmataDaemonImpl.key, m, m.signal, m.id) { DAEMON_POST_QUICK_INPUT }
+		val postExpress: (SIGNAL) -> Unit = {
+			val m = Message.Express(it)
+			logLevel.detail(this@KotlmataDaemonImpl.key, m, m.signal, m.id) { DAEMON_POST_EXPRESS_INPUT }
 			queue!!.offer(m)
 		}
 		
@@ -120,7 +120,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				val startMachine: (Message) -> Unit = {
 					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
 					onStart()
-					machine.input(Message.Run(), postQuickInput)
+					machine.input(Message.Run(), postExpress)
 				}
 				
 				input signal Message.Run::class action startMachine
@@ -138,14 +138,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.QuickInput::class action {
-					machine.input(it.signal, postQuickInput)
+				input signal Message.Express::class action {
+					machine.input(it.signal, postExpress)
 				}
 				input signal Message.Signal::class action {
-					machine.input(it.signal, postQuickInput)
+					machine.input(it.signal, postExpress)
 				}
 				input signal Message.TypedSignal::class action {
-					machine.input(it.signal, it.type, postQuickInput)
+					machine.input(it.signal, it.type, postExpress)
 				}
 				input signal Message.Modify::class action modifyMachine
 				
@@ -173,7 +173,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.QuickInput::class action keep
+				input signal Message.Express::class action keep
 				input signal Message.Signal::class action keep
 				input signal Message.TypedSignal::class action keep
 				input signal Message.Modify::class action keep
@@ -186,7 +186,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			
 			"stop" { state ->
-				var quickInput: Message.QuickInput? = null
+				var express: Message.Express? = null
 				
 				val cleanup = { m: Message ->
 					synchronized<Unit>(lock)
@@ -199,7 +199,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 								}
 							}
 						}
-						quickInput?.let { queue!!.offer(it) }
+						express?.let { queue!!.offer(it) }
 					}
 				}
 				
@@ -216,15 +216,15 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Message.Pause::class action cleanup
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.QuickInput::class action {
-					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_QUICK_INPUT }
-					quickInput = it
+				input signal Message.Express::class action {
+					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_EXPRESS_INPUT }
+					express = it
 				}
 				
 				input action { ignore(it, state) }
 				
 				exit action {
-					quickInput = null
+					express = null
 				}
 			}
 			
@@ -423,7 +423,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		class Stop : Message(CONTROL)
 		class Terminate : Message(CONTROL)
 		
-		class QuickInput(val signal: SIGNAL) : Message(QUICK)
+		class Express(val signal: SIGNAL) : Message(EXPRESS)
 		
 		class Signal(val signal: SIGNAL, priority: Int)
 			: Message(if (priority > 0) EVENT + priority else EVENT)
@@ -436,7 +436,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		companion object
 		{
 			private const val CONTROL = -2
-			private const val QUICK = -1
+			private const val EXPRESS = -1
 			private const val EVENT = 0
 			
 			val ticket: AtomicLong = AtomicLong(0)

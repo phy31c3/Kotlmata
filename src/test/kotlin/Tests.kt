@@ -156,7 +156,7 @@ class Tests
 			"state3" { state ->
 				entry action {
 					println("$state: 기본 진입함수")
-					"quick input"
+					"express input"
 				}
 				input signal String::class action { println("$state: String 타입 입력함수: $it") }
 				exit action { println("$state: 퇴장함수") }
@@ -207,7 +207,7 @@ class Tests
 			update state "state3" set { state ->
 				entry action {
 					println("$state: 수정된 기본 진입함수")
-					"quick input"
+					"express input"
 				}
 			}
 		}
@@ -250,7 +250,7 @@ class Tests
 			"state3" { state ->
 				entry action {
 					println("$state: 기본 진입함수")
-					"quick input"
+					"express input"
 				}
 				input signal String::class action { println("$state: String 타입 입력함수: $it") }
 				exit action { println("$state: 퇴장함수") }
