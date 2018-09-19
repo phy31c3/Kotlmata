@@ -204,7 +204,7 @@ class Tests
 		daemon { _ ->
 			"state1" x "goToState3" %= "state3"
 			
-			"state3" { state ->
+			update state "state3" set { state ->
 				entry action {
 					println("$state: 수정된 기본 진입함수")
 					"quick input"
@@ -212,6 +212,7 @@ class Tests
 			}
 		}
 		daemon.input("goToState3")
+		daemon.input("이거 출력되어야 하는데..")
 		
 		Thread.sleep(500)
 		
@@ -241,6 +242,7 @@ class Tests
 					null
 				}
 				input signal Integer::class action { println("$state: Number 타입 입력함수: $it") }
+				input signal String::class action { println("$state: String 타입 입력함수: $it") }
 				input signal 5 action { println("state3로 이동") }
 				exit action { println("$state: 퇴장함수") }
 			}
@@ -268,7 +270,11 @@ class Tests
 		
 		Kotlmata run "daemon"
 		Kotlmata input "goToState2" to "daemon"
-		Kotlmata input "우선순위 10" priority 10 to "daemon"
+		Kotlmata input "한타임 쉬고" to "daemon"
+		Kotlmata input "우선순위 5" priority 5 to "daemon"
+		Kotlmata input "우선순위 4" priority 4 to "daemon"
+		Kotlmata input "우선순위 3" priority 3 to "daemon"
+		Kotlmata input "우선순위 2" priority 2 to "daemon"
 		Kotlmata input "우선순위 1" priority 1 to "daemon"
 		
 		Thread.sleep(100)
@@ -277,6 +283,7 @@ class Tests
 			has daemon "daemon" then {
 				modify daemon "daemon" set { _ ->
 					update state "state2" set { state ->
+						input signal Integer::class action { println("$state: Post 에서 수정된 Number 타입 입력함수: $it") }
 						exit action { println("$state: Post 에서 수정된 퇴장함수") }
 					}
 				}

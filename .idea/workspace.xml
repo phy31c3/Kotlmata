@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="Kotlmata engine -&gt; kotlmata, map -&gt; daemons">
-      <change afterPath="$PROJECT_DIR$/src/test/kotlin/log" afterDir="false" />
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Interface" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Interface" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/.gradle/" />
@@ -77,18 +74,18 @@
         <counts>
           <entry key="Interface" value="1120" />
           <entry key="gradle" value="20" />
-          <entry key="kt" value="26601" />
+          <entry key="kt" value="26789" />
           <entry key="kts" value="35" />
           <entry key="log" value="1180" />
-          <entry key="txt" value="2028" />
+          <entry key="txt" value="2042" />
           <entry key="xml" value="9" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Groovy" value="20" />
-          <entry key="Kotlin" value="26601" />
-          <entry key="PLAIN_TEXT" value="4328" />
+          <entry key="Kotlin" value="26789" />
+          <entry key="PLAIN_TEXT" value="4342" />
           <entry key="Scratch" value="35" />
           <entry key="XML" value="9" />
         </counts>
@@ -118,11 +115,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/test/kotlin/Tests.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="687">
-              <caret line="277" column="49" lean-forward="true" selection-start-line="277" selection-start-column="49" selection-end-line="277" selection-end-column="49" />
+            <state relative-caret-position="653">
+              <caret line="275" column="54" lean-forward="true" selection-start-line="275" selection-start-column="54" selection-end-line="275" selection-end-column="54" />
               <folding>
                 <element signature="e#0#189#0" expanded="true" />
               </folding>
@@ -133,8 +130,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="9469">
-              <caret line="557" column="49" selection-start-line="557" selection-start-column="49" selection-end-line="557" selection-end-column="49" />
+            <state relative-caret-position="448">
+              <caret line="314" column="32" selection-start-line="314" selection-start-column="32" selection-end-line="314" selection-end-column="32" />
             </state>
           </provider>
         </entry>
@@ -151,11 +148,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="670">
-              <caret line="475" column="32" lean-forward="true" selection-start-line="475" selection-start-column="32" selection-end-line="475" selection-end-column="32" />
+            <state relative-caret-position="476">
+              <caret line="256" column="114" lean-forward="true" selection-start-line="256" selection-start-column="114" selection-end-line="256" selection-end-column="114" />
             </state>
           </provider>
         </entry>
@@ -163,8 +160,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="347">
-              <caret line="125" column="22" lean-forward="true" selection-start-line="125" selection-start-column="22" selection-end-line="125" selection-end-column="22" />
+            <state relative-caret-position="823">
+              <caret line="174" column="28" lean-forward="true" selection-start-line="174" selection-start-column="28" selection-end-line="174" selection-end-column="28" />
             </state>
           </provider>
         </entry>
@@ -191,7 +188,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>warning</find>
       <find>requested</find>
       <find>}</find>
       <find>&gt; Post</find>
@@ -221,6 +217,7 @@
       <find>quick input</find>
       <find>apply</find>
       <find>%=</find>
+      <find>이제</find>
     </findStrings>
     <replaceStrings>
       <replace>Kotlmata</replace>
@@ -605,11 +602,11 @@
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Internals.kt" />
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" />
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" />
-        <option value="$PROJECT_DIR$/src/test/kotlin/Tests.kt" />
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" />
         <option value="$PROJECT_DIR$/src/test/kotlin/log" />
         <option value="$PROJECT_DIR$/src/test/kotlin/Interface" />
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" />
+        <option value="$PROJECT_DIR$/src/test/kotlin/Tests.kt" />
       </list>
     </option>
   </component>
@@ -753,7 +750,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="JUnit.Tests.daemonTest">
+  <component name="RunManager" selected="JUnit.Tests.kotlmataTest">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method v="2">
@@ -838,10 +835,10 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.Tests.daemonTest" />
         <item itemvalue="JUnit.Tests.kotlmataTest" />
-        <item itemvalue="JUnit.Tests.machineTest" />
         <item itemvalue="JUnit.Tests.commonTest" />
+        <item itemvalue="JUnit.Tests.daemonTest" />
+        <item itemvalue="JUnit.Tests.machineTest" />
       </list>
     </recent_temporary>
   </component>
@@ -855,20 +852,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00038" summary="KotlmataDaemon.engine 구현 완료">
-      <created>1535904284122</created>
-      <option name="number" value="00038" />
-      <option name="presentableId" value="LOCAL-00038" />
-      <option name="project" value="LOCAL" />
-      <updated>1535904284122</updated>
-    </task>
-    <task id="LOCAL-00039" summary="KotlmataDaemon 코드 정리">
-      <created>1535904755227</created>
-      <option name="number" value="00039" />
-      <option name="presentableId" value="LOCAL-00039" />
-      <option name="project" value="LOCAL" />
-      <updated>1535904755227</updated>
     </task>
     <task id="LOCAL-00040" summary="KotlmataDaemon 테스트 &amp; 오류 수정">
       <created>1535993465472</created>
@@ -1199,39 +1182,53 @@
       <option name="project" value="LOCAL" />
       <updated>1537197971082</updated>
     </task>
-    <option name="localTasksCounter" value="87" />
+    <task id="LOCAL-00087" summary="코드 정리">
+      <created>1537359104608</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1537359104609</updated>
+    </task>
+    <task id="LOCAL-00088" summary="로그 설계 중">
+      <created>1537359130639</created>
+      <option name="number" value="00088" />
+      <option name="presentableId" value="LOCAL-00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1537359130639</updated>
+    </task>
+    <option name="localTasksCounter" value="89" />
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Tests_kotlmataTest - 2018.09.17 at 00h 30m 54s.xml">
+    <history-entry file="Tests_commonTest - 2018.09.19 at 23h 24m 41s.xml">
+      <configuration name="Tests.commonTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="Tests_commonTest - 2018.09.19 at 23h 24m 54s.xml">
+      <configuration name="Tests.commonTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="Tests_commonTest - 2018.09.19 at 23h 36m 09s.xml">
+      <configuration name="Tests.commonTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="Tests_kotlmataTest - 2018.09.19 at 23h 36m 56s.xml">
       <configuration name="Tests.kotlmataTest" configurationId="JUnit" />
     </history-entry>
-    <history-entry file="Tests_kotlmataTest - 2018.09.17 at 00h 31m 31s.xml">
+    <history-entry file="Tests_kotlmataTest - 2018.09.19 at 23h 37m 26s.xml">
       <configuration name="Tests.kotlmataTest" configurationId="JUnit" />
     </history-entry>
-    <history-entry file="Tests_kotlmataTest - 2018.09.17 at 00h 32m 17s.xml">
+    <history-entry file="Tests_kotlmataTest - 2018.09.19 at 23h 42m 42s.xml">
       <configuration name="Tests.kotlmataTest" configurationId="JUnit" />
     </history-entry>
-    <history-entry file="Tests_kotlmataTest - 2018.09.17 at 00h 34m 40s.xml">
+    <history-entry file="Tests_kotlmataTest - 2018.09.19 at 23h 43m 06s.xml">
       <configuration name="Tests.kotlmataTest" configurationId="JUnit" />
     </history-entry>
-    <history-entry file="Tests_kotlmataTest - 2018.09.17 at 00h 39m 38s.xml">
+    <history-entry file="Tests_kotlmataTest - 2018.09.19 at 23h 43m 34s.xml">
       <configuration name="Tests.kotlmataTest" configurationId="JUnit" />
     </history-entry>
-    <history-entry file="Tests_kotlmataTest - 2018.09.17 at 23h 52m 42s.xml">
+    <history-entry file="Tests_kotlmataTest - 2018.09.19 at 23h 45m 18s.xml">
       <configuration name="Tests.kotlmataTest" configurationId="JUnit" />
     </history-entry>
-    <history-entry file="Tests_kotlmataTest - 2018.09.18 at 23h 54m 39s.xml">
+    <history-entry file="Tests_kotlmataTest - 2018.09.19 at 23h 46m 01s.xml">
       <configuration name="Tests.kotlmataTest" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="Tests_daemonTest - 2018.09.19 at 02h 15m 23s.xml">
-      <configuration name="Tests.daemonTest" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="Tests_daemonTest - 2018.09.19 at 20h 58m 58s.xml">
-      <configuration name="Tests.daemonTest" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="Tests_daemonTest - 2018.09.19 at 20h 59m 13s.xml">
-      <configuration name="Tests.daemonTest" configurationId="JUnit" />
     </history-entry>
   </component>
   <component name="ToolWindowManager">
@@ -1273,7 +1270,7 @@
       <window_info anchor="right" id="Properties" order="10" />
       <window_info anchor="right" id="Fabric" order="11" />
       <window_info anchor="right" id="Kotlin Bytecode" order="12" weight="0.3298887" />
-      <window_info anchor="right" id="Run" internal_type="SLIDING" order="13" weight="0.32511923" />
+      <window_info active="true" anchor="right" id="Run" internal_type="SLIDING" order="13" visible="true" weight="0.32511923" />
     </layout>
     <layout-to-restore>
       <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.657299" visible="true" weight="0.17885533" />
@@ -1318,8 +1315,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Kotlmata 기본 인터페이스 정의" />
-    <MESSAGE value="Kotlmata 인터페이스 수정 (has 삭제, post 추가해야 됨)" />
     <MESSAGE value="invoke 구현을 삭제" />
     <MESSAGE value="Kotlmata Post 인터페이스 추가" />
     <MESSAGE value="KotlmataState, KotlmataMachine 코드 정리" />
@@ -1343,10 +1338,44 @@
     <MESSAGE value="Kotlmata release 추가" />
     <MESSAGE value="logLevel.isDetail() 삭제" />
     <MESSAGE value="Kotlmata engine -&gt; kotlmata, map -&gt; daemons" />
-    <option name="LAST_COMMIT_MESSAGE" value="Kotlmata engine -&gt; kotlmata, map -&gt; daemons" />
+    <MESSAGE value="코드 정리" />
+    <MESSAGE value="로그 설계 중" />
+    <option name="LAST_COMMIT_MESSAGE" value="로그 설계 중" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="JUnit">
+        <watch expression="d::class.allSuperclasses" language="kotlin" />
+        <watch expression="&quot;a&quot;::class.allSuperclasses" language="kotlin" />
+        <watch expression="d::class.allSupertypes" language="kotlin" custom="import kotlin.reflect.full.allSupertypes" />
+        <watch expression="d::class.superclasses" language="kotlin" custom="import kotlin.reflect.full.superclasses" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
+      <expression>
+        <expression-string>d::class.superclasses</expression-string>
+        <language-id>kotlin</language-id>
+        <custom-info>import kotlin.reflect.full.superclasses</custom-info>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>d::class.allSupertypes</expression-string>
+        <language-id>kotlin</language-id>
+        <custom-info>import kotlin.reflect.full.allSupertypes</custom-info>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>&quot;a&quot;::class.allSuperclasses</expression-string>
+        <language-id>kotlin</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>d::class.allSuperclasses</expression-string>
+        <language-id>kotlin</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>action(&quot;state1&quot;)</expression-string>
         <language-id>kotlin</language-id>
@@ -1374,21 +1403,6 @@
       </expression>
       <expression>
         <expression-string>this.hashCode()</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>queue.peek()</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>a == b</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>DaemonOriginState.toString()</expression-string>
         <language-id>kotlin</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -1614,13 +1628,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9469">
-          <caret line="557" column="49" selection-start-line="557" selection-start-column="49" selection-end-line="557" selection-end-column="49" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="612">
@@ -1638,27 +1645,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/test/kotlin/Tests.kt">
+    <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="687">
-          <caret line="277" column="49" lean-forward="true" selection-start-line="277" selection-start-column="49" selection-end-line="277" selection-end-column="49" />
-          <folding>
-            <element signature="e#0#189#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="476">
+          <caret line="256" column="114" lean-forward="true" selection-start-line="256" selection-start-column="114" selection-end-line="256" selection-end-column="114" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="347">
-          <caret line="125" column="22" lean-forward="true" selection-start-line="125" selection-start-column="22" selection-end-line="125" selection-end-column="22" />
+        <state relative-caret-position="823">
+          <caret line="174" column="28" lean-forward="true" selection-start-line="174" selection-start-column="28" selection-end-line="174" selection-end-column="28" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt">
+    <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="670">
-          <caret line="475" column="32" lean-forward="true" selection-start-line="475" selection-start-column="32" selection-end-line="475" selection-end-column="32" />
+        <state relative-caret-position="448">
+          <caret line="314" column="32" selection-start-line="314" selection-start-column="32" selection-end-line="314" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/test/kotlin/Tests.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="653">
+          <caret line="275" column="54" lean-forward="true" selection-start-line="275" selection-start-column="54" selection-end-line="275" selection-end-column="54" />
+          <folding>
+            <element signature="e#0#189#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
