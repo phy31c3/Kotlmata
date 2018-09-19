@@ -87,7 +87,7 @@ mutableMachine {
 		exit action [action]
 	} // insert or replace
 
-	"state0" x "signal" %= "state1" // insert or replace
+	"state0" x "signal" %= "state1" // insert or update
 
 	has state "state1" then {
 		// "state1"이 존재하면 실행
