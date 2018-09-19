@@ -11,7 +11,7 @@ class Tests
 	fun init()
 	{
 		Kotlmata.config {
-			log level 1
+			log level 3
 			print debug ::println
 			print warn ::println
 			print error ::println

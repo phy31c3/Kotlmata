@@ -1,9 +1,9 @@
 -------------------------------- DEBUG --------------------------------
 [Kotlmata]
 생명주기						: 'Kotlmata: START' 															1
-데몬 생성/수정/제어 성공/실패	: 'Kotlmata:%s [Message] {daemon: %s}'											3
-							: 'Kotlmata:%s [Message] failure: The daemon is already exists. {daemon: %s}	2
-데몬 (타입지정)입력 성공/실패	: 'Kotlmata:%s [Message] {signal: %s} {daemon: %s}'								3(2)
+데몬 생성/수정/제어 실행/무시	: 'Kotlmata:%s [Message] {daemon: %s}'											3
+							: 'Kotlmata:%s [Message] ignored: The daemon is already exists. {daemon: %s}	2
+데몬 (타입지정)입력 실행/무시	: 'Kotlmata:%s [Message] {signal: %s} {daemon: %s}'								3(2)
 포스트 블럭 시작				: 'Kotlmata: >> Start post block.'												3
 포스트 블럭 끝				: 'Kotlmata: << End post block.'												3
 
@@ -22,12 +22,14 @@
 [KotlmataMachine]
 생성 시작
 생성 완료
+머신 수정 시작
+머신 수정 완료
 상태 전이됨
-신호 입력됨
-
 
 [KotlmataState]
-
+상태 생성
+상태 수정
+신호 입력됨
 
 -------------------------------- WARN ---------------------------------
 상태 정의 중복

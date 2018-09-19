@@ -191,39 +191,99 @@ private class KotlmataImpl : Kotlmata
 				input signal Message.Fork::class action {
 					if (it.daemon !in daemons)
 					{
+						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
 						daemons[it.daemon] = KotlmataMutableDaemon(it.daemon) { _ ->
 							log level logLevel
 							(it.block)(it.daemon)
 						}
 					}
+					else
+					{
+						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_EXISTS }
+					}
 				}
 				input signal Message.Modify::class action {
 					if (it.daemon in daemons)
 					{
+						logLevel.detail("", it, it.daemon) { KOTLMATA_COMMON }
 						daemons[it.daemon]!! modify it.block
+					}
+					else
+					{
+						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
 				input signal Message.Run::class action {
-					daemons[it.daemon]?.run()
+					if (it.daemon in daemons)
+					{
+						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
+						daemons[it.daemon]!!.run()
+					}
+					else
+					{
+						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+					}
 				}
 				input signal Message.Pause::class action {
-					daemons[it.daemon]?.pause()
+					if (it.daemon in daemons)
+					{
+						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
+						daemons[it.daemon]!!.pause()
+					}
+					else
+					{
+						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+					}
 				}
 				input signal Message.Stop::class action {
-					daemons[it.daemon]?.stop()
+					if (it.daemon in daemons)
+					{
+						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
+						daemons[it.daemon]!!.stop()
+					}
+					else
+					{
+						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+					}
 				}
 				input signal Message.Terminate::class action {
-					daemons[it.daemon]?.terminate()
-					daemons -= it.daemon
+					if (it.daemon in daemons)
+					{
+						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
+						daemons[it.daemon]!!.terminate()
+						daemons -= it.daemon
+					}
+					else
+					{
+						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+					}
 				}
 				input signal Message.Signal::class action {
-					daemons[it.daemon]?.input(it.signal, it.priority)
+					if (it.daemon in daemons)
+					{
+						logLevel.detail("", it.signal, it.priority, it.daemon) { KOTLMATA_SIGNAL }
+						daemons[it.daemon]!!.input(it.signal, it.priority)
+					}
+					else
+					{
+						logLevel.normal("", it.signal, it.priority, it.daemon) { KOTLMATA_SIGNAL_IGNORED }
+					}
 				}
 				input signal Message.TypedSignal::class action {
-					daemons[it.daemon]?.input(it.signal, it.type, it.priority)
+					if (it.daemon in daemons)
+					{
+						logLevel.detail("", it.signal, it.type, it.priority, it.daemon) { KOTLMATA_TYPED }
+						daemons[it.daemon]!!.input(it.signal, it.type, it.priority)
+					}
+					else
+					{
+						logLevel.normal("", it.signal, it.type, it.priority, it.daemon) { KOTLMATA_TYPED_IGNORED }
+					}
 				}
 				input signal Message.Post::class action {
+					logLevel.detail { KOTLMATA_START_POST }
 					PostImpl(it.block)
+					logLevel.detail { KOTLMATA_END_POST }
 				}
 			}
 			
@@ -256,9 +316,7 @@ private class KotlmataImpl : Kotlmata
 		@Suppress("UNCHECKED_CAST")
 		override fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
 		{
-			val m = Message.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End)
-			logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-			kotlmata.input(m)
+			kotlmata.input(Message.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End))
 		}
 	}
 	
@@ -267,38 +325,28 @@ private class KotlmataImpl : Kotlmata
 		@Suppress("UNCHECKED_CAST")
 		override fun set(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 		{
-			val m = Message.Modify(daemon, block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit)
-			logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-			kotlmata.input(m)
+			kotlmata.input(Message.Modify(daemon, block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit))
 		}
 	}
 	
 	override fun run(daemon: DAEMON)
 	{
-		val m = Message.Run(daemon)
-		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		kotlmata.input(m)
+		kotlmata.input(Message.Run(daemon))
 	}
 	
 	override fun pause(daemon: DAEMON)
 	{
-		val m = Message.Pause(daemon)
-		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		kotlmata.input(m)
+		kotlmata.input(Message.Pause(daemon))
 	}
 	
 	override fun stop(daemon: DAEMON)
 	{
-		val m = Message.Stop(daemon)
-		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		kotlmata.input(m)
+		kotlmata.input(Message.Stop(daemon))
 	}
 	
 	override fun terminate(daemon: DAEMON)
 	{
-		val m = Message.Terminate(daemon)
-		logLevel.detail(m, daemon, m.id) { KOTLMATA_POST_MESSAGE_DAEMON }
-		kotlmata.input(m)
+		kotlmata.input(Message.Terminate(daemon))
 	}
 	
 	override fun <T : SIGNAL> input(signal: T) = object : Kotlmata.Type<T>
@@ -310,17 +358,13 @@ private class KotlmataImpl : Kotlmata
 			{
 				override fun to(daemon: DAEMON)
 				{
-					val m = Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, priority)
-					logLevel.detail(m, m.signal, m.type, daemon, m.id) { KOTLMATA_POST_MESSAGE_TYPED_SIGNAL }
-					kotlmata.input(m)
+					kotlmata.input(Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, priority))
 				}
 			}
 			
 			override fun to(daemon: DAEMON)
 			{
-				val m = Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, 0)
-				logLevel.detail(m, m.signal, m.type, daemon, m.id) { KOTLMATA_POST_MESSAGE_TYPED_SIGNAL }
-				kotlmata.input(m)
+				kotlmata.input(Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, 0))
 			}
 		}
 		
@@ -328,25 +372,19 @@ private class KotlmataImpl : Kotlmata
 		{
 			override fun to(daemon: DAEMON)
 			{
-				val m = Message.Signal(daemon, signal, priority)
-				logLevel.detail(m, m.signal, daemon, m.id) { KOTLMATA_POST_MESSAGE_SIGNAL }
-				kotlmata.input(m)
+				kotlmata.input(Message.Signal(daemon, signal, priority))
 			}
 		}
 		
 		override fun to(daemon: DAEMON)
 		{
-			val m = Message.Signal(daemon, signal, 0)
-			logLevel.detail(m, m.signal, daemon, m.id) { KOTLMATA_POST_MESSAGE_SIGNAL }
-			kotlmata.input(m)
+			kotlmata.input(Message.Signal(daemon, signal, 0))
 		}
 	}
 	
 	override fun post(block: Kotlmata.Post.() -> Unit)
 	{
-		val m = Message.Post(block)
-		logLevel.detail(m, m.id) { KOTLMATA_POST_MESSAGE }
-		kotlmata.input(m)
+		kotlmata.input(Message.Post(block))
 	}
 	
 	private inner class ConfigImpl internal constructor(
@@ -440,10 +478,15 @@ private class KotlmataImpl : Kotlmata
 					this@PostImpl shouldNot expired
 					if (daemon !in daemons)
 					{
+						logLevel.detail("   Fork", daemon) { KOTLMATA_COMMON }
 						daemons[daemon] = KotlmataMutableDaemon(daemon) {
 							log level logLevel
 							block(daemon)
 						}
+					}
+					else
+					{
+						logLevel.normal("   Fork", daemon) { KOTLMATA_COMMON_IGNORED_EXISTS }
 					}
 				}
 			}
@@ -459,7 +502,12 @@ private class KotlmataImpl : Kotlmata
 					this@PostImpl shouldNot expired
 					if (daemon in daemons)
 					{
+						logLevel.detail("   Modify", daemon) { KOTLMATA_COMMON }
 						daemons[daemon]!! modify block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit
+					}
+					else
+					{
+						logLevel.normal("   Modify", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
 			}
@@ -470,7 +518,15 @@ private class KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON)
 			{
 				this@PostImpl shouldNot expired
-				daemons[daemon]?.run()
+				if (daemon in daemons)
+				{
+					logLevel.detail("   Run", daemon) { KOTLMATA_COMMON }
+					daemons[daemon]!!.run()
+				}
+				else
+				{
+					logLevel.normal("   Run", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+				}
 			}
 		}
 		
@@ -479,7 +535,15 @@ private class KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON)
 			{
 				this@PostImpl shouldNot expired
-				daemons[daemon]?.pause()
+				if (daemon in daemons)
+				{
+					logLevel.detail("   Pause", daemon) { KOTLMATA_COMMON }
+					daemons[daemon]!!.pause()
+				}
+				else
+				{
+					logLevel.normal("   Pause", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+				}
 			}
 		}
 		
@@ -488,7 +552,15 @@ private class KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON)
 			{
 				this@PostImpl shouldNot expired
-				daemons[daemon]?.stop()
+				if (daemon in daemons)
+				{
+					logLevel.detail("   Stop", daemon) { KOTLMATA_COMMON }
+					daemons[daemon]!!.stop()
+				}
+				else
+				{
+					logLevel.normal("   Stop", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+				}
 			}
 		}
 		
@@ -497,9 +569,15 @@ private class KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON)
 			{
 				this@PostImpl shouldNot expired
-				daemons[daemon]?.let {
-					it.terminate()
+				if (daemon in daemons)
+				{
+					logLevel.detail("   Terminate", daemon) { KOTLMATA_COMMON }
+					daemons[daemon]!!.terminate()
 					daemons -= daemon
+				}
+				else
+				{
+					logLevel.normal("   Terminate", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 				}
 			}
 		}
@@ -515,14 +593,30 @@ private class KotlmataImpl : Kotlmata
 						override fun to(daemon: DAEMON)
 						{
 							this@PostImpl shouldNot expired
-							daemons[daemon]?.input(signal, type, priority)
+							if (daemon in daemons)
+							{
+								logLevel.detail("   ", signal, type, priority, daemon) { KOTLMATA_TYPED }
+								daemons[daemon]!!.input(signal, type, priority)
+							}
+							else
+							{
+								logLevel.normal("   ", signal, type, priority, daemon) { KOTLMATA_TYPED_IGNORED }
+							}
 						}
 					}
 					
 					override fun to(daemon: DAEMON)
 					{
 						this@PostImpl shouldNot expired
-						daemons[daemon]?.input(signal, type)
+						if (daemon in daemons)
+						{
+							logLevel.detail("   ", signal, type, 0, daemon) { KOTLMATA_TYPED }
+							daemons[daemon]!!.input(signal, type)
+						}
+						else
+						{
+							logLevel.normal("   ", signal, type, 0, daemon) { KOTLMATA_TYPED_IGNORED }
+						}
 					}
 				}
 				
@@ -531,14 +625,30 @@ private class KotlmataImpl : Kotlmata
 					override fun to(daemon: DAEMON)
 					{
 						this@PostImpl shouldNot expired
-						daemons[daemon]?.input(signal, priority)
+						if (daemon in daemons)
+						{
+							logLevel.detail("   ", signal, priority, daemon) { KOTLMATA_SIGNAL }
+							daemons[daemon]!!.input(signal, priority)
+						}
+						else
+						{
+							logLevel.normal("   ", signal, priority, daemon) { KOTLMATA_SIGNAL_IGNORED }
+						}
 					}
 				}
 				
 				override fun to(daemon: DAEMON)
 				{
 					this@PostImpl shouldNot expired
-					daemons[daemon]?.input(signal)
+					if (daemon in daemons)
+					{
+						logLevel.detail("   ", signal, 0, daemon) { KOTLMATA_SIGNAL }
+						daemons[daemon]!!.input(signal)
+					}
+					else
+					{
+						logLevel.normal("   ", signal, 0, daemon) { KOTLMATA_SIGNAL_IGNORED }
+					}
 				}
 			}
 		}
@@ -564,8 +674,6 @@ private class KotlmataImpl : Kotlmata
 		class TypedSignal(val daemon: DAEMON, val signal: SIGNAL, val type: KClass<SIGNAL>, val priority: Int) : Message()
 		
 		class Post(val block: Kotlmata.Post.() -> Unit) : Message()
-		
-		val id by lazy { hashCode().toString(16) }
 		
 		override fun toString(): String
 		{
