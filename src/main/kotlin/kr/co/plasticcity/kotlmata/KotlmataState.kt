@@ -197,13 +197,13 @@ private class KotlmataStateImpl<T : STATE>(
 	) : KotlmataMutableState.Modifier, Expirable({ Log.e(key) { EXPIRED_STATE_MODIFIER } })
 	{
 		private val entryMap: MutableMap<SIGNAL, (SIGNAL) -> SIGNAL?>
-			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, (SIGNAL) -> SIGNAL?>().apply {
-				this@KotlmataStateImpl.entryMap = this
+			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, (SIGNAL) -> SIGNAL?>().also {
+				this@KotlmataStateImpl.entryMap = it
 			}
 		
 		private val inputMap: MutableMap<SIGNAL, (SIGNAL) -> Unit>
-			get() = this@KotlmataStateImpl.inputMap ?: HashMap<SIGNAL, (SIGNAL) -> Unit>().apply {
-				this@KotlmataStateImpl.inputMap = this
+			get() = this@KotlmataStateImpl.inputMap ?: HashMap<SIGNAL, (SIGNAL) -> Unit>().also {
+				this@KotlmataStateImpl.inputMap = it
 			}
 		
 		@Suppress("UNCHECKED_CAST")

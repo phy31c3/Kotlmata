@@ -300,7 +300,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					this@ModifierImpl shouldNot expired
 					
-					stateMap[state]?.let {
+					stateMap[state]?.also {
 						this@KotlmataMachineImpl.current = it
 					} ?: Log.e(agent, key, state) { UNDEFINED_INITIAL_STATE }
 					
@@ -380,7 +380,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					override fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
 					{
 						this@ModifierImpl shouldNot expired
-						stateMap[state] ?: state.invoke(block)
+						if (state !in stateMap)
+						{
+							state.invoke(block)
+						}
 					}
 				}
 				
@@ -467,12 +470,15 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					override fun set(block: KotlmataMutableState.Modifier.(state: T) -> Unit): KotlmataMutableMachine.Modifier.Update.or<T>
 					{
 						this@ModifierImpl shouldNot expired
-						return stateMap.let {
-							it[state]
-						}?.let {
-							it.modify(block as KotlmataMutableState.Modifier.(STATE) -> Unit)
+						return if (state in stateMap)
+						{
+							stateMap[state]!!.modify(block as KotlmataMutableState.Modifier.(STATE) -> Unit)
 							stop
-						} ?: or
+						}
+						else
+						{
+							or
+						}
 					}
 				}
 				
@@ -557,9 +563,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			override fun remAssign(state: STATE)
 			{
 				this@ModifierImpl shouldNot expired
-				(transitionMap[from] ?: HashMap<SIGNAL, STATE>().let {
+				(transitionMap[from] ?: HashMap<SIGNAL, STATE>().also {
 					transitionMap[from] = it
-					it
 				})[signal] = state
 			}
 		}
