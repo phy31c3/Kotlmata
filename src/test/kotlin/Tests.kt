@@ -138,6 +138,8 @@ class Tests
 	{
 		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
 		val daemon = KotlmataMutableDaemon("d1") { _ ->
+			log level 3
+			
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { println("$state: String 타입 입력함수: $it") }

@@ -102,14 +102,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		val postExpress: (SIGNAL) -> Unit = {
 			val m = Message.Express(it)
-			logLevel.detail(this@KotlmataDaemonImpl.key, m, m.signal, m.id) { DAEMON_POST_EXPRESS_INPUT }
+			logLevel.detail(this@KotlmataDaemonImpl.key, m.signal, m.id) { DAEMON_REQUEST_EXPRESS }
 			queue!!.offer(m)
 		}
 		
 		val ignore: (SIGNAL, STATE) -> Unit = { message, state ->
 			if (message is Message)
 			{
-				logLevel.detail(this@KotlmataDaemonImpl.key, state, message.id) { DAEMON_MESSAGE_IGNORED }
+				logLevel.detail(this@KotlmataDaemonImpl.key, state, message.id) { DAEMON_IGNORE_REQUEST }
 			}
 		}
 		
@@ -156,7 +156,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				val stash: MutableList<Message> = ArrayList()
 				
 				val keep: (Message) -> Unit = {
-					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_MESSAGE }
+					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_REQUEST }
 					stash += it
 				}
 				
@@ -195,7 +195,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 							(it.isEvent && it.isEarlierThan(m)).apply {
 								if (this)
 								{
-									logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_MESSAGE_DROPPED }
+									logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_DROP_REQUEST }
 								}
 							}
 						}
@@ -217,7 +217,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Message.Terminate::class action {}
 				
 				input signal Message.Express::class action {
-					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_EXPRESS_INPUT }
+					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_EXPRESS }
 					express = it
 				}
 				
@@ -260,9 +260,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				while (true)
 				{
 					val m = queue!!.take()
-					logLevel.detail(this@KotlmataDaemonImpl.key, m.id) { DAEMON_START_MESSAGE }
+					logLevel.detail(this@KotlmataDaemonImpl.key, m.id) { DAEMON_START_REQUEST }
 					engine.input(m)
-					logLevel.detail(this@KotlmataDaemonImpl.key, m.id) { DAEMON_END_MESSAGE }
+					logLevel.detail(this@KotlmataDaemonImpl.key, m.id) { DAEMON_END_REQUEST }
 				}
 			}
 			catch (e: InterruptedException)
@@ -275,11 +275,47 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 	}
 	
+	override fun run()
+	{
+		synchronized<Unit>(lock) {
+			val m = Message.Run()
+			logLevel.detail(key, m, m.id) { DAEMON_REQUEST }
+			queue?.offer(m)
+		}
+	}
+	
+	override fun pause()
+	{
+		synchronized<Unit>(lock) {
+			val m = Message.Pause()
+			logLevel.detail(key, m, m.id) { DAEMON_REQUEST }
+			queue?.offer(m)
+		}
+	}
+	
+	override fun stop()
+	{
+		synchronized<Unit>(lock) {
+			val m = Message.Stop()
+			logLevel.detail(key, m, m.id) { DAEMON_REQUEST }
+			queue?.offer(m)
+		}
+	}
+	
+	override fun terminate()
+	{
+		synchronized<Unit>(lock) {
+			val m = Message.Terminate()
+			logLevel.detail(key, m, m.id) { DAEMON_REQUEST }
+			queue?.offer(m)
+		}
+	}
+	
 	override fun input(signal: SIGNAL, priority: Int)
 	{
 		synchronized<Unit>(lock) {
 			val m = Message.Signal(signal, priority)
-			logLevel.detail(key, m, m.signal, m.priority, m.id) { DAEMON_POST_SIGNAL }
+			logLevel.detail(key, m.signal, m.priority, m.id) { DAEMON_REQUEST_SIGNAL }
 			queue?.offer(m)
 		}
 	}
@@ -289,43 +325,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	{
 		synchronized<Unit>(lock) {
 			val m = Message.TypedSignal(signal, type as KClass<SIGNAL>, priority)
-			logLevel.detail(key, m, m.signal, m.type.simpleName, m.priority, m.id) { DAEMON_POST_TYPED_SIGNAL }
-			queue?.offer(m)
-		}
-	}
-	
-	override fun run()
-	{
-		synchronized<Unit>(lock) {
-			val m = Message.Run()
-			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
-			queue?.offer(m)
-		}
-	}
-	
-	override fun pause()
-	{
-		synchronized<Unit>(lock) {
-			val m = Message.Pause()
-			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
-			queue?.offer(m)
-		}
-	}
-	
-	override fun stop()
-	{
-		synchronized<Unit>(lock) {
-			val m = Message.Stop()
-			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
-			queue?.offer(m)
-		}
-	}
-	
-	override fun terminate()
-	{
-		synchronized<Unit>(lock) {
-			val m = Message.Terminate()
-			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
+			logLevel.detail(key, m.signal, m.type.simpleName, m.priority, m.id) { DAEMON_REQUEST_TYPED }
 			queue?.offer(m)
 		}
 	}
@@ -335,7 +335,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	{
 		synchronized<Unit>(lock) {
 			val m = Message.Modify(block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit)
-			logLevel.detail(key, m, m.id) { DAEMON_POST_MESSAGE }
+			logLevel.detail(key, m, m.id) { DAEMON_REQUEST }
 			queue?.offer(m)
 		}
 	}
