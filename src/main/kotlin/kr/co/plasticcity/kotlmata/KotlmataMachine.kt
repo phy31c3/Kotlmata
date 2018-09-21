@@ -86,7 +86,7 @@ interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
 		internal operator fun <T : MACHINE> invoke(
 				key: T,
 				block: KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End
-		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, block, "Daemon")
+		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, block, "Daemon[$key]:   ")
 	}
 	
 	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.TransitionDefine
@@ -197,10 +197,10 @@ interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
 private class KotlmataMachineImpl<T : MACHINE>(
 		override val key: T,
 		block: KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End,
-		val agent: String = "Machine"
+		val prefix: String = "Machine[$key]:"
 ) : KotlmataMutableMachine<T>
 {
-	private var logLevel = NORMAL
+	private var logLevel = 0
 	
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<STATE>> = HashMap()
 	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
@@ -209,7 +209,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	init
 	{
-		ModifierImpl(block)
+		ModifierImpl(init = block)
+		logLevel.normal(prefix) { MACHINE_CREATED }
 	}
 	
 	override fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
@@ -220,13 +221,13 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		transitionMap.let {
-			logLevel.normal(agent, key, signal, current.key) { AGENT_INPUT }
+			logLevel.normal(prefix, signal, current.key) { MACHINE_SIGNAL_INPUT }
 			current.input(signal)
 			it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			stateMap[it]
 		}?.let { next ->
-			logLevel.simple(agent, key, current.key, signal, next.key) { AGENT_TRANSITION }
+			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_TRANSITION }
 			current.exit(signal)
 			current = next
 			current.entry(signal, block)
@@ -248,13 +249,13 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		transitionMap.let {
-			logLevel.normal(agent, key, signal, type.simpleName, current.key) { AGENT_TYPED_INPUT }
+			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_TYPED_INPUT }
 			current.input(signal, type)
 			it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			stateMap[it]
 		}?.let { next ->
-			logLevel.simple(agent, key, current.key, signal, type.simpleName, next.key) { AGENT_TYPED_TRANSITION }
+			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_TRANSITION }
 			current.exit(signal)
 			current = next
 			current.entry(signal, type, block)
@@ -270,8 +271,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	override fun modify(block: KotlmataMutableMachine.Modifier.(key: T) -> Unit)
 	{
-		logLevel.normal(agent, key, current.key) { AGENT_MODIFY }
+		logLevel.normal(prefix, current.key) { MACHINE_START_MODIFY }
 		ModifierImpl(modify = block)
+		logLevel.normal(prefix, current.key) { MACHINE_END_MODIFY }
 	}
 	
 	override fun toString(): String
@@ -282,7 +284,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private inner class ModifierImpl internal constructor(
 			init: (KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End)? = null,
 			modify: (KotlmataMutableMachine.Modifier.(key: T) -> Unit)? = null
-	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(agent, key) { EXPIRED_AGENT_MODIFIER } })
+	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix, key) { EXPIRED_AGENT_MODIFIER } })
 	{
 		override val log = object : KotlmataMachine.Initializer.Log
 		{
@@ -302,7 +304,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					
 					stateMap[state]?.also {
 						this@KotlmataMachineImpl.current = it
-					} ?: Log.e(agent, key, state) { UNDEFINED_INITIAL_STATE }
+					} ?: Log.e(prefix, key, state) { UNDEFINED_INITIAL_STATE }
 					
 					return KotlmataMachine.Initializer.End()
 				}
@@ -315,7 +317,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				this@ModifierImpl shouldNot expired
 				return this@KotlmataMachineImpl.current.key.takeIf {
 					it != PreStart
-				} ?: Log.w(agent, key) { OBTAIN_INITIAL }
+				} ?: Log.w(prefix, key) { OBTAIN_INITIAL }
 			}
 		
 		override val has by lazy {

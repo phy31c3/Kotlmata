@@ -151,7 +151,7 @@ interface Kotlmata
 
 private class KotlmataImpl : Kotlmata
 {
-	private var logLevel = NORMAL
+	private var logLevel = 0
 	
 	private val daemons: MutableMap<DAEMON, KotlmataMutableDaemon<DAEMON>> = HashMap()
 	
@@ -272,12 +272,12 @@ private class KotlmataImpl : Kotlmata
 				input signal Message.TypedSignal::class action {
 					if (it.daemon in daemons)
 					{
-						logLevel.detail("", it.signal, it.type, it.priority, it.daemon) { KOTLMATA_TYPED }
+						logLevel.detail("", it.signal, "${it.type.simpleName}::class", it.priority, it.daemon) { KOTLMATA_TYPED }
 						daemons[it.daemon]!!.input(it.signal, it.type, it.priority)
 					}
 					else
 					{
-						logLevel.normal("", it.signal, it.type, it.priority, it.daemon) { KOTLMATA_TYPED_IGNORED }
+						logLevel.normal("", it.signal, "${it.type.simpleName}::class", it.priority, it.daemon) { KOTLMATA_TYPED_IGNORED }
 					}
 				}
 				input signal Message.Post::class action {
@@ -595,12 +595,12 @@ private class KotlmataImpl : Kotlmata
 							this@PostImpl shouldNot expired
 							if (daemon in daemons)
 							{
-								logLevel.detail("   ", signal, type, priority, daemon) { KOTLMATA_TYPED }
+								logLevel.detail("   ", signal, "${type.simpleName}::class", priority, daemon) { KOTLMATA_TYPED }
 								daemons[daemon]!!.input(signal, type, priority)
 							}
 							else
 							{
-								logLevel.normal("   ", signal, type, priority, daemon) { KOTLMATA_TYPED_IGNORED }
+								logLevel.normal("   ", signal, "${type.simpleName}::class", priority, daemon) { KOTLMATA_TYPED_IGNORED }
 							}
 						}
 					}
@@ -610,12 +610,12 @@ private class KotlmataImpl : Kotlmata
 						this@PostImpl shouldNot expired
 						if (daemon in daemons)
 						{
-							logLevel.detail("   ", signal, type, 0, daemon) { KOTLMATA_TYPED }
+							logLevel.detail("   ", signal, "${type.simpleName}::class", 0, daemon) { KOTLMATA_TYPED }
 							daemons[daemon]!!.input(signal, type)
 						}
 						else
 						{
-							logLevel.normal("   ", signal, type, 0, daemon) { KOTLMATA_TYPED_IGNORED }
+							logLevel.normal("   ", signal, "${type.simpleName}::class", 0, daemon) { KOTLMATA_TYPED_IGNORED }
 						}
 					}
 				}

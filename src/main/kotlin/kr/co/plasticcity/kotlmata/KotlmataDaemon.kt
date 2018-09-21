@@ -73,7 +73,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		block: KotlmataDaemon.Initializer.(key: T) -> KotlmataMachine.Initializer.End
 ) : KotlmataMutableDaemon<T>
 {
-	private var logLevel = NORMAL
+	private var logLevel = 0
 	
 	private val machine: KotlmataMutableMachine<T>
 	private val engine: KotlmataMachine
@@ -109,7 +109,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		val ignore: (SIGNAL, STATE) -> Unit = { message, state ->
 			if (message is Message)
 			{
-				logLevel.detail(this@KotlmataDaemonImpl.key, state, message.id) { DAEMON_IGNORE_REQUEST }
+				logLevel.normal(this@KotlmataDaemonImpl.key, state, message.id) { DAEMON_IGNORE_REQUEST }
 			}
 		}
 		
@@ -156,7 +156,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				val stash: MutableList<Message> = ArrayList()
 				
 				val keep: (Message) -> Unit = {
-					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_REQUEST }
+					logLevel.normal(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_REQUEST }
 					stash += it
 				}
 				
@@ -217,7 +217,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Message.Terminate::class action {}
 				
 				input signal Message.Express::class action {
-					logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_EXPRESS }
+					logLevel.normal(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_EXPRESS }
 					express = it
 				}
 				
@@ -260,9 +260,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				while (true)
 				{
 					val m = queue!!.take()
-					logLevel.detail(this@KotlmataDaemonImpl.key, m.id) { DAEMON_START_REQUEST }
+					logLevel.normal(this@KotlmataDaemonImpl.key, m.id) { DAEMON_START_REQUEST }
 					engine.input(m)
-					logLevel.detail(this@KotlmataDaemonImpl.key, m.id) { DAEMON_END_REQUEST }
+					logLevel.normal(this@KotlmataDaemonImpl.key, m.id) { DAEMON_END_REQUEST }
 				}
 			}
 			catch (e: InterruptedException)
@@ -325,7 +325,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	{
 		synchronized<Unit>(lock) {
 			val m = Message.TypedSignal(signal, type as KClass<SIGNAL>, priority)
-			logLevel.detail(key, m.signal, m.type.simpleName, m.priority, m.id) { DAEMON_REQUEST_TYPED }
+			logLevel.detail(key, m.signal, "${m.type.simpleName}::class", m.priority, m.id) { DAEMON_REQUEST_TYPED }
 			queue?.offer(m)
 		}
 	}

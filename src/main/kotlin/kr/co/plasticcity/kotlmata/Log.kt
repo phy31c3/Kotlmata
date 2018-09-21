@@ -38,11 +38,12 @@ internal class Logs
 		const val DAEMON_END_REQUEST = "KotlmataDaemon[%s]: << End request. {id: %s}"
 		
 		/* Machine */
-		const val AGENT_TRANSITION = "Kotlmata%s[%s]: (%s) x (%s) -> (%s)"
-		const val AGENT_TYPED_TRANSITION = "Kotlmata%s[%s]: (%s) x (%s as %s) -> (%s)"
-		const val AGENT_INPUT = "Kotlmata%s[%s]: Input(%s). {current state: %s}"
-		const val AGENT_TYPED_INPUT = "Kotlmata%s[%s]: Input(%s as %s). {current state: %s}"
-		const val AGENT_MODIFY = "Kotlmata%s[%s]: Modify. {current state: %s}"
+		const val MACHINE_CREATED = "Kotlmata%s CREATED"
+		const val MACHINE_START_MODIFY = "Kotlmata%s >> Start modify {current state: %s}"
+		const val MACHINE_END_MODIFY = "Kotlmata%s << End modify {current state: %s}"
+		const val MACHINE_SIGNAL_INPUT = "Kotlmata%s x (%s) {current state: %s}"
+		const val MACHINE_TYPED_INPUT = "Kotlmata%s x (%s as %s) {current state: %s}"
+		const val MACHINE_TRANSITION = "Kotlmata%s (%s) x (%s) -> (%s)"
 		
 		/*########################## WARN ##########################*/
 		/* Agent */
