@@ -67,7 +67,7 @@ internal class Logs
 		
 		/*########################## WARN ##########################*/
 		/* Agent */
-		const val OBTAIN_INITIAL = "Kotlmata%s[%s]: Attempt to get 'initial state': The initial state can not be obtained."
+		const val OBTAIN_PRE_START = "Kotlmata%s[%s]: Attempt to get 'pre-start' state: The 'pre-start' state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		/* Kotlmata */
