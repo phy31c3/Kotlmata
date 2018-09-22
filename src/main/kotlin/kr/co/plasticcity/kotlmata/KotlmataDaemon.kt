@@ -73,7 +73,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		block: KotlmataDaemon.Initializer.(key: T) -> KotlmataMachine.Initializer.End
 ) : KotlmataMutableDaemon<T>
 {
-	private var logLevel = 0
+	private var logLevel = Log.logLevel
 	
 	private val machine: KotlmataMutableMachine<T>
 	private val engine: KotlmataMachine
@@ -89,9 +89,15 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	init
 	{
-		machine = KotlmataMutableMachine(this.key) { _ ->
-			val initializer = InitializerImpl(block, this)
+		logLevel.normal(key) { DAEMON_START_INIT }
+		
+		machine = KotlmataMutableMachine(key, "Daemon[$key]:   ") { _ ->
+			/* For avoid log print for PreStart. */
+			log level 0
 			PreStart {}
+			log level Log.logLevel
+			
+			val initializer = InitializerImpl(block, this)
 			PreStart x Message.Run::class %= initializer.initial
 			start at PreStart
 		}
@@ -102,23 +108,21 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		val postExpress: (SIGNAL) -> Unit = {
 			val m = Message.Express(it)
-			logLevel.detail(this@KotlmataDaemonImpl.key, m.signal, m.id) { DAEMON_REQUEST_EXPRESS }
+			logLevel.detail(key, m.signal, m.id) { DAEMON_REQUEST_EXPRESS }
 			queue!!.offer(m)
 		}
 		
 		val ignore: (SIGNAL, STATE) -> Unit = { message, state ->
 			if (message is Message)
 			{
-				logLevel.normal(this@KotlmataDaemonImpl.key, state, message.id) { DAEMON_IGNORE_REQUEST }
+				logLevel.normal(key, state, message.id) { DAEMON_IGNORE_REQUEST }
 			}
 		}
 		
-		engine = KotlmataMachine("${this.key}@engine") { _ ->
-			log level 0
-			
+		engine = KotlmataMachine("$key@engine", 0) { _ ->
 			"pre-start" { state ->
 				val startMachine: (Message) -> Unit = {
-					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_START }
+					logLevel.simple(key) { DAEMON_START }
 					onStart()
 					machine.input(Message.Run(), postExpress)
 				}
@@ -156,18 +160,18 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				val stash: MutableList<Message> = ArrayList()
 				
 				val keep: (Message) -> Unit = {
-					logLevel.normal(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_REQUEST }
+					logLevel.normal(key, it.id) { DAEMON_KEEP_REQUEST }
 					stash += it
 				}
 				
 				entry action {
-					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_PAUSE }
+					logLevel.simple(key) { DAEMON_PAUSE }
 					onPause()
 				}
 				
 				input signal Message.Run::class action {
 					queue!! += stash
-					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
+					logLevel.simple(key) { DAEMON_RESUME }
 					onResume()
 				}
 				input signal Message.Stop::class action {}
@@ -195,7 +199,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 							(it.isEvent && it.isEarlierThan(m)).apply {
 								if (this)
 								{
-									logLevel.detail(this@KotlmataDaemonImpl.key, it.id) { DAEMON_DROP_REQUEST }
+									logLevel.detail(key, it.id) { DAEMON_DROP_REQUEST }
 								}
 							}
 						}
@@ -204,20 +208,20 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				
 				entry action {
-					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_STOP }
+					logLevel.simple(key) { DAEMON_STOP }
 					onStop()
 				}
 				
 				input signal Message.Run::class action {
 					cleanup(it)
-					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_RESUME }
+					logLevel.simple(key) { DAEMON_RESUME }
 					onResume()
 				}
 				input signal Message.Pause::class action cleanup
 				input signal Message.Terminate::class action {}
 				
 				input signal Message.Express::class action {
-					logLevel.normal(this@KotlmataDaemonImpl.key, it.id) { DAEMON_KEEP_EXPRESS }
+					logLevel.normal(key, it.id) { DAEMON_KEEP_EXPRESS }
 					express = it
 				}
 				
@@ -230,7 +234,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			
 			"terminate" { _ ->
 				entry action {
-					logLevel.simple(this@KotlmataDaemonImpl.key) { DAEMON_TERMINATE }
+					logLevel.simple(key) { DAEMON_TERMINATE }
 					onTerminate()
 					Thread.currentThread().interrupt()
 				}
@@ -254,15 +258,15 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			start at "pre-start"
 		}
 		
-		thread(name = "KotlmataDaemon[${this@KotlmataDaemonImpl.key}]", isDaemon = true, start = true) {
+		thread(name = "KotlmataDaemon[$key]", isDaemon = true, start = true) {
 			try
 			{
 				while (true)
 				{
 					val m = queue!!.take()
-					logLevel.normal(this@KotlmataDaemonImpl.key, m.id) { DAEMON_START_REQUEST }
+					logLevel.normal(key, m.id) { DAEMON_START_REQUEST }
 					engine.input(m)
-					logLevel.normal(this@KotlmataDaemonImpl.key, m.id) { DAEMON_END_REQUEST }
+					logLevel.normal(key, m.id) { DAEMON_END_REQUEST }
 				}
 			}
 			catch (e: InterruptedException)
@@ -273,6 +277,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 		}
+		
+		logLevel.normal(key) { DAEMON_END_INIT }
 	}
 	
 	override fun run()
@@ -401,7 +407,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			{
 				this@InitializerImpl shouldNot expired
 				
-				/* For checking undefined initial state */
+				/* For checking undefined initial state. */
 				initializer.start at state
 				
 				initial = state
@@ -411,7 +417,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		init
 		{
-			block(this@KotlmataDaemonImpl.key)
+			block(key)
 			expire()
 		}
 	}

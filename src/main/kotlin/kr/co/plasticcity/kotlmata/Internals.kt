@@ -50,6 +50,7 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	}
 }
 
+internal const val NO_LOG = 0
 internal const val SIMPLE = 1
 internal const val NORMAL = 2
 internal const val DETAIL = 3

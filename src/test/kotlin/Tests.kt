@@ -138,13 +138,12 @@ class Tests
 	{
 		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
 		val daemon = KotlmataMutableDaemon("d1") { _ ->
-			log level 3
+			log level 2
 			
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { println("$state: String 타입 입력함수: $it") }
 				input signal "goToState2" action { println("state2로 이동") }
-				exit action { println("$state: 퇴장함수") }
 				shouldGC = WeakReference(this)
 			}
 			
@@ -228,7 +227,7 @@ class Tests
 	fun kotlmataTest()
 	{
 		Kotlmata fork "daemon" of { _ ->
-			log level 0
+			log level 2
 			
 			"state1" { state ->
 				entry action { println("데몬이 시작됨") }

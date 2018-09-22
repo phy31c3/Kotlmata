@@ -21,6 +21,8 @@ internal class Logs
 		const val KOTLMATA_END_POST = "Kotlmata: << End post block."
 		
 		/* Daemon */
+		const val DAEMON_START_INIT = "KotlmataDaemon[%s]: >> Start init."
+		const val DAEMON_END_INIT = "KotlmataDaemon[%s]: << End init."
 		const val DAEMON_START = "KotlmataDaemon[%s]:    START"
 		const val DAEMON_PAUSE = "KotlmataDaemon[%s]:    PAUSE"
 		const val DAEMON_STOP = "KotlmataDaemon[%s]:    STOP"
@@ -38,12 +40,30 @@ internal class Logs
 		const val DAEMON_END_REQUEST = "KotlmataDaemon[%s]: << End request. {id: %s}"
 		
 		/* Machine */
-		const val MACHINE_CREATED = "Kotlmata%s CREATED"
-		const val MACHINE_START_MODIFY = "Kotlmata%s >> Start modify {current state: %s}"
-		const val MACHINE_END_MODIFY = "Kotlmata%s << End modify {current state: %s}"
-		const val MACHINE_SIGNAL_INPUT = "Kotlmata%s x (%s) {current state: %s}"
-		const val MACHINE_TYPED_INPUT = "Kotlmata%s x (%s as %s) {current state: %s}"
-		const val MACHINE_TRANSITION = "Kotlmata%s (%s) x (%s) -> (%s)"
+		const val MACHINE_START_BUILD = "Kotlmata%s >> Start machine build."
+		const val MACHINE_END_BUILD = "Kotlmata%s << End machine build."
+		const val MACHINE_START_MODIFY = "Kotlmata%s >> Start modify. {current state: %s}"
+		const val MACHINE_END_MODIFY = "Kotlmata%s << End modify. {current state: %s}"
+		const val MACHINE_START_SIGNAL = "Kotlmata%s >> Start signal input. {signal: %s} {current state: %s}"
+		const val MACHINE_END_SIGNAL = "Kotlmata%s << End signal input. {signal: %s} {current state: %s}"
+		const val MACHINE_START_TYPED = "Kotlmata%s >> Start typed signal input. {signal: %s, type: %s} {current state: %s}"
+		const val MACHINE_END_TYPED = "Kotlmata%s << End typed signal input. {signal: %s, type: %s} {current state: %s}"
+		const val MACHINE_START_TRANSITION = "Kotlmata%s >> Start transition. (%s) x (%s) -> (%s)"
+		const val MACHINE_END_TRANSITION = "Kotlmata%s << End transition. (%s) x (%s) -> (%s)"
+		
+		/* State */
+		const val STATE_CREATED = "Kotlmata%s %s: Created"
+		const val STATE_UPDATED = "Kotlmata%s %s: Updated"
+		const val STATE_ENTRY_DEFAULT = "Kotlmata%s %s: Entry action default. {signal: %s}"
+		const val STATE_ENTRY_SIGNAL = "Kotlmata%s %s: Entry action. {signal: %s}"
+		const val STATE_ENTRY_TYPED = "Kotlmata%s %s: Entry action. {signal: %s, type: %s}"
+		const val STATE_INPUT_DEFAULT = "Kotlmata%s %s: Input action default. {signal: %s}"
+		const val STATE_INPUT_SIGNAL = "Kotlmata%s %s: Input action. {signal: %s}"
+		const val STATE_INPUT_TYPED = "Kotlmata%s %s: Input action. {signal: %s, type: %s}"
+		const val STATE_EXIT = "Kotlmata%s %s: Exit action. {signal: %s}"
+		const val STATE_ENTRY_NONE = "Kotlmata%s %s: No entry action. {signal: %s}"
+		const val STATE_INPUT_NONE = "Kotlmata%s %s: No input action. {signal: %s}"
+		const val STATE_EXIT_NONE = "Kotlmata%s %s: No exit action. {signal: %s}"
 		
 		/*########################## WARN ##########################*/
 		/* Agent */
@@ -65,6 +85,10 @@ internal class Logs
 internal object Log
 {
 	private val none: (String) -> Unit = {}
+	
+	@Volatile
+	var logLevel: Int = NO_LOG
+	
 	var debug: (String) -> Unit = none
 	var warn: (String) -> Unit = none
 	var error: (String) -> Unit = ::error

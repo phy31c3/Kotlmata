@@ -73,8 +73,10 @@ interface KotlmataMutableState<out T : STATE> : KotlmataState
 		
 		internal operator fun <T : STATE> invoke(
 				key: T,
+				prefix: String,
+				logLevel: Int,
 				block: (KotlmataState.Initializer.(key: T) -> Unit)
-		): KotlmataMutableState<T> = KotlmataStateImpl(key, block)
+		): KotlmataMutableState<T> = KotlmataStateImpl(key, block, prefix, logLevel)
 	}
 	
 	interface Modifier : KotlmataState.Initializer
@@ -111,7 +113,9 @@ interface KotlmataMutableState<out T : STATE> : KotlmataState
 
 private class KotlmataStateImpl<T : STATE>(
 		override val key: T,
-		block: (KotlmataState.Initializer.(key: T) -> Unit)? = null
+		block: (KotlmataState.Initializer.(key: T) -> Unit)? = null,
+		val prefix: String = "State[$key]:",
+		val logLevel: Int = Log.logLevel
 ) : KotlmataMutableState<T>
 {
 	private var entry: ((SIGNAL) -> SIGNAL?)? = null
@@ -123,68 +127,117 @@ private class KotlmataStateImpl<T : STATE>(
 	init
 	{
 		block?.let {
-			modify(it)
+			ModifierImpl(it)
 		}
+		logLevel.simple(prefix, key) { STATE_CREATED }
 	}
 	
 	override fun entry(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
 	{
-		(entryMap?.let {
+		val action = entryMap?.let {
 			when
 			{
-				signal in it -> it[signal]
-				signal::class in it -> it[signal::class]
+				signal in it ->
+				{
+					logLevel.normal(prefix, key, signal) { STATE_ENTRY_SIGNAL }
+					it[signal]
+				}
+				signal::class in it ->
+				{
+					logLevel.normal(prefix, key, signal, "${signal::class.simpleName}::class") { STATE_ENTRY_TYPED }
+					it[signal::class]
+				}
 				else -> null
 			}
-		} ?: entry)?.invoke(signal)?.let {
-			if (it !is Unit) block(it)
+		} ?: entry?.also {
+			logLevel.normal(prefix, key, signal) { STATE_ENTRY_DEFAULT }
 		}
+		
+		action?.also {
+			it(signal)?.let { ret ->
+				if (ret !is Unit) block(ret)
+			}
+		} ?: logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE }
 	}
 	
 	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	{
-		(entryMap?.let {
+		val action = entryMap?.let {
 			when (type)
 			{
-				in it -> it[type]
+				in it ->
+				{
+					logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_ENTRY_TYPED }
+					it[type]
+				}
 				else -> null
 			}
-		} ?: entry)?.invoke(signal)?.let {
-			if (it !is Unit) block(it)
+		} ?: entry?.also {
+			logLevel.normal(prefix, key, signal) { STATE_ENTRY_DEFAULT }
 		}
+		
+		action?.also {
+			it(signal)?.let { ret ->
+				if (ret !is Unit) block(ret)
+			}
+		} ?: logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE }
 	}
 	
 	override fun input(signal: SIGNAL)
 	{
-		(inputMap?.let {
+		val action = inputMap?.let {
 			when
 			{
-				signal in it -> it[signal]
-				signal::class in it -> it[signal::class]
+				signal in it ->
+				{
+					logLevel.normal(prefix, key, signal) { STATE_INPUT_SIGNAL }
+					it[signal]
+				}
+				signal::class in it ->
+				{
+					logLevel.normal(prefix, key, signal, "${signal::class.simpleName}::class") { STATE_INPUT_TYPED }
+					it[signal::class]
+				}
 				else -> null
 			}
-		} ?: input)?.invoke(signal)
+		} ?: input?.also {
+			logLevel.normal(prefix, key, signal) { STATE_INPUT_DEFAULT }
+		}
+		
+		action?.invoke(signal) ?: logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE }
 	}
 	
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	{
-		(inputMap?.let {
+		val action = inputMap?.let {
 			when (type)
 			{
-				in it -> it[type]
+				in it ->
+				{
+					logLevel.normal(prefix, key, signal, "${signal::class.simpleName}::class") { STATE_INPUT_TYPED }
+					it[type]
+				}
 				else -> null
 			}
-		} ?: input)?.invoke(signal)
+		} ?: input?.also {
+			logLevel.normal(prefix, key, signal) { STATE_INPUT_DEFAULT }
+		}
+		
+		action?.invoke(signal) ?: logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE }
 	}
 	
 	override fun exit(signal: SIGNAL)
 	{
-		exit?.invoke(signal)
+		exit?.also {
+			logLevel.normal(prefix, key, signal) { STATE_EXIT }
+			it(signal)
+		} ?: logLevel.normal(prefix, key, signal) { STATE_EXIT_NONE }
 	}
 	
 	override fun modify(block: KotlmataMutableState.Modifier.(key: T) -> Unit)
 	{
 		ModifierImpl(block)
+		logLevel.simple(prefix, key) { STATE_UPDATED }
 	}
 	
 	override fun toString(): String

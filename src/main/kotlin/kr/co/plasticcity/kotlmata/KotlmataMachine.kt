@@ -10,6 +10,12 @@ interface KotlmataMachine
 				name: String,
 				block: Initializer.(name: String) -> Initializer.End
 		): KotlmataMachine = KotlmataMachineImpl(name, block)
+		
+		internal operator fun invoke(
+				name: String,
+				logLevel: Int,
+				block: Initializer.(name: String) -> Initializer.End
+		): KotlmataMachine = KotlmataMachineImpl(name, block, logLevel = logLevel)
 	}
 	
 	interface Initializer : StateDefine, TransitionDefine
@@ -85,8 +91,9 @@ interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
 		
 		internal operator fun <T : MACHINE> invoke(
 				key: T,
+				prefix: String,
 				block: KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End
-		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, block, "Daemon[$key]:   ")
+		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, block, prefix)
 	}
 	
 	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.TransitionDefine
@@ -197,11 +204,10 @@ interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
 private class KotlmataMachineImpl<T : MACHINE>(
 		override val key: T,
 		block: KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End,
-		val prefix: String = "Machine[$key]:"
+		val prefix: String = "Machine[$key]:",
+		var logLevel: Int = Log.logLevel
 ) : KotlmataMutableMachine<T>
 {
-	private var logLevel = 0
-	
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<STATE>> = HashMap()
 	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
@@ -209,8 +215,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	init
 	{
+		logLevel.normal(prefix) { MACHINE_START_BUILD }
 		ModifierImpl(init = block)
-		logLevel.normal(prefix) { MACHINE_CREATED }
+		logLevel.normal(prefix) { MACHINE_END_BUILD }
 	}
 	
 	override fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
@@ -221,16 +228,18 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		transitionMap.let {
-			logLevel.normal(prefix, signal, current.key) { MACHINE_SIGNAL_INPUT }
+			logLevel.normal(prefix, signal, current.key) { MACHINE_START_SIGNAL }
 			current.input(signal)
+			logLevel.normal(prefix, signal, current.key) { MACHINE_END_SIGNAL }
 			it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			stateMap[it]
 		}?.let { next ->
-			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_TRANSITION }
+			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
 			current.exit(signal)
 			current = next
 			current.entry(signal, block)
+			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_END_TRANSITION }
 		}
 	}
 	
@@ -249,16 +258,18 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		transitionMap.let {
-			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_TYPED_INPUT }
+			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_START_TYPED }
 			current.input(signal, type)
+			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_END_TYPED }
 			it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			stateMap[it]
 		}?.let { next ->
-			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_TRANSITION }
+			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
 			current.exit(signal)
 			current = next
 			current.entry(signal, type, block)
+			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_END_TRANSITION }
 		}
 	}
 	
@@ -546,7 +557,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		override fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(state: T) -> Unit)
 		{
 			this@ModifierImpl shouldNot expired
-			stateMap[this] = KotlmataMutableState(this, block)
+			stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel, block)
 		}
 		
 		override fun STATE.x(signal: SIGNAL) = transitionLeft(this, signal)
@@ -573,7 +584,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		init
 		{
-			init?.let { it(this@KotlmataMachineImpl.key) } ?: modify?.let { it(this@KotlmataMachineImpl.key) }
+			init?.let { it(key) } ?: modify?.let { it(key) }
 			expire()
 		}
 	}

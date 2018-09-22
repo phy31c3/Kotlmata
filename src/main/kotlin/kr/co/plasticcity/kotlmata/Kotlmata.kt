@@ -151,11 +151,15 @@ interface Kotlmata
 
 private class KotlmataImpl : Kotlmata
 {
-	private var logLevel = 0
-	
-	private val daemons: MutableMap<DAEMON, KotlmataMutableDaemon<DAEMON>> = HashMap()
+	private var logLevel
+		get() = Log.logLevel
+		set(value)
+		{
+			Log.logLevel = value
+		}
 	
 	private val kotlmata: KotlmataDaemon
+	private val daemons: MutableMap<DAEMON, KotlmataMutableDaemon<DAEMON>> = HashMap()
 	
 	init
 	{
@@ -167,8 +171,6 @@ private class KotlmataImpl : Kotlmata
 		}
 		
 		kotlmata = KotlmataDaemon("Kotlmata") { _ ->
-			log level 0
-			
 			on start {
 				logLevel.simple { KOTLMATA_START }
 			}
