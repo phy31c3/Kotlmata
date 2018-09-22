@@ -67,7 +67,8 @@ internal class Logs
 		
 		/*########################## WARN ##########################*/
 		/* Agent */
-		const val OBTAIN_PRE_START = "Kotlmata%s[%s]: Attempt to get 'pre-start' state: The 'pre-start' state can not be obtained."
+		const val TRANSITION_FAILED = "!!!Kotlmata%s Attempt transition to a non-existent state. (%s) x (%s) -> (%s)"
+		const val OBTAIN_PRE_START = "!!!Kotlmata%s Attempt to get 'pre-start' state: The 'pre-start' state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		/* Kotlmata */

@@ -232,6 +232,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			current.input(signal)
 			logLevel.normal(prefix, signal, current.key) { MACHINE_END_SIGNAL }
 			it[current.key]?.next() ?: it[any]?.next()
+		}?.also {
+			if (it !in stateMap)
+			{
+				Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
+			}
 		}?.let {
 			stateMap[it]
 		}?.let { next ->
@@ -262,6 +267,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			current.input(signal, type)
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_END_TYPED }
 			it[current.key]?.next() ?: it[any]?.next()
+		}.also {
+			if (it !in stateMap)
+			{
+				Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
+			}
 		}?.let {
 			stateMap[it]
 		}?.let { next ->
@@ -328,7 +338,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				this@ModifierImpl shouldNot expired
 				return this@KotlmataMachineImpl.current.key.takeIf {
 					it != PreStart
-				} ?: Log.w(prefix, key) { OBTAIN_PRE_START }
+				} ?: Log.w(prefix.trimEnd()) { OBTAIN_PRE_START }
 			}
 		
 		override val has by lazy {

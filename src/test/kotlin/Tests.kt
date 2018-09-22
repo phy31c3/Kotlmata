@@ -260,12 +260,16 @@ class Tests
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
+			"state3" x "goToState4" %= "state4"
 			
 			start at "state1"
 		}
 		
 		Kotlmata input "무시해라1" to "daemon"
 		Kotlmata input "무시해라2" to "daemon"
+		Kotlmata modify "daemon" set {
+			current
+		}
 		
 		Thread.sleep(100)
 		
@@ -293,6 +297,7 @@ class Tests
 			input signal 3 to "daemon"
 		}
 		Kotlmata input 5 to "daemon"
+		Kotlmata input "goToState4" to "daemon"
 		
 		Thread.sleep(100)
 		
