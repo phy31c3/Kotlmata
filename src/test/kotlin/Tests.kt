@@ -29,7 +29,9 @@ class Tests
 	@Test
 	fun stateTest()
 	{
+		var expired: KotlmataState.Initializer? = null
 		val state = KotlmataMutableState("s1") { _ ->
+			expired = this
 			entry action { println("기본 진입함수") }
 			entry via String::class action { println("String 타입 진입함수: $it") }
 			entry via "a" action { println("a 진입함수") }
@@ -60,6 +62,8 @@ class Tests
 		state.entry("b") { signal ->
 			state.input(signal)
 		}
+		
+		expired?.entry?.action {}
 	}
 	
 	@Test
@@ -137,6 +141,7 @@ class Tests
 	fun daemonTest()
 	{
 		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
+		var expire: KotlmataMutableState.Modifier? = null
 		val daemon = KotlmataMutableDaemon("d1") { _ ->
 			log level 2
 			
@@ -206,6 +211,7 @@ class Tests
 			"state1" x "goToState3" %= "state3"
 			
 			update state "state3" set { state ->
+				expire = this
 				entry action {
 					println("$state: 수정된 기본 진입함수")
 					"express input"
@@ -221,11 +227,13 @@ class Tests
 		
 		System.gc()
 		println("과연 GC 되었을까: ${shouldGC?.get()}")
+		expire?.entry?.action {}
 	}
 	
 	@Test
 	fun kotlmataTest()
 	{
+		var expire: Kotlmata.Post? = null
 		Kotlmata fork "daemon" of { _ ->
 			log level 2
 			
@@ -285,6 +293,7 @@ class Tests
 		Thread.sleep(100)
 		
 		Kotlmata {
+			expire = this
 			has daemon "daemon" then {
 				modify daemon "daemon" set { _ ->
 					update state "state2" set { state ->
@@ -305,6 +314,8 @@ class Tests
 		Kotlmata.shutdown()
 		
 		Thread.sleep(100)
+		
+		expire?.has?.daemon("")?.then {}
 	}
 	
 	@Test

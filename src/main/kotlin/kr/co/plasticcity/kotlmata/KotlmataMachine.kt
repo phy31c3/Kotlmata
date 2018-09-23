@@ -305,7 +305,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private inner class ModifierImpl internal constructor(
 			init: (KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End)? = null,
 			modify: (KotlmataMutableMachine.Modifier.(key: T) -> Unit)? = null
-	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix, key) { EXPIRED_AGENT_MODIFIER } })
+	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
 		override val log = object : KotlmataMachine.Initializer.Log
 		{
@@ -325,7 +325,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					
 					stateMap[state]?.also {
 						this@KotlmataMachineImpl.current = it
-					} ?: Log.e(prefix, key, state) { UNDEFINED_INITIAL_STATE }
+					} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_INITIAL_STATE }
 					
 					return KotlmataMachine.Initializer.End()
 				}

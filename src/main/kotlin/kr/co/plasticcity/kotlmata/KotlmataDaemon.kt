@@ -14,6 +14,12 @@ interface KotlmataDaemon
 				name: String,
 				block: Initializer.(name: DAEMON) -> KotlmataMachine.Initializer.End
 		): KotlmataDaemon = KotlmataDaemonImpl(name, block)
+		
+		internal operator fun invoke(
+				name: String,
+				threadName: String,
+				block: Initializer.(name: DAEMON) -> KotlmataMachine.Initializer.End
+		): KotlmataDaemon = KotlmataDaemonImpl(name, block, threadName)
 	}
 	
 	interface Initializer : KotlmataMachine.Initializer
@@ -70,7 +76,8 @@ interface KotlmataMutableDaemon<out T : DAEMON> : KotlmataDaemon
 
 private class KotlmataDaemonImpl<T : DAEMON>(
 		override val key: T,
-		block: KotlmataDaemon.Initializer.(key: T) -> KotlmataMachine.Initializer.End
+		block: KotlmataDaemon.Initializer.(key: T) -> KotlmataMachine.Initializer.End,
+		threadName: String = "KotlmataDaemon[$key]"
 ) : KotlmataMutableDaemon<T>
 {
 	private var logLevel = Log.logLevel
@@ -258,7 +265,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			start at "pre-start"
 		}
 		
-		thread(name = "KotlmataDaemon[$key]", isDaemon = true, start = true) {
+		thread(name = threadName, isDaemon = true, start = true) {
 			try
 			{
 				while (true)
@@ -354,7 +361,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	private inner class InitializerImpl internal constructor(
 			block: KotlmataDaemon.Initializer.(key: T) -> KotlmataMachine.Initializer.End,
 			initializer: KotlmataMachine.Initializer
-	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e("Daemon", key) { EXPIRED_AGENT_MODIFIER } })
+	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e("Daemon[$key]:") { EXPIRED_MODIFIER } })
 	{
 		lateinit var initial: STATE
 		

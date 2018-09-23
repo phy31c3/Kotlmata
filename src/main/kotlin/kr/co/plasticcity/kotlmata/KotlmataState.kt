@@ -247,7 +247,7 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	private inner class ModifierImpl internal constructor(
 			block: KotlmataMutableState.Modifier.(key: T) -> Unit
-	) : KotlmataMutableState.Modifier, Expirable({ Log.e(key) { EXPIRED_STATE_MODIFIER } })
+	) : KotlmataMutableState.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
 		private val entryMap: MutableMap<SIGNAL, (SIGNAL) -> SIGNAL?>
 			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, (SIGNAL) -> SIGNAL?>().also {

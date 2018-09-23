@@ -170,7 +170,7 @@ private class KotlmataImpl : Kotlmata
 			daemons.clear()
 		}
 		
-		kotlmata = KotlmataDaemon("Kotlmata") { _ ->
+		kotlmata = KotlmataDaemon("Kotlmata", "KotlmataMain") { _ ->
 			on start {
 				logLevel.simple { KOTLMATA_START }
 			}
@@ -432,7 +432,7 @@ private class KotlmataImpl : Kotlmata
 	
 	private inner class PostImpl internal constructor(
 			block: Kotlmata.Post.() -> Unit
-	) : Kotlmata.Post, Expirable({ Log.e { EXPIRED_CONFIG } })
+	) : Kotlmata.Post, Expirable({ Log.e { EXPIRED_POST } })
 	{
 		override val has = object : Kotlmata.Post.Has
 		{
