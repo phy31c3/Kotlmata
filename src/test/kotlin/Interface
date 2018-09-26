@@ -1,0 +1,287 @@
+object {}
+object method {}
+object method object
+object method object method {}
+
+object method [object {}]
+
+remove clear delete drop erase
+
+[State]————————————————————————————————————————————————————————————————————————————————
+KotlmataState("name") {
+	entry action [action]
+	entry via "signal" action [action]
+	entry via action [action]
+
+	input action [action]
+	input signal "signal" action [action]
+	input signal KClass<String> action [action]
+
+	exit action [action]
+}
+
+val immutableState = KotlmataState() // 불가
+val mutableState = KotlmataMutableState()
+
+mutableState {
+	entry action [action]
+	entry via "signal" action [action]
+
+	delete action entry
+	delete action entry via "signal"
+	delete action entry via all
+
+	delete action input
+	delete action input signal "signal"
+	delete action input signal all
+
+	delete action exit
+
+	delete action all
+}
+
+immutableState.entry("signal") { signal ->
+	input(signal)
+}
+immutableState.input("signal")
+immutableState.input("signal", String::class)
+immutableState.exit()
+
+[Machine]————————————————————————————————————————————————————————————————————————————————
+KotlmataMachine("name") {
+	"state0" {
+		entry action [action]
+		entry via "signal" action [action]
+		input signal "signal" action {
+			// 여기서 신규 state를 어떻게 만들까?
+			// immutable이면 여기서 만들 수 있어서도 안되기 때문에 원래 못 만드는 것으로 한다.
+		}
+		exit action [action]
+	}
+
+	"state2" { extends template "base" }
+
+	"state0" x "signal" %= "state1"
+	"state1" x KClass<String> %= "state2"
+	"state1" x any %= "state2"
+	any x "signal" %= "state1"
+	any x any %= "state2"
+
+	start at "state0"
+}
+
+val immutableMachine = KotlmataMachine("name") {
+	start at "state0"
+}
+
+val mutableMachine = KotlmataMutableMachine("name") {
+	start at "state0"
+}
+
+mutableMachine {
+	"state1" {
+		extends template "base"
+		entry action [action]
+		entry via "signal" action [action]
+		input signal "signal" action [action]
+		exit action [action]
+	} // insert or replace
+
+	"state0" x "signal" %= "state1" // insert or update
+
+	has state "state1" then {
+		// "state1"이 존재하면 실행
+	} or {
+		// "state1"이 존재하지 않으면 실행
+	}
+
+	has transition ("state0" x "signal") then {
+		// ("state0" x "signal")이 존재하면 실행
+	} or {
+		// ("state0" x "signal")이 존재하지 않으면 실행
+	}
+
+	insert state "state1" of {
+		// "state1" 삽입, 이미 존재하면 무시
+		// Initializer
+	}
+
+	insert or replace state "state1" of {
+		// "state1" 삽입, 이미 존재하면 교체
+		// Initializer
+    }
+
+	replace state "state1" of {
+		// "state1"이 존재할 경우에만 교체
+		// Initializer
+	}
+
+	update state "state1" set {
+		// "state1"이 존재할 경우에만 업데이트
+		// Modifier
+	} or insert state "state1" of {
+		// "state1"이 존재하지 않으면 삽입
+		// Initializer
+	}
+
+	insert transition ("state0" x "signal") %= "state1"
+	insert or update transition ("state0" x "signal") %= "state1"
+	update transition ("state0" x "signal") %= "state1"
+
+	delete state "state1"
+	delete state all
+
+	delete transition ("state0" x "signal")
+	delete transition ("state0" x any)
+	delete transition (any x "signal")
+	delete transition (any x any)
+	delete transition of state "state1"
+	delete transition all
+}
+
+mutableMachine.input("signal")
+mutableMachine.input(object, Any::class) // <T : Any> input(signal: T, type: KClass<in T>)
+
+[Daemon]————————————————————————————————————————————————————————————————————————————————
+KotlmataDaemon("name") {
+	on start [action] // 최초 시작 시
+	on pause [action]
+	on stop [action]
+	on resume [action] // 일시정지 혹은 정지 상태에서 재개될 시
+	on terminate [action] // 완전 종료 시
+
+	// Machine init 블럭과 동일
+
+	start at "state0"
+}
+
+val mutableDaemon = KotlmataMutableDaemon("name") {
+	on start [action]
+	start at "state0"
+}
+
+mutableDaemon {
+	// Machine modify 블럭과 동일
+}
+
+mutableDaemon.run()
+mutableDaemon.pause()
+mutableDaemon.stop()
+mutableDaemon.terminate()
+
+mutableDaemon.input("signal")
+mutableDaemon.input("signal")
+mutableDaemon.input(object, Any::class)
+mutableDaemon.input(object, Any::class)
+
+[Kotlmata]————————————————————————————————————————————————————————————————————————————————
+Kotlmata.config {
+	log level 3
+	print debug { log ->
+		// 로그 출력
+	}
+	print error { log ->
+		// 로그 출력
+	}
+	print error { log ->
+		// 로그 출력
+	}
+}
+
+Kotlmata.start()
+Kotlmata.shutdown()
+
+Kotlmata fork "daemon" of { // Daemon init 블럭과 동일 (존재하면 무시)
+	on start [action]
+	on terminate [action]
+
+	"state1" {
+		extends template "base"
+		entry action [action]
+		entry via "signal" action [action]
+		input signal "signal" action [action]
+		exit action [action]
+	}
+
+	"state0" x "signal" %= "state1"
+
+	start at "state0"
+}
+
+Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일 (존재하지 않으면 무시)
+	update state "state1" set {
+		input signal "signal" action [action]
+	} or insert state "state1" of {
+		extends template "base"
+		entry action [action]
+		entry via "signal" action [action]
+		input signal "signal" action [action]
+		exit action [action]
+	}
+}
+
+Kotlmata run "daemon"
+Kotlmata pause "daemon"
+Kotlmata stop "daemon"
+Kotlmata terminate "daemon"
+
+Kotlmata input "signal" to "daemon"
+Kotlmata input "signal" type KClass<String> to "daemon"
+
+Kotlmata { // Kotlmata post 와 동일
+	has daemon "daemon" then {
+		modify daemon "daemon" set {
+			update state "state1" set {
+				input signal "signal" action [action]
+			} or insert state "state1" of {
+				extends template "base"
+				entry action [action]
+				entry via "signal" action [action]
+				input signal "signal" action [action]
+				exit action [action]
+			}
+		}
+	} or {
+		fork daemon "daemon" of {
+			on start [action]
+			on terminate [action]
+
+			"state1" {
+				extends template "base"
+				entry action [action]
+				entry via "signal" action [action]
+				input signal "signal" action [action]
+				exit action [action]
+			}
+
+			"state0" x "signal" %= "state1"
+
+			start at "state0"
+		}
+	} finally {
+		fork daemon "daemon" of {
+			on start [action]
+			on terminate [action]
+
+			"state1" {
+				extends template "base"
+				entry action [action]
+				entry via "signal" action [action]
+				input signal "signal" action [action]
+				exit action [action]
+			}
+
+			"state0" x "signal" %= "state1"
+
+			start at "state0"
+		}
+	}
+
+	run daemon "daemon"
+	pause daemon "daemon"
+
+	input signal "signal" to "daemon"
+	input signal "signal" priority 1 to "daemon"
+	input signal "signal" type Type::class to "daemon"
+	input signal "signal" type Type::class priority 2 to "daemon"
+}

@@ -1,36 +1,41 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.novoda:bintray-release:0.8.0'
+	}
+}
+
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.2.51'
+	id 'org.jetbrains.kotlin.jvm' version '1.2.51'
 }
 
-version '1.0-SNAPSHOT'
+apply plugin: 'com.novoda.bintray-release'
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+	compile "org.jetbrains.kotlin:kotlin-reflect"
+	testCompile 'junit:junit:4.12'
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+	kotlinOptions.jvmTarget = "1.8"
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-version '1.0-SNAPSHOT'
-
-repositories {
-    mavenCentral()
+	kotlinOptions.jvmTarget = "1.8"
 }
 
-dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+publish {
+	userOrg = 'phy31c3'
+	groupId = 'kr.co.plasticcity'
+	artifactId = 'kotlmata'
+	publishVersion = '0.0.1'
+	desc = 'Kotlin State-based Programming Library'
+	website = 'https://github.com/phy31c3/Kotlmata'
+	repository = "${website}.git"
 }

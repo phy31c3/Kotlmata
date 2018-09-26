@@ -1,0 +1,41 @@
+-------------------------------- DEBUG --------------------------------
+[Kotlmata]
+생명주기						: 'Kotlmata: START' 															1
+데몬 생성/수정/제어 실행/무시	: 'Kotlmata:%s [Message] {daemon: %s}'											3
+							: 'Kotlmata:%s [Message] ignored: The daemon is already exists. {daemon: %s}	2
+데몬 (타입지정)입력 실행/무시	: 'Kotlmata:%s [Message] {signal: %s} {daemon: %s}'								3(2)
+포스트 블럭 시작				: 'Kotlmata: >> Start post block.'												3
+포스트 블럭 끝				: 'Kotlmata: << End post block.'												3
+
+[KotlmataDaemon]
+생명주기						: 'KotlmataDaemon[$s]: START' 																		1
+요청됨
+(타입지정)신호 요청됨
+빠른 입력 요청됨
+요청 시작
+요청 임시 보관
+빠른 입력 요청 임시 보관
+요청 폐기
+요청 무시
+요청 끝
+
+[KotlmataMachine]
+생성 시작
+생성 완료
+머신 수정 시작
+머신 수정 완료
+전이 규칙 업데이트
+신호 입력됨
+상태 전이됨
+
+[KotlmataState]
+상태 생성
+상태 업데이트
+
+-------------------------------- WARN ---------------------------------
+존재하지 않는 상태로 전이 시도
+Pre-Start 상태 얻기 시도
+
+-------------------------------- ERROR --------------------------------
+만료된 객체의 재사용
+정의되지 않은 시작 상태
