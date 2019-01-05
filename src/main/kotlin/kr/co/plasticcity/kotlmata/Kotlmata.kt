@@ -158,8 +158,8 @@ private class KotlmataImpl : Kotlmata
 			Log.logLevel = value
 		}
 	
-	private val kotlmata: KotlmataDaemon
 	private val daemons: MutableMap<DAEMON, KotlmataMutableDaemon<DAEMON>> = HashMap()
+	private val core: KotlmataDaemon
 	
 	init
 	{
@@ -170,7 +170,7 @@ private class KotlmataImpl : Kotlmata
 			daemons.clear()
 		}
 		
-		kotlmata = KotlmataDaemon("Kotlmata", "KotlmataMain") { _ ->
+		core = KotlmataDaemon("core", "Kotlmata") { _ ->
 			on start {
 				logLevel.simple { KOTLMATA_START }
 			}
@@ -189,7 +189,7 @@ private class KotlmataImpl : Kotlmata
 				cleanup()
 			}
 			
-			"kotlmata" { _ ->
+			"core" { _ ->
 				input signal Message.Fork::class action {
 					if (it.daemon !in daemons)
 					{
@@ -289,7 +289,7 @@ private class KotlmataImpl : Kotlmata
 				}
 			}
 			
-			start at "kotlmata"
+			start at "core"
 		}
 	}
 	
@@ -300,17 +300,17 @@ private class KotlmataImpl : Kotlmata
 	
 	override fun start()
 	{
-		kotlmata.run()
+		core.run()
 	}
 	
 	override fun shutdown()
 	{
-		kotlmata.stop()
+		core.stop()
 	}
 	
 	override fun release()
 	{
-		kotlmata.terminate()
+		core.terminate()
 	}
 	
 	override fun <T : DAEMON> fork(daemon: T) = object : Kotlmata.Of<T>
@@ -318,7 +318,7 @@ private class KotlmataImpl : Kotlmata
 		@Suppress("UNCHECKED_CAST")
 		override fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
 		{
-			kotlmata.input(Message.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End))
+			core.input(Message.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End))
 		}
 	}
 	
@@ -327,28 +327,28 @@ private class KotlmataImpl : Kotlmata
 		@Suppress("UNCHECKED_CAST")
 		override fun set(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 		{
-			kotlmata.input(Message.Modify(daemon, block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit))
+			core.input(Message.Modify(daemon, block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit))
 		}
 	}
 	
 	override fun run(daemon: DAEMON)
 	{
-		kotlmata.input(Message.Run(daemon))
+		core.input(Message.Run(daemon))
 	}
 	
 	override fun pause(daemon: DAEMON)
 	{
-		kotlmata.input(Message.Pause(daemon))
+		core.input(Message.Pause(daemon))
 	}
 	
 	override fun stop(daemon: DAEMON)
 	{
-		kotlmata.input(Message.Stop(daemon))
+		core.input(Message.Stop(daemon))
 	}
 	
 	override fun terminate(daemon: DAEMON)
 	{
-		kotlmata.input(Message.Terminate(daemon))
+		core.input(Message.Terminate(daemon))
 	}
 	
 	override fun <T : SIGNAL> input(signal: T) = object : Kotlmata.Type<T>
@@ -360,13 +360,13 @@ private class KotlmataImpl : Kotlmata
 			{
 				override fun to(daemon: DAEMON)
 				{
-					kotlmata.input(Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, priority))
+					core.input(Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, priority))
 				}
 			}
 			
 			override fun to(daemon: DAEMON)
 			{
-				kotlmata.input(Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, 0))
+				core.input(Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, 0))
 			}
 		}
 		
@@ -374,19 +374,19 @@ private class KotlmataImpl : Kotlmata
 		{
 			override fun to(daemon: DAEMON)
 			{
-				kotlmata.input(Message.Signal(daemon, signal, priority))
+				core.input(Message.Signal(daemon, signal, priority))
 			}
 		}
 		
 		override fun to(daemon: DAEMON)
 		{
-			kotlmata.input(Message.Signal(daemon, signal, 0))
+			core.input(Message.Signal(daemon, signal, 0))
 		}
 	}
 	
 	override fun post(block: Kotlmata.Post.() -> Unit)
 	{
-		kotlmata.input(Message.Post(block))
+		core.input(Message.Post(block))
 	}
 	
 	private inner class ConfigImpl internal constructor(
