@@ -14,7 +14,7 @@ class Tests
 			log level 3
 			print debug ::println
 			print warn ::println
-			print error ::println
+			print error ::error
 		}
 		
 		Kotlmata.start()

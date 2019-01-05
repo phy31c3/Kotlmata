@@ -83,7 +83,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	private var logLevel = Log.logLevel
 	
 	private val machine: KotlmataMutableMachine<T>
-	private val engine: KotlmataMachine
+	private val core: KotlmataMachine
 	
 	private var onStart: () -> Unit = {}
 	private var onPause: () -> Unit = {}
@@ -126,7 +126,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 		}
 		
-		engine = KotlmataMachine("$key@engine", 0) { _ ->
+		core = KotlmataMachine("$key@core", 0) { _ ->
 			"pre-start" { state ->
 				val startMachine: (Message) -> Unit = {
 					logLevel.simple(key) { DAEMON_START }
@@ -272,7 +272,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					val m = queue!!.take()
 					logLevel.normal(key, m.id) { DAEMON_START_REQUEST }
-					engine.input(m)
+					core.input(m)
 					logLevel.normal(key, m.id) { DAEMON_END_REQUEST }
 				}
 			}

@@ -66,13 +66,13 @@ internal class Logs
 		const val STATE_EXIT_NONE = "Kotlmata%s %s: No exit action. {signal: %s}"
 		
 		/*########################## WARN ##########################*/
-		const val TRANSITION_FAILED = "!!!Kotlmata%s Attempt transition to a non-existent state. (%s) x (%s) -> (%s)"
-		const val OBTAIN_PRE_START = "!!!Kotlmata%s Attempt to get 'pre-start' state: The 'pre-start' state can not be obtained."
+		const val TRANSITION_FAILED = "Kotlmata%s Attempt transition to a non-existent state. (%s) x (%s) -> (%s)"
+		const val OBTAIN_PRE_START = "Kotlmata%s Attempt to get 'pre-start' state: The 'pre-start' state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
-		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available within the config block."
-		const val EXPIRED_POST = "Kotlmata: Use of expired 'Post' object: The object is only available within the post block."
-		const val EXPIRED_MODIFIER = "Kotlmata%s Use of expired object: The object is only available within the 'init' or 'modify' block."
+		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available inside the config block."
+		const val EXPIRED_POST = "Kotlmata: Use of expired 'Post' object: The object is only available inside the post block."
+		const val EXPIRED_MODIFIER = "Kotlmata%s Use of expired object: The object is only available inside the 'init' or 'modify' block."
 		const val UNDEFINED_INITIAL_STATE = "Kotlmata%s The initial state '%s' is undefined."
 	}
 }
