@@ -189,7 +189,7 @@ private class KotlmataImpl : Kotlmata
 				cleanup()
 			}
 			
-			"core" { _ ->
+			"core" {
 				input signal Message.Fork::class action {
 					if (it.daemon !in daemons)
 					{

@@ -98,7 +98,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	{
 		logLevel.normal(key) { DAEMON_START_INIT }
 		
-		machine = KotlmataMutableMachine(key, "Daemon[$key]:   ") { _ ->
+		machine = KotlmataMutableMachine(key, "Daemon[$key]:   ") {
 			/* For avoid log print for PreStart. */
 			log level 0
 			PreStart {}
@@ -127,7 +127,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		core = KotlmataMachine("$key@core", 0) { _ ->
-			"pre-start" { state ->
+			"pre-start" {
 				val startMachine: (Message) -> Unit = {
 					logLevel.simple(key) { DAEMON_START }
 					onStart()
@@ -144,7 +144,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input action { ignore(it, state) }
 			}
 			
-			"run" { state ->
+			"run" {
 				input signal Message.Pause::class action {}
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}
@@ -163,7 +163,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input action { ignore(it, state) }
 			}
 			
-			"pause" { state ->
+			"pause" {
 				val stash: MutableList<Message> = ArrayList()
 				
 				val keep: (Message) -> Unit = {
@@ -196,7 +196,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 			
-			"stop" { state ->
+			"stop" {
 				var express: Message.Express? = null
 				
 				val cleanup = { m: Message ->
@@ -239,7 +239,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 			
-			"terminate" { _ ->
+			"terminate" {
 				entry action {
 					logLevel.simple(key) { DAEMON_TERMINATE }
 					onTerminate()
