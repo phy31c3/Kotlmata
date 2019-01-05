@@ -207,7 +207,7 @@ private class KotlmataImpl : Kotlmata
 				input signal Message.Modify::class action {
 					if (it.daemon in daemons)
 					{
-						logLevel.detail("", it, it.daemon) { KOTLMATA_COMMON }
+						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
 						daemons[it.daemon]!! modify it.block
 					}
 					else
