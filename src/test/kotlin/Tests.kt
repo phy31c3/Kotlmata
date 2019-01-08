@@ -1,5 +1,5 @@
+
 import kr.co.plasticcity.kotlmata.*
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import java.lang.ref.WeakReference
@@ -16,14 +16,6 @@ class Tests
 			print warn ::println
 			print error ::error
 		}
-		
-		Kotlmata.start()
-	}
-	
-	@After
-	fun release()
-	{
-		Kotlmata.release()
 	}
 	
 	@Test
@@ -69,7 +61,7 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		val machine = KotlmataMutableMachine("m1") { _ ->
+		val machine = KotlmataMutableMachine("m1") {
 			"state1" {
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { println("$state: String 타입 입력함수: $it") }
@@ -105,7 +97,7 @@ class Tests
 		
 		println("-----------------------------------")
 		
-		machine { _ ->
+		machine {
 			has state "state1" then {
 				println("state1 있음")
 			} or {
@@ -142,7 +134,7 @@ class Tests
 	{
 		var shouldGC: WeakReference<KotlmataState.Initializer<String>>? = null
 		var expire: KotlmataMutableState.Modifier<String>? = null
-		val daemon = KotlmataMutableDaemon("d1") { _ ->
+		val daemon = KotlmataMutableDaemon("d1") {
 			log level 2
 			
 			"state1" {
@@ -207,7 +199,7 @@ class Tests
 		Thread.sleep(100)
 		
 		daemon.run()
-		daemon { _ ->
+		daemon {
 			"state1" x "goToState3" %= "state3"
 			
 			update state "state3" set {
@@ -234,7 +226,8 @@ class Tests
 	fun kotlmataTest()
 	{
 		var expire: Kotlmata.Post? = null
-		Kotlmata fork "daemon" of { _ ->
+		Kotlmata.start()
+		Kotlmata fork "daemon" of {
 			log level 2
 			
 			"state1" {
@@ -295,7 +288,7 @@ class Tests
 		Kotlmata {
 			expire = this
 			has daemon "daemon" then {
-				modify daemon "daemon" set { _ ->
+				modify daemon "daemon" set {
 					update state "state2" set {
 						input signal Integer::class action { println("$state: Post 에서 수정된 Number 타입 입력함수: $it") }
 						exit action { println("$state: Post 에서 수정된 퇴장함수") }
@@ -312,6 +305,7 @@ class Tests
 		
 		Kotlmata.input("shutdown 보다 더 빨리 실행될까?")
 		Kotlmata.shutdown()
+		Kotlmata.release()
 		
 		Thread.sleep(100)
 		

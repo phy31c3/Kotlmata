@@ -12,9 +12,13 @@ interface KotlmataState<T : STATE>
 		): KotlmataState<String> = KotlmataStateImpl(name, block)
 	}
 	
-	interface Initializer<T : STATE>
+	interface KeyHolder<T : STATE>
 	{
 		val state: T
+	}
+	
+	interface Initializer<T : STATE> : KeyHolder<T>
+	{
 		val entry: Entry
 		val input: Input
 		val exit: Exit

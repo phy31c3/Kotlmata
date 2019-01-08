@@ -2,20 +2,25 @@ package kr.co.plasticcity.kotlmata
 
 import kotlin.reflect.KClass
 
-interface KotlmataMachine
+interface KotlmataMachine<T : MACHINE>
 {
 	companion object
 	{
 		operator fun invoke(
 				name: String,
-				block: Initializer.(name: String) -> Initializer.End
-		): KotlmataMachine = KotlmataMachineImpl(name, block)
+				block: InitializerWithKey<String>.() -> Initializer.End
+		): KotlmataMachine<String> = KotlmataMachineImpl(name, block)
 		
 		internal operator fun invoke(
 				name: String,
 				logLevel: Int,
-				block: Initializer.(name: String) -> Initializer.End
-		): KotlmataMachine = KotlmataMachineImpl(name, block, logLevel = logLevel)
+				block: Initializer.() -> Initializer.End
+		): KotlmataMachine<String> = KotlmataMachineImpl(name, block, logLevel = logLevel)
+	}
+	
+	interface KeyHolder<T : MACHINE>
+	{
+		val machine: T
 	}
 	
 	interface Initializer : StateDefine, TransitionDefine
@@ -38,6 +43,8 @@ interface KotlmataMachine
 		
 		class End internal constructor()
 	}
+	
+	interface InitializerWithKey<T : MACHINE> : KeyHolder<T>, Initializer
 	
 	interface StateDefine
 	{
@@ -63,7 +70,7 @@ interface KotlmataMachine
 		operator fun remAssign(state: STATE)
 	}
 	
-	val key: MACHINE
+	val key: T
 	
 	/**
 	 * @param block Called if the state transitions and the next state's entry function returns an signal.
@@ -80,19 +87,19 @@ interface KotlmataMachine
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 }
 
-interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
+interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 {
 	companion object
 	{
 		operator fun invoke(
 				name: String,
-				block: KotlmataMachine.Initializer.(name: String) -> KotlmataMachine.Initializer.End
+				block: KotlmataMachine.InitializerWithKey<String>.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine<String> = KotlmataMachineImpl(name, block)
 		
 		internal operator fun <T : MACHINE> invoke(
 				key: T,
 				prefix: String,
-				block: KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End
+				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, block, prefix)
 	}
 	
@@ -196,14 +203,16 @@ interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
 		}
 	}
 	
-	infix fun modify(block: Modifier.(key: T) -> Unit)
+	interface ModifierWithKey<T : MACHINE> : KotlmataMachine.KeyHolder<T>, Modifier
 	
-	operator fun invoke(block: Modifier.(key: T) -> Unit) = modify(block)
+	infix fun modify(block: ModifierWithKey<T>.() -> Unit)
+	
+	operator fun invoke(block: ModifierWithKey<T>.() -> Unit) = modify(block)
 }
 
 private class KotlmataMachineImpl<T : MACHINE>(
 		override val key: T,
-		block: KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End,
+		block: KotlmataMachine.InitializerWithKey<T>.() -> KotlmataMachine.Initializer.End,
 		val prefix: String = "Machine[$key]:",
 		var logLevel: Int = Log.logLevel
 ) : KotlmataMutableMachine<T>
@@ -290,7 +299,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun modify(block: KotlmataMutableMachine.Modifier.(key: T) -> Unit)
+	override fun modify(block: KotlmataMutableMachine.ModifierWithKey<T>.() -> Unit)
 	{
 		logLevel.normal(prefix, current.key) { MACHINE_START_MODIFY }
 		ModifierImpl(modify = block)
@@ -303,10 +312,13 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	}
 	
 	private inner class ModifierImpl internal constructor(
-			init: (KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End)? = null,
-			modify: (KotlmataMutableMachine.Modifier.(key: T) -> Unit)? = null
-	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
+			init: (KotlmataMachine.InitializerWithKey<T>.() -> KotlmataMachine.Initializer.End)? = null,
+			modify: (KotlmataMutableMachine.ModifierWithKey<T>.() -> Unit)? = null
+	) : KotlmataMachine.InitializerWithKey<T>, KotlmataMutableMachine.ModifierWithKey<T>, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
+		override val machine: T
+			get() = this@KotlmataMachineImpl.key
+		
 		override val log = object : KotlmataMachine.Initializer.Log
 		{
 			override fun level(level: Int)
@@ -594,7 +606,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		init
 		{
-			init?.let { it(key) } ?: modify?.let { it(key) }
+			init?.let { it() } ?: modify?.let { it() }
 			expire()
 		}
 	}
