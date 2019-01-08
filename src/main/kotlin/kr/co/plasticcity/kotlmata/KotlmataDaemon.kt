@@ -22,13 +22,10 @@ interface KotlmataDaemon<T : DAEMON>
 		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, block, threadName)
 	}
 	
-	interface KeyHolder<T : DAEMON>
+	@KotlmataMarker
+	interface Initializer<T : DAEMON> : KotlmataMachine.Initializer
 	{
 		val daemon: T
-	}
-	
-	interface Initializer<T : DAEMON> : KeyHolder<T>, KotlmataMachine.Initializer
-	{
 		val on: On
 		
 		interface On
@@ -74,7 +71,11 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 		): KotlmataMutableDaemon<T> = KotlmataDaemonImpl(key, block)
 	}
 	
-	interface Modifier<T : DAEMON> : KotlmataDaemon.KeyHolder<T>, KotlmataMutableMachine.Modifier
+	@KotlmataMarker
+	interface Modifier<T : DAEMON> : KotlmataMutableMachine.Modifier
+	{
+		val daemon: T
+	}
 	
 	infix fun modify(block: Modifier<T>.() -> Unit)
 	

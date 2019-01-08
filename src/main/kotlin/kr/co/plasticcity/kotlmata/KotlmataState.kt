@@ -12,13 +12,10 @@ interface KotlmataState<T : STATE>
 		): KotlmataState<String> = KotlmataStateImpl(name, block)
 	}
 	
-	interface KeyHolder<T : STATE>
+	@KotlmataMarker
+	interface Initializer<T : STATE>
 	{
 		val state: T
-	}
-	
-	interface Initializer<T : STATE> : KeyHolder<T>
-	{
 		val entry: Entry
 		val input: Input
 		val exit: Exit
@@ -84,6 +81,7 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 		): KotlmataMutableState<T> = KotlmataStateImpl(key, block, prefix, logLevel)
 	}
 	
+	@KotlmataMarker
 	interface Modifier<T : STATE> : KotlmataState.Initializer<T>
 	{
 		val delete: Delete

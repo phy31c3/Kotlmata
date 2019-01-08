@@ -25,6 +25,7 @@ interface Kotlmata
 	
 	operator fun invoke(block: Post.() -> Unit) = post(block)
 	
+	@KotlmataMarker
 	interface Config
 	{
 		val log: Log
@@ -71,6 +72,7 @@ interface Kotlmata
 		infix fun to(daemon: DAEMON)
 	}
 	
+	@KotlmataMarker
 	interface Post
 	{
 		val has: Has

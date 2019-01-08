@@ -18,11 +18,12 @@ interface KotlmataMachine<T : MACHINE>
 		): KotlmataMachine<String> = KotlmataMachineImpl(name, block, logLevel = logLevel)
 	}
 	
-	interface KeyHolder<T : MACHINE>
+	interface InitializerWithKey<T : MACHINE> : Initializer
 	{
 		val machine: T
 	}
 	
+	@KotlmataMarker
 	interface Initializer : StateDefine, TransitionDefine
 	{
 		val log: Log
@@ -43,8 +44,6 @@ interface KotlmataMachine<T : MACHINE>
 		
 		class End internal constructor()
 	}
-	
-	interface InitializerWithKey<T : MACHINE> : KeyHolder<T>, Initializer
 	
 	interface StateDefine
 	{
@@ -103,6 +102,12 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, block, prefix)
 	}
 	
+	interface ModifierWithKey<T : MACHINE> : Modifier
+	{
+		val machine: T
+	}
+	
+	@KotlmataMarker
 	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.TransitionDefine
 	{
 		val current: STATE
@@ -202,8 +207,6 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			}
 		}
 	}
-	
-	interface ModifierWithKey<T : MACHINE> : KotlmataMachine.KeyHolder<T>, Modifier
 	
 	infix fun modify(block: ModifierWithKey<T>.() -> Unit)
 	
