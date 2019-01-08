@@ -2,17 +2,22 @@ package kr.co.plasticcity.kotlmata
 
 import kotlin.reflect.KClass
 
-interface KotlmataState
+interface KotlmataState<T : STATE>
 {
 	companion object
 	{
 		operator fun invoke(
 				name: String,
-				block: Initializer.(name: String) -> Unit
-		): KotlmataState = KotlmataStateImpl(name, block)
+				block: Initializer<String>.() -> Unit
+		): KotlmataState<String> = KotlmataStateImpl(name, block)
 	}
 	
-	interface Initializer
+	interface KeyHolder<T : STATE>
+	{
+		val state: T
+	}
+	
+	interface Initializer<T : STATE> : KeyHolder<T>
 	{
 		val entry: Entry
 		val input: Input
@@ -43,7 +48,7 @@ interface KotlmataState
 		infix fun action(action: (signal: T) -> U)
 	}
 	
-	val key: STATE
+	val key: T
 	
 	/**
 	 * @param block If 'entry action' returns a next signal, the block is executed.
@@ -62,24 +67,24 @@ interface KotlmataState
 	fun exit(signal: SIGNAL)
 }
 
-interface KotlmataMutableState<out T : STATE> : KotlmataState
+interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 {
 	companion object
 	{
 		operator fun invoke(
 				name: String,
-				block: (KotlmataState.Initializer.(name: String) -> Unit)? = null
+				block: (KotlmataState.Initializer<String>.() -> Unit)? = null
 		): KotlmataMutableState<String> = KotlmataStateImpl(name, block)
 		
 		internal operator fun <T : STATE> invoke(
 				key: T,
 				prefix: String,
 				logLevel: Int,
-				block: (KotlmataState.Initializer.(key: T) -> Unit)
+				block: (KotlmataState.Initializer<T>.() -> Unit)
 		): KotlmataMutableState<T> = KotlmataStateImpl(key, block, prefix, logLevel)
 	}
 	
-	interface Modifier : KotlmataState.Initializer
+	interface Modifier<T : STATE> : KotlmataState.Initializer<T>
 	{
 		val delete: Delete
 	}
@@ -106,14 +111,14 @@ interface KotlmataMutableState<out T : STATE> : KotlmataState
 		}
 	}
 	
-	infix fun modify(block: Modifier.(key: T) -> Unit)
+	infix fun modify(block: Modifier<T>.() -> Unit)
 	
-	operator fun invoke(block: Modifier.(key: T) -> Unit) = modify(block)
+	operator fun invoke(block: Modifier<T>.() -> Unit) = modify(block)
 }
 
 private class KotlmataStateImpl<T : STATE>(
 		override val key: T,
-		block: (KotlmataState.Initializer.(key: T) -> Unit)? = null,
+		block: (KotlmataState.Initializer<T>.() -> Unit)? = null,
 		val prefix: String = "State[$key]:",
 		val logLevel: Int = Log.logLevel
 ) : KotlmataMutableState<T>
@@ -234,7 +239,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: logLevel.normal(prefix, key, signal) { STATE_EXIT_NONE }
 	}
 	
-	override fun modify(block: KotlmataMutableState.Modifier.(key: T) -> Unit)
+	override fun modify(block: KotlmataMutableState.Modifier<T>.() -> Unit)
 	{
 		ModifierImpl(block)
 		logLevel.simple(prefix, key) { STATE_UPDATED }
@@ -246,8 +251,8 @@ private class KotlmataStateImpl<T : STATE>(
 	}
 	
 	private inner class ModifierImpl internal constructor(
-			block: KotlmataMutableState.Modifier.(key: T) -> Unit
-	) : KotlmataMutableState.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
+			block: KotlmataMutableState.Modifier<T>.() -> Unit
+	) : KotlmataMutableState.Modifier<T>, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
 		private val entryMap: MutableMap<SIGNAL, (SIGNAL) -> SIGNAL?>
 			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, (SIGNAL) -> SIGNAL?>().also {
@@ -258,6 +263,9 @@ private class KotlmataStateImpl<T : STATE>(
 			get() = this@KotlmataStateImpl.inputMap ?: HashMap<SIGNAL, (SIGNAL) -> Unit>().also {
 				this@KotlmataStateImpl.inputMap = it
 			}
+		
+		override val state: T
+			get() = this@KotlmataStateImpl.key
 		
 		@Suppress("UNCHECKED_CAST")
 		override val entry by lazy {
@@ -419,7 +427,7 @@ private class KotlmataStateImpl<T : STATE>(
 		
 		init
 		{
-			block(this@KotlmataStateImpl.key)
+			block()
 			expire()
 		}
 	}

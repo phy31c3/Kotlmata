@@ -6,23 +6,28 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import kotlin.reflect.KClass
 
-interface KotlmataDaemon
+interface KotlmataDaemon<T : DAEMON>
 {
 	companion object
 	{
 		operator fun invoke(
 				name: String,
-				block: Initializer.(name: DAEMON) -> KotlmataMachine.Initializer.End
-		): KotlmataDaemon = KotlmataDaemonImpl(name, block)
+				block: Initializer<String>.() -> KotlmataMachine.Initializer.End
+		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, block)
 		
 		internal operator fun invoke(
 				name: String,
 				threadName: String,
-				block: Initializer.(name: DAEMON) -> KotlmataMachine.Initializer.End
-		): KotlmataDaemon = KotlmataDaemonImpl(name, block, threadName)
+				block: Initializer<String>.() -> KotlmataMachine.Initializer.End
+		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, block, threadName)
 	}
 	
-	interface Initializer : KotlmataMachine.Initializer
+	interface KeyHolder<T : DAEMON>
+	{
+		val daemon: T
+	}
+	
+	interface Initializer<T : DAEMON> : KeyHolder<T>, KotlmataMachine.Initializer
 	{
 		val on: On
 		
@@ -36,7 +41,7 @@ interface KotlmataDaemon
 		}
 	}
 	
-	val key: DAEMON
+	val key: T
 	
 	fun run()
 	fun pause()
@@ -54,36 +59,38 @@ interface KotlmataDaemon
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int = 0)
 }
 
-interface KotlmataMutableDaemon<out T : DAEMON> : KotlmataDaemon
+interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 {
 	companion object
 	{
 		operator fun invoke(
 				name: String,
-				block: KotlmataDaemon.Initializer.(name: String) -> KotlmataMachine.Initializer.End
+				block: KotlmataDaemon.Initializer<String>.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableDaemon<String> = KotlmataDaemonImpl(name, block)
 		
 		internal operator fun <T : DAEMON> invoke(
 				key: T,
-				block: KotlmataDaemon.Initializer.(key: T) -> KotlmataMachine.Initializer.End
+				block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End
 		): KotlmataMutableDaemon<T> = KotlmataDaemonImpl(key, block)
 	}
 	
-	infix fun modify(block: KotlmataMutableMachine.Modifier.(key: T) -> Unit)
+	interface Modifier<T : DAEMON> : KotlmataDaemon.KeyHolder<T>, KotlmataMutableMachine.Modifier
 	
-	operator fun invoke(block: KotlmataMutableMachine.Modifier.(key: T) -> Unit) = modify(block)
+	infix fun modify(block: Modifier<T>.() -> Unit)
+	
+	operator fun invoke(block: Modifier<T>.() -> Unit) = modify(block)
 }
 
 private class KotlmataDaemonImpl<T : DAEMON>(
 		override val key: T,
-		block: KotlmataDaemon.Initializer.(key: T) -> KotlmataMachine.Initializer.End,
+		block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End,
 		threadName: String = "KotlmataDaemon[$key]"
 ) : KotlmataMutableDaemon<T>
 {
 	private var logLevel = Log.logLevel
 	
 	private val machine: KotlmataMutableMachine<T>
-	private val core: KotlmataMachine
+	private val core: KotlmataMachine<String>
 	
 	private var onStart: () -> Unit = {}
 	private var onPause: () -> Unit = {}
@@ -98,19 +105,22 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	{
 		logLevel.normal(key) { DAEMON_START_INIT }
 		
-		machine = KotlmataMutableMachine(key, "Daemon[$key]:   ") { _ ->
+		machine = KotlmataMutableMachine(key, "Daemon[$key]:   ") {
 			/* For avoid log print for PreStart. */
 			log level 0
 			PreStart {}
-			log level Log.logLevel
+			log level logLevel
 			
 			val initializer = InitializerImpl(block, this)
 			PreStart x Message.Run::class %= initializer.initial
 			start at PreStart
 		}
 		
-		val modifyMachine: (Message.Modify) -> Unit = {
-			machine modify it.block
+		@Suppress("UNCHECKED_CAST")
+		val modifyMachine: (Message.Modify<*>) -> Unit = {
+			machine {
+				ModifierImpl((it as Message.Modify<T>).block, this)
+			}
 		}
 		
 		val postExpress: (SIGNAL) -> Unit = {
@@ -126,8 +136,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 		}
 		
-		core = KotlmataMachine("$key@core", 0) { _ ->
-			"pre-start" { state ->
+		core = KotlmataMachine("$key@core", 0) {
+			"pre-start" {
 				val startMachine: (Message) -> Unit = {
 					logLevel.simple(key) { DAEMON_START }
 					onStart()
@@ -144,7 +154,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input action { ignore(it, state) }
 			}
 			
-			"run" { state ->
+			"run" {
 				input signal Message.Pause::class action {}
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}
@@ -163,7 +173,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input action { ignore(it, state) }
 			}
 			
-			"pause" { state ->
+			"pause" {
 				val stash: MutableList<Message> = ArrayList()
 				
 				val keep: (Message) -> Unit = {
@@ -196,7 +206,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 			
-			"stop" { state ->
+			"stop" {
 				var express: Message.Express? = null
 				
 				val cleanup = { m: Message ->
@@ -239,7 +249,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 			
-			"terminate" { _ ->
+			"terminate" {
 				entry action {
 					logLevel.simple(key) { DAEMON_TERMINATE }
 					onTerminate()
@@ -343,11 +353,10 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 	}
 	
-	@Suppress("UNCHECKED_CAST")
-	override fun modify(block: KotlmataMutableMachine.Modifier.(key: T) -> Unit)
+	override fun modify(block: KotlmataMutableDaemon.Modifier<T>.() -> Unit)
 	{
 		synchronized<Unit>(lock) {
-			val m = Message.Modify(block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit)
+			val m = Message.Modify(block)
 			logLevel.detail(key, m, m.id) { DAEMON_REQUEST }
 			queue?.offer(m)
 		}
@@ -359,11 +368,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	}
 	
 	private inner class InitializerImpl internal constructor(
-			block: KotlmataDaemon.Initializer.(key: T) -> KotlmataMachine.Initializer.End,
+			block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End,
 			initializer: KotlmataMachine.Initializer
-	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e("Daemon[$key]:") { EXPIRED_MODIFIER } })
+	) : KotlmataDaemon.Initializer<T>, KotlmataMachine.Initializer by initializer, Expirable({ Log.e("Daemon[$key]:") { EXPIRED_MODIFIER } })
 	{
 		lateinit var initial: STATE
+		
+		override val daemon: T
+			get() = this@KotlmataDaemonImpl.key
 		
 		override val on = object : KotlmataDaemon.Initializer.On
 		{
@@ -424,7 +436,22 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		init
 		{
-			block(key)
+			block()
+			expire()
+		}
+	}
+	
+	private inner class ModifierImpl internal constructor(
+			block: KotlmataMutableDaemon.Modifier<T>.() -> Unit,
+			modifier: KotlmataMutableMachine.Modifier
+	) : KotlmataMutableDaemon.Modifier<T>, KotlmataMutableMachine.Modifier by modifier, Expirable({ Log.e("Daemon[$key]:") { EXPIRED_MODIFIER } })
+	{
+		override val daemon: T
+			get() = this@KotlmataDaemonImpl.key
+		
+		init
+		{
+			block()
 			expire()
 		}
 	}
@@ -444,7 +471,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>, priority: Int)
 			: Message(if (priority > 0) EVENT + priority else EVENT)
 		
-		class Modify(val block: KotlmataMutableMachine.Modifier.(key: DAEMON) -> Unit) : Message(EVENT)
+		class Modify<T : DAEMON>(val block: KotlmataMutableDaemon.Modifier<T>.() -> Unit) : Message(EVENT)
 		
 		companion object
 		{

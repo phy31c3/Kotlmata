@@ -48,12 +48,12 @@ interface Kotlmata
 	
 	interface Of<T : DAEMON>
 	{
-		infix fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
+		infix fun of(block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End)
 	}
 	
 	interface Set<T : DAEMON>
 	{
-		infix fun set(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
+		infix fun set(block: KotlmataMutableDaemon.Modifier<T>.() -> Unit)
 	}
 	
 	interface Type<T : SIGNAL> : Priority
@@ -108,7 +108,7 @@ interface Kotlmata
 			
 			interface Of<T : DAEMON>
 			{
-				infix fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
+				infix fun of(block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End)
 			}
 		}
 		
@@ -118,7 +118,7 @@ interface Kotlmata
 			
 			interface Set<T : DAEMON>
 			{
-				infix fun set(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
+				infix fun set(block: KotlmataMutableDaemon.Modifier<T>.() -> Unit)
 			}
 		}
 		
@@ -158,8 +158,8 @@ private class KotlmataImpl : Kotlmata
 			Log.logLevel = value
 		}
 	
-	private val daemons: MutableMap<DAEMON, KotlmataMutableDaemon<DAEMON>> = HashMap()
-	private val core: KotlmataDaemon
+	private val daemons: MutableMap<DAEMON, KotlmataMutableDaemon<out DAEMON>> = HashMap()
+	private val core: KotlmataDaemon<String>
 	
 	init
 	{
@@ -170,7 +170,7 @@ private class KotlmataImpl : Kotlmata
 			daemons.clear()
 		}
 		
-		core = KotlmataDaemon("core", "Kotlmata") { _ ->
+		core = KotlmataDaemon("core", "Kotlmata") {
 			on start {
 				logLevel.simple { KOTLMATA_START }
 			}
@@ -189,14 +189,14 @@ private class KotlmataImpl : Kotlmata
 				cleanup()
 			}
 			
-			"core" { _ ->
+			"core" {
 				input signal Message.Fork::class action {
 					if (it.daemon !in daemons)
 					{
 						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
-						daemons[it.daemon] = KotlmataMutableDaemon(it.daemon) { _ ->
+						daemons[it.daemon] = KotlmataMutableDaemon(it.daemon) {
 							log level logLevel
-							(it.block)(it.daemon)
+							(it.block)()
 						}
 					}
 					else
@@ -316,18 +316,18 @@ private class KotlmataImpl : Kotlmata
 	override fun <T : DAEMON> fork(daemon: T) = object : Kotlmata.Of<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
+		override fun of(block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End)
 		{
-			core.input(Message.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End))
+			core.input(Message.Fork(daemon, block as KotlmataDaemon.Initializer<DAEMON>.() -> KotlmataMachine.Initializer.End))
 		}
 	}
 	
 	override fun <T : DAEMON> modify(daemon: T) = object : Kotlmata.Set<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun set(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
+		override fun set(block: KotlmataMutableDaemon.Modifier<T>.() -> Unit)
 		{
-			core.input(Message.Modify(daemon, block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit))
+			core.input(Message.Modify(daemon, block as KotlmataMutableDaemon.Modifier<out DAEMON>.() -> Unit))
 		}
 	}
 	
@@ -475,7 +475,7 @@ private class KotlmataImpl : Kotlmata
 		{
 			override fun <T : DAEMON> daemon(daemon: T) = object : Kotlmata.Post.Fork.Of<T>
 			{
-				override fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
+				override fun of(block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End)
 				{
 					this@PostImpl shouldNot expired
 					if (daemon !in daemons)
@@ -483,7 +483,7 @@ private class KotlmataImpl : Kotlmata
 						logLevel.detail("   Fork", daemon) { KOTLMATA_COMMON }
 						daemons[daemon] = KotlmataMutableDaemon(daemon) {
 							log level logLevel
-							block(daemon)
+							block()
 						}
 					}
 					else
@@ -499,13 +499,13 @@ private class KotlmataImpl : Kotlmata
 			override fun <T : DAEMON> daemon(daemon: T) = object : Kotlmata.Post.Modify.Set<T>
 			{
 				@Suppress("UNCHECKED_CAST")
-				override fun set(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
+				override fun set(block: KotlmataMutableDaemon.Modifier<T>.() -> Unit)
 				{
 					this@PostImpl shouldNot expired
 					if (daemon in daemons)
 					{
 						logLevel.detail("   Modify", daemon) { KOTLMATA_COMMON }
-						daemons[daemon]!! modify block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit
+						daemons[daemon]!! modify block as KotlmataMutableDaemon.Modifier<out DAEMON>.() -> Unit
 					}
 					else
 					{
@@ -664,8 +664,8 @@ private class KotlmataImpl : Kotlmata
 	
 	private sealed class Message
 	{
-		class Fork(val daemon: DAEMON, val block: KotlmataDaemon.Initializer.(daemon: DAEMON) -> KotlmataMachine.Initializer.End) : Message()
-		class Modify(val daemon: DAEMON, val block: KotlmataMutableMachine.Modifier.(daemon: DAEMON) -> Unit) : Message()
+		class Fork(val daemon: DAEMON, val block: KotlmataDaemon.Initializer<DAEMON>.() -> KotlmataMachine.Initializer.End) : Message()
+		class Modify(val daemon: DAEMON, val block: KotlmataMutableDaemon.Modifier<out DAEMON>.() -> Unit) : Message()
 		
 		class Run(val daemon: DAEMON) : Message()
 		class Pause(val daemon: DAEMON) : Message()
