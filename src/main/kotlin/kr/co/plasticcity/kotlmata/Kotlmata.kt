@@ -25,6 +25,7 @@ interface Kotlmata
 	
 	operator fun invoke(block: Post.() -> Unit) = post(block)
 	
+	@KotlmataMarker
 	interface Config
 	{
 		val log: Log
@@ -48,12 +49,12 @@ interface Kotlmata
 	
 	interface Of<T : DAEMON>
 	{
-		infix fun of(block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End)
+		infix fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
 	}
 	
 	interface Set<T : DAEMON>
 	{
-		infix fun set(block: KotlmataMutableDaemon.Modifier<T>.() -> Unit)
+		infix fun set(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 	}
 	
 	interface Type<T : SIGNAL> : Priority
@@ -71,6 +72,7 @@ interface Kotlmata
 		infix fun to(daemon: DAEMON)
 	}
 	
+	@KotlmataMarker
 	interface Post
 	{
 		val has: Has
@@ -108,7 +110,7 @@ interface Kotlmata
 			
 			interface Of<T : DAEMON>
 			{
-				infix fun of(block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End)
+				infix fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
 			}
 		}
 		
@@ -118,7 +120,7 @@ interface Kotlmata
 			
 			interface Set<T : DAEMON>
 			{
-				infix fun set(block: KotlmataMutableDaemon.Modifier<T>.() -> Unit)
+				infix fun set(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 			}
 		}
 		
@@ -190,101 +192,101 @@ private class KotlmataImpl : Kotlmata
 			}
 			
 			"core" {
-				input signal Message.Fork::class action {
-					if (it.daemon !in daemons)
+				input signal Message.Fork::class action { forkM ->
+					if (forkM.daemon !in daemons)
 					{
-						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
-						daemons[it.daemon] = KotlmataMutableDaemon(it.daemon) {
+						logLevel.detail(forkM, forkM.daemon) { KOTLMATA_COMMON }
+						daemons[forkM.daemon] = KotlmataMutableDaemon(forkM.daemon) {
 							log level logLevel
-							(it.block)()
+							(forkM.block)(forkM.daemon)
 						}
 					}
 					else
 					{
-						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_EXISTS }
+						logLevel.normal(forkM, forkM.daemon) { KOTLMATA_COMMON_IGNORED_EXISTS }
 					}
 				}
-				input signal Message.Modify::class action {
-					if (it.daemon in daemons)
+				input signal Message.Modify::class action { modifyM ->
+					if (modifyM.daemon in daemons)
 					{
-						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
-						daemons[it.daemon]!! modify it.block
+						logLevel.detail(modifyM, modifyM.daemon) { KOTLMATA_COMMON }
+						daemons[modifyM.daemon]!! modify modifyM.block
 					}
 					else
 					{
-						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal(modifyM, modifyM.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Message.Run::class action {
-					if (it.daemon in daemons)
+				input signal Message.Run::class action { runM ->
+					if (runM.daemon in daemons)
 					{
-						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
-						daemons[it.daemon]!!.run()
+						logLevel.detail(runM, runM.daemon) { KOTLMATA_COMMON }
+						daemons[runM.daemon]!!.run()
 					}
 					else
 					{
-						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal(runM, runM.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Message.Pause::class action {
-					if (it.daemon in daemons)
+				input signal Message.Pause::class action { pauseM ->
+					if (pauseM.daemon in daemons)
 					{
-						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
-						daemons[it.daemon]!!.pause()
+						logLevel.detail(pauseM, pauseM.daemon) { KOTLMATA_COMMON }
+						daemons[pauseM.daemon]!!.pause()
 					}
 					else
 					{
-						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal(pauseM, pauseM.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Message.Stop::class action {
-					if (it.daemon in daemons)
+				input signal Message.Stop::class action { stopM ->
+					if (stopM.daemon in daemons)
 					{
-						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
-						daemons[it.daemon]!!.stop()
+						logLevel.detail(stopM, stopM.daemon) { KOTLMATA_COMMON }
+						daemons[stopM.daemon]!!.stop()
 					}
 					else
 					{
-						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal(stopM, stopM.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Message.Terminate::class action {
-					if (it.daemon in daemons)
+				input signal Message.Terminate::class action { terminateM ->
+					if (terminateM.daemon in daemons)
 					{
-						logLevel.detail(it, it.daemon) { KOTLMATA_COMMON }
-						daemons[it.daemon]!!.terminate()
-						daemons -= it.daemon
+						logLevel.detail(terminateM, terminateM.daemon) { KOTLMATA_COMMON }
+						daemons[terminateM.daemon]!!.terminate()
+						daemons -= terminateM.daemon
 					}
 					else
 					{
-						logLevel.normal(it, it.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal(terminateM, terminateM.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Message.Signal::class action {
-					if (it.daemon in daemons)
+				input signal Message.Signal::class action { signalM ->
+					if (signalM.daemon in daemons)
 					{
-						logLevel.detail("", it.signal, it.priority, it.daemon) { KOTLMATA_SIGNAL }
-						daemons[it.daemon]!!.input(it.signal, it.priority)
+						logLevel.detail("", signalM.signal, signalM.priority, signalM.daemon) { KOTLMATA_SIGNAL }
+						daemons[signalM.daemon]!!.input(signalM.signal, signalM.priority)
 					}
 					else
 					{
-						logLevel.normal("", it.signal, it.priority, it.daemon) { KOTLMATA_SIGNAL_IGNORED }
+						logLevel.normal("", signalM.signal, signalM.priority, signalM.daemon) { KOTLMATA_SIGNAL_IGNORED }
 					}
 				}
-				input signal Message.TypedSignal::class action {
-					if (it.daemon in daemons)
+				input signal Message.TypedSignal::class action { typedM ->
+					if (typedM.daemon in daemons)
 					{
-						logLevel.detail("", it.signal, "${it.type.simpleName}::class", it.priority, it.daemon) { KOTLMATA_TYPED }
-						daemons[it.daemon]!!.input(it.signal, it.type, it.priority)
+						logLevel.detail("", typedM.signal, "${typedM.type.simpleName}::class", typedM.priority, typedM.daemon) { KOTLMATA_TYPED }
+						daemons[typedM.daemon]!!.input(typedM.signal, typedM.type, typedM.priority)
 					}
 					else
 					{
-						logLevel.normal("", it.signal, "${it.type.simpleName}::class", it.priority, it.daemon) { KOTLMATA_TYPED_IGNORED }
+						logLevel.normal("", typedM.signal, "${typedM.type.simpleName}::class", typedM.priority, typedM.daemon) { KOTLMATA_TYPED_IGNORED }
 					}
 				}
-				input signal Message.Post::class action {
+				input signal Message.Post::class action { postM ->
 					logLevel.detail { KOTLMATA_START_POST }
-					PostImpl(it.block)
+					PostImpl(postM.block)
 					logLevel.detail { KOTLMATA_END_POST }
 				}
 			}
@@ -316,18 +318,18 @@ private class KotlmataImpl : Kotlmata
 	override fun <T : DAEMON> fork(daemon: T) = object : Kotlmata.Of<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun of(block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End)
+		override fun of(block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End)
 		{
-			core.input(Message.Fork(daemon, block as KotlmataDaemon.Initializer<DAEMON>.() -> KotlmataMachine.Initializer.End))
+			core.input(Message.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End))
 		}
 	}
 	
 	override fun <T : DAEMON> modify(daemon: T) = object : Kotlmata.Set<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun set(block: KotlmataMutableDaemon.Modifier<T>.() -> Unit)
+		override fun set(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
 		{
-			core.input(Message.Modify(daemon, block as KotlmataMutableDaemon.Modifier<out DAEMON>.() -> Unit))
+			core.input(Message.Modify(daemon, block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit))
 		}
 	}
 	
@@ -475,7 +477,7 @@ private class KotlmataImpl : Kotlmata
 		{
 			override fun <T : DAEMON> daemon(daemon: T) = object : Kotlmata.Post.Fork.Of<T>
 			{
-				override fun of(block: KotlmataDaemon.Initializer<T>.() -> KotlmataMachine.Initializer.End)
+				override fun of(block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End)
 				{
 					this@PostImpl shouldNot expired
 					if (daemon !in daemons)
@@ -483,7 +485,7 @@ private class KotlmataImpl : Kotlmata
 						logLevel.detail("   Fork", daemon) { KOTLMATA_COMMON }
 						daemons[daemon] = KotlmataMutableDaemon(daemon) {
 							log level logLevel
-							block()
+							block(daemon)
 						}
 					}
 					else
@@ -499,13 +501,13 @@ private class KotlmataImpl : Kotlmata
 			override fun <T : DAEMON> daemon(daemon: T) = object : Kotlmata.Post.Modify.Set<T>
 			{
 				@Suppress("UNCHECKED_CAST")
-				override fun set(block: KotlmataMutableDaemon.Modifier<T>.() -> Unit)
+				override fun set(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
 				{
 					this@PostImpl shouldNot expired
 					if (daemon in daemons)
 					{
 						logLevel.detail("   Modify", daemon) { KOTLMATA_COMMON }
-						daemons[daemon]!! modify block as KotlmataMutableDaemon.Modifier<out DAEMON>.() -> Unit
+						daemons[daemon]!! modify block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit
 					}
 					else
 					{
@@ -664,8 +666,8 @@ private class KotlmataImpl : Kotlmata
 	
 	private sealed class Message
 	{
-		class Fork(val daemon: DAEMON, val block: KotlmataDaemon.Initializer<DAEMON>.() -> KotlmataMachine.Initializer.End) : Message()
-		class Modify(val daemon: DAEMON, val block: KotlmataMutableDaemon.Modifier<out DAEMON>.() -> Unit) : Message()
+		class Fork(val daemon: DAEMON, val block: KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End) : Message()
+		class Modify(val daemon: DAEMON, val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Message()
 		
 		class Run(val daemon: DAEMON) : Message()
 		class Pause(val daemon: DAEMON) : Message()

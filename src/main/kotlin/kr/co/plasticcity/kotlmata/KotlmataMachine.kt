@@ -8,21 +8,17 @@ interface KotlmataMachine<T : MACHINE>
 	{
 		operator fun invoke(
 				name: String,
-				block: InitializerWithKey<String>.() -> Initializer.End
+				block: Initializer.(machine: String) -> Initializer.End
 		): KotlmataMachine<String> = KotlmataMachineImpl(name, block)
 		
 		internal operator fun invoke(
 				name: String,
 				logLevel: Int,
-				block: Initializer.() -> Initializer.End
+				block: Initializer.(machine: String) -> Initializer.End
 		): KotlmataMachine<String> = KotlmataMachineImpl(name, block, logLevel = logLevel)
 	}
 	
-	interface KeyHolder<T : MACHINE>
-	{
-		val machine: T
-	}
-	
+	@KotlmataMarker
 	interface Initializer : StateDefine, TransitionDefine
 	{
 		val log: Log
@@ -44,11 +40,9 @@ interface KotlmataMachine<T : MACHINE>
 		class End internal constructor()
 	}
 	
-	interface InitializerWithKey<T : MACHINE> : KeyHolder<T>, Initializer
-	
 	interface StateDefine
 	{
-		operator fun <T : STATE> T.invoke(block: KotlmataState.Initializer<T>.() -> Unit)
+		operator fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(state: T) -> Unit)
 	}
 	
 	interface TransitionDefine
@@ -93,16 +87,17 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 	{
 		operator fun invoke(
 				name: String,
-				block: KotlmataMachine.InitializerWithKey<String>.() -> KotlmataMachine.Initializer.End
+				block: KotlmataMachine.Initializer.(machine: String) -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine<String> = KotlmataMachineImpl(name, block)
 		
 		internal operator fun <T : MACHINE> invoke(
 				key: T,
 				prefix: String,
-				block: KotlmataMachine.Initializer.() -> KotlmataMachine.Initializer.End
+				block: KotlmataMachine.Initializer.(machine: T) -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, block, prefix)
 	}
 	
+	@KotlmataMarker
 	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.TransitionDefine
 	{
 		val current: STATE
@@ -147,7 +142,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface of<T : STATE>
 			{
-				infix fun of(block: KotlmataState.Initializer<T>.() -> Unit)
+				infix fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
 			}
 			
 			interface remAssign
@@ -162,7 +157,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface of<T : STATE>
 			{
-				infix fun of(block: KotlmataState.Initializer<T>.() -> Unit)
+				infix fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
 			}
 		}
 		
@@ -173,12 +168,12 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface set<T : STATE>
 			{
-				infix fun set(block: KotlmataMutableState.Modifier<T>.() -> Unit): or<T>
+				infix fun set(block: KotlmataMutableState.Modifier.(state: T) -> Unit): or<T>
 			}
 			
 			interface or<T : STATE>
 			{
-				infix fun or(block: KotlmataState.Initializer<T>.() -> Unit)
+				infix fun or(block: KotlmataState.Initializer.(state: T) -> Unit)
 			}
 			
 			interface remAssign
@@ -203,16 +198,14 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		}
 	}
 	
-	interface ModifierWithKey<T : MACHINE> : KotlmataMachine.KeyHolder<T>, Modifier
+	infix fun modify(block: Modifier.(machine: T) -> Unit)
 	
-	infix fun modify(block: ModifierWithKey<T>.() -> Unit)
-	
-	operator fun invoke(block: ModifierWithKey<T>.() -> Unit) = modify(block)
+	operator fun invoke(block: Modifier.(machine: T) -> Unit) = modify(block)
 }
 
 private class KotlmataMachineImpl<T : MACHINE>(
 		override val key: T,
-		block: KotlmataMachine.InitializerWithKey<T>.() -> KotlmataMachine.Initializer.End,
+		block: KotlmataMachine.Initializer.(T) -> KotlmataMachine.Initializer.End,
 		val prefix: String = "Machine[$key]:",
 		var logLevel: Int = Log.logLevel
 ) : KotlmataMutableMachine<T>
@@ -299,7 +292,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun modify(block: KotlmataMutableMachine.ModifierWithKey<T>.() -> Unit)
+	override fun modify(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
 	{
 		logLevel.normal(prefix, current.key) { MACHINE_START_MODIFY }
 		ModifierImpl(modify = block)
@@ -312,13 +305,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	}
 	
 	private inner class ModifierImpl internal constructor(
-			init: (KotlmataMachine.InitializerWithKey<T>.() -> KotlmataMachine.Initializer.End)? = null,
-			modify: (KotlmataMutableMachine.ModifierWithKey<T>.() -> Unit)? = null
-	) : KotlmataMachine.InitializerWithKey<T>, KotlmataMutableMachine.ModifierWithKey<T>, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
+			init: (KotlmataMachine.Initializer.(T) -> KotlmataMachine.Initializer.End)? = null,
+			modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
+	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
-		override val machine: T
-			get() = this@KotlmataMachineImpl.key
-		
 		override val log = object : KotlmataMachine.Initializer.Log
 		{
 			override fun level(level: Int)
@@ -412,7 +402,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
 				{
-					override fun of(block: KotlmataState.Initializer<T>.() -> Unit)
+					override fun of(block: KotlmataState.Initializer.(T) -> Unit)
 					{
 						this@ModifierImpl shouldNot expired
 						if (state !in stateMap)
@@ -441,7 +431,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
 					{
-						override fun of(block: KotlmataState.Initializer<T>.() -> Unit)
+						override fun of(block: KotlmataState.Initializer.(T) -> Unit)
 						{
 							this@ModifierImpl shouldNot expired
 							state.invoke(block)
@@ -468,7 +458,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Replace.of<T>
 				{
-					override fun of(block: KotlmataState.Initializer<T>.() -> Unit)
+					override fun of(block: KotlmataState.Initializer.(T) -> Unit)
 					{
 						this@ModifierImpl shouldNot expired
 						if (state in stateMap)
@@ -487,7 +477,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					val stop = object : KotlmataMutableMachine.Modifier.Update.or<T>
 					{
-						override fun or(block: KotlmataState.Initializer<T>.() -> Unit)
+						override fun or(block: KotlmataState.Initializer.(T) -> Unit)
 						{
 							/* do nothing */
 						}
@@ -495,19 +485,19 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					
 					val or = object : KotlmataMutableMachine.Modifier.Update.or<T>
 					{
-						override fun or(block: KotlmataState.Initializer<T>.() -> Unit)
+						override fun or(block: KotlmataState.Initializer.(T) -> Unit)
 						{
 							state.invoke(block)
 						}
 					}
 					
 					@Suppress("UNCHECKED_CAST")
-					override fun set(block: KotlmataMutableState.Modifier<T>.() -> Unit): KotlmataMutableMachine.Modifier.Update.or<T>
+					override fun set(block: KotlmataMutableState.Modifier.(T) -> Unit): KotlmataMutableMachine.Modifier.Update.or<T>
 					{
 						this@ModifierImpl shouldNot expired
 						return if (state in stateMap)
 						{
-							stateMap[state]!!.modify(block as KotlmataMutableState.Modifier<out STATE>.() -> Unit)
+							stateMap[state]!!.modify(block as KotlmataMutableState.Modifier.(STATE) -> Unit)
 							stop
 						}
 						else
@@ -576,7 +566,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <T : STATE> T.invoke(block: KotlmataState.Initializer<T>.() -> Unit)
+		override fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(T) -> Unit)
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel, block)
@@ -606,7 +596,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		init
 		{
-			init?.let { it() } ?: modify?.let { it() }
+			init?.let { it(key) } ?: modify?.let { it(key) }
 			expire()
 		}
 	}
