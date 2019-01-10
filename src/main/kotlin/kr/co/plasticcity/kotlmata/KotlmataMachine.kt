@@ -19,7 +19,7 @@ interface KotlmataMachine<T : MACHINE>
 	}
 	
 	@KotlmataMarker
-	interface Initializer : StateDefine, TransitionDefine
+	interface Initializer : StateDefine, RuleDefine
 	{
 		val log: Log
 		val start: Start
@@ -45,18 +45,18 @@ interface KotlmataMachine<T : MACHINE>
 		operator fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(state: T) -> Unit)
 	}
 	
-	interface TransitionDefine
+	interface RuleDefine
 	{
-		infix fun STATE.x(signal: SIGNAL): TransitionLeft
-		infix fun STATE.x(signal: KClass<out SIGNAL>): TransitionLeft
-		infix fun STATE.x(keyword: any): TransitionLeft
+		infix fun STATE.x(signal: SIGNAL): RuleLeft
+		infix fun STATE.x(signal: KClass<out SIGNAL>): RuleLeft
+		infix fun STATE.x(keyword: any): RuleLeft
 		
-		infix fun any.x(signal: SIGNAL): TransitionLeft
-		infix fun any.x(signal: KClass<out SIGNAL>): TransitionLeft
-		infix fun any.x(keyword: any): TransitionLeft
+		infix fun any.x(signal: SIGNAL): RuleLeft
+		infix fun any.x(signal: KClass<out SIGNAL>): RuleLeft
+		infix fun any.x(keyword: any): RuleLeft
 	}
 	
-	interface TransitionLeft
+	interface RuleLeft
 	{
 		val state: STATE
 		val signal: SIGNAL
@@ -67,14 +67,14 @@ interface KotlmataMachine<T : MACHINE>
 	val key: T
 	
 	/**
-	 * @param block Called if the state transitions and the next state's entry function returns an signal.
+	 * @param block Called if the state is switched and the next state's entry function returns an signal.
 	 */
 	fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
 	
 	fun input(signal: SIGNAL)
 	
 	/**
-	 * @param block Called if the state transitions and the next state's entry function returns an signal.
+	 * @param block Called if the state is switched and the next state's entry function returns an signal.
 	 */
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	
@@ -98,7 +98,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 	}
 	
 	@KotlmataMarker
-	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.TransitionDefine
+	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.RuleDefine
 	{
 		val current: STATE
 		val has: Has
@@ -110,7 +110,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		interface Has
 		{
 			infix fun state(state: STATE): then
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): then
+			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): then
 			
 			interface then
 			{
@@ -126,18 +126,18 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		interface Insert
 		{
 			infix fun <T : STATE> state(state: T): of<T>
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
+			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): remAssign
 			infix fun or(keyword: Replace): state
-			infix fun or(keyword: Update): transition
+			infix fun or(keyword: Update): rule
 			
 			interface state
 			{
 				infix fun <T : STATE> state(state: T): of<T>
 			}
 			
-			interface transition
+			interface rule
 			{
-				infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
+				infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): remAssign
 			}
 			
 			interface of<T : STATE>
@@ -164,7 +164,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		interface Update
 		{
 			infix fun <T : STATE> state(state: T): set<T>
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
+			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): remAssign
 			
 			interface set<T : STATE>
 			{
@@ -187,9 +187,9 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			infix fun state(state: STATE)
 			infix fun state(keyword: all)
 			
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft)
-			infix fun transition(keyword: of): state
-			infix fun transition(keyword: all)
+			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft)
+			infix fun rule(keyword: of): state
+			infix fun rule(keyword: all)
 			
 			interface state
 			{
@@ -211,7 +211,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 ) : KotlmataMutableMachine<T>
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
-	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
+	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
 	private lateinit var current: KotlmataState<out STATE>
 	
@@ -229,7 +229,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			return this[signal] ?: this[signal::class] ?: this[any]
 		}
 		
-		transitionMap.let {
+		ruleMap.let {
 			logLevel.normal(prefix, signal, current.key) { MACHINE_START_SIGNAL }
 			current.input(signal)
 			logLevel.normal(prefix, signal, current.key) { MACHINE_END_SIGNAL }
@@ -264,7 +264,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			return this[type] ?: this[any]
 		}
 		
-		transitionMap.let {
+		ruleMap.let {
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_START_TYPED }
 			current.input(signal, type)
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_END_TYPED }
@@ -379,15 +379,15 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					}
 				}
 				
-				override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Has.then
+				override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Has.then
 				{
 					override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
 					{
 						this@ModifierImpl shouldNot expired
-						return transitionMap.let {
-							it[transitionLeft.state]
+						return ruleMap.let {
+							it[ruleLeft.state]
 						}?.let {
-							it[transitionLeft.signal]
+							it[ruleLeft.signal]
 						}?.let {
 							block()
 							stop
@@ -412,17 +412,17 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					}
 				}
 				
-				override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
+				override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
 				{
 					override fun remAssign(state: STATE)
 					{
 						this@ModifierImpl shouldNot expired
-						transitionMap.let {
-							it[transitionLeft.state]
+						ruleMap.let {
+							it[ruleLeft.state]
 						}?.let {
-							it[transitionLeft.signal]
+							it[ruleLeft.signal]
 						} ?: let {
-							transitionLeft %= state
+							ruleLeft %= state
 						}
 					}
 				}
@@ -439,14 +439,14 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					}
 				}
 				
-				override fun or(keyword: KotlmataMutableMachine.Modifier.Update) = object : KotlmataMutableMachine.Modifier.Insert.transition
+				override fun or(keyword: KotlmataMutableMachine.Modifier.Update) = object : KotlmataMutableMachine.Modifier.Insert.rule
 				{
-					override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
+					override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
 					{
 						override fun remAssign(state: STATE)
 						{
 							this@ModifierImpl shouldNot expired
-							transitionLeft %= state
+							ruleLeft %= state
 						}
 					}
 				}
@@ -507,17 +507,17 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					}
 				}
 				
-				override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Update.remAssign
+				override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Update.remAssign
 				{
 					override fun remAssign(state: STATE)
 					{
 						this@ModifierImpl shouldNot expired
-						transitionMap.let {
-							it[transitionLeft.state]
+						ruleMap.let {
+							it[ruleLeft.state]
 						}?.let {
-							it[transitionLeft.signal]
+							it[ruleLeft.signal]
 						}.let {
-							transitionLeft %= state
+							ruleLeft %= state
 						}
 					}
 				}
@@ -539,29 +539,29 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					stateMap.clear()
 				}
 				
-				override fun transition(transitionLeft: KotlmataMachine.TransitionLeft)
+				override fun rule(ruleLeft: KotlmataMachine.RuleLeft)
 				{
 					this@ModifierImpl shouldNot expired
-					transitionMap.let {
-						it[transitionLeft.state]
+					ruleMap.let {
+						it[ruleLeft.state]
 					}?.let {
-						it -= transitionLeft.signal
+						it -= ruleLeft.signal
 					}
 				}
 				
-				override fun transition(keyword: of) = object : KotlmataMutableMachine.Modifier.Delete.state
+				override fun rule(keyword: of) = object : KotlmataMutableMachine.Modifier.Delete.state
 				{
 					override fun state(state: STATE)
 					{
 						this@ModifierImpl shouldNot expired
-						transitionMap -= state
+						ruleMap -= state
 					}
 				}
 				
-				override fun transition(keyword: all)
+				override fun rule(keyword: all)
 				{
 					this@ModifierImpl shouldNot expired
-					transitionMap.clear()
+					ruleMap.clear()
 				}
 			}
 		}
@@ -572,15 +572,15 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel, block)
 		}
 		
-		override fun STATE.x(signal: SIGNAL) = transitionLeft(this, signal)
-		override fun STATE.x(signal: KClass<out SIGNAL>) = transitionLeft(this, signal)
-		override fun STATE.x(keyword: any) = transitionLeft(this, keyword)
+		override fun STATE.x(signal: SIGNAL) = ruleLeft(this, signal)
+		override fun STATE.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
+		override fun STATE.x(keyword: any) = ruleLeft(this, keyword)
 		
-		override fun any.x(signal: SIGNAL) = transitionLeft(this, signal)
-		override fun any.x(signal: KClass<out SIGNAL>) = transitionLeft(this, signal)
-		override fun any.x(keyword: any) = transitionLeft(this, keyword)
+		override fun any.x(signal: SIGNAL) = ruleLeft(this, signal)
+		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
+		override fun any.x(keyword: any) = ruleLeft(this, keyword)
 		
-		private fun transitionLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.TransitionLeft
+		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.RuleLeft
 		{
 			override val state: STATE = from
 			override val signal: SIGNAL = signal
@@ -588,8 +588,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			override fun remAssign(state: STATE)
 			{
 				this@ModifierImpl shouldNot expired
-				(transitionMap[from] ?: HashMap<SIGNAL, STATE>().also {
-					transitionMap[from] = it
+				(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
+					ruleMap[from] = it
 				})[signal] = state
 			}
 		}

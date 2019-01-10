@@ -3,10 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#9 KotlmataStateAction 추가 &amp; 키 제공 파라미터화">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -35,20 +32,20 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/test/kotlin/Tests.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="187">
-              <caret line="15" column="31" lean-forward="true" selection-start-line="15" selection-start-column="31" selection-end-line="15" selection-end-column="31" />
+            <state relative-caret-position="-1114">
+              <caret line="176" column="25" lean-forward="true" selection-start-line="176" selection-start-column="25" selection-end-line="176" selection-end-column="25" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1938">
-              <caret line="114" column="9" lean-forward="true" selection-start-line="114" selection-start-column="9" selection-end-line="114" selection-end-column="9" />
+            <state relative-caret-position="238">
+              <caret line="38" column="39" lean-forward="true" selection-start-line="38" selection-start-column="39" selection-end-line="38" selection-end-column="39" />
             </state>
           </provider>
         </entry>
@@ -56,8 +53,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="620">
-              <caret line="447" column="106" lean-forward="true" selection-start-line="447" selection-start-column="106" selection-end-line="447" selection-end-column="106" />
+            <state relative-caret-position="362">
+              <caret line="428" column="20" lean-forward="true" selection-start-line="428" selection-start-column="20" selection-end-line="428" selection-end-column="20" />
               <folding>
                 <element signature="e#36#211#0" expanded="true" />
               </folding>
@@ -68,8 +65,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="512">
-              <caret line="108" column="8" lean-forward="true" selection-start-line="108" selection-start-column="8" selection-end-line="108" selection-end-column="8" />
+            <state relative-caret-position="386">
+              <caret line="279" column="95" lean-forward="true" selection-start-line="279" selection-start-column="95" selection-end-line="279" selection-end-column="95" />
             </state>
           </provider>
         </entry>
@@ -77,8 +74,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1052">
-              <caret line="72" column="28" lean-forward="true" selection-start-line="72" selection-start-column="28" selection-end-line="72" selection-end-column="28" />
+            <state relative-caret-position="1224">
+              <caret line="72" column="28" selection-start-line="72" selection-start-column="28" selection-end-line="72" selection-end-column="28" />
             </state>
           </provider>
         </entry>
@@ -96,7 +93,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>logLevel =</find>
       <find>signal</find>
       <find>DAEMON_POST</find>
       <find>TODO</find>
@@ -126,6 +122,7 @@
       <find>this.state</find>
       <find>typedM</find>
       <find>$it</find>
+      <find>transition</find>
     </findStrings>
     <replaceStrings>
       <replace>Kotlmata</replace>
@@ -169,10 +166,10 @@
         <option value="$PROJECT_DIR$/build.gradle" />
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Internals.kt" />
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" />
-        <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" />
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" />
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" />
         <option value="$PROJECT_DIR$/src/test/kotlin/Tests.kt" />
+        <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" />
       </list>
     </option>
   </component>
@@ -190,7 +187,17 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="Kotlmata" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Kotlmata" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
       <pane id="PackagesPane">
         <subPane>
           <expand>
@@ -218,17 +225,7 @@
           <select />
         </subPane>
       </pane>
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="Kotlmata" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Kotlmata" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -257,7 +254,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="JUnit.Tests.kotlmataTest">
+  <component name="RunManager" selected="JUnit.Tests.machineTest">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method v="2">
@@ -342,9 +339,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.Tests.machineTest" />
         <item itemvalue="JUnit.Tests.kotlmataTest" />
         <item itemvalue="JUnit.Tests.daemonTest" />
-        <item itemvalue="JUnit.Tests.machineTest" />
         <item itemvalue="JUnit.Tests.commonTest" />
       </list>
     </recent_temporary>
@@ -742,7 +739,7 @@
     <frame x="-8" y="-8" width="2576" height="1416" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.6950078" visible="true" weight="0.1999205" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.69422776" visible="true" weight="0.1999205" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Nl-Palette" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -750,7 +747,7 @@
       <window_info id="Designer" order="5" />
       <window_info id="UI Designer" order="6" />
       <window_info id="Favorites" order="7" sideWeight="0.33333334" side_tool="true" weight="0.17885533" />
-      <window_info x="0" y="0" width="595" height="1202" id="Documentation" order="8" sideWeight="0.3049922" side_tool="true" visible="true" weight="0.1999205" />
+      <window_info x="0" y="0" width="595" height="1202" id="Documentation" order="8" sideWeight="0.30577224" side_tool="true" visible="true" weight="0.1999205" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="sbt-shell-toolwindow" order="1" />
       <window_info anchor="bottom" id="Find" order="2" type="SLIDING" weight="0.3286495" />
@@ -1123,24 +1120,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/test/kotlin/Tests.kt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="15" column="31" lean-forward="true" selection-start-line="15" selection-start-column="31" selection-end-line="15" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="512">
-          <caret line="108" column="8" lean-forward="true" selection-start-line="108" selection-start-column="8" selection-end-line="108" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1052">
-          <caret line="72" column="28" lean-forward="true" selection-start-line="72" selection-start-column="28" selection-end-line="72" selection-end-column="28" />
+        <state relative-caret-position="1224">
+          <caret line="72" column="28" selection-start-line="72" selection-start-column="28" selection-end-line="72" selection-end-column="28" />
         </state>
       </provider>
     </entry>
@@ -1160,8 +1143,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="620">
-          <caret line="447" column="106" lean-forward="true" selection-start-line="447" selection-start-column="106" selection-end-line="447" selection-end-column="106" />
+        <state relative-caret-position="362">
+          <caret line="428" column="20" lean-forward="true" selection-start-line="428" selection-start-column="20" selection-end-line="428" selection-end-column="20" />
           <folding>
             <element signature="e#36#211#0" expanded="true" />
           </folding>
@@ -1170,8 +1153,22 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1938">
-          <caret line="114" column="9" lean-forward="true" selection-start-line="114" selection-start-column="9" selection-end-line="114" selection-end-column="9" />
+        <state relative-caret-position="238">
+          <caret line="38" column="39" lean-forward="true" selection-start-line="38" selection-start-column="39" selection-end-line="38" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="386">
+          <caret line="279" column="95" lean-forward="true" selection-start-line="279" selection-start-column="95" selection-end-line="279" selection-end-column="95" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/test/kotlin/Tests.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1114">
+          <caret line="176" column="25" lean-forward="true" selection-start-line="176" selection-start-column="25" selection-end-line="176" selection-end-column="25" />
         </state>
       </provider>
     </entry>

@@ -112,8 +112,8 @@ class Tests
 				entry action { println("삽입된 $state") }
 			}
 			
-			insert transition ("state1" x "goToState2") %= "state3"
-			insert transition ("state1" x "goToState3") %= "state3"
+			insert rule ("state1" x "goToState2") %= "state3"
+			insert rule ("state1" x "goToState3") %= "state3"
 		}
 		
 		machine.input("some string")
