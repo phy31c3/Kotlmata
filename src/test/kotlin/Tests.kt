@@ -78,12 +78,17 @@ class Tests
 			"state3" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
+				input signal "exception" action { throw RuntimeException() }
 				exit action { println("$state: 퇴장함수") }
 			}
 			
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
+			
+			on exception {
+				println("어랏... 예외가 발생했네")
+			}
 			
 			start at "state1"
 		}
@@ -92,6 +97,7 @@ class Tests
 		machine.input("goToState2")
 		machine.input(5, Number::class)
 		machine.input(5)
+		machine.input("exception")
 		machine.input("goToState1")
 		
 		println("-----------------------------------")
@@ -147,6 +153,7 @@ class Tests
 				entry action { println("$state: 기본 진입함수") }
 				input signal Integer::class action { s -> println("$state: Number 타입 입력함수: $s") }
 				input signal 5 action { println("state3로 이동") }
+				input signal "exception" action { throw RuntimeException() }
 				exit action { println("$state: 퇴장함수") }
 			}
 			
@@ -163,12 +170,17 @@ class Tests
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
 			
+			on exception {
+				println("어랏... 예외가 발생했네")
+			}
+			
 			start at "state1"
 		}
 		
 		daemon.input("any1")
 		daemon.run()
-		daemon.input("우선순위 1", 1)
+		daemon.input("우선순위 10", 10)
+		daemon.input("우선순위 0", 0)
 		daemon.input("우선순위 -10", -10)
 		daemon.pause()
 		daemon.input("goToState2")
@@ -176,6 +188,7 @@ class Tests
 		
 		Thread.sleep(100)
 		
+		daemon.input("exception")
 		daemon.input(3)
 		daemon.input(5)
 		daemon.stop()

@@ -25,9 +25,9 @@ interface KotlmataDaemon<T : DAEMON>
 	@KotlmataMarker
 	interface Initializer : KotlmataMachine.Initializer
 	{
-		val on: On
+		override val on: On
 		
-		interface On
+		interface On : KotlmataMachine.Initializer.On
 		{
 			infix fun start(block: () -> Unit)
 			infix fun pause(block: () -> Unit)
@@ -45,12 +45,12 @@ interface KotlmataDaemon<T : DAEMON>
 	fun terminate()
 	
 	/**
-	 * @param priority Smaller means higher. Priority must be greater than zero.
+	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
 	 */
 	fun input(signal: SIGNAL, priority: Int = 0)
 	
 	/**
-	 * @param priority Smaller means higher. Priority must be greater than zero.
+	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
 	 */
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int = 0)
 }
@@ -366,6 +366,16 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	{
 		lateinit var initial: STATE
 		
+		override val log = object : KotlmataMachine.Initializer.Log
+		{
+			override fun level(level: Int)
+			{
+				this@InitializerImpl shouldNot expired
+				initializer.log level level
+				logLevel = level
+			}
+		}
+		
 		override val on = object : KotlmataDaemon.Initializer.On
 		{
 			override fun start(block: () -> Unit)
@@ -397,16 +407,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				this@InitializerImpl shouldNot expired
 				onTerminate = block
 			}
-		}
-		
-		override val log = object : KotlmataMachine.Initializer.Log
-		{
-			override fun level(level: Int)
-			{
-				this@InitializerImpl shouldNot expired
-				initializer.log level level
-				logLevel = level
-			}
+			
+			override fun exception(block: (Exception) -> Unit) = initializer.on.exception(block)
 		}
 		
 		override val start = object : KotlmataMachine.Initializer.Start
