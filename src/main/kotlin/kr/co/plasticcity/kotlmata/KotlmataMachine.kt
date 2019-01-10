@@ -22,6 +22,7 @@ interface KotlmataMachine<T : MACHINE>
 	interface Initializer : StateDefine, RuleDefine
 	{
 		val log: Log
+		val on: On
 		val start: Start
 		
 		interface Log
@@ -30,6 +31,11 @@ interface KotlmataMachine<T : MACHINE>
 			 * @param level **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **2**)
 			 */
 			infix fun level(level: Int)
+		}
+		
+		interface On
+		{
+			infix fun exception(block: Kotlmata.Callback.(Exception) -> Unit)
 		}
 		
 		interface Start
@@ -213,6 +219,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
+	private var onException: (Kotlmata.Callback.(Exception) -> Unit)? = null
+	
 	private lateinit var current: KotlmataState<out STATE>
 	
 	init
@@ -220,6 +228,20 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		logLevel.normal(prefix) { MACHINE_START_BUILD }
 		ModifierImpl(init = block)
 		logLevel.normal(prefix) { MACHINE_END_BUILD }
+	}
+	
+	private fun action(block: () -> Unit)
+	{
+		try
+		{
+			block()
+		}
+		catch (e: Exception)
+		{
+			onException?.also {
+				Kotlmata.Callback.it(e)
+			} ?: throw e
+		}
 	}
 	
 	override fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
@@ -231,7 +253,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		ruleMap.let {
 			logLevel.normal(prefix, signal, current.key) { MACHINE_START_SIGNAL }
-			current.input(signal)
+			action { current.input(signal) }
 			logLevel.normal(prefix, signal, current.key) { MACHINE_END_SIGNAL }
 			it[current.key]?.next() ?: it[any]?.next()
 		}?.also {
@@ -243,9 +265,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[it]
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
-			current.exit(signal)
+			action { current.exit(signal) }
 			current = next
-			current.entry(signal, block)
+			action { current.entry(signal, block) }
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_END_TRANSITION }
 		}
 	}
@@ -266,7 +288,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		ruleMap.let {
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_START_TYPED }
-			current.input(signal, type)
+			action { current.input(signal, type) }
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_END_TYPED }
 			it[current.key]?.next() ?: it[any]?.next()
 		}.also {
@@ -278,9 +300,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[it]
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
-			current.exit(signal)
+			action { current.exit(signal) }
 			current = next
-			current.entry(signal, type, block)
+			action { current.entry(signal, type, block) }
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_END_TRANSITION }
 		}
 	}
@@ -318,19 +340,26 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override val start by lazy {
-			object : KotlmataMachine.Initializer.Start
+		override val on = object : KotlmataMachine.Initializer.On
+		{
+			override fun exception(block: Kotlmata.Callback.(Exception) -> Unit)
 			{
-				override fun at(state: STATE): KotlmataMachine.Initializer.End
-				{
-					this@ModifierImpl shouldNot expired
-					
-					stateMap[state]?.also {
-						this@KotlmataMachineImpl.current = it
-					} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_INITIAL_STATE }
-					
-					return KotlmataMachine.Initializer.End()
-				}
+				this@ModifierImpl shouldNot expired
+				onException = block
+			}
+		}
+		
+		override val start = object : KotlmataMachine.Initializer.Start
+		{
+			override fun at(state: STATE): KotlmataMachine.Initializer.End
+			{
+				this@ModifierImpl shouldNot expired
+				
+				stateMap[state]?.also {
+					this@KotlmataMachineImpl.current = it
+				} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_INITIAL_STATE }
+				
+				return KotlmataMachine.Initializer.End()
 			}
 		}
 		
