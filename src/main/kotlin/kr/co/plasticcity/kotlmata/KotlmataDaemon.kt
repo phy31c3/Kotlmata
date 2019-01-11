@@ -165,6 +165,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			
 			"pause" { state ->
+				var express: Message.Express? = null
 				val stash: MutableList<Message> = ArrayList()
 				
 				val keep: Kotlmata.Action.(Message) -> Unit = { message ->
@@ -178,14 +179,20 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				
 				input signal Message.Run::class action {
+					express?.let { expressM -> queue!!.offer(expressM) }
 					queue!! += stash
 					logLevel.simple(key) { DAEMON_RESUME }
 					Kotlmata.Callback.onResume()
 				}
-				input signal Message.Stop::class action {}
+				input signal Message.Stop::class action {
+					express?.let { expressM -> queue!!.offer(expressM) }
+				}
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.Express::class action keep
+				input signal Message.Express::class action { expressM ->
+					express = expressM
+					logLevel.normal(key, expressM.id) { DAEMON_KEEP_EXPRESS }
+				}
 				input signal Message.Signal::class action keep
 				input signal Message.TypedSignal::class action keep
 				input signal Message.Modify::class action keep
@@ -193,12 +200,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input action { signal -> ignore(signal, state) }
 				
 				exit action {
+					express = null
 					stash.clear()
 				}
 			}
 			
 			"stop" { state ->
-				var stash: Message.Express? = null
+				var express: Message.Express? = null
 				
 				val cleanup: Kotlmata.Action.(Message) -> Unit = { currentM ->
 					synchronized<Unit>(lock)
@@ -211,7 +219,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 								}
 							}
 						}
-						stash?.let { expressM -> queue!!.offer(expressM) }
+						express?.let { expressM -> queue!!.offer(expressM) }
 					}
 				}
 				
@@ -229,14 +237,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Message.Terminate::class action {}
 				
 				input signal Message.Express::class action { expressM ->
+					express = expressM
 					logLevel.normal(key, expressM.id) { DAEMON_KEEP_EXPRESS }
-					stash = expressM
 				}
 				
 				input action { signal -> ignore(signal, state) }
 				
 				exit action {
-					stash = null
+					express = null
 				}
 			}
 			

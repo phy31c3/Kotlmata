@@ -166,9 +166,21 @@ class Tests
 				exit action { println("$state: 퇴장함수") }
 			}
 			
+			"state4" { state ->
+				entry action {
+					Thread.sleep(10)
+					println("$state: 기본 진입함수")
+					"state4 express"
+				}
+				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
+				exit action { println("$state: 퇴장함수") }
+			}
+			
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
+			"state3" x "goToState4" %= "state4"
+			"state4" x "state4 express" %= "state1"
 			
 			on exception {
 				println("어랏... 예외가 발생했네")
@@ -224,6 +236,26 @@ class Tests
 		}
 		daemon.input("goToState3")
 		daemon.input("이거 출력되어야 하는데..")
+		
+		Thread.sleep(100)
+		
+		daemon.input("goToState4")
+		
+		Thread.sleep(5)
+		
+		daemon.pause()
+		daemon.input("pause 상태일 때 들어간 신호")
+		
+		Thread.sleep(100)
+		
+		daemon.stop()
+		daemon.input("stop 상태일 때 들어간 신호")
+		
+		Thread.sleep(100)
+		
+		daemon.input("run 직전에 들어간 신호")
+		daemon.run()
+		daemon.input("현재 상태는 state1이어야 함")
 		
 		Thread.sleep(500)
 		
