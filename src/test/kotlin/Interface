@@ -8,7 +8,7 @@ object method [object {}]
 remove clear delete drop erase
 
 [State]————————————————————————————————————————————————————————————————————————————————
-KotlmataState("name") {
+KotlmataState("name") { state ->
 	entry action [action]
 	entry via "signal" action [action]
 	entry via action [action]
@@ -48,24 +48,21 @@ immutableState.input("signal", String::class)
 immutableState.exit()
 
 [Machine]————————————————————————————————————————————————————————————————————————————————
-KotlmataMachine("name") {
+KotlmataMachine("name") { machine ->
 	"state0" {
 		entry action [action]
 		entry via "signal" action [action]
-		input signal "signal" action {
-			// 여기서 신규 state를 어떻게 만들까?
-			// immutable이면 여기서 만들 수 있어서도 안되기 때문에 원래 못 만드는 것으로 한다.
-		}
+		input signal "signal" action [action]
 		exit action [action]
 	}
-
-	"state2" { extends template "base" }
 
 	"state0" x "signal" %= "state1"
 	"state1" x KClass<String> %= "state2"
 	"state1" x any %= "state2"
 	any x "signal" %= "state1"
 	any x any %= "state2"
+
+	on exception [action]
 
 	start at "state0"
 }
@@ -78,9 +75,8 @@ val mutableMachine = KotlmataMutableMachine("name") {
 	start at "state0"
 }
 
-mutableMachine {
+mutableMachine { machine ->
 	"state1" {
-		extends template "base"
 		entry action [action]
 		entry via "signal" action [action]
 		input signal "signal" action [action]
@@ -124,26 +120,26 @@ mutableMachine {
 		// Initializer
 	}
 
-	insert transition ("state0" x "signal") %= "state1"
-	insert or update transition ("state0" x "signal") %= "state1"
-	update transition ("state0" x "signal") %= "state1"
+	insert rule ("state0" x "signal") %= "state1"
+	insert or update rule ("state0" x "signal") %= "state1"
+	update rule ("state0" x "signal") %= "state1"
 
 	delete state "state1"
 	delete state all
 
-	delete transition ("state0" x "signal")
-	delete transition ("state0" x any)
-	delete transition (any x "signal")
-	delete transition (any x any)
-	delete transition of state "state1"
-	delete transition all
+	delete rule ("state0" x "signal")
+	delete rule ("state0" x any)
+	delete rule (any x "signal")
+	delete rule (any x any)
+	delete rule of state "state1"
+	delete rule all
 }
 
 mutableMachine.input("signal")
 mutableMachine.input(object, Any::class) // <T : Any> input(signal: T, type: KClass<in T>)
 
 [Daemon]————————————————————————————————————————————————————————————————————————————————
-KotlmataDaemon("name") {
+KotlmataDaemon("name") { daemon ->
 	on start [action] // 최초 시작 시
 	on pause [action]
 	on stop [action]
@@ -196,7 +192,6 @@ Kotlmata fork "daemon" of { // Daemon init 블럭과 동일 (존재하면 무시
 	on terminate [action]
 
 	"state1" {
-		extends template "base"
 		entry action [action]
 		entry via "signal" action [action]
 		input signal "signal" action [action]
@@ -212,7 +207,6 @@ Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일 (존재하지 �
 	update state "state1" set {
 		input signal "signal" action [action]
 	} or insert state "state1" of {
-		extends template "base"
 		entry action [action]
 		entry via "signal" action [action]
 		input signal "signal" action [action]
@@ -234,7 +228,6 @@ Kotlmata { // Kotlmata post 와 동일
 			update state "state1" set {
 				input signal "signal" action [action]
 			} or insert state "state1" of {
-				extends template "base"
 				entry action [action]
 				entry via "signal" action [action]
 				input signal "signal" action [action]
@@ -247,7 +240,6 @@ Kotlmata { // Kotlmata post 와 동일
 			on terminate [action]
 
 			"state1" {
-				extends template "base"
 				entry action [action]
 				entry via "signal" action [action]
 				input signal "signal" action [action]
@@ -264,7 +256,6 @@ Kotlmata { // Kotlmata post 와 동일
 			on terminate [action]
 
 			"state1" {
-				extends template "base"
 				entry action [action]
 				entry via "signal" action [action]
 				input signal "signal" action [action]
