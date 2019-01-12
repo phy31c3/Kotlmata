@@ -1,9 +1,8 @@
 package kr.co.plasticcity.kotlmata
 
-internal typealias KEY = Any
-internal typealias STATE = KEY
-internal typealias MACHINE = KEY
-internal typealias DAEMON = KEY
+internal typealias STATE = Any
+internal typealias MACHINE = Any
+internal typealias DAEMON = MACHINE
 internal typealias SIGNAL = Any
 
 internal object PreStart
@@ -69,3 +68,6 @@ internal inline fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> Stri
 {
 	if (this >= DETAIL) Log.d(args = *args, log = log)
 }
+
+@DslMarker
+internal annotation class KotlmataMarker

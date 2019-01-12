@@ -2,25 +2,27 @@ package kr.co.plasticcity.kotlmata
 
 import kotlin.reflect.KClass
 
-interface KotlmataMachine
+interface KotlmataMachine<T : MACHINE>
 {
 	companion object
 	{
 		operator fun invoke(
 				name: String,
-				block: Initializer.(name: String) -> Initializer.End
-		): KotlmataMachine = KotlmataMachineImpl(name, block)
+				block: Initializer.(machine: String) -> Initializer.End
+		): KotlmataMachine<String> = KotlmataMachineImpl(name, block)
 		
 		internal operator fun invoke(
 				name: String,
 				logLevel: Int,
-				block: Initializer.(name: String) -> Initializer.End
-		): KotlmataMachine = KotlmataMachineImpl(name, block, logLevel = logLevel)
+				block: Initializer.(machine: String) -> Initializer.End
+		): KotlmataMachine<String> = KotlmataMachineImpl(name, block, logLevel = logLevel)
 	}
 	
-	interface Initializer : StateDefine, TransitionDefine
+	@KotlmataMarker
+	interface Initializer : StateDefine, RuleDefine
 	{
 		val log: Log
+		val on: On
 		val start: Start
 		
 		interface Log
@@ -29,6 +31,11 @@ interface KotlmataMachine
 			 * @param level **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **2**)
 			 */
 			infix fun level(level: Int)
+		}
+		
+		interface On
+		{
+			infix fun exception(block: Kotlmata.Callback.(Exception) -> Unit)
 		}
 		
 		interface Start
@@ -44,18 +51,18 @@ interface KotlmataMachine
 		operator fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(state: T) -> Unit)
 	}
 	
-	interface TransitionDefine
+	interface RuleDefine
 	{
-		infix fun STATE.x(signal: SIGNAL): TransitionLeft
-		infix fun STATE.x(signal: KClass<out SIGNAL>): TransitionLeft
-		infix fun STATE.x(keyword: any): TransitionLeft
+		infix fun STATE.x(signal: SIGNAL): RuleLeft
+		infix fun STATE.x(signal: KClass<out SIGNAL>): RuleLeft
+		infix fun STATE.x(keyword: any): RuleLeft
 		
-		infix fun any.x(signal: SIGNAL): TransitionLeft
-		infix fun any.x(signal: KClass<out SIGNAL>): TransitionLeft
-		infix fun any.x(keyword: any): TransitionLeft
+		infix fun any.x(signal: SIGNAL): RuleLeft
+		infix fun any.x(signal: KClass<out SIGNAL>): RuleLeft
+		infix fun any.x(keyword: any): RuleLeft
 	}
 	
-	interface TransitionLeft
+	interface RuleLeft
 	{
 		val state: STATE
 		val signal: SIGNAL
@@ -63,40 +70,41 @@ interface KotlmataMachine
 		operator fun remAssign(state: STATE)
 	}
 	
-	val key: MACHINE
+	val key: T
 	
 	/**
-	 * @param block Called if the state transitions and the next state's entry function returns an signal.
+	 * @param block Called if the state is switched and the next state's entry function returns an signal.
 	 */
 	fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
 	
 	fun input(signal: SIGNAL)
 	
 	/**
-	 * @param block Called if the state transitions and the next state's entry function returns an signal.
+	 * @param block Called if the state is switched and the next state's entry function returns an signal.
 	 */
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 }
 
-interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
+interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 {
 	companion object
 	{
 		operator fun invoke(
 				name: String,
-				block: KotlmataMachine.Initializer.(name: String) -> KotlmataMachine.Initializer.End
+				block: KotlmataMachine.Initializer.(machine: String) -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine<String> = KotlmataMachineImpl(name, block)
 		
 		internal operator fun <T : MACHINE> invoke(
 				key: T,
 				prefix: String,
-				block: KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End
+				block: KotlmataMachine.Initializer.(machine: T) -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, block, prefix)
 	}
 	
-	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.TransitionDefine
+	@KotlmataMarker
+	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.RuleDefine
 	{
 		val current: STATE
 		val has: Has
@@ -108,7 +116,7 @@ interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
 		interface Has
 		{
 			infix fun state(state: STATE): then
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): then
+			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): then
 			
 			interface then
 			{
@@ -124,18 +132,18 @@ interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
 		interface Insert
 		{
 			infix fun <T : STATE> state(state: T): of<T>
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
+			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): remAssign
 			infix fun or(keyword: Replace): state
-			infix fun or(keyword: Update): transition
+			infix fun or(keyword: Update): rule
 			
 			interface state
 			{
 				infix fun <T : STATE> state(state: T): of<T>
 			}
 			
-			interface transition
+			interface rule
 			{
-				infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
+				infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): remAssign
 			}
 			
 			interface of<T : STATE>
@@ -162,7 +170,7 @@ interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
 		interface Update
 		{
 			infix fun <T : STATE> state(state: T): set<T>
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft): remAssign
+			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): remAssign
 			
 			interface set<T : STATE>
 			{
@@ -185,9 +193,9 @@ interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
 			infix fun state(state: STATE)
 			infix fun state(keyword: all)
 			
-			infix fun transition(transitionLeft: KotlmataMachine.TransitionLeft)
-			infix fun transition(keyword: of): state
-			infix fun transition(keyword: all)
+			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft)
+			infix fun rule(keyword: of): state
+			infix fun rule(keyword: all)
 			
 			interface state
 			{
@@ -196,28 +204,44 @@ interface KotlmataMutableMachine<out T : MACHINE> : KotlmataMachine
 		}
 	}
 	
-	infix fun modify(block: Modifier.(key: T) -> Unit)
+	infix fun modify(block: Modifier.(machine: T) -> Unit)
 	
-	operator fun invoke(block: Modifier.(key: T) -> Unit) = modify(block)
+	operator fun invoke(block: Modifier.(machine: T) -> Unit) = modify(block)
 }
 
 private class KotlmataMachineImpl<T : MACHINE>(
 		override val key: T,
-		block: KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End,
+		block: KotlmataMachine.Initializer.(T) -> KotlmataMachine.Initializer.End,
 		val prefix: String = "Machine[$key]:",
 		var logLevel: Int = Log.logLevel
 ) : KotlmataMutableMachine<T>
 {
-	private val stateMap: MutableMap<STATE, KotlmataMutableState<STATE>> = HashMap()
-	private val transitionMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
+	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
+	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
-	private lateinit var current: KotlmataState
+	private var onException: (Kotlmata.Callback.(Exception) -> Unit)? = null
+	
+	private lateinit var current: KotlmataState<out STATE>
 	
 	init
 	{
 		logLevel.normal(prefix) { MACHINE_START_BUILD }
 		ModifierImpl(init = block)
 		logLevel.normal(prefix) { MACHINE_END_BUILD }
+	}
+	
+	private inline fun action(block: () -> Unit)
+	{
+		try
+		{
+			block()
+		}
+		catch (e: Exception)
+		{
+			onException?.also {
+				Kotlmata.Callback.it(e)
+			} ?: throw e
+		}
 	}
 	
 	override fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
@@ -227,9 +251,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			return this[signal] ?: this[signal::class] ?: this[any]
 		}
 		
-		transitionMap.let {
+		ruleMap.let {
 			logLevel.normal(prefix, signal, current.key) { MACHINE_START_SIGNAL }
-			current.input(signal)
+			action { current.input(signal) }
 			logLevel.normal(prefix, signal, current.key) { MACHINE_END_SIGNAL }
 			it[current.key]?.next() ?: it[any]?.next()
 		}?.also {
@@ -241,9 +265,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[it]
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
-			current.exit(signal)
+			action { current.exit(signal) }
 			current = next
-			current.entry(signal, block)
+			action { current.entry(signal, block) }
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_END_TRANSITION }
 		}
 	}
@@ -262,9 +286,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			return this[type] ?: this[any]
 		}
 		
-		transitionMap.let {
+		ruleMap.let {
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_START_TYPED }
-			current.input(signal, type)
+			action { current.input(signal, type) }
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_END_TYPED }
 			it[current.key]?.next() ?: it[any]?.next()
 		}.also {
@@ -276,9 +300,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[it]
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
-			current.exit(signal)
+			action { current.exit(signal) }
 			current = next
-			current.entry(signal, type, block)
+			action { current.entry(signal, type, block) }
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_END_TRANSITION }
 		}
 	}
@@ -290,7 +314,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun modify(block: KotlmataMutableMachine.Modifier.(key: T) -> Unit)
+	override fun modify(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
 	{
 		logLevel.normal(prefix, current.key) { MACHINE_START_MODIFY }
 		ModifierImpl(modify = block)
@@ -303,8 +327,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	}
 	
 	private inner class ModifierImpl internal constructor(
-			init: (KotlmataMachine.Initializer.(key: T) -> KotlmataMachine.Initializer.End)? = null,
-			modify: (KotlmataMutableMachine.Modifier.(key: T) -> Unit)? = null
+			init: (KotlmataMachine.Initializer.(T) -> KotlmataMachine.Initializer.End)? = null,
+			modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
 	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
 		override val log = object : KotlmataMachine.Initializer.Log
@@ -316,19 +340,26 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override val start by lazy {
-			object : KotlmataMachine.Initializer.Start
+		override val on = object : KotlmataMachine.Initializer.On
+		{
+			override fun exception(block: Kotlmata.Callback.(Exception) -> Unit)
 			{
-				override fun at(state: STATE): KotlmataMachine.Initializer.End
-				{
-					this@ModifierImpl shouldNot expired
-					
-					stateMap[state]?.also {
-						this@KotlmataMachineImpl.current = it
-					} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_INITIAL_STATE }
-					
-					return KotlmataMachine.Initializer.End()
-				}
+				this@ModifierImpl shouldNot expired
+				onException = block
+			}
+		}
+		
+		override val start = object : KotlmataMachine.Initializer.Start
+		{
+			override fun at(state: STATE): KotlmataMachine.Initializer.End
+			{
+				this@ModifierImpl shouldNot expired
+				
+				stateMap[state]?.also {
+					this@KotlmataMachineImpl.current = it
+				} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_INITIAL_STATE }
+				
+				return KotlmataMachine.Initializer.End()
 			}
 		}
 		
@@ -341,244 +372,234 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				} ?: Log.w(prefix.trimEnd()) { OBTAIN_PRE_START }
 			}
 		
-		override val has by lazy {
-			object : KotlmataMutableMachine.Modifier.Has
+		override val has = object : KotlmataMutableMachine.Modifier.Has
+		{
+			val stop = object : KotlmataMutableMachine.Modifier.Has.or
 			{
-				val stop = object : KotlmataMutableMachine.Modifier.Has.or
+				override fun or(block: () -> Unit)
 				{
-					override fun or(block: () -> Unit)
+					/* do nothing */
+				}
+			}
+			
+			val or = object : KotlmataMutableMachine.Modifier.Has.or
+			{
+				override fun or(block: () -> Unit)
+				{
+					block()
+				}
+			}
+			
+			override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Has.then
+			{
+				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
+				{
+					this@ModifierImpl shouldNot expired
+					return if (state in stateMap)
+					{
+						block()
+						stop
+					}
+					else
+					{
+						or
+					}
+				}
+			}
+			
+			override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Has.then
+			{
+				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
+				{
+					this@ModifierImpl shouldNot expired
+					return ruleMap.let {
+						it[ruleLeft.state]
+					}?.let {
+						it[ruleLeft.signal]
+					}?.let {
+						block()
+						stop
+					} ?: or
+				}
+			}
+		}
+		
+		override val insert = object : KotlmataMutableMachine.Modifier.Insert
+		{
+			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
+			{
+				override fun of(block: KotlmataState.Initializer.(T) -> Unit)
+				{
+					this@ModifierImpl shouldNot expired
+					if (state !in stateMap)
+					{
+						state.invoke(block)
+					}
+				}
+			}
+			
+			override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
+			{
+				override fun remAssign(state: STATE)
+				{
+					this@ModifierImpl shouldNot expired
+					ruleMap.let {
+						it[ruleLeft.state]
+					}?.let {
+						it[ruleLeft.signal]
+					} ?: let {
+						ruleLeft %= state
+					}
+				}
+			}
+			
+			override fun or(keyword: KotlmataMutableMachine.Modifier.Replace) = object : KotlmataMutableMachine.Modifier.Insert.state
+			{
+				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
+				{
+					override fun of(block: KotlmataState.Initializer.(T) -> Unit)
+					{
+						this@ModifierImpl shouldNot expired
+						state.invoke(block)
+					}
+				}
+			}
+			
+			override fun or(keyword: KotlmataMutableMachine.Modifier.Update) = object : KotlmataMutableMachine.Modifier.Insert.rule
+			{
+				override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
+				{
+					override fun remAssign(state: STATE)
+					{
+						this@ModifierImpl shouldNot expired
+						ruleLeft %= state
+					}
+				}
+			}
+		}
+		
+		override val replace = object : KotlmataMutableMachine.Modifier.Replace
+		{
+			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Replace.of<T>
+			{
+				override fun of(block: KotlmataState.Initializer.(T) -> Unit)
+				{
+					this@ModifierImpl shouldNot expired
+					if (state in stateMap)
+					{
+						state.invoke(block)
+					}
+				}
+			}
+		}
+		
+		override val update = object : KotlmataMutableMachine.Modifier.Update
+		{
+			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Update.set<T>
+			{
+				val stop = object : KotlmataMutableMachine.Modifier.Update.or<T>
+				{
+					override fun or(block: KotlmataState.Initializer.(T) -> Unit)
 					{
 						/* do nothing */
 					}
 				}
 				
-				val or = object : KotlmataMutableMachine.Modifier.Has.or
+				val or = object : KotlmataMutableMachine.Modifier.Update.or<T>
 				{
-					override fun or(block: () -> Unit)
+					override fun or(block: KotlmataState.Initializer.(T) -> Unit)
 					{
-						block()
+						state.invoke(block)
 					}
 				}
 				
-				override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Has.then
+				@Suppress("UNCHECKED_CAST")
+				override fun set(block: KotlmataMutableState.Modifier.(T) -> Unit): KotlmataMutableMachine.Modifier.Update.or<T>
 				{
-					override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
+					this@ModifierImpl shouldNot expired
+					return if (state in stateMap)
 					{
-						this@ModifierImpl shouldNot expired
-						return if (state in stateMap)
-						{
-							block()
-							stop
-						}
-						else
-						{
-							or
-						}
+						stateMap[state]!!.modify(block as KotlmataMutableState.Modifier.(STATE) -> Unit)
+						stop
 					}
-				}
-				
-				override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Has.then
-				{
-					override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
+					else
 					{
-						this@ModifierImpl shouldNot expired
-						return transitionMap.let {
-							it[transitionLeft.state]
-						}?.let {
-							it[transitionLeft.signal]
-						}?.let {
-							block()
-							stop
-						} ?: or
+						or
 					}
 				}
 			}
-		}
-		
-		override val insert by lazy {
-			object : KotlmataMutableMachine.Modifier.Insert
+			
+			override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Update.remAssign
 			{
-				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
+				override fun remAssign(state: STATE)
 				{
-					override fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
-					{
-						this@ModifierImpl shouldNot expired
-						if (state !in stateMap)
-						{
-							state.invoke(block)
-						}
-					}
-				}
-				
-				override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
-				{
-					override fun remAssign(state: STATE)
-					{
-						this@ModifierImpl shouldNot expired
-						transitionMap.let {
-							it[transitionLeft.state]
-						}?.let {
-							it[transitionLeft.signal]
-						} ?: let {
-							transitionLeft %= state
-						}
-					}
-				}
-				
-				override fun or(keyword: KotlmataMutableMachine.Modifier.Replace) = object : KotlmataMutableMachine.Modifier.Insert.state
-				{
-					override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
-					{
-						override fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
-						{
-							this@ModifierImpl shouldNot expired
-							state.invoke(block)
-						}
-					}
-				}
-				
-				override fun or(keyword: KotlmataMutableMachine.Modifier.Update) = object : KotlmataMutableMachine.Modifier.Insert.transition
-				{
-					override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
-					{
-						override fun remAssign(state: STATE)
-						{
-							this@ModifierImpl shouldNot expired
-							transitionLeft %= state
-						}
+					this@ModifierImpl shouldNot expired
+					ruleMap.let {
+						it[ruleLeft.state]
+					}?.let {
+						it[ruleLeft.signal]
+					}.let {
+						ruleLeft %= state
 					}
 				}
 			}
 		}
 		
-		override val replace by lazy {
-			object : KotlmataMutableMachine.Modifier.Replace
+		override val delete = object : KotlmataMutableMachine.Modifier.Delete
+		{
+			override fun state(state: STATE)
 			{
-				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Replace.of<T>
-				{
-					override fun of(block: KotlmataState.Initializer.(state: T) -> Unit)
-					{
-						this@ModifierImpl shouldNot expired
-						if (state in stateMap)
-						{
-							state.invoke(block)
-						}
-					}
-				}
+				this@ModifierImpl shouldNot expired
+				stateMap -= state
 			}
-		}
-		
-		override val update by lazy {
-			object : KotlmataMutableMachine.Modifier.Update
+			
+			override fun state(keyword: all)
 			{
-				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Update.set<T>
-				{
-					val stop = object : KotlmataMutableMachine.Modifier.Update.or<T>
-					{
-						override fun or(block: KotlmataState.Initializer.(state: T) -> Unit)
-						{
-							/* do nothing */
-						}
-					}
-					
-					val or = object : KotlmataMutableMachine.Modifier.Update.or<T>
-					{
-						override fun or(block: KotlmataState.Initializer.(state: T) -> Unit)
-						{
-							state.invoke(block)
-						}
-					}
-					
-					@Suppress("UNCHECKED_CAST")
-					override fun set(block: KotlmataMutableState.Modifier.(state: T) -> Unit): KotlmataMutableMachine.Modifier.Update.or<T>
-					{
-						this@ModifierImpl shouldNot expired
-						return if (state in stateMap)
-						{
-							stateMap[state]!!.modify(block as KotlmataMutableState.Modifier.(STATE) -> Unit)
-							stop
-						}
-						else
-						{
-							or
-						}
-					}
-				}
-				
-				override fun transition(transitionLeft: KotlmataMachine.TransitionLeft) = object : KotlmataMutableMachine.Modifier.Update.remAssign
-				{
-					override fun remAssign(state: STATE)
-					{
-						this@ModifierImpl shouldNot expired
-						transitionMap.let {
-							it[transitionLeft.state]
-						}?.let {
-							it[transitionLeft.signal]
-						}.let {
-							transitionLeft %= state
-						}
-					}
+				this@ModifierImpl shouldNot expired
+				stateMap.clear()
+			}
+			
+			override fun rule(ruleLeft: KotlmataMachine.RuleLeft)
+			{
+				this@ModifierImpl shouldNot expired
+				ruleMap.let {
+					it[ruleLeft.state]
+				}?.let {
+					it -= ruleLeft.signal
 				}
 			}
-		}
-		
-		override val delete by lazy {
-			object : KotlmataMutableMachine.Modifier.Delete
+			
+			override fun rule(keyword: of) = object : KotlmataMutableMachine.Modifier.Delete.state
 			{
 				override fun state(state: STATE)
 				{
 					this@ModifierImpl shouldNot expired
-					stateMap -= state
+					ruleMap -= state
 				}
-				
-				override fun state(keyword: all)
-				{
-					this@ModifierImpl shouldNot expired
-					stateMap.clear()
-				}
-				
-				override fun transition(transitionLeft: KotlmataMachine.TransitionLeft)
-				{
-					this@ModifierImpl shouldNot expired
-					transitionMap.let {
-						it[transitionLeft.state]
-					}?.let {
-						it -= transitionLeft.signal
-					}
-				}
-				
-				override fun transition(keyword: of) = object : KotlmataMutableMachine.Modifier.Delete.state
-				{
-					override fun state(state: STATE)
-					{
-						this@ModifierImpl shouldNot expired
-						transitionMap -= state
-					}
-				}
-				
-				override fun transition(keyword: all)
-				{
-					this@ModifierImpl shouldNot expired
-					transitionMap.clear()
-				}
+			}
+			
+			override fun rule(keyword: all)
+			{
+				this@ModifierImpl shouldNot expired
+				ruleMap.clear()
 			}
 		}
 		
-		override fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(state: T) -> Unit)
+		override fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(T) -> Unit)
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel, block)
 		}
 		
-		override fun STATE.x(signal: SIGNAL) = transitionLeft(this, signal)
-		override fun STATE.x(signal: KClass<out SIGNAL>) = transitionLeft(this, signal)
-		override fun STATE.x(keyword: any) = transitionLeft(this, keyword)
+		override fun STATE.x(signal: SIGNAL) = ruleLeft(this, signal)
+		override fun STATE.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
+		override fun STATE.x(keyword: any) = ruleLeft(this, keyword)
 		
-		override fun any.x(signal: SIGNAL) = transitionLeft(this, signal)
-		override fun any.x(signal: KClass<out SIGNAL>) = transitionLeft(this, signal)
-		override fun any.x(keyword: any) = transitionLeft(this, keyword)
+		override fun any.x(signal: SIGNAL) = ruleLeft(this, signal)
+		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
+		override fun any.x(keyword: any) = ruleLeft(this, keyword)
 		
-		private fun transitionLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.TransitionLeft
+		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.RuleLeft
 		{
 			override val state: STATE = from
 			override val signal: SIGNAL = signal
@@ -586,8 +607,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			override fun remAssign(state: STATE)
 			{
 				this@ModifierImpl shouldNot expired
-				(transitionMap[from] ?: HashMap<SIGNAL, STATE>().also {
-					transitionMap[from] = it
+				(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
+					ruleMap[from] = it
 				})[signal] = state
 			}
 		}
