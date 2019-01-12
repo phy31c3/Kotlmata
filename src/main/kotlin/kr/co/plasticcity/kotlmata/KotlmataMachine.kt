@@ -230,7 +230,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		logLevel.normal(prefix) { MACHINE_END_BUILD }
 	}
 	
-	private fun action(block: () -> Unit)
+	private inline fun action(block: () -> Unit)
 	{
 		try
 		{
@@ -372,226 +372,216 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				} ?: Log.w(prefix.trimEnd()) { OBTAIN_PRE_START }
 			}
 		
-		override val has by lazy {
-			object : KotlmataMutableMachine.Modifier.Has
+		override val has = object : KotlmataMutableMachine.Modifier.Has
+		{
+			val stop = object : KotlmataMutableMachine.Modifier.Has.or
 			{
-				val stop = object : KotlmataMutableMachine.Modifier.Has.or
+				override fun or(block: () -> Unit)
 				{
-					override fun or(block: () -> Unit)
-					{
-						/* do nothing */
-					}
+					/* do nothing */
 				}
-				
-				val or = object : KotlmataMutableMachine.Modifier.Has.or
+			}
+			
+			val or = object : KotlmataMutableMachine.Modifier.Has.or
+			{
+				override fun or(block: () -> Unit)
 				{
-					override fun or(block: () -> Unit)
+					block()
+				}
+			}
+			
+			override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Has.then
+			{
+				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
+				{
+					this@ModifierImpl shouldNot expired
+					return if (state in stateMap)
 					{
 						block()
+						stop
+					}
+					else
+					{
+						or
 					}
 				}
-				
-				override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Has.then
+			}
+			
+			override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Has.then
+			{
+				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
 				{
-					override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
-					{
-						this@ModifierImpl shouldNot expired
-						return if (state in stateMap)
-						{
-							block()
-							stop
-						}
-						else
-						{
-							or
-						}
-					}
-				}
-				
-				override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Has.then
-				{
-					override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.or
-					{
-						this@ModifierImpl shouldNot expired
-						return ruleMap.let {
-							it[ruleLeft.state]
-						}?.let {
-							it[ruleLeft.signal]
-						}?.let {
-							block()
-							stop
-						} ?: or
-					}
+					this@ModifierImpl shouldNot expired
+					return ruleMap.let {
+						it[ruleLeft.state]
+					}?.let {
+						it[ruleLeft.signal]
+					}?.let {
+						block()
+						stop
+					} ?: or
 				}
 			}
 		}
 		
-		override val insert by lazy {
-			object : KotlmataMutableMachine.Modifier.Insert
+		override val insert = object : KotlmataMutableMachine.Modifier.Insert
+		{
+			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
+			{
+				override fun of(block: KotlmataState.Initializer.(T) -> Unit)
+				{
+					this@ModifierImpl shouldNot expired
+					if (state !in stateMap)
+					{
+						state.invoke(block)
+					}
+				}
+			}
+			
+			override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
+			{
+				override fun remAssign(state: STATE)
+				{
+					this@ModifierImpl shouldNot expired
+					ruleMap.let {
+						it[ruleLeft.state]
+					}?.let {
+						it[ruleLeft.signal]
+					} ?: let {
+						ruleLeft %= state
+					}
+				}
+			}
+			
+			override fun or(keyword: KotlmataMutableMachine.Modifier.Replace) = object : KotlmataMutableMachine.Modifier.Insert.state
 			{
 				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
 				{
 					override fun of(block: KotlmataState.Initializer.(T) -> Unit)
 					{
 						this@ModifierImpl shouldNot expired
-						if (state !in stateMap)
-						{
-							state.invoke(block)
-						}
+						state.invoke(block)
 					}
 				}
-				
+			}
+			
+			override fun or(keyword: KotlmataMutableMachine.Modifier.Update) = object : KotlmataMutableMachine.Modifier.Insert.rule
+			{
 				override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
 				{
 					override fun remAssign(state: STATE)
 					{
 						this@ModifierImpl shouldNot expired
-						ruleMap.let {
-							it[ruleLeft.state]
-						}?.let {
-							it[ruleLeft.signal]
-						} ?: let {
-							ruleLeft %= state
-						}
-					}
-				}
-				
-				override fun or(keyword: KotlmataMutableMachine.Modifier.Replace) = object : KotlmataMutableMachine.Modifier.Insert.state
-				{
-					override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.of<T>
-					{
-						override fun of(block: KotlmataState.Initializer.(T) -> Unit)
-						{
-							this@ModifierImpl shouldNot expired
-							state.invoke(block)
-						}
-					}
-				}
-				
-				override fun or(keyword: KotlmataMutableMachine.Modifier.Update) = object : KotlmataMutableMachine.Modifier.Insert.rule
-				{
-					override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Insert.remAssign
-					{
-						override fun remAssign(state: STATE)
-						{
-							this@ModifierImpl shouldNot expired
-							ruleLeft %= state
-						}
+						ruleLeft %= state
 					}
 				}
 			}
 		}
 		
-		override val replace by lazy {
-			object : KotlmataMutableMachine.Modifier.Replace
+		override val replace = object : KotlmataMutableMachine.Modifier.Replace
+		{
+			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Replace.of<T>
 			{
-				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Replace.of<T>
-				{
-					override fun of(block: KotlmataState.Initializer.(T) -> Unit)
-					{
-						this@ModifierImpl shouldNot expired
-						if (state in stateMap)
-						{
-							state.invoke(block)
-						}
-					}
-				}
-			}
-		}
-		
-		override val update by lazy {
-			object : KotlmataMutableMachine.Modifier.Update
-			{
-				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Update.set<T>
-				{
-					val stop = object : KotlmataMutableMachine.Modifier.Update.or<T>
-					{
-						override fun or(block: KotlmataState.Initializer.(T) -> Unit)
-						{
-							/* do nothing */
-						}
-					}
-					
-					val or = object : KotlmataMutableMachine.Modifier.Update.or<T>
-					{
-						override fun or(block: KotlmataState.Initializer.(T) -> Unit)
-						{
-							state.invoke(block)
-						}
-					}
-					
-					@Suppress("UNCHECKED_CAST")
-					override fun set(block: KotlmataMutableState.Modifier.(T) -> Unit): KotlmataMutableMachine.Modifier.Update.or<T>
-					{
-						this@ModifierImpl shouldNot expired
-						return if (state in stateMap)
-						{
-							stateMap[state]!!.modify(block as KotlmataMutableState.Modifier.(STATE) -> Unit)
-							stop
-						}
-						else
-						{
-							or
-						}
-					}
-				}
-				
-				override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Update.remAssign
-				{
-					override fun remAssign(state: STATE)
-					{
-						this@ModifierImpl shouldNot expired
-						ruleMap.let {
-							it[ruleLeft.state]
-						}?.let {
-							it[ruleLeft.signal]
-						}.let {
-							ruleLeft %= state
-						}
-					}
-				}
-			}
-		}
-		
-		override val delete by lazy {
-			object : KotlmataMutableMachine.Modifier.Delete
-			{
-				override fun state(state: STATE)
+				override fun of(block: KotlmataState.Initializer.(T) -> Unit)
 				{
 					this@ModifierImpl shouldNot expired
-					stateMap -= state
+					if (state in stateMap)
+					{
+						state.invoke(block)
+					}
+				}
+			}
+		}
+		
+		override val update = object : KotlmataMutableMachine.Modifier.Update
+		{
+			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Update.set<T>
+			{
+				val stop = object : KotlmataMutableMachine.Modifier.Update.or<T>
+				{
+					override fun or(block: KotlmataState.Initializer.(T) -> Unit)
+					{
+						/* do nothing */
+					}
 				}
 				
-				override fun state(keyword: all)
+				val or = object : KotlmataMutableMachine.Modifier.Update.or<T>
+				{
+					override fun or(block: KotlmataState.Initializer.(T) -> Unit)
+					{
+						state.invoke(block)
+					}
+				}
+				
+				@Suppress("UNCHECKED_CAST")
+				override fun set(block: KotlmataMutableState.Modifier.(T) -> Unit): KotlmataMutableMachine.Modifier.Update.or<T>
 				{
 					this@ModifierImpl shouldNot expired
-					stateMap.clear()
+					return if (state in stateMap)
+					{
+						stateMap[state]!!.modify(block as KotlmataMutableState.Modifier.(STATE) -> Unit)
+						stop
+					}
+					else
+					{
+						or
+					}
 				}
-				
-				override fun rule(ruleLeft: KotlmataMachine.RuleLeft)
+			}
+			
+			override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Update.remAssign
+			{
+				override fun remAssign(state: STATE)
 				{
 					this@ModifierImpl shouldNot expired
 					ruleMap.let {
 						it[ruleLeft.state]
 					}?.let {
-						it -= ruleLeft.signal
+						it[ruleLeft.signal]
+					}.let {
+						ruleLeft %= state
 					}
 				}
-				
-				override fun rule(keyword: of) = object : KotlmataMutableMachine.Modifier.Delete.state
-				{
-					override fun state(state: STATE)
-					{
-						this@ModifierImpl shouldNot expired
-						ruleMap -= state
-					}
+			}
+		}
+		
+		override val delete = object : KotlmataMutableMachine.Modifier.Delete
+		{
+			override fun state(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				stateMap -= state
+			}
+			
+			override fun state(keyword: all)
+			{
+				this@ModifierImpl shouldNot expired
+				stateMap.clear()
+			}
+			
+			override fun rule(ruleLeft: KotlmataMachine.RuleLeft)
+			{
+				this@ModifierImpl shouldNot expired
+				ruleMap.let {
+					it[ruleLeft.state]
+				}?.let {
+					it -= ruleLeft.signal
 				}
-				
-				override fun rule(keyword: all)
+			}
+			
+			override fun rule(keyword: of) = object : KotlmataMutableMachine.Modifier.Delete.state
+			{
+				override fun state(state: STATE)
 				{
 					this@ModifierImpl shouldNot expired
-					ruleMap.clear()
+					ruleMap -= state
 				}
+			}
+			
+			override fun rule(keyword: all)
+			{
+				this@ModifierImpl shouldNot expired
+				ruleMap.clear()
 			}
 		}
 		
