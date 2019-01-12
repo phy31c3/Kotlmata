@@ -467,7 +467,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		val order = ticket.getAndIncrement()
-		val id by lazy { hashCode().toString(16) }
+		val id = this.hashCode().toString(16)
 		
 		val isMachineEvent = priority >= MACHINE_EVENT
 		

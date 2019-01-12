@@ -266,160 +266,152 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val entry by lazy {
-			object : KotlmataState.Entry
+		override val entry = object : KotlmataState.Entry
+		{
+			override fun action(action: Kotlmata.Action.(signal: SIGNAL) -> SIGNAL?)
 			{
-				override fun action(action: Kotlmata.Action.(signal: SIGNAL) -> SIGNAL?)
+				this@ModifierImpl shouldNot expired
+				this@KotlmataStateImpl.entry = action
+			}
+			
+			override fun <T : SIGNAL> via(signal: KClass<T>) = object : KotlmataState.action<T, SIGNAL?>
+			{
+				override fun action(action: Kotlmata.Action.(signal: T) -> SIGNAL?)
 				{
 					this@ModifierImpl shouldNot expired
-					this@KotlmataStateImpl.entry = action
+					entryMap[signal] = action as Kotlmata.Action.(SIGNAL) -> SIGNAL?
 				}
-				
-				override fun <T : SIGNAL> via(signal: KClass<T>) = object : KotlmataState.action<T, SIGNAL?>
+			}
+			
+			override fun <T : SIGNAL> via(signal: T) = object : KotlmataState.action<T, SIGNAL?>
+			{
+				override fun action(action: Kotlmata.Action.(signal: T) -> SIGNAL?)
 				{
-					override fun action(action: Kotlmata.Action.(signal: T) -> SIGNAL?)
-					{
-						this@ModifierImpl shouldNot expired
-						entryMap[signal] = action as Kotlmata.Action.(SIGNAL) -> SIGNAL?
-					}
-				}
-				
-				override fun <T : SIGNAL> via(signal: T) = object : KotlmataState.action<T, SIGNAL?>
-				{
-					override fun action(action: Kotlmata.Action.(signal: T) -> SIGNAL?)
-					{
-						this@ModifierImpl shouldNot expired
-						entryMap[signal] = action as Kotlmata.Action.(SIGNAL) -> SIGNAL?
-					}
+					this@ModifierImpl shouldNot expired
+					entryMap[signal] = action as Kotlmata.Action.(SIGNAL) -> SIGNAL?
 				}
 			}
 		}
 		
 		@Suppress("UNCHECKED_CAST")
-		override val input by lazy {
-			object : KotlmataState.Input
+		override val input = object : KotlmataState.Input
+		{
+			override fun action(action: Kotlmata.Action.(signal: SIGNAL) -> Unit)
 			{
-				override fun action(action: Kotlmata.Action.(signal: SIGNAL) -> Unit)
+				this@ModifierImpl shouldNot expired
+				this@KotlmataStateImpl.input = action
+			}
+			
+			override fun <T : SIGNAL> signal(signal: KClass<T>) = object : KotlmataState.action<T, Unit>
+			{
+				override fun action(action: Kotlmata.Action.(signal: T) -> Unit)
 				{
 					this@ModifierImpl shouldNot expired
-					this@KotlmataStateImpl.input = action
+					inputMap[signal] = action as Kotlmata.Action.(SIGNAL) -> Unit
 				}
-				
-				override fun <T : SIGNAL> signal(signal: KClass<T>) = object : KotlmataState.action<T, Unit>
+			}
+			
+			override fun <T : SIGNAL> signal(signal: T) = object : KotlmataState.action<T, Unit>
+			{
+				override fun action(action: Kotlmata.Action.(signal: T) -> Unit)
 				{
-					override fun action(action: Kotlmata.Action.(signal: T) -> Unit)
-					{
-						this@ModifierImpl shouldNot expired
-						inputMap[signal] = action as Kotlmata.Action.(SIGNAL) -> Unit
-					}
-				}
-				
-				override fun <T : SIGNAL> signal(signal: T) = object : KotlmataState.action<T, Unit>
-				{
-					override fun action(action: Kotlmata.Action.(signal: T) -> Unit)
-					{
-						this@ModifierImpl shouldNot expired
-						inputMap[signal] = action as Kotlmata.Action.(SIGNAL) -> Unit
-					}
+					this@ModifierImpl shouldNot expired
+					inputMap[signal] = action as Kotlmata.Action.(SIGNAL) -> Unit
 				}
 			}
 		}
 		
-		override val exit by lazy {
-			object : KotlmataState.Exit
+		override val exit = object : KotlmataState.Exit
+		{
+			override fun action(action: Kotlmata.Action.(signal: SIGNAL) -> Unit)
 			{
-				override fun action(action: Kotlmata.Action.(signal: SIGNAL) -> Unit)
-				{
-					this@ModifierImpl shouldNot expired
-					this@KotlmataStateImpl.exit = action
-				}
+				this@ModifierImpl shouldNot expired
+				this@KotlmataStateImpl.exit = action
 			}
 		}
 		
-		override val delete by lazy {
-			object : KotlmataMutableState.Delete
+		override val delete = object : KotlmataMutableState.Delete
+		{
+			override fun action(keyword: KotlmataState.Entry) = object : KotlmataMutableState.Delete.Entry
 			{
-				override fun action(keyword: KotlmataState.Entry) = object : KotlmataMutableState.Delete.Entry
+				val stash = this@KotlmataStateImpl.entry
+				
+				init
 				{
-					val stash = this@KotlmataStateImpl.entry
-					
-					init
-					{
-						this@ModifierImpl not expired then {
-							this@KotlmataStateImpl.entry = null
-						}
-					}
-					
-					override fun <T : SIGNAL> via(signal: KClass<T>)
-					{
-						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.entry = stash
-						entryMap.remove(signal)
-					}
-					
-					override fun <T : SIGNAL> via(signal: T)
-					{
-						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.entry = stash
-						entryMap.remove(signal)
-					}
-					
-					override fun via(keyword: all)
-					{
-						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.entry = stash
-						this@KotlmataStateImpl.entryMap = null
+					this@ModifierImpl not expired then {
+						this@KotlmataStateImpl.entry = null
 					}
 				}
 				
-				override fun action(keyword: KotlmataState.Input) = object : KotlmataMutableState.Delete.Input
-				{
-					val stash = this@KotlmataStateImpl.input
-					
-					init
-					{
-						this@ModifierImpl not expired then {
-							this@KotlmataStateImpl.input = null
-						}
-					}
-					
-					override fun <T : SIGNAL> signal(signal: KClass<T>)
-					{
-						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.input = stash
-						inputMap.remove(signal)
-					}
-					
-					override fun <T : SIGNAL> signal(signal: T)
-					{
-						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.input = stash
-						inputMap.remove(signal)
-					}
-					
-					override fun signal(keyword: all)
-					{
-						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.input = stash
-						this@KotlmataStateImpl.inputMap = null
-					}
-				}
-				
-				override fun action(keyword: KotlmataState.Exit)
+				override fun <T : SIGNAL> via(signal: KClass<T>)
 				{
 					this@ModifierImpl shouldNot expired
-					this@KotlmataStateImpl.exit = null
+					this@KotlmataStateImpl.entry = stash
+					entryMap.remove(signal)
 				}
 				
-				override fun action(keyword: all)
+				override fun <T : SIGNAL> via(signal: T)
 				{
 					this@ModifierImpl shouldNot expired
-					this@KotlmataStateImpl.entry = null
-					this@KotlmataStateImpl.input = null
-					this@KotlmataStateImpl.exit = null
+					this@KotlmataStateImpl.entry = stash
+					entryMap.remove(signal)
+				}
+				
+				override fun via(keyword: all)
+				{
+					this@ModifierImpl shouldNot expired
+					this@KotlmataStateImpl.entry = stash
 					this@KotlmataStateImpl.entryMap = null
+				}
+			}
+			
+			override fun action(keyword: KotlmataState.Input) = object : KotlmataMutableState.Delete.Input
+			{
+				val stash = this@KotlmataStateImpl.input
+				
+				init
+				{
+					this@ModifierImpl not expired then {
+						this@KotlmataStateImpl.input = null
+					}
+				}
+				
+				override fun <T : SIGNAL> signal(signal: KClass<T>)
+				{
+					this@ModifierImpl shouldNot expired
+					this@KotlmataStateImpl.input = stash
+					inputMap.remove(signal)
+				}
+				
+				override fun <T : SIGNAL> signal(signal: T)
+				{
+					this@ModifierImpl shouldNot expired
+					this@KotlmataStateImpl.input = stash
+					inputMap.remove(signal)
+				}
+				
+				override fun signal(keyword: all)
+				{
+					this@ModifierImpl shouldNot expired
+					this@KotlmataStateImpl.input = stash
 					this@KotlmataStateImpl.inputMap = null
 				}
+			}
+			
+			override fun action(keyword: KotlmataState.Exit)
+			{
+				this@ModifierImpl shouldNot expired
+				this@KotlmataStateImpl.exit = null
+			}
+			
+			override fun action(keyword: all)
+			{
+				this@ModifierImpl shouldNot expired
+				this@KotlmataStateImpl.entry = null
+				this@KotlmataStateImpl.input = null
+				this@KotlmataStateImpl.exit = null
+				this@KotlmataStateImpl.entryMap = null
+				this@KotlmataStateImpl.inputMap = null
 			}
 		}
 		
