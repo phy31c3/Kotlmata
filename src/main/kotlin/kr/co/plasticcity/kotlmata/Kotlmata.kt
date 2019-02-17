@@ -7,10 +7,7 @@ interface Kotlmata
 	companion object : Kotlmata by KotlmataImpl()
 	
 	@KotlmataMarker
-	object Action
-	
-	@KotlmataMarker
-	object Callback
+	object Marker
 	
 	fun config(block: Config.() -> Unit)
 	fun start()

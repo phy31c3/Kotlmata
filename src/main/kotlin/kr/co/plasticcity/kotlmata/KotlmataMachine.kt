@@ -35,7 +35,7 @@ interface KotlmataMachine<T : MACHINE>
 		
 		interface On
 		{
-			infix fun error(block: Kotlmata.Callback.(Throwable) -> Unit)
+			infix fun error(block: Kotlmata.Marker.(Throwable) -> Unit)
 		}
 		
 		interface Start
@@ -49,7 +49,7 @@ interface KotlmataMachine<T : MACHINE>
 	interface StateDefine
 	{
 		operator fun <S : STATE> S.invoke(block: KotlmataState.Initializer.(state: S) -> Unit)
-		infix fun <S : STATE, R> S.action(action: Kotlmata.Action.(signal: SIGNAL) -> R)
+		infix fun <S : STATE, R> S.action(action: Kotlmata.Marker.(signal: SIGNAL) -> R)
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.EntryAction<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.EntryAction<T>
 	}
@@ -222,7 +222,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
-	private var onError: (Kotlmata.Callback.(Throwable) -> Unit)? = null
+	private var onError: (Kotlmata.Marker.(Throwable) -> Unit)? = null
 	
 	private lateinit var current: KotlmataState<out STATE>
 	
@@ -242,7 +242,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		catch (e: Throwable)
 		{
 			onError?.also {
-				Kotlmata.Callback.it(e)
+				Kotlmata.Marker.it(e)
 			} ?: throw e
 		}
 	}
@@ -365,7 +365,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override val on = object : KotlmataMachine.Initializer.On
 		{
-			override fun error(block: Kotlmata.Callback.(Throwable) -> Unit)
+			override fun error(block: Kotlmata.Marker.(Throwable) -> Unit)
 			{
 				this@ModifierImpl shouldNot expired
 				onError = block
@@ -614,7 +614,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel, block)
 		}
 		
-		override fun <S : STATE, R> S.action(action: Kotlmata.Action.(signal: SIGNAL) -> R)
+		override fun <S : STATE, R> S.action(action: Kotlmata.Marker.(signal: SIGNAL) -> R)
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel) {
@@ -627,7 +627,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			val key = this
 			return object : KotlmataState.EntryAction<T>
 			{
-				override fun <R> action(action: Kotlmata.Action.(signal: T) -> R)
+				override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[key] = KotlmataMutableState(key, "$prefix   ", logLevel) {
@@ -642,7 +642,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			val key = this
 			return object : KotlmataState.EntryAction<T>
 			{
-				override fun <R> action(action: Kotlmata.Action.(signal: T) -> R)
+				override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[key] = KotlmataMutableState(key, "$prefix   ", logLevel) {

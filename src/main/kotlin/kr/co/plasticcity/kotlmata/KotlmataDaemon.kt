@@ -29,11 +29,11 @@ interface KotlmataDaemon<T : DAEMON>
 		
 		interface On : KotlmataMachine.Initializer.On
 		{
-			infix fun start(block: Kotlmata.Callback.() -> Unit)
-			infix fun pause(block: Kotlmata.Callback.() -> Unit)
-			infix fun stop(block: Kotlmata.Callback.() -> Unit)
-			infix fun resume(block: Kotlmata.Callback.() -> Unit)
-			infix fun terminate(block: Kotlmata.Callback.() -> Unit)
+			infix fun start(block: Kotlmata.Marker.() -> Unit)
+			infix fun pause(block: Kotlmata.Marker.() -> Unit)
+			infix fun stop(block: Kotlmata.Marker.() -> Unit)
+			infix fun resume(block: Kotlmata.Marker.() -> Unit)
+			infix fun terminate(block: Kotlmata.Marker.() -> Unit)
 		}
 	}
 	
@@ -86,11 +86,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	private val machine: KotlmataMutableMachine<T>
 	private val core: KotlmataMachine<String>
 	
-	private var onStart: Kotlmata.Callback.() -> Unit = {}
-	private var onPause: Kotlmata.Callback.() -> Unit = {}
-	private var onStop: Kotlmata.Callback.() -> Unit = {}
-	private var onResume: Kotlmata.Callback.() -> Unit = {}
-	private var onTerminate: Kotlmata.Callback.() -> Unit = {}
+	private var onStart: Kotlmata.Marker.() -> Unit = {}
+	private var onPause: Kotlmata.Marker.() -> Unit = {}
+	private var onStop: Kotlmata.Marker.() -> Unit = {}
+	private var onResume: Kotlmata.Marker.() -> Unit = {}
+	private var onTerminate: Kotlmata.Marker.() -> Unit = {}
 	
 	private var queue: PriorityBlockingQueue<Message>? = PriorityBlockingQueue()
 	private val lock: Any = Any()
@@ -110,7 +110,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			start at PreStart
 		}
 		
-		val modifyMachine: Kotlmata.Action.(Message.Modify) -> Unit = { modifyM ->
+		val modifyMachine: Kotlmata.Marker.(Message.Modify) -> Unit = { modifyM ->
 			machine modify modifyM.block
 		}
 		
@@ -129,9 +129,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		core = KotlmataMachine("$key@core", 0) {
 			"pre-start" { state ->
-				val startMachine: Kotlmata.Action.(Message) -> Unit = {
+				val startMachine: Kotlmata.Marker.(Message) -> Unit = {
 					logLevel.simple(key) { DAEMON_START }
-					Kotlmata.Callback.onStart()
+					Kotlmata.Marker.onStart()
 					machine.input(Message.Run(), postSync)
 				}
 				
@@ -168,21 +168,21 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				var sync: Message.Sync? = null
 				val stash: MutableList<Message> = ArrayList()
 				
-				val keep: Kotlmata.Action.(Message) -> Unit = { message ->
+				val keep: Kotlmata.Marker.(Message) -> Unit = { message ->
 					logLevel.normal(key, message.id) { DAEMON_KEEP_REQUEST }
 					stash += message
 				}
 				
 				entry action {
 					logLevel.simple(key) { DAEMON_PAUSE }
-					Kotlmata.Callback.onPause()
+					Kotlmata.Marker.onPause()
 				}
 				
 				input signal Message.Run::class action {
 					sync?.let { syncM -> queue!!.offer(syncM) }
 					queue!! += stash
 					logLevel.simple(key) { DAEMON_RESUME }
-					Kotlmata.Callback.onResume()
+					Kotlmata.Marker.onResume()
 				}
 				input signal Message.Stop::class action {
 					sync?.let { syncM -> queue!!.offer(syncM) }
@@ -208,7 +208,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"stop" { state ->
 				var sync: Message.Sync? = null
 				
-				val cleanup: Kotlmata.Action.(Message) -> Unit = { currentM ->
+				val cleanup: Kotlmata.Marker.(Message) -> Unit = { currentM ->
 					synchronized<Unit>(lock)
 					{
 						queue!!.removeIf { queueM ->
@@ -225,13 +225,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				
 				entry action {
 					logLevel.simple(key) { DAEMON_STOP }
-					Kotlmata.Callback.onStop()
+					Kotlmata.Marker.onStop()
 				}
 				
 				input signal Message.Run::class action { runM ->
 					cleanup(runM)
 					logLevel.simple(key) { DAEMON_RESUME }
-					Kotlmata.Callback.onResume()
+					Kotlmata.Marker.onResume()
 				}
 				input signal Message.Pause::class action cleanup
 				input signal Message.Terminate::class action {}
@@ -251,7 +251,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"terminate" {
 				entry action {
 					logLevel.simple(key) { DAEMON_TERMINATE }
-					Kotlmata.Callback.onTerminate()
+					Kotlmata.Marker.onTerminate()
 					Thread.currentThread().interrupt()
 				}
 			}
@@ -386,37 +386,37 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		override val on = object : KotlmataDaemon.Initializer.On
 		{
-			override fun start(block: Kotlmata.Callback.() -> Unit)
+			override fun start(block: Kotlmata.Marker.() -> Unit)
 			{
 				this@InitializerImpl shouldNot expired
 				onStart = block
 			}
 			
-			override fun pause(block: Kotlmata.Callback.() -> Unit)
+			override fun pause(block: Kotlmata.Marker.() -> Unit)
 			{
 				this@InitializerImpl shouldNot expired
 				onPause = block
 			}
 			
-			override fun stop(block: Kotlmata.Callback.() -> Unit)
+			override fun stop(block: Kotlmata.Marker.() -> Unit)
 			{
 				this@InitializerImpl shouldNot expired
 				onStop = block
 			}
 			
-			override fun resume(block: Kotlmata.Callback.() -> Unit)
+			override fun resume(block: Kotlmata.Marker.() -> Unit)
 			{
 				this@InitializerImpl shouldNot expired
 				onResume = block
 			}
 			
-			override fun terminate(block: Kotlmata.Callback.() -> Unit)
+			override fun terminate(block: Kotlmata.Marker.() -> Unit)
 			{
 				this@InitializerImpl shouldNot expired
 				onTerminate = block
 			}
 			
-			override fun error(block: Kotlmata.Callback.(Throwable) -> Unit) = initializer.on.error(block)
+			override fun error(block: Kotlmata.Marker.(Throwable) -> Unit) = initializer.on.error(block)
 		}
 		
 		override val start = object : KotlmataMachine.Initializer.Start
