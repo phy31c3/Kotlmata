@@ -22,16 +22,16 @@ interface KotlmataState<T : STATE>
 	
 	interface Entry
 	{
-		infix fun action(action: Kotlmata.Action.(signal: SIGNAL) -> SIGNAL?)
-		infix fun <T : SIGNAL> via(signal: KClass<T>): action<T, SIGNAL?>
-		infix fun <T : SIGNAL> via(signal: T): action<T, SIGNAL?>
+		infix fun <R> action(action: Kotlmata.Action.(signal: SIGNAL) -> R)
+		infix fun <T : SIGNAL> via(signal: KClass<T>): EntryAction<T>
+		infix fun <T : SIGNAL> via(signal: T): EntryAction<T>
 	}
 	
 	interface Input
 	{
 		infix fun action(action: Kotlmata.Action.(signal: SIGNAL) -> Unit)
-		infix fun <T : SIGNAL> signal(signal: KClass<T>): action<T, Unit>
-		infix fun <T : SIGNAL> signal(signal: T): action<T, Unit>
+		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
+		infix fun <T : SIGNAL> signal(signal: T): Action<T>
 	}
 	
 	interface Exit
@@ -39,9 +39,14 @@ interface KotlmataState<T : STATE>
 		infix fun action(action: Kotlmata.Action.(signal: SIGNAL) -> Unit)
 	}
 	
-	interface action<T : SIGNAL, U>
+	interface EntryAction<T : SIGNAL>
 	{
-		infix fun action(action: Kotlmata.Action.(signal: T) -> U)
+		infix fun <R> action(action: Kotlmata.Action.(signal: T) -> R)
+	}
+	
+	interface Action<T : SIGNAL>
+	{
+		infix fun action(action: Kotlmata.Action.(signal: T) -> Unit)
 	}
 	
 	val key: T
@@ -120,10 +125,10 @@ private class KotlmataStateImpl<T : STATE>(
 		val logLevel: Int = Log.logLevel
 ) : KotlmataMutableState<T>
 {
-	private var entry: (Kotlmata.Action.(SIGNAL) -> SIGNAL?)? = null
+	private var entry: (Kotlmata.Action.(SIGNAL) -> Any?)? = null
 	private var input: (Kotlmata.Action.(SIGNAL) -> Unit)? = null
 	private var exit: (Kotlmata.Action.(SIGNAL) -> Unit)? = null
-	private var entryMap: MutableMap<SIGNAL, Kotlmata.Action.(SIGNAL) -> SIGNAL?>? = null
+	private var entryMap: MutableMap<SIGNAL, Kotlmata.Action.(SIGNAL) -> Any?>? = null
 	private var inputMap: MutableMap<SIGNAL, Kotlmata.Action.(SIGNAL) -> Unit>? = null
 	
 	init
@@ -136,7 +141,7 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	override fun entry(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
 	{
-		val action: (Kotlmata.Action.(SIGNAL) -> SIGNAL?)? = entryMap?.let {
+		val action: (Kotlmata.Action.(SIGNAL) -> Any?)? = entryMap?.let {
 			when
 			{
 				signal in it ->
@@ -157,14 +162,14 @@ private class KotlmataStateImpl<T : STATE>(
 		
 		action?.also {
 			Kotlmata.Action.it(signal)?.let { ret ->
-				if (ret !is Unit) block(ret)
+				if (ret !is Unit/* ret is SIGNAL */) block(ret)
 			}
 		} ?: logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE }
 	}
 	
 	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	{
-		val action: (Kotlmata.Action.(SIGNAL) -> SIGNAL?)? = entryMap?.let {
+		val action: (Kotlmata.Action.(SIGNAL) -> Any?)? = entryMap?.let {
 			when (type)
 			{
 				in it ->
@@ -180,7 +185,7 @@ private class KotlmataStateImpl<T : STATE>(
 		
 		action?.also {
 			Kotlmata.Action.it(signal)?.let { ret ->
-				if (ret !is Unit) block(ret)
+				if (ret !is Unit/* ret is SIGNAL */) block(ret)
 			}
 		} ?: logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE }
 	}
@@ -255,8 +260,8 @@ private class KotlmataStateImpl<T : STATE>(
 			block: KotlmataMutableState.Modifier.(T) -> Unit
 	) : KotlmataMutableState.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
-		private val entryMap: MutableMap<SIGNAL, Kotlmata.Action.(SIGNAL) -> SIGNAL?>
-			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, Kotlmata.Action.(SIGNAL) -> SIGNAL?>().also {
+		private val entryMap: MutableMap<SIGNAL, Kotlmata.Action.(SIGNAL) -> Any?>
+			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, Kotlmata.Action.(SIGNAL) -> Any?>().also {
 				this@KotlmataStateImpl.entryMap = it
 			}
 		
@@ -268,27 +273,27 @@ private class KotlmataStateImpl<T : STATE>(
 		@Suppress("UNCHECKED_CAST")
 		override val entry = object : KotlmataState.Entry
 		{
-			override fun action(action: Kotlmata.Action.(signal: SIGNAL) -> SIGNAL?)
+			override fun <R> action(action: Kotlmata.Action.(signal: SIGNAL) -> R)
 			{
 				this@ModifierImpl shouldNot expired
 				this@KotlmataStateImpl.entry = action
 			}
 			
-			override fun <T : SIGNAL> via(signal: KClass<T>) = object : KotlmataState.action<T, SIGNAL?>
+			override fun <T : SIGNAL> via(signal: KClass<T>) = object : KotlmataState.EntryAction<T>
 			{
-				override fun action(action: Kotlmata.Action.(signal: T) -> SIGNAL?)
+				override fun <R> action(action: Kotlmata.Action.(signal: T) -> R)
 				{
 					this@ModifierImpl shouldNot expired
-					entryMap[signal] = action as Kotlmata.Action.(SIGNAL) -> SIGNAL?
+					entryMap[signal] = action as Kotlmata.Action.(SIGNAL) -> Any?
 				}
 			}
 			
-			override fun <T : SIGNAL> via(signal: T) = object : KotlmataState.action<T, SIGNAL?>
+			override fun <T : SIGNAL> via(signal: T) = object : KotlmataState.EntryAction<T>
 			{
-				override fun action(action: Kotlmata.Action.(signal: T) -> SIGNAL?)
+				override fun <R> action(action: Kotlmata.Action.(signal: T) -> R)
 				{
 					this@ModifierImpl shouldNot expired
-					entryMap[signal] = action as Kotlmata.Action.(SIGNAL) -> SIGNAL?
+					entryMap[signal] = action as Kotlmata.Action.(SIGNAL) -> Any?
 				}
 			}
 		}
@@ -302,7 +307,7 @@ private class KotlmataStateImpl<T : STATE>(
 				this@KotlmataStateImpl.input = action
 			}
 			
-			override fun <T : SIGNAL> signal(signal: KClass<T>) = object : KotlmataState.action<T, Unit>
+			override fun <T : SIGNAL> signal(signal: KClass<T>) = object : KotlmataState.Action<T>
 			{
 				override fun action(action: Kotlmata.Action.(signal: T) -> Unit)
 				{
@@ -311,7 +316,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> signal(signal: T) = object : KotlmataState.action<T, Unit>
+			override fun <T : SIGNAL> signal(signal: T) = object : KotlmataState.Action<T>
 			{
 				override fun action(action: Kotlmata.Action.(signal: T) -> Unit)
 				{
