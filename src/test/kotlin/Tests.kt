@@ -89,7 +89,9 @@ class Tests
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
-			"state1" x "goToSimple" %= "simple"
+			
+			any x "goToSimple" %= "simple"
+			"simple" x "goToSimple" %= stay
 			
 			on exception {
 				println("어랏... 예외가 발생했네")
@@ -104,6 +106,7 @@ class Tests
 		machine.input(5)
 		machine.input("exception")
 		machine.input("goToState1")
+		machine.input("goToSimple")
 		machine.input("goToSimple")
 		
 		println("-----------------------------------")

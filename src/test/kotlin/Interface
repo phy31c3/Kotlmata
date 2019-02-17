@@ -61,6 +61,7 @@ KotlmataMachine("name") { machine ->
 	"state1" x any %= "state2"
 	any x "signal" %= "state1"
 	any x any %= "state2"
+	"state1" x "signal" %= stay
 
 	on exception [action]
 

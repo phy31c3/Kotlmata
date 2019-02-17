@@ -259,13 +259,23 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			action { current.input(signal) }
 			logLevel.normal(prefix, signal, current.key) { MACHINE_END_SIGNAL }
 			it[current.key]?.next() ?: it[any]?.next()
-		}?.also {
-			if (it !in stateMap)
-			{
-				Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
-			}
 		}?.let {
-			stateMap[it]
+			when (it)
+			{
+				is stay ->
+				{
+					null
+				}
+				!in stateMap ->
+				{
+					Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
+					null
+				}
+				else ->
+				{
+					stateMap[it]
+				}
+			}
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
 			action { current.exit(signal) }
@@ -294,13 +304,23 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			action { current.input(signal, type) }
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_END_TYPED }
 			it[current.key]?.next() ?: it[any]?.next()
-		}.also {
-			if (it !in stateMap)
-			{
-				Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
-			}
 		}?.let {
-			stateMap[it]
+			when (it)
+			{
+				is stay ->
+				{
+					null
+				}
+				!in stateMap ->
+				{
+					Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
+					null
+				}
+				else ->
+				{
+					stateMap[it]
+				}
+			}
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
 			action { current.exit(signal) }
