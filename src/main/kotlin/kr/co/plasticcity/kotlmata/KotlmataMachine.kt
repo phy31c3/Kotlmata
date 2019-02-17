@@ -48,10 +48,10 @@ interface KotlmataMachine<T : MACHINE>
 	
 	interface StateDefine
 	{
-		operator fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(state: T) -> Unit)
-		infix fun <S : STATE> S.action(action: Kotlmata.Action.(signal: SIGNAL) -> SIGNAL?)
-		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.action<T, SIGNAL?>
-		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.action<T, SIGNAL?>
+		operator fun <S : STATE> S.invoke(block: KotlmataState.Initializer.(state: S) -> Unit)
+		infix fun <S : STATE, R> S.action(action: Kotlmata.Action.(signal: SIGNAL) -> R)
+		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.EntryAction<T>
+		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.EntryAction<T>
 	}
 	
 	interface RuleDefine
@@ -594,7 +594,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel, block)
 		}
 		
-		override fun <S : STATE> S.action(action: Kotlmata.Action.(signal: SIGNAL) -> SIGNAL?)
+		override fun <S : STATE, R> S.action(action: Kotlmata.Action.(signal: SIGNAL) -> R)
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel) {
@@ -602,24 +602,32 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>) = object : KotlmataState.action<T, SIGNAL?>
+		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.EntryAction<T>
 		{
-			override fun action(action: Kotlmata.Action.(signal: T) -> SIGNAL?)
+			val key = this
+			return object : KotlmataState.EntryAction<T>
 			{
-				this@ModifierImpl shouldNot expired
-				stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel) {
-					entry via signal action action
+				override fun <R> action(action: Kotlmata.Action.(signal: T) -> R)
+				{
+					this@ModifierImpl shouldNot expired
+					stateMap[key] = KotlmataMutableState(key, "$prefix   ", logLevel) {
+						entry via signal action action
+					}
 				}
 			}
 		}
 		
-		override fun <S : STATE, T : SIGNAL> S.via(signal: T) = object : KotlmataState.action<T, SIGNAL?>
+		override fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.EntryAction<T>
 		{
-			override fun action(action: Kotlmata.Action.(signal: T) -> SIGNAL?)
+			val key = this
+			return object : KotlmataState.EntryAction<T>
 			{
-				this@ModifierImpl shouldNot expired
-				stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel) {
-					entry via signal action action
+				override fun <R> action(action: Kotlmata.Action.(signal: T) -> R)
+				{
+					this@ModifierImpl shouldNot expired
+					stateMap[key] = KotlmataMutableState(key, "$prefix   ", logLevel) {
+						entry via signal action action
+					}
 				}
 			}
 		}

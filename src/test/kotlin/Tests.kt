@@ -82,7 +82,7 @@ class Tests
 				exit action { println("$state: 퇴장함수") }
 			}
 			
-			"simple" action { state ->
+			"simple" via String::class action { state ->
 				println("$state: 간략한 상태 정의")
 			}
 			
