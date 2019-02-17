@@ -23,8 +23,13 @@ interface KotlmataState<T : STATE>
 	interface Entry
 	{
 		infix fun <R> action(action: Kotlmata.Marker.(signal: SIGNAL) -> R)
-		infix fun <T : SIGNAL> via(signal: KClass<T>): EntryAction<T>
-		infix fun <T : SIGNAL> via(signal: T): EntryAction<T>
+		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
+		infix fun <T : SIGNAL> via(signal: T): Action<T>
+		
+		interface Action<T : SIGNAL>
+		{
+			infix fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
+		}
 	}
 	
 	interface Input
@@ -32,21 +37,16 @@ interface KotlmataState<T : STATE>
 		infix fun action(action: Kotlmata.Marker.(signal: SIGNAL) -> Unit)
 		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> signal(signal: T): Action<T>
+		
+		interface Action<T : SIGNAL>
+		{
+			infix fun action(action: Kotlmata.Marker.(signal: T) -> Unit)
+		}
 	}
 	
 	interface Exit
 	{
 		infix fun action(action: Kotlmata.Marker.(signal: SIGNAL) -> Unit)
-	}
-	
-	interface EntryAction<T : SIGNAL>
-	{
-		infix fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
-	}
-	
-	interface Action<T : SIGNAL>
-	{
-		infix fun action(action: Kotlmata.Marker.(signal: T) -> Unit)
 	}
 	
 	val key: T
@@ -279,7 +279,7 @@ private class KotlmataStateImpl<T : STATE>(
 				this@KotlmataStateImpl.entry = action
 			}
 			
-			override fun <T : SIGNAL> via(signal: KClass<T>) = object : KotlmataState.EntryAction<T>
+			override fun <T : SIGNAL> via(signal: KClass<T>) = object : KotlmataState.Entry.Action<T>
 			{
 				override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
 				{
@@ -288,7 +288,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> via(signal: T) = object : KotlmataState.EntryAction<T>
+			override fun <T : SIGNAL> via(signal: T) = object : KotlmataState.Entry.Action<T>
 			{
 				override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
 				{
@@ -307,7 +307,7 @@ private class KotlmataStateImpl<T : STATE>(
 				this@KotlmataStateImpl.input = action
 			}
 			
-			override fun <T : SIGNAL> signal(signal: KClass<T>) = object : KotlmataState.Action<T>
+			override fun <T : SIGNAL> signal(signal: KClass<T>) = object : KotlmataState.Input.Action<T>
 			{
 				override fun action(action: Kotlmata.Marker.(signal: T) -> Unit)
 				{
@@ -316,7 +316,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> signal(signal: T) = object : KotlmataState.Action<T>
+			override fun <T : SIGNAL> signal(signal: T) = object : KotlmataState.Input.Action<T>
 			{
 				override fun action(action: Kotlmata.Marker.(signal: T) -> Unit)
 				{

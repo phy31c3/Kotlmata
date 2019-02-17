@@ -50,8 +50,8 @@ interface KotlmataMachine<T : MACHINE>
 	{
 		operator fun <S : STATE> S.invoke(block: KotlmataState.Initializer.(state: S) -> Unit)
 		infix fun <S : STATE, R> S.action(action: Kotlmata.Marker.(signal: SIGNAL) -> R)
-		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.EntryAction<T>
-		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.EntryAction<T>
+		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
+		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
 	}
 	
 	interface RuleDefine
@@ -622,10 +622,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.EntryAction<T>
+		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
 		{
 			val key = this
-			return object : KotlmataState.EntryAction<T>
+			return object : KotlmataState.Entry.Action<T>
 			{
 				override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
 				{
@@ -637,10 +637,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.EntryAction<T>
+		override fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
 		{
 			val key = this
-			return object : KotlmataState.EntryAction<T>
+			return object : KotlmataState.Entry.Action<T>
 			{
 				override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
 				{
