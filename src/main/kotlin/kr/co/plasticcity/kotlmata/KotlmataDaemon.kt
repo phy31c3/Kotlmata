@@ -416,7 +416,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				onTerminate = block
 			}
 			
-			override fun exception(block: Kotlmata.Callback.(Exception) -> Unit) = initializer.on.exception(block)
+			override fun error(block: Kotlmata.Callback.(Throwable) -> Unit) = initializer.on.error(block)
 		}
 		
 		override val start = object : KotlmataMachine.Initializer.Start

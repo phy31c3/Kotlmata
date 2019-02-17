@@ -35,7 +35,7 @@ interface KotlmataMachine<T : MACHINE>
 		
 		interface On
 		{
-			infix fun exception(block: Kotlmata.Callback.(Exception) -> Unit)
+			infix fun error(block: Kotlmata.Callback.(Throwable) -> Unit)
 		}
 		
 		interface Start
@@ -222,7 +222,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
-	private var onException: (Kotlmata.Callback.(Exception) -> Unit)? = null
+	private var onError: (Kotlmata.Callback.(Throwable) -> Unit)? = null
 	
 	private lateinit var current: KotlmataState<out STATE>
 	
@@ -239,9 +239,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		{
 			block()
 		}
-		catch (e: Exception)
+		catch (e: Throwable)
 		{
-			onException?.also {
+			onError?.also {
 				Kotlmata.Callback.it(e)
 			} ?: throw e
 		}
@@ -365,10 +365,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override val on = object : KotlmataMachine.Initializer.On
 		{
-			override fun exception(block: Kotlmata.Callback.(Exception) -> Unit)
+			override fun error(block: Kotlmata.Callback.(Throwable) -> Unit)
 			{
 				this@ModifierImpl shouldNot expired
-				onException = block
+				onError = block
 			}
 		}
 		
