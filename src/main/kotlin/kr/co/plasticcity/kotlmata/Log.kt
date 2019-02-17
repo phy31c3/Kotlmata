@@ -49,7 +49,7 @@ internal class Logs
 		const val MACHINE_START_TYPED = "Kotlmata%s >> Start typed signal input. {signal: %s, type: %s} {current state: %s}"
 		const val MACHINE_END_TYPED = "Kotlmata%s << End typed signal input. {signal: %s, type: %s} {current state: %s}"
 		const val MACHINE_START_TRANSITION = "Kotlmata%s >> Start transition. (%s) x (%s) -> (%s)"
-		const val MACHINE_END_TRANSITION = "Kotlmata%s << End transition. (%s) x (%s) -> (%s)"
+		const val MACHINE_END_TRANSITION = "Kotlmata%s << End transition."
 		
 		/* State */
 		const val STATE_CREATED = "Kotlmata%s %s: Created"

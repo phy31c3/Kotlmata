@@ -277,12 +277,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 		}?.let { next ->
-			val prev = current.key
-			logLevel.simple(prefix, prev, signal, next.key) { MACHINE_START_TRANSITION }
+			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
 			action { current.exit(signal) }
 			current = next
 			action { current.entry(signal, block) }
-			logLevel.simple(prefix, prev, signal, next.key) { MACHINE_END_TRANSITION }
+			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
 	
@@ -323,12 +322,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 		}?.let { next ->
-			val prev = current.key
-			logLevel.simple(prefix, prev, signal, next.key) { MACHINE_START_TRANSITION }
+			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
 			action { current.exit(signal) }
 			current = next
 			action { current.entry(signal, type, block) }
-			logLevel.simple(prefix, prev, signal, next.key) { MACHINE_END_TRANSITION }
+			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
 	
