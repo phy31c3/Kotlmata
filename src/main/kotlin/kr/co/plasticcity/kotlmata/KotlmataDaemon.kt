@@ -114,10 +114,10 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			machine modify modifyM.block
 		}
 		
-		val postExpress: (SIGNAL) -> Unit = { signal ->
-			val expressM = Message.Express(signal)
-			logLevel.detail(key, expressM.signal, expressM.id) { DAEMON_REQUEST_EXPRESS }
-			queue!!.offer(expressM)
+		val postSync: (SIGNAL) -> Unit = { signal ->
+			val syncM = Message.Sync(signal)
+			logLevel.detail(key, syncM.signal, syncM.id) { DAEMON_REQUEST_SYNC }
+			queue!!.offer(syncM)
 		}
 		
 		val ignore: (SIGNAL, STATE) -> Unit = { signal, state ->
@@ -132,7 +132,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				val startMachine: Kotlmata.Action.(Message) -> Unit = {
 					logLevel.simple(key) { DAEMON_START }
 					Kotlmata.Callback.onStart()
-					machine.input(Message.Run(), postExpress)
+					machine.input(Message.Run(), postSync)
 				}
 				
 				input signal Message.Run::class action startMachine
@@ -150,14 +150,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Message.Stop::class action {}
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.Express::class action { expressM ->
-					machine.input(expressM.signal, postExpress)
+				input signal Message.Sync::class action { syncM ->
+					machine.input(syncM.signal, postSync)
 				}
 				input signal Message.Signal::class action { signalM ->
-					machine.input(signalM.signal, postExpress)
+					machine.input(signalM.signal, postSync)
 				}
 				input signal Message.TypedSignal::class action { typedM ->
-					machine.input(typedM.signal, typedM.type, postExpress)
+					machine.input(typedM.signal, typedM.type, postSync)
 				}
 				input signal Message.Modify::class action modifyMachine
 				
@@ -165,7 +165,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			
 			"pause" { state ->
-				var express: Message.Express? = null
+				var sync: Message.Sync? = null
 				val stash: MutableList<Message> = ArrayList()
 				
 				val keep: Kotlmata.Action.(Message) -> Unit = { message ->
@@ -179,19 +179,19 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				
 				input signal Message.Run::class action {
-					express?.let { expressM -> queue!!.offer(expressM) }
+					sync?.let { syncM -> queue!!.offer(syncM) }
 					queue!! += stash
 					logLevel.simple(key) { DAEMON_RESUME }
 					Kotlmata.Callback.onResume()
 				}
 				input signal Message.Stop::class action {
-					express?.let { expressM -> queue!!.offer(expressM) }
+					sync?.let { syncM -> queue!!.offer(syncM) }
 				}
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.Express::class action { expressM ->
-					express = expressM
-					logLevel.normal(key, expressM.id) { DAEMON_KEEP_EXPRESS }
+				input signal Message.Sync::class action { syncM ->
+					sync = syncM
+					logLevel.normal(key, syncM.id) { DAEMON_KEEP_SYNC }
 				}
 				input signal Message.Signal::class action keep
 				input signal Message.TypedSignal::class action keep
@@ -200,13 +200,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input action { signal -> ignore(signal, state) }
 				
 				exit action {
-					express = null
+					sync = null
 					stash.clear()
 				}
 			}
 			
 			"stop" { state ->
-				var express: Message.Express? = null
+				var sync: Message.Sync? = null
 				
 				val cleanup: Kotlmata.Action.(Message) -> Unit = { currentM ->
 					synchronized<Unit>(lock)
@@ -219,7 +219,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 								}
 							}
 						}
-						express?.let { expressM -> queue!!.offer(expressM) }
+						sync?.let { syncM -> queue!!.offer(syncM) }
 					}
 				}
 				
@@ -236,15 +236,15 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Message.Pause::class action cleanup
 				input signal Message.Terminate::class action {}
 				
-				input signal Message.Express::class action { expressM ->
-					express = expressM
-					logLevel.normal(key, expressM.id) { DAEMON_KEEP_EXPRESS }
+				input signal Message.Sync::class action { syncM ->
+					sync = syncM
+					logLevel.normal(key, syncM.id) { DAEMON_KEEP_SYNC }
 				}
 				
 				input action { signal -> ignore(signal, state) }
 				
 				exit action {
-					express = null
+					sync = null
 				}
 			}
 			
@@ -447,7 +447,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		class Stop : Message(DAEMON_CONTROL)
 		class Terminate : Message(DAEMON_CONTROL)
 		
-		class Express(val signal: SIGNAL) : Message(EXPRESS)
+		class Sync(val signal: SIGNAL) : Message(SYNC)
 		
 		class Signal(val signal: SIGNAL, priority: Int)
 			: Message(if (priority > 0) MACHINE_EVENT + priority else MACHINE_EVENT)
@@ -460,7 +460,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		companion object
 		{
 			private const val DAEMON_CONTROL = -2
-			private const val EXPRESS = -1
+			private const val SYNC = -1
 			private const val MACHINE_EVENT = 0
 			
 			val ticket: AtomicLong = AtomicLong(0)

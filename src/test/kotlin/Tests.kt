@@ -169,7 +169,7 @@ class Tests
 			"state3" { state ->
 				entry action {
 					println("$state: 기본 진입함수")
-					"express input"
+					"sync input"
 				}
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				exit action { println("$state: 퇴장함수") }
@@ -179,7 +179,7 @@ class Tests
 				entry action {
 					Thread.sleep(10)
 					println("$state: 기본 진입함수")
-					"state4 express"
+					"state4 sync"
 				}
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				exit action { println("$state: 퇴장함수") }
@@ -189,7 +189,7 @@ class Tests
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
 			"state3" x "goToState4" %= "state4"
-			"state4" x "state4 express" %= "state1"
+			"state4" x "state4 sync" %= "state1"
 			
 			on error {
 				println("어랏... 예외가 발생했네")
@@ -239,7 +239,7 @@ class Tests
 				expire = this
 				entry action {
 					println("$state: 수정된 기본 진입함수")
-					"express input"
+					"sync input"
 				}
 			}
 		}
@@ -305,7 +305,7 @@ class Tests
 			"state3" { state ->
 				entry action {
 					println("$state: 기본 진입함수")
-					"express input"
+					"sync input"
 				}
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				exit action { println("$state: 퇴장함수") }
