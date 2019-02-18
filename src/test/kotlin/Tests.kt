@@ -23,8 +23,14 @@ class Tests
 		var expired: KotlmataState.Initializer? = null
 		val state = KotlmataMutableState("s1") {
 			expired = this
-			entry action { println("기본 진입함수") }
-			entry via String::class action { s -> println("String 타입 진입함수: $s") }
+			val lambda1: KotlmataAction0 = {
+				println("기본 진입함수")
+			}
+			val lambda2: KotlmataAction1<String> = { signal ->
+				println("String 타입 진입함수: $signal")
+			}
+			entry action lambda1
+			entry via String::class action lambda2
 			entry via "a" action { println("a 진입함수") }
 			entry via "b" action {
 				println("b 진입함수")
