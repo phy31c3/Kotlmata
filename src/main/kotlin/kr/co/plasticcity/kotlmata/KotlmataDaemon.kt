@@ -110,7 +110,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			start at PreStart
 		}
 		
-		val modifyMachine: Kotlmata.Marker.(Message.Modify) -> Unit = { modifyM ->
+		val modifyMachine: KotlmataAction1<Message.Modify> = { modifyM ->
 			machine modify modifyM.block
 		}
 		
@@ -127,17 +127,22 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 		}
 		
+		val terminate: KotlmataAction0 = {
+			logLevel.simple(key) { DAEMON_TERMINATE }
+			Kotlmata.Marker.onTerminate()
+		}
+		
 		core = KotlmataMachine("$key@core", 0) {
 			"pre-start" { state ->
-				val startMachine: Kotlmata.Marker.(Message) -> Unit = {
+				val start: KotlmataAction0 = {
 					logLevel.simple(key) { DAEMON_START }
 					Kotlmata.Marker.onStart()
 					machine.input(Message.Run(), postSync)
 				}
 				
-				input signal Message.Run::class action startMachine
-				input signal Message.Pause::class action startMachine
-				input signal Message.Stop::class action startMachine
+				input signal Message.Run::class action start
+				input signal Message.Pause::class action start
+				input signal Message.Stop::class action start
 				input signal Message.Terminate::class action {}
 				
 				input signal Message.Modify::class action modifyMachine
@@ -148,7 +153,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"run" { state ->
 				input signal Message.Pause::class action {}
 				input signal Message.Stop::class action {}
-				input signal Message.Terminate::class action {}
+				input signal Message.Terminate::class action terminate
 				
 				input signal Message.Sync::class action { syncM ->
 					machine.input(syncM.signal, postSync)
@@ -168,7 +173,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				var sync: Message.Sync? = null
 				val stash: MutableList<Message> = ArrayList()
 				
-				val keep: Kotlmata.Marker.(Message) -> Unit = { message ->
+				val keep: KotlmataAction1<Message> = { message ->
 					logLevel.normal(key, message.id) { DAEMON_KEEP_REQUEST }
 					stash += message
 				}
@@ -187,7 +192,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Message.Stop::class action {
 					sync?.let { syncM -> queue!!.offer(syncM) }
 				}
-				input signal Message.Terminate::class action {}
+				input signal Message.Terminate::class action terminate
 				
 				input signal Message.Sync::class action { syncM ->
 					sync = syncM
@@ -208,7 +213,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"stop" { state ->
 				var sync: Message.Sync? = null
 				
-				val cleanup: Kotlmata.Marker.(Message) -> Unit = { currentM ->
+				val cleanup: KotlmataAction1<Message> = { currentM ->
 					synchronized<Unit>(lock)
 					{
 						queue!!.removeIf { queueM ->
@@ -234,7 +239,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					Kotlmata.Marker.onResume()
 				}
 				input signal Message.Pause::class action cleanup
-				input signal Message.Terminate::class action {}
+				input signal Message.Terminate::class action terminate
 				
 				input signal Message.Sync::class action { syncM ->
 					sync = syncM
@@ -250,8 +255,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			
 			"terminate" {
 				entry action {
-					logLevel.simple(key) { DAEMON_TERMINATE }
-					Kotlmata.Marker.onTerminate()
 					Thread.currentThread().interrupt()
 				}
 			}
