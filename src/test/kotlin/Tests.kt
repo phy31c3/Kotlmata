@@ -88,6 +88,15 @@ class Tests
 				exit action { println("$state: 퇴장함수") }
 			}
 			
+			"state4" { state ->
+				entry via ("goToState4-1" or "goToState4-2" or "goToState4-3") action { signal ->
+					println("$state: 다중 신호 진입함수: $signal")
+				}
+				input signal ("3" or 1 or 2) action { signal ->
+					println("$state: 다중 신호 입력함수: $signal")
+				}
+			}
+			
 			"simple" via String::class action { state ->
 				println("$state: 간략한 상태 정의")
 			}
@@ -95,7 +104,9 @@ class Tests
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
-			
+			"state1" x "goToState4-1" %= "state4"
+			"state1" x "goToState4-2" %= "state4"
+			"state1" x "goToState4-3" %= "state4"
 			any x "goToSimple" %= "simple"
 			"simple" x "goToSimple" %= stay
 			
@@ -112,6 +123,9 @@ class Tests
 		machine.input(5)
 		machine.input("error")
 		machine.input("goToState1")
+		machine.input("goToState4-1")
+		machine.input(1)
+		machine.input("3")
 		machine.input("goToSimple")
 		machine.input("goToSimple")
 		

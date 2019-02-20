@@ -622,32 +622,24 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
+		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>) = object : KotlmataState.Entry.Action<T>
 		{
-			val key = this
-			return object : KotlmataState.Entry.Action<T>
+			override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
 			{
-				override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
-				{
-					this@ModifierImpl shouldNot expired
-					stateMap[key] = KotlmataMutableState(key, "$prefix   ", logLevel) {
-						entry via signal action action
-					}
+				this@ModifierImpl shouldNot expired
+				stateMap[this@via] = KotlmataMutableState(this@via, "$prefix   ", logLevel) {
+					entry via signal action action
 				}
 			}
 		}
 		
-		override fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
+		override fun <S : STATE, T : SIGNAL> S.via(signal: T) = object : KotlmataState.Entry.Action<T>
 		{
-			val key = this
-			return object : KotlmataState.Entry.Action<T>
+			override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
 			{
-				override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
-				{
-					this@ModifierImpl shouldNot expired
-					stateMap[key] = KotlmataMutableState(key, "$prefix   ", logLevel) {
-						entry via signal action action
-					}
+				this@ModifierImpl shouldNot expired
+				stateMap[this@via] = KotlmataMutableState(this@via, "$prefix   ", logLevel) {
+					entry via signal action action
 				}
 			}
 		}

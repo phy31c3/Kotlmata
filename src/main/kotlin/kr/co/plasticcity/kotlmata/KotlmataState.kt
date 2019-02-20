@@ -18,6 +18,15 @@ interface KotlmataState<T : STATE>
 		val entry: Entry
 		val input: Input
 		val exit: Exit
+		
+		infix fun <T : SIGNAL, U : SIGNAL> T.or(signal: U): Signals
+		
+		interface Signals
+		{
+			val list: List<SIGNAL>
+			
+			infix fun <T : SIGNAL> or(signal: T): Signals
+		}
 	}
 	
 	interface Entry
@@ -25,6 +34,7 @@ interface KotlmataState<T : STATE>
 		infix fun <R> action(action: Kotlmata.Marker.(signal: SIGNAL) -> R)
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
+		infix fun via(signals: Initializer.Signals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
 		{
@@ -37,6 +47,7 @@ interface KotlmataState<T : STATE>
 		infix fun action(action: Kotlmata.Marker.(signal: SIGNAL) -> Unit)
 		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> signal(signal: T): Action<T>
+		infix fun signal(signals: Initializer.Signals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
 		{
@@ -296,6 +307,17 @@ private class KotlmataStateImpl<T : STATE>(
 					entryMap[signal] = action as Kotlmata.Marker.(SIGNAL) -> Any?
 				}
 			}
+			
+			override fun via(signals: KotlmataState.Initializer.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
+			{
+				override fun <R> action(action: Kotlmata.Marker.(signal: SIGNAL) -> R)
+				{
+					this@ModifierImpl shouldNot expired
+					signals.list.forEach {
+						entryMap[it] = action
+					}
+				}
+			}
 		}
 		
 		@Suppress("UNCHECKED_CAST")
@@ -322,6 +344,17 @@ private class KotlmataStateImpl<T : STATE>(
 				{
 					this@ModifierImpl shouldNot expired
 					inputMap[signal] = action as Kotlmata.Marker.(SIGNAL) -> Unit
+				}
+			}
+			
+			override fun signal(signals: KotlmataState.Initializer.Signals) = object : KotlmataState.Input.Action<SIGNAL>
+			{
+				override fun action(action: Kotlmata.Marker.(signal: SIGNAL) -> Unit)
+				{
+					this@ModifierImpl shouldNot expired
+					signals.list.forEach {
+						inputMap[it] = action
+					}
 				}
 			}
 		}
@@ -417,6 +450,17 @@ private class KotlmataStateImpl<T : STATE>(
 				this@KotlmataStateImpl.exit = null
 				this@KotlmataStateImpl.entryMap = null
 				this@KotlmataStateImpl.inputMap = null
+			}
+		}
+		
+		override fun <T : SIGNAL, U : SIGNAL> T.or(signal: U) = object : KotlmataState.Initializer.Signals
+		{
+			override val list = mutableListOf(this@or, signal)
+			
+			override fun <T : SIGNAL> or(signal: T): KotlmataState.Initializer.Signals
+			{
+				list.add(signal)
+				return this
 			}
 		}
 		

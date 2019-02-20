@@ -52,7 +52,9 @@ KotlmataMachine("name") { machine ->
 	"state0" {
 		entry action [action]
 		entry via "signal" action [action]
+		entry via ("1" or "2" or "3") action [action]
 		input signal "signal" action [action]
+		input signal ("1" or "2" or "3") action [action]
 		exit action [action]
 	}
 
