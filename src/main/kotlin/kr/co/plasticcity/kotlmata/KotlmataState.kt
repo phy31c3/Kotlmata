@@ -19,13 +19,13 @@ interface KotlmataState<T : STATE>
 		val input: Input
 		val exit: Exit
 		
-		infix fun <T : SIGNAL, U : SIGNAL> T.or(signal: U): Signals
+		infix fun SIGNAL.or(signal: SIGNAL): Signals
 		
 		interface Signals
 		{
 			val list: List<SIGNAL>
 			
-			infix fun <T : SIGNAL> or(signal: T): Signals
+			infix fun or(signal: SIGNAL): Signals
 		}
 	}
 	
@@ -453,11 +453,11 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		}
 		
-		override fun <T : SIGNAL, U : SIGNAL> T.or(signal: U) = object : KotlmataState.Initializer.Signals
+		override fun SIGNAL.or(signal: SIGNAL) = object : KotlmataState.Initializer.Signals
 		{
 			override val list = mutableListOf(this@or, signal)
 			
-			override fun <T : SIGNAL> or(signal: T): KotlmataState.Initializer.Signals
+			override fun or(signal: SIGNAL): KotlmataState.Initializer.Signals
 			{
 				list.add(signal)
 				return this
