@@ -23,7 +23,7 @@ class Tests
 		var expired: KotlmataState.Initializer? = null
 		val state = KotlmataMutableState("s1") {
 			expired = this
-			val lambda1: KotlmataAction0 = {
+			val lambda1: KotlmataAction = {
 				println("기본 진입함수")
 			}
 			val lambda2: KotlmataAction1<String> = { signal ->
@@ -166,8 +166,19 @@ class Tests
 	{
 		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
 		var expire: KotlmataMutableState.Modifier? = null
+		var thread: Thread? = null
 		val daemon = KotlmataMutableDaemon("d1") {
 			log level 2
+			
+			on start {
+				thread = Thread.currentThread()
+			}
+			on terminate {
+				println("데몬이 종료됨")
+			}
+			on error {
+				println("어랏... 예외가 발생했네")
+			}
 			
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
@@ -208,10 +219,6 @@ class Tests
 			"state3" x "goToState1" %= "state1"
 			"state3" x "goToState4" %= "state4"
 			"state4" x "state4 sync" %= "state1"
-			
-			on error {
-				println("어랏... 예외가 발생했네")
-			}
 			
 			start at "state1"
 		}
@@ -286,7 +293,9 @@ class Tests
 		
 		Thread.sleep(500)
 		
-		daemon.terminate()
+		thread?.interrupt()
+		
+		Thread.sleep(500)
 		
 		System.gc()
 		println("과연 GC 되었을까: ${shouldGC?.get()}")

@@ -127,16 +127,16 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 		}
 		
-		val terminate: KotlmataAction0 = {
+		val terminate: KotlmataAction = {
+			onTerminate()
 			logLevel.simple(key) { DAEMON_TERMINATE }
-			Kotlmata.Marker.onTerminate()
 		}
 		
 		core = KotlmataMachine("$key@core", 0) {
 			"pre-start" { state ->
-				val start: KotlmataAction0 = {
+				val start: KotlmataAction = {
 					logLevel.simple(key) { DAEMON_START }
-					Kotlmata.Marker.onStart()
+					onStart()
 					machine.input(Message.Run(), postSync)
 				}
 				
@@ -153,7 +153,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"run" { state ->
 				input signal Message.Pause::class action {}
 				input signal Message.Stop::class action {}
-				input signal Message.Terminate::class action terminate
+				input signal (Message.Terminate::class or Message.Interrupted::class) action terminate
 				
 				input signal Message.Sync::class action { syncM ->
 					machine.input(syncM.signal, postSync)
@@ -180,19 +180,19 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				
 				entry action {
 					logLevel.simple(key) { DAEMON_PAUSE }
-					Kotlmata.Marker.onPause()
+					onPause()
 				}
 				
 				input signal Message.Run::class action {
 					sync?.let { syncM -> queue!!.offer(syncM) }
 					queue!! += stash
 					logLevel.simple(key) { DAEMON_RESUME }
-					Kotlmata.Marker.onResume()
+					onResume()
 				}
 				input signal Message.Stop::class action {
 					sync?.let { syncM -> queue!!.offer(syncM) }
 				}
-				input signal Message.Terminate::class action terminate
+				input signal (Message.Terminate::class or Message.Interrupted::class) action terminate
 				
 				input signal Message.Sync::class action { syncM ->
 					sync = syncM
@@ -230,16 +230,16 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				
 				entry action {
 					logLevel.simple(key) { DAEMON_STOP }
-					Kotlmata.Marker.onStop()
+					onStop()
 				}
 				
 				input signal Message.Run::class action { runM ->
 					cleanup(runM)
 					logLevel.simple(key) { DAEMON_RESUME }
-					Kotlmata.Marker.onResume()
+					onResume()
 				}
 				input signal Message.Pause::class action cleanup
-				input signal Message.Terminate::class action terminate
+				input signal (Message.Terminate::class or Message.Interrupted::class) action terminate
 				
 				input signal Message.Sync::class action { syncM ->
 					sync = syncM
@@ -254,7 +254,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			
 			"terminate" {
-				entry action {
+				entry via Message.Terminate::class action {
 					Thread.currentThread().interrupt()
 				}
 			}
@@ -272,7 +272,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"stop" x Message.Run::class %= "run"
 			"stop" x Message.Pause::class %= "pause"
 			
-			any x Message.Terminate::class %= "terminate"
+			any.except("terminate") x Message.Terminate::class %= "terminate"
+			any.except("terminate") x Message.Interrupted::class %= "terminate"
 			
 			start at "pre-start"
 		}
@@ -290,6 +291,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			catch (e: InterruptedException)
 			{
+				core.input(Message.Interrupted())
 				synchronized(lock) {
 					queue!!.clear()
 					queue = null
@@ -449,6 +451,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		class Pause : Message(DAEMON_CONTROL)
 		class Stop : Message(DAEMON_CONTROL)
 		class Terminate : Message(DAEMON_CONTROL)
+		class Interrupted : Message(DAEMON_CONTROL)
 		
 		class Sync(val signal: SIGNAL) : Message(SYNC)
 		
