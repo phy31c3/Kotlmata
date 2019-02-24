@@ -5,6 +5,7 @@ internal annotation class KotlmataMarker
 
 internal typealias STATE = Any
 internal typealias SIGNAL = Any
+internal typealias STATE_OR_SIGNAL = Any
 internal typealias MACHINE = Any
 internal typealias DAEMON = MACHINE
 

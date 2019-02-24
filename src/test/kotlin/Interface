@@ -66,13 +66,13 @@ KotlmataMachine("name") { machine ->
 	any x any %= "state2"
 	"state1" x any %= "state2"
 
-	any.except("start", "release") x "signal" %= "state1"
-	any.except("start", "release") x any.except("1", "2") %= "state1"
-	"state1" x any.except("1", "2") %= "state2"
-
 	any.of("start", "release") x "signal" %= "state1"
 	any.of("start", "release") x any.of("1", "2") %= "state1"
 	"state1" x any.of("1", "2") %= "state2"
+
+	any.except("start", "release") x "signal" %= "state1"
+	any.except("start", "release") x any.except("1", "2") %= "state1"
+	"state1" x any.except("1", "2") %= "state2"
 
 	on exception [action]
 
@@ -103,7 +103,7 @@ mutableMachine { machine ->
 		// "state1"이 존재하지 않으면 실행
 	}
 
-	has transition ("state0" x "signal") then {
+	has rule ("state0" x "signal") then {
 		// ("state0" x "signal")이 존재하면 실행
 	} or {
 		// ("state0" x "signal")이 존재하지 않으면 실행
