@@ -61,6 +61,7 @@ KotlmataMachine("name") { machine ->
 	"state0" x "signal" %= "state1"
 	"state1" x KClass<String> %= "state2"
 	"state1" x any %= "state2"
+	"state2" x ("1" or "2" or "3") %= "state3"
 	any x "signal" %= "state1"
 	any x any %= "state2"
 	"state1" x "signal" %= stay
