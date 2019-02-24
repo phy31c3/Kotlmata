@@ -104,9 +104,7 @@ class Tests
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
-			"state1" x "goToState4-1" %= "state4"
-			"state1" x "goToState4-2" %= "state4"
-			"state1" x "goToState4-3" %= "state4"
+			"state1" x ("goToState4-1" or "goToState4-2" or "goToState4-3") %= "state4"
 			any x "goToSimple" %= "simple"
 			"simple" x "goToSimple" %= stay
 			
@@ -123,7 +121,7 @@ class Tests
 		machine.input(5)
 		machine.input("error")
 		machine.input("goToState1")
-		machine.input("goToState4-1")
+		machine.input("goToState4-3")
 		machine.input(1)
 		machine.input("3")
 		machine.input("goToSimple")

@@ -59,10 +59,24 @@ interface KotlmataMachine<T : MACHINE>
 		infix fun STATE.x(signal: SIGNAL): RuleLeft
 		infix fun STATE.x(signal: KClass<out SIGNAL>): RuleLeft
 		infix fun STATE.x(keyword: any): RuleLeft
+		infix fun STATE.x(signals: Signals): RuleLefts
 		
 		infix fun any.x(signal: SIGNAL): RuleLeft
 		infix fun any.x(signal: KClass<out SIGNAL>): RuleLeft
 		infix fun any.x(keyword: any): RuleLeft
+		infix fun any.x(signals: Signals): RuleLefts
+		
+		infix fun SIGNAL.or(signal: SIGNAL): Signals
+		
+		interface Signals : MutableList<SIGNAL>
+		{
+			infix fun or(signal: SIGNAL): Signals
+		}
+		
+		interface RuleLefts
+		{
+			operator fun remAssign(state: STATE)
+		}
 	}
 	
 	interface RuleLeft
@@ -647,10 +661,21 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		override fun STATE.x(signal: SIGNAL) = ruleLeft(this, signal)
 		override fun STATE.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
 		override fun STATE.x(keyword: any) = ruleLeft(this, keyword)
+		override fun STATE.x(signals: KotlmataMachine.RuleDefine.Signals) = ruleLefts(this, signals)
 		
 		override fun any.x(signal: SIGNAL) = ruleLeft(this, signal)
 		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
 		override fun any.x(keyword: any) = ruleLeft(this, keyword)
+		override fun any.x(signals: KotlmataMachine.RuleDefine.Signals) = ruleLefts(this, signals)
+		
+		override fun SIGNAL.or(signal: SIGNAL): KotlmataMachine.RuleDefine.Signals = object : KotlmataMachine.RuleDefine.Signals, MutableList<SIGNAL> by mutableListOf(this, signal)
+		{
+			override fun or(signal: SIGNAL): KotlmataMachine.RuleDefine.Signals
+			{
+				add(signal)
+				return this
+			}
+		}
 		
 		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.RuleLeft
 		{
@@ -663,6 +688,17 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
 					ruleMap[from] = it
 				})[signal] = state
+			}
+		}
+		
+		private fun ruleLefts(from: STATE, signals: KotlmataMachine.RuleDefine.Signals) = object : KotlmataMachine.RuleDefine.RuleLefts
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				signals.forEach { signal ->
+					from x signal %= state
+				}
 			}
 		}
 		
