@@ -12,14 +12,16 @@ interface KotlmataDaemon<T : DAEMON>
 	{
 		operator fun invoke(
 				name: String,
+				isDaemon: Boolean = false,
 				block: Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
-		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, block)
+		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, isDaemon, block)
 		
 		internal operator fun invoke(
 				name: String,
 				threadName: String,
+				isDaemon: Boolean = false,
 				block: Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
-		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, block, threadName)
+		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, isDaemon, block, threadName)
 	}
 	
 	@KotlmataMarker
@@ -61,13 +63,15 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 	{
 		operator fun invoke(
 				name: String,
+				isDaemon: Boolean = false,
 				block: KotlmataDaemon.Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
-		): KotlmataMutableDaemon<String> = KotlmataDaemonImpl(name, block)
+		): KotlmataMutableDaemon<String> = KotlmataDaemonImpl(name, isDaemon, block)
 		
 		internal operator fun <T : DAEMON> invoke(
 				key: T,
+				isDaemon: Boolean = false,
 				block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End
-		): KotlmataMutableDaemon<T> = KotlmataDaemonImpl(key, block)
+		): KotlmataMutableDaemon<T> = KotlmataDaemonImpl(key, isDaemon, block)
 	}
 	
 	infix fun modify(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
@@ -77,6 +81,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 
 private class KotlmataDaemonImpl<T : DAEMON>(
 		override val key: T,
+		isDaemon: Boolean = false,
 		block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End,
 		threadName: String = "KotlmataDaemon[$key]"
 ) : KotlmataMutableDaemon<T>
@@ -278,7 +283,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			start at "pre-start"
 		}
 		
-		thread(name = threadName, isDaemon = true, start = true) {
+		thread(name = threadName, isDaemon = isDaemon, start = true) {
 			try
 			{
 				while (true)
