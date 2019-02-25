@@ -284,6 +284,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
+			logLevel.normal(key, threadName, isDaemon) { DAEMON_START_THREAD }
 			try
 			{
 				while (true)
@@ -302,6 +303,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					queue = null
 				}
 			}
+			logLevel.normal(key, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
 		}
 		
 		logLevel.normal(key) { DAEMON_END_INIT }

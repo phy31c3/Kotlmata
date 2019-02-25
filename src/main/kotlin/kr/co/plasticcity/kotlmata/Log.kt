@@ -21,6 +21,8 @@ internal class Logs
 		const val KOTLMATA_END_POST = "Kotlmata: << End post block."
 		
 		/* Daemon */
+		const val DAEMON_START_THREAD = "Daemon[%s]: Thread is started. (name = %s, isDaemon = %s)"
+		const val DAEMON_TERMINATE_THREAD = "Daemon[%s]: Thread is going to terminate. (name = %s, isDaemon = %s)"
 		const val DAEMON_START_INIT = "Daemon[%s]: >> Start init."
 		const val DAEMON_END_INIT = "Daemon[%s]: << End init."
 		const val DAEMON_START = "Daemon[%s]:    START"
