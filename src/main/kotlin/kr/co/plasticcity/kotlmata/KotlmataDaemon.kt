@@ -74,9 +74,14 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 		): KotlmataMutableDaemon<T> = KotlmataDaemonImpl(key, isDaemon, block)
 	}
 	
-	infix fun modify(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
+	operator fun invoke(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit) = modify(0, block)
 	
-	operator fun invoke(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit) = modify(block)
+	infix fun modify(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit) = modify(0, block)
+	
+	/**
+	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
+	 */
+	fun modify(priority: Int = 0, block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 }
 
 private class KotlmataDaemonImpl<T : DAEMON>(
@@ -365,10 +370,10 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun modify(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
+	override fun modify(priority: Int, block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 	{
 		synchronized<Unit>(lock) {
-			val modifyM = Message.Modify(block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit)
+			val modifyM = Message.Modify(block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit, priority)
 			logLevel.detail(key, modifyM, modifyM.id) { DAEMON_REQUEST }
 			queue?.offer(modifyM)
 		}
@@ -454,6 +459,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	private sealed class Message(val priority: Int) : Comparable<Message>
 	{
+		constructor(base: Int, additional: Int) : this(if (additional > 0) base + additional else base)
+		
 		class Run : Message(DAEMON_CONTROL)
 		class Pause : Message(DAEMON_CONTROL)
 		class Stop : Message(DAEMON_CONTROL)
@@ -462,13 +469,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		class Sync(val signal: SIGNAL) : Message(SYNC)
 		
-		class Signal(val signal: SIGNAL, priority: Int)
-			: Message(if (priority > 0) MACHINE_EVENT + priority else MACHINE_EVENT)
+		class Signal(val signal: SIGNAL, priority: Int) : Message(MACHINE_EVENT, priority)
 		
-		class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>, priority: Int)
-			: Message(if (priority > 0) MACHINE_EVENT + priority else MACHINE_EVENT)
+		class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>, priority: Int) : Message(MACHINE_EVENT, priority)
 		
-		class Modify(val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Message(MACHINE_EVENT)
+		class Modify(val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit, priority: Int) : Message(MACHINE_EVENT, priority)
 		
 		companion object
 		{

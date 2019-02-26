@@ -251,9 +251,9 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		}
 	}
 	
-	infix fun modify(block: Modifier.(machine: T) -> Unit)
-	
 	operator fun invoke(block: Modifier.(machine: T) -> Unit) = modify(block)
+	
+	infix fun modify(block: Modifier.(machine: T) -> Unit)
 }
 
 private class KotlmataMachineImpl<T : MACHINE>(

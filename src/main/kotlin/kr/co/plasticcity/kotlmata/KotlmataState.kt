@@ -122,9 +122,9 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 		}
 	}
 	
-	infix fun modify(block: Modifier.(state: T) -> Unit)
-	
 	operator fun invoke(block: Modifier.(state: T) -> Unit) = modify(block)
+	
+	infix fun modify(block: Modifier.(state: T) -> Unit)
 }
 
 private class KotlmataStateImpl<T : STATE>(
