@@ -93,7 +93,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 {
 	private var logLevel = Log.logLevel
 	
-	private val machine: KotlmataMutableMachine<T>
 	private val core: KotlmataMachine<String>
 	
 	private var onStart: Kotlmata.Marker.() -> Unit = {}
@@ -107,18 +106,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	init
 	{
-		logLevel.normal(key) { DAEMON_START_INIT }
-		
-		machine = KotlmataMutableMachine(key, "Daemon[$key]:   ") {
-			/* For avoid log print for PreStart. */
-			log level 0
-			PreStart {}
-			log level logLevel
-			
-			val initializer = InitializerImpl(block, this)
-			PreStart x Message.Run::class %= initializer.initial
-			start at PreStart
-		}
+		lateinit var machine: KotlmataMutableMachine<T>
 		
 		val modifyMachine: KotlmataAction1<Message.Modify> = { modifyM ->
 			machine modify modifyM.block
@@ -290,6 +278,18 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
 			logLevel.normal(key, threadName, isDaemon) { DAEMON_START_THREAD }
+			logLevel.normal(key) { DAEMON_START_INIT }
+			machine = KotlmataMutableMachine(key, "Daemon[$key]:   ") {
+				/* For avoid log print for PreStart. */
+				log level 0
+				PreStart {}
+				log level logLevel
+				
+				val initializer = InitializerImpl(block, this)
+				PreStart x Message.Run::class %= initializer.initial
+				start at PreStart
+			}
+			logLevel.normal(key) { DAEMON_END_INIT }
 			try
 			{
 				while (true)
@@ -310,8 +310,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			logLevel.normal(key, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
 		}
-		
-		logLevel.normal(key) { DAEMON_END_INIT }
 	}
 	
 	override fun run()
