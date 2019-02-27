@@ -11,9 +11,9 @@ internal typealias DAEMON = MACHINE
 
 internal object stay
 
-internal object PreStart
+internal object initial
 {
-	override fun toString(): String = "pre-start"
+	override fun toString(): String = "initial"
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing)

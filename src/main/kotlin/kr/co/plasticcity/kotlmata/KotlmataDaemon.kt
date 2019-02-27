@@ -139,7 +139,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		core = KotlmataMachine.create("$key@core") {
-			"pre-start" { state ->
+			"initial" { state ->
 				val start: KotlmataAction = {
 					logLevel.simple(key) { DAEMON_START }
 					onStart()
@@ -265,9 +265,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 			
-			"pre-start" x Message.Run::class %= "run"
-			"pre-start" x Message.Pause::class %= "pause"
-			"pre-start" x Message.Stop::class %= "stop"
+			"initial" x Message.Run::class %= "run"
+			"initial" x Message.Pause::class %= "pause"
+			"initial" x Message.Stop::class %= "stop"
 			
 			"run" x Message.Pause::class %= "pause"
 			"run" x Message.Stop::class %= "stop"
@@ -281,17 +281,17 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			any.except("terminate") x Message.Terminate::class %= "terminate"
 			any.except("terminate") x Message.Interrupted::class %= "terminate"
 			
-			start at "pre-start"
+			start at "initial"
 		}
 		
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
 			logLevel.normal(key, threadName, isDaemon) { DAEMON_START_THREAD }
 			logLevel.normal(key) { DAEMON_START_INIT }
 			machine = KotlmataMutableMachine.create(key, logLevel, "Daemon[$key]:$tab") {
-				PreStart {}
+				initial {}
 				val initializer = InitializerImpl(block, this)
-				PreStart x Message.Run::class %= initializer.initial
-				start at PreStart
+				initial x Message.Run::class %= initializer.startAt
+				start at initial
 			}
 			logLevel.normal(key) { DAEMON_END_INIT }
 			try
@@ -391,7 +391,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			initializer: KotlmataMachine.Initializer
 	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e("Daemon[$key]:") { EXPIRED_MODIFIER } })
 	{
-		lateinit var initial: STATE
+		lateinit var startAt: STATE
 		
 		override val on = object : KotlmataDaemon.Initializer.On
 		{
@@ -437,7 +437,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				/* For checking undefined initial state. */
 				initializer.start at state
 				
-				initial = state
+				startAt = state
 				return KotlmataMachine.Initializer.End()
 			}
 		}

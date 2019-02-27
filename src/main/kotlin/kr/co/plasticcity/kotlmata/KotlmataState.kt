@@ -147,7 +147,7 @@ private class KotlmataStateImpl<T : STATE>(
 		block?.let {
 			ModifierImpl(it)
 		}
-		if (key != PreStart)
+		if (key != initial)
 		{
 			logLevel.simple(prefix, key) { STATE_CREATED }
 		}

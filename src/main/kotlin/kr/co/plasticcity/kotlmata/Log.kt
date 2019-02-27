@@ -69,7 +69,7 @@ internal class Logs
 		
 		/*########################## WARN ##########################*/
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. (%s) x (%s) -> (%s)"
-		const val OBTAIN_PRE_START = "%s Attempt to get 'pre-start' state: The 'pre-start' state can not be obtained."
+		const val OBTAIN_INITIAL = "%s Attempt to get 'initial' state: The 'initial' state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available inside the config block."

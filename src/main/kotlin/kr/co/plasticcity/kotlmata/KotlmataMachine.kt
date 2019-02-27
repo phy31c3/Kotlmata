@@ -419,8 +419,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				this@ModifierImpl shouldNot expired
 				return this@KotlmataMachineImpl.current.key.takeIf {
-					it != PreStart
-				} ?: Log.w(prefix.trimEnd()) { OBTAIN_PRE_START }
+					it != initial
+				} ?: Log.w(prefix.trimEnd()) { OBTAIN_INITIAL }
 			}
 		
 		override val has = object : KotlmataMutableMachine.Modifier.Has
