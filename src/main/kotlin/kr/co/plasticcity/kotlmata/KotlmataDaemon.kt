@@ -10,18 +10,22 @@ interface KotlmataDaemon<T : DAEMON>
 {
 	companion object
 	{
+		/**
+		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+		 */
 		operator fun invoke(
 				name: String,
+				logLevel: Int = NO_LOG,
+				threadName: String = "KotlmataDaemon[$name]",
 				isDaemon: Boolean = false,
 				block: Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
-		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, isDaemon, block)
+		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
 		
-		internal operator fun invoke(
-				name: String,
+		internal fun <T : DAEMON> create(
+				key: T,
 				threadName: String,
-				isDaemon: Boolean = false,
-				block: Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
-		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, isDaemon, block, threadName)
+				block: Initializer.(daemon: T) -> KotlmataMachine.Initializer.End
+		): KotlmataDaemon<T> = KotlmataDaemonImpl(key, threadName = threadName, block = block)
 	}
 	
 	@KotlmataMarker
@@ -61,17 +65,22 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 {
 	companion object
 	{
+		/**
+		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+		 */
 		operator fun invoke(
 				name: String,
+				logLevel: Int = NO_LOG,
+				threadName: String = "KotlmataDaemon[$name]",
 				isDaemon: Boolean = false,
 				block: KotlmataDaemon.Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
-		): KotlmataMutableDaemon<String> = KotlmataDaemonImpl(name, isDaemon, block)
+		): KotlmataMutableDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
 		
-		internal operator fun <T : DAEMON> invoke(
+		internal fun <T : DAEMON> create(
 				key: T,
-				isDaemon: Boolean = false,
+				logLevel: Int,
 				block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End
-		): KotlmataMutableDaemon<T> = KotlmataDaemonImpl(key, isDaemon, block)
+		): KotlmataMutableDaemon<T> = KotlmataDaemonImpl(key, logLevel, block = block)
 	}
 	
 	operator fun invoke(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit) = modify(0, block)
@@ -86,13 +95,12 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 
 private class KotlmataDaemonImpl<T : DAEMON>(
 		override val key: T,
+		val logLevel: Int = NO_LOG,
+		threadName: String = "KotlmataDaemon[$key]",
 		isDaemon: Boolean = false,
-		block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End,
-		threadName: String = "KotlmataDaemon[$key]"
+		block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End
 ) : KotlmataMutableDaemon<T>
 {
-	private var logLevel = Log.logLevel
-	
 	private val core: KotlmataMachine<String>
 	
 	private var onStart: Kotlmata.Marker.() -> Unit = {}
@@ -130,7 +138,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			logLevel.simple(key) { DAEMON_TERMINATE }
 		}
 		
-		core = KotlmataMachine("$key@core", 0) {
+		core = KotlmataMachine.create("$key@core") {
 			"pre-start" { state ->
 				val start: KotlmataAction = {
 					logLevel.simple(key) { DAEMON_START }
@@ -279,12 +287,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
 			logLevel.normal(key, threadName, isDaemon) { DAEMON_START_THREAD }
 			logLevel.normal(key) { DAEMON_START_INIT }
-			machine = KotlmataMutableMachine(key, "Daemon[$key]:   ") {
-				/* For avoid log print for PreStart. */
-				log level 0
+			machine = KotlmataMutableMachine.create(key, logLevel, "Daemon[$key]:$tab") {
 				PreStart {}
-				log level logLevel
-				
 				val initializer = InitializerImpl(block, this)
 				PreStart x Message.Run::class %= initializer.initial
 				start at PreStart
@@ -388,16 +392,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e("Daemon[$key]:") { EXPIRED_MODIFIER } })
 	{
 		lateinit var initial: STATE
-		
-		override val log = object : KotlmataMachine.Initializer.Log
-		{
-			override fun level(level: Int)
-			{
-				this@InitializerImpl shouldNot expired
-				initializer.log level level
-				logLevel = level
-			}
-		}
 		
 		override val on = object : KotlmataDaemon.Initializer.On
 		{

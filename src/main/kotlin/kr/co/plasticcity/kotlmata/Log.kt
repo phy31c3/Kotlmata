@@ -83,9 +83,6 @@ internal object Log
 {
 	private val none: (String) -> Unit = {}
 	
-	@Volatile
-	var logLevel: Int = NORMAL
-	
 	var debug: (String) -> Unit = none
 	var warn: (String) -> Unit = none
 	var error: (String) -> Unit = ::error

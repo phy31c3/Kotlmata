@@ -8,8 +8,9 @@ interface KotlmataState<T : STATE>
 	{
 		operator fun invoke(
 				name: String,
+				logLevel: Int = NO_LOG,
 				block: Initializer.(state: String) -> Unit
-		): KotlmataState<String> = KotlmataStateImpl(name, block)
+		): KotlmataState<String> = KotlmataStateImpl(name, logLevel, block = block)
 	}
 	
 	@KotlmataMarker
@@ -83,15 +84,16 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 	{
 		operator fun invoke(
 				name: String,
+				logLevel: Int = NO_LOG,
 				block: (KotlmataState.Initializer.(state: String) -> Unit)? = null
-		): KotlmataMutableState<String> = KotlmataStateImpl(name, block)
+		): KotlmataMutableState<String> = KotlmataStateImpl(name, logLevel, block = block)
 		
-		internal operator fun <T : STATE> invoke(
+		internal fun <T : STATE> create(
 				key: T,
-				prefix: String,
 				logLevel: Int,
+				prefix: String,
 				block: (KotlmataState.Initializer.(state: T) -> Unit)
-		): KotlmataMutableState<T> = KotlmataStateImpl(key, block, prefix, logLevel)
+		): KotlmataMutableState<T> = KotlmataStateImpl(key, logLevel, prefix, block)
 	}
 	
 	@KotlmataMarker
@@ -129,9 +131,9 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 
 private class KotlmataStateImpl<T : STATE>(
 		override val key: T,
-		block: (KotlmataState.Initializer.(T) -> Unit)? = null,
+		val logLevel: Int = NO_LOG,
 		val prefix: String = "State[$key]:",
-		val logLevel: Int = Log.logLevel
+		block: (KotlmataState.Initializer.(T) -> Unit)? = null
 ) : KotlmataMutableState<T>
 {
 	private var entry: (Kotlmata.Marker.(SIGNAL) -> Any?)? = null
@@ -145,7 +147,10 @@ private class KotlmataStateImpl<T : STATE>(
 		block?.let {
 			ModifierImpl(it)
 		}
-		logLevel.simple(prefix, key) { STATE_CREATED }
+		if (key != PreStart)
+		{
+			logLevel.simple(prefix, key) { STATE_CREATED }
+		}
 	}
 	
 	override fun entry(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)

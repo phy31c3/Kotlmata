@@ -167,9 +167,7 @@ class Tests
 		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
-		val daemon = KotlmataMutableDaemon("d1") {
-			log level 2
-			
+		val daemon = KotlmataMutableDaemon("d1", 2) {
 			on start {
 				thread = Thread.currentThread()
 			}
@@ -308,8 +306,6 @@ class Tests
 		var expire: Kotlmata.Post? = null
 		Kotlmata.start()
 		Kotlmata fork "daemon" of {
-			log level 2
-			
 			"state1" { state ->
 				entry action { println("데몬이 시작됨") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }

@@ -37,7 +37,7 @@ interface Kotlmata
 		interface Log
 		{
 			/**
-			 * @param level **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **2**)
+			 * @param level **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 			 */
 			infix fun level(level: Int)
 		}
@@ -156,12 +156,7 @@ interface Kotlmata
 
 private class KotlmataImpl : Kotlmata
 {
-	private var logLevel
-		get() = Log.logLevel
-		set(value)
-		{
-			Log.logLevel = value
-		}
+	private var logLevel = NO_LOG
 	
 	private val daemons: MutableMap<DAEMON, KotlmataMutableDaemon<out DAEMON>> = HashMap()
 	private val core: KotlmataDaemon<String>
@@ -175,7 +170,7 @@ private class KotlmataImpl : Kotlmata
 			daemons.clear()
 		}
 		
-		core = KotlmataDaemon("core", "Kotlmata") {
+		core = KotlmataDaemon.create("core", "Kotlmata") {
 			on start {
 				logLevel.simple { KOTLMATA_START }
 			}
@@ -199,10 +194,7 @@ private class KotlmataImpl : Kotlmata
 					if (forkM.daemon !in daemons)
 					{
 						logLevel.detail(forkM, forkM.daemon) { KOTLMATA_COMMON }
-						daemons[forkM.daemon] = KotlmataMutableDaemon(forkM.daemon) {
-							log level logLevel
-							(forkM.block)(forkM.daemon)
-						}
+						daemons[forkM.daemon] = KotlmataMutableDaemon.create(forkM.daemon, logLevel, forkM.block)
 					}
 					else
 					{
@@ -486,10 +478,7 @@ private class KotlmataImpl : Kotlmata
 					if (daemon !in daemons)
 					{
 						logLevel.detail("   Fork", daemon) { KOTLMATA_COMMON }
-						daemons[daemon] = KotlmataMutableDaemon(daemon) {
-							log level logLevel
-							block(daemon)
-						}
+						daemons[daemon] = KotlmataMutableDaemon.create(daemon, logLevel, block)
 					}
 					else
 					{
@@ -602,12 +591,12 @@ private class KotlmataImpl : Kotlmata
 							this@PostImpl shouldNot expired
 							if (daemon in daemons)
 							{
-								logLevel.detail("   ", signal, "${type.simpleName}::class", priority, daemon) { KOTLMATA_TYPED }
+								logLevel.detail(tab, signal, "${type.simpleName}::class", priority, daemon) { KOTLMATA_TYPED }
 								daemons[daemon]!!.input(signal, type, priority)
 							}
 							else
 							{
-								logLevel.normal("   ", signal, "${type.simpleName}::class", priority, daemon) { KOTLMATA_TYPED_IGNORED }
+								logLevel.normal(tab, signal, "${type.simpleName}::class", priority, daemon) { KOTLMATA_TYPED_IGNORED }
 							}
 						}
 					}
@@ -617,12 +606,12 @@ private class KotlmataImpl : Kotlmata
 						this@PostImpl shouldNot expired
 						if (daemon in daemons)
 						{
-							logLevel.detail("   ", signal, "${type.simpleName}::class", 0, daemon) { KOTLMATA_TYPED }
+							logLevel.detail(tab, signal, "${type.simpleName}::class", 0, daemon) { KOTLMATA_TYPED }
 							daemons[daemon]!!.input(signal, type)
 						}
 						else
 						{
-							logLevel.normal("   ", signal, "${type.simpleName}::class", 0, daemon) { KOTLMATA_TYPED_IGNORED }
+							logLevel.normal(tab, signal, "${type.simpleName}::class", 0, daemon) { KOTLMATA_TYPED_IGNORED }
 						}
 					}
 				}
@@ -634,12 +623,12 @@ private class KotlmataImpl : Kotlmata
 						this@PostImpl shouldNot expired
 						if (daemon in daemons)
 						{
-							logLevel.detail("   ", signal, priority, daemon) { KOTLMATA_SIGNAL }
+							logLevel.detail(tab, signal, priority, daemon) { KOTLMATA_SIGNAL }
 							daemons[daemon]!!.input(signal, priority)
 						}
 						else
 						{
-							logLevel.normal("   ", signal, priority, daemon) { KOTLMATA_SIGNAL_IGNORED }
+							logLevel.normal(tab, signal, priority, daemon) { KOTLMATA_SIGNAL_IGNORED }
 						}
 					}
 				}
@@ -649,12 +638,12 @@ private class KotlmataImpl : Kotlmata
 					this@PostImpl shouldNot expired
 					if (daemon in daemons)
 					{
-						logLevel.detail("   ", signal, 0, daemon) { KOTLMATA_SIGNAL }
+						logLevel.detail(tab, signal, 0, daemon) { KOTLMATA_SIGNAL }
 						daemons[daemon]!!.input(signal)
 					}
 					else
 					{
-						logLevel.normal("   ", signal, 0, daemon) { KOTLMATA_SIGNAL_IGNORED }
+						logLevel.normal(tab, signal, 0, daemon) { KOTLMATA_SIGNAL_IGNORED }
 					}
 				}
 			}
