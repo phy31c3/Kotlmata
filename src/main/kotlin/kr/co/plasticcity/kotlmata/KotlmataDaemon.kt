@@ -35,11 +35,11 @@ interface KotlmataDaemon<T : DAEMON>
 		
 		interface On : KotlmataMachine.Initializer.On
 		{
-			infix fun start(block: Kotlmata.Marker.() -> Unit)
-			infix fun pause(block: Kotlmata.Marker.() -> Unit)
-			infix fun stop(block: Kotlmata.Marker.() -> Unit)
-			infix fun resume(block: Kotlmata.Marker.() -> Unit)
-			infix fun terminate(block: Kotlmata.Marker.() -> Unit)
+			infix fun start(block: KotlmataCallback)
+			infix fun pause(block: KotlmataCallback)
+			infix fun stop(block: KotlmataCallback)
+			infix fun resume(block: KotlmataCallback)
+			infix fun terminate(block: KotlmataCallback)
 		}
 	}
 	
@@ -103,11 +103,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 {
 	private val core: KotlmataMachine<String>
 	
-	private var onStart: Kotlmata.Marker.() -> Unit = {}
-	private var onPause: Kotlmata.Marker.() -> Unit = {}
-	private var onStop: Kotlmata.Marker.() -> Unit = {}
-	private var onResume: Kotlmata.Marker.() -> Unit = {}
-	private var onTerminate: Kotlmata.Marker.() -> Unit = {}
+	private var onStart: KotlmataCallback = {}
+	private var onPause: KotlmataCallback = {}
+	private var onStop: KotlmataCallback = {}
+	private var onResume: KotlmataCallback = {}
+	private var onTerminate: KotlmataCallback = {}
 	
 	private var queue: PriorityBlockingQueue<Message>? = PriorityBlockingQueue()
 	private val lock: Any = Any()
@@ -395,37 +395,37 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		override val on = object : KotlmataDaemon.Initializer.On
 		{
-			override fun start(block: Kotlmata.Marker.() -> Unit)
+			override fun start(block: KotlmataCallback)
 			{
 				this@InitializerImpl shouldNot expired
 				onStart = block
 			}
 			
-			override fun pause(block: Kotlmata.Marker.() -> Unit)
+			override fun pause(block: KotlmataCallback)
 			{
 				this@InitializerImpl shouldNot expired
 				onPause = block
 			}
 			
-			override fun stop(block: Kotlmata.Marker.() -> Unit)
+			override fun stop(block: KotlmataCallback)
 			{
 				this@InitializerImpl shouldNot expired
 				onStop = block
 			}
 			
-			override fun resume(block: Kotlmata.Marker.() -> Unit)
+			override fun resume(block: KotlmataCallback)
 			{
 				this@InitializerImpl shouldNot expired
 				onResume = block
 			}
 			
-			override fun terminate(block: Kotlmata.Marker.() -> Unit)
+			override fun terminate(block: KotlmataCallback)
 			{
 				this@InitializerImpl shouldNot expired
 				onTerminate = block
 			}
 			
-			override fun error(block: Kotlmata.Marker.(Throwable) -> Unit) = initializer.on.error(block)
+			override fun error(block: KotlmataFallback) = initializer.on.error(block)
 		}
 		
 		override val start = object : KotlmataMachine.Initializer.Start
