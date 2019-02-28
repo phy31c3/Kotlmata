@@ -30,33 +30,33 @@ interface KotlmataState<T : STATE>
 	
 	interface Entry
 	{
-		infix fun <R> action(action: Kotlmata.Marker.(signal: SIGNAL) -> R)
+		infix fun <R> action(action: KotlmataAction2<SIGNAL, R>)
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
 		infix fun via(signals: Initializer.Signals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
 		{
-			infix fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
+			infix fun <R> action(action: KotlmataAction2<T, R>)
 		}
 	}
 	
 	interface Input
 	{
-		infix fun action(action: Kotlmata.Marker.(signal: SIGNAL) -> Unit)
+		infix fun action(action: KotlmataAction2<SIGNAL, Unit>)
 		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> signal(signal: T): Action<T>
 		infix fun signal(signals: Initializer.Signals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
 		{
-			infix fun action(action: Kotlmata.Marker.(signal: T) -> Unit)
+			infix fun action(action: KotlmataAction2<T, Unit>)
 		}
 	}
 	
 	interface Exit
 	{
-		infix fun action(action: Kotlmata.Marker.(signal: SIGNAL) -> Unit)
+		infix fun action(action: KotlmataAction2<SIGNAL, Unit>)
 	}
 	
 	val key: T
@@ -136,11 +136,11 @@ private class KotlmataStateImpl<T : STATE>(
 		block: (KotlmataState.Initializer.(T) -> Unit)? = null
 ) : KotlmataMutableState<T>
 {
-	private var entry: (Kotlmata.Marker.(SIGNAL) -> Any?)? = null
-	private var input: (Kotlmata.Marker.(SIGNAL) -> Unit)? = null
-	private var exit: (Kotlmata.Marker.(SIGNAL) -> Unit)? = null
-	private var entryMap: MutableMap<SIGNAL, Kotlmata.Marker.(SIGNAL) -> Any?>? = null
-	private var inputMap: MutableMap<SIGNAL, Kotlmata.Marker.(SIGNAL) -> Unit>? = null
+	private var entry: (KotlmataAction2<SIGNAL, Any?>)? = null
+	private var input: (KotlmataAction2<SIGNAL, Unit>)? = null
+	private var exit: (KotlmataAction2<SIGNAL, Unit>)? = null
+	private var entryMap: MutableMap<SIGNAL, KotlmataAction2<SIGNAL, Any?>>? = null
+	private var inputMap: MutableMap<SIGNAL, KotlmataAction2<SIGNAL, Unit>>? = null
 	
 	init
 	{
@@ -155,7 +155,7 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	override fun entry(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
 	{
-		val action: (Kotlmata.Marker.(SIGNAL) -> Any?)? = entryMap?.let {
+		val action: (KotlmataAction2<SIGNAL, Any?>)? = entryMap?.let {
 			when
 			{
 				signal in it ->
@@ -183,7 +183,7 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	{
-		val action: (Kotlmata.Marker.(SIGNAL) -> Any?)? = entryMap?.let {
+		val action: (KotlmataAction2<SIGNAL, Any?>)? = entryMap?.let {
 			when (type)
 			{
 				in it ->
@@ -206,7 +206,7 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	override fun input(signal: SIGNAL)
 	{
-		val action: (Kotlmata.Marker.(SIGNAL) -> Unit)? = inputMap?.let {
+		val action: (KotlmataAction2<SIGNAL, Unit>)? = inputMap?.let {
 			when
 			{
 				signal in it ->
@@ -232,7 +232,7 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	{
-		val action: (Kotlmata.Marker.(SIGNAL) -> Unit)? = inputMap?.let {
+		val action: (KotlmataAction2<SIGNAL, Unit>)? = inputMap?.let {
 			when (type)
 			{
 				in it ->
@@ -274,20 +274,20 @@ private class KotlmataStateImpl<T : STATE>(
 			block: KotlmataMutableState.Modifier.(T) -> Unit
 	) : KotlmataMutableState.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
-		private val entryMap: MutableMap<SIGNAL, Kotlmata.Marker.(SIGNAL) -> Any?>
-			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, Kotlmata.Marker.(SIGNAL) -> Any?>().also {
+		private val entryMap: MutableMap<SIGNAL, KotlmataAction2<SIGNAL, Any?>>
+			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, KotlmataAction2<SIGNAL, Any?>>().also {
 				this@KotlmataStateImpl.entryMap = it
 			}
 		
-		private val inputMap: MutableMap<SIGNAL, Kotlmata.Marker.(SIGNAL) -> Unit>
-			get() = this@KotlmataStateImpl.inputMap ?: HashMap<SIGNAL, Kotlmata.Marker.(SIGNAL) -> Unit>().also {
+		private val inputMap: MutableMap<SIGNAL, KotlmataAction2<SIGNAL, Unit>>
+			get() = this@KotlmataStateImpl.inputMap ?: HashMap<SIGNAL, KotlmataAction2<SIGNAL, Unit>>().also {
 				this@KotlmataStateImpl.inputMap = it
 			}
 		
 		@Suppress("UNCHECKED_CAST")
 		override val entry = object : KotlmataState.Entry
 		{
-			override fun <R> action(action: Kotlmata.Marker.(signal: SIGNAL) -> R)
+			override fun <R> action(action: KotlmataAction2<SIGNAL, R>)
 			{
 				this@ModifierImpl shouldNot expired
 				this@KotlmataStateImpl.entry = action
@@ -295,25 +295,25 @@ private class KotlmataStateImpl<T : STATE>(
 			
 			override fun <T : SIGNAL> via(signal: KClass<T>) = object : KotlmataState.Entry.Action<T>
 			{
-				override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
+				override fun <R> action(action: KotlmataAction2<T, R>)
 				{
 					this@ModifierImpl shouldNot expired
-					entryMap[signal] = action as Kotlmata.Marker.(SIGNAL) -> Any?
+					entryMap[signal] = action as KotlmataAction2<SIGNAL, Any?>
 				}
 			}
 			
 			override fun <T : SIGNAL> via(signal: T) = object : KotlmataState.Entry.Action<T>
 			{
-				override fun <R> action(action: Kotlmata.Marker.(signal: T) -> R)
+				override fun <R> action(action: KotlmataAction2<T, R>)
 				{
 					this@ModifierImpl shouldNot expired
-					entryMap[signal] = action as Kotlmata.Marker.(SIGNAL) -> Any?
+					entryMap[signal] = action as KotlmataAction2<SIGNAL, Any?>
 				}
 			}
 			
 			override fun via(signals: KotlmataState.Initializer.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
 			{
-				override fun <R> action(action: Kotlmata.Marker.(signal: SIGNAL) -> R)
+				override fun <R> action(action: KotlmataAction2<SIGNAL, R>)
 				{
 					this@ModifierImpl shouldNot expired
 					signals.forEach {
@@ -326,7 +326,7 @@ private class KotlmataStateImpl<T : STATE>(
 		@Suppress("UNCHECKED_CAST")
 		override val input = object : KotlmataState.Input
 		{
-			override fun action(action: Kotlmata.Marker.(signal: SIGNAL) -> Unit)
+			override fun action(action: KotlmataAction2<SIGNAL, Unit>)
 			{
 				this@ModifierImpl shouldNot expired
 				this@KotlmataStateImpl.input = action
@@ -334,25 +334,25 @@ private class KotlmataStateImpl<T : STATE>(
 			
 			override fun <T : SIGNAL> signal(signal: KClass<T>) = object : KotlmataState.Input.Action<T>
 			{
-				override fun action(action: Kotlmata.Marker.(signal: T) -> Unit)
+				override fun action(action: KotlmataAction2<T, Unit>)
 				{
 					this@ModifierImpl shouldNot expired
-					inputMap[signal] = action as Kotlmata.Marker.(SIGNAL) -> Unit
+					inputMap[signal] = action as KotlmataAction2<SIGNAL, Unit>
 				}
 			}
 			
 			override fun <T : SIGNAL> signal(signal: T) = object : KotlmataState.Input.Action<T>
 			{
-				override fun action(action: Kotlmata.Marker.(signal: T) -> Unit)
+				override fun action(action: KotlmataAction2<T, Unit>)
 				{
 					this@ModifierImpl shouldNot expired
-					inputMap[signal] = action as Kotlmata.Marker.(SIGNAL) -> Unit
+					inputMap[signal] = action as KotlmataAction2<SIGNAL, Unit>
 				}
 			}
 			
 			override fun signal(signals: KotlmataState.Initializer.Signals) = object : KotlmataState.Input.Action<SIGNAL>
 			{
-				override fun action(action: Kotlmata.Marker.(signal: SIGNAL) -> Unit)
+				override fun action(action: KotlmataAction2<SIGNAL, Unit>)
 				{
 					this@ModifierImpl shouldNot expired
 					signals.forEach {
@@ -364,7 +364,7 @@ private class KotlmataStateImpl<T : STATE>(
 		
 		override val exit = object : KotlmataState.Exit
 		{
-			override fun action(action: Kotlmata.Marker.(signal: SIGNAL) -> Unit)
+			override fun action(action: KotlmataAction2<SIGNAL, Unit>)
 			{
 				this@ModifierImpl shouldNot expired
 				this@KotlmataStateImpl.exit = action

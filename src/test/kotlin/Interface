@@ -9,7 +9,11 @@ remove clear delete drop erase
 
 [State]————————————————————————————————————————————————————————————————————————————————
 KotlmataState("name") { state ->
-	entry action [action]
+	entry action { signal ->
+		[action]
+	} error { throwable ->
+		[error handling]
+	}
 	entry via "signal" action [action]
 	entry via action [action]
 
@@ -57,6 +61,8 @@ KotlmataMachine("name") { machine ->
 		input signal ("1" or "2" or "3") action [action]
 		exit action [action]
 	}
+
+	"state1" via String::class action [action]
 
 	"state0" x "signal" %= "state1"
 	"state1" x KClass<String> %= "state2"
