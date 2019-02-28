@@ -40,9 +40,10 @@ interface KotlmataMachine<T : MACHINE>
 	interface StateDefine
 	{
 		operator fun <S : STATE> S.invoke(block: KotlmataState.Initializer.(state: S) -> Unit)
-		infix fun <S : STATE, R> S.action(action: KotlmataAction2<SIGNAL, R>)
+		infix fun <S : STATE, R> S.action(action: KotlmataAction2<SIGNAL, R>): KotlmataState.Catch
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
+		infix fun <S : STATE> S.via(signals: KotlmataState.Initializer.Signals): KotlmataState.Entry.Action<SIGNAL>
 	}
 	
 	interface RuleDefine
@@ -111,14 +112,14 @@ interface KotlmataMachine<T : MACHINE>
 	val key: T
 	
 	/**
-	 * @param block Called if the state is switched and the next state's entry function returns an signal.
+	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
 	fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
 	
 	fun input(signal: SIGNAL)
 	
 	/**
-	 * @param block Called if the state is switched and the next state's entry function returns an signal.
+	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	
@@ -642,32 +643,83 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
 		}
 		
-		override fun <S : STATE, R> S.action(action: KotlmataAction2<SIGNAL, R>)
+		override fun <S : STATE, R> S.action(action: KotlmataAction2<SIGNAL, R>): KotlmataState.Catch
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab") {
 				entry action action
 			}
+			return object : KotlmataState.Catch
+			{
+				override fun catch(fallback: KotlmataFallback)
+				{
+					this@ModifierImpl shouldNot expired
+					stateMap[this@action]?.modify {
+						entry action action catch fallback
+					}
+				}
+			}
 		}
 		
 		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun <R> action(action: KotlmataAction2<T, R>)
+			override fun <R> action(action: KotlmataAction2<T, R>): KotlmataState.Catch
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
 					entry via signal action action
+				}
+				return object : KotlmataState.Catch
+				{
+					override fun catch(fallback: KotlmataFallback)
+					{
+						this@ModifierImpl shouldNot expired
+						stateMap[this@via]?.modify {
+							entry via signal action action catch fallback
+						}
+					}
 				}
 			}
 		}
 		
 		override fun <S : STATE, T : SIGNAL> S.via(signal: T) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun <R> action(action: KotlmataAction2<T, R>)
+			override fun <R> action(action: KotlmataAction2<T, R>): KotlmataState.Catch
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
 					entry via signal action action
+				}
+				return object : KotlmataState.Catch
+				{
+					override fun catch(fallback: KotlmataFallback)
+					{
+						this@ModifierImpl shouldNot expired
+						stateMap[this@via]?.modify {
+							entry via signal action action catch fallback
+						}
+					}
+				}
+			}
+		}
+		
+		override fun <S : STATE> S.via(signals: KotlmataState.Initializer.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
+		{
+			override fun <R> action(action: KotlmataAction2<SIGNAL, R>): KotlmataState.Catch
+			{
+				this@ModifierImpl shouldNot expired
+				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
+					entry via signals action action
+				}
+				return object : KotlmataState.Catch
+				{
+					override fun catch(fallback: KotlmataFallback)
+					{
+						this@ModifierImpl shouldNot expired
+						stateMap[this@via]?.modify {
+							entry via signals action action catch fallback
+						}
+					}
 				}
 			}
 		}

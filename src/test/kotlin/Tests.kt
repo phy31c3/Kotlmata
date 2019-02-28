@@ -99,6 +99,11 @@ class Tests
 			
 			"simple" via String::class action { state ->
 				println("$state: 간략한 상태 정의")
+				println("$state: 예외 발생")
+				throw Exception("예외")
+			} catch { throwable ->
+				println("simple: Fallback")
+				println(throwable)
 			}
 			
 			"state1" x "goToState2" %= "state2"
@@ -174,8 +179,9 @@ class Tests
 			on terminate {
 				println("데몬이 종료됨")
 			}
-			on error {
-				println("어랏... 예외가 발생했네")
+			on error { throwable ->
+				println("머신 Fallback")
+				println(throwable)
 			}
 			
 			"state1" { state ->
@@ -212,11 +218,24 @@ class Tests
 				exit action { println("$state: 퇴장함수") }
 			}
 			
+			"error" {
+				input signal "error1" action {
+					throw Exception("에러1 발생")
+				}
+				input signal "error2" action {
+					throw Exception("에러2 발생")
+				} catch { throwable ->
+					println("상태 Fallback")
+					println(throwable)
+				}
+			}
+			
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
 			"state3" x "goToState4" %= "state4"
 			"state4" x "state4 sync" %= "state1"
+			"state1" x "goToError" %= "error"
 			
 			start at "state1"
 		}
@@ -288,6 +307,12 @@ class Tests
 		daemon.input("run 직전에 들어간 신호")
 		daemon.run()
 		daemon.input("현재 상태는 state1이어야 함")
+		
+		Thread.sleep(100)
+		
+		daemon.input("goToError")
+		daemon.input("error1")
+		daemon.input("error2")
 		
 		Thread.sleep(500)
 		
