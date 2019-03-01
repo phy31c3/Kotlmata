@@ -1,13 +1,19 @@
 package kr.co.plasticcity.kotlmata
 
+@DslMarker
+internal annotation class KotlmataMarker
+
 internal typealias STATE = Any
+internal typealias SIGNAL = Any
+internal typealias STATE_OR_SIGNAL = Any
 internal typealias MACHINE = Any
 internal typealias DAEMON = MACHINE
-internal typealias SIGNAL = Any
 
-internal object PreStart
+internal object stay
+
+internal object initial
 {
-	override fun toString(): String = "pre-start"
+	override fun toString(): String = "initial"
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing)
@@ -49,6 +55,8 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	}
 }
 
+internal const val tab: String = "   "
+
 internal const val NO_LOG = 0
 internal const val SIMPLE = 1
 internal const val NORMAL = 2
@@ -68,6 +76,3 @@ internal inline fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> Stri
 {
 	if (this >= DETAIL) Log.d(args = *args, log = log)
 }
-
-@DslMarker
-internal annotation class KotlmataMarker

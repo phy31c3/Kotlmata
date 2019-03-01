@@ -8,34 +8,25 @@ interface KotlmataMachine<T : MACHINE>
 	{
 		operator fun invoke(
 				name: String,
+				logLevel: Int = NO_LOG,
 				block: Initializer.(machine: String) -> Initializer.End
-		): KotlmataMachine<String> = KotlmataMachineImpl(name, block)
+		): KotlmataMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
 		
-		internal operator fun invoke(
+		internal fun create(
 				name: String,
-				logLevel: Int,
 				block: Initializer.(machine: String) -> Initializer.End
-		): KotlmataMachine<String> = KotlmataMachineImpl(name, block, logLevel = logLevel)
+		): KotlmataMachine<String> = KotlmataMachineImpl(name, block = block)
 	}
 	
 	@KotlmataMarker
 	interface Initializer : StateDefine, RuleDefine
 	{
-		val log: Log
 		val on: On
 		val start: Start
 		
-		interface Log
-		{
-			/**
-			 * @param level **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **2**)
-			 */
-			infix fun level(level: Int)
-		}
-		
 		interface On
 		{
-			infix fun exception(block: Kotlmata.Callback.(Exception) -> Unit)
+			infix fun error(block: KotlmataFallback)
 		}
 		
 		interface Start
@@ -48,7 +39,11 @@ interface KotlmataMachine<T : MACHINE>
 	
 	interface StateDefine
 	{
-		operator fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(state: T) -> Unit)
+		operator fun <S : STATE> S.invoke(block: KotlmataState.Initializer.(state: S) -> Unit)
+		infix fun <S : STATE, R> S.action(action: KotlmataAction2<SIGNAL, R>): KotlmataState.Catch
+		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
+		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
+		infix fun <S : STATE> S.via(signals: KotlmataState.Initializer.Signals): KotlmataState.Entry.Action<SIGNAL>
 	}
 	
 	interface RuleDefine
@@ -60,6 +55,50 @@ interface KotlmataMachine<T : MACHINE>
 		infix fun any.x(signal: SIGNAL): RuleLeft
 		infix fun any.x(signal: KClass<out SIGNAL>): RuleLeft
 		infix fun any.x(keyword: any): RuleLeft
+		
+		fun any.of(vararg args: STATE_OR_SIGNAL): AnyOf
+		fun any.except(vararg args: STATE_OR_SIGNAL): AnyExcept
+		
+		/* any.xxx(...) x "signal" %= "to" */
+		
+		infix fun AnyOf.x(signal: SIGNAL): RuleAnyOfSignal
+		infix fun AnyOf.x(signal: KClass<out SIGNAL>): RuleAnyOfSignal
+		infix fun AnyOf.x(keyword: any): RuleAnyOfSignal
+		infix fun AnyExcept.x(signal: SIGNAL): RuleAnyExceptSignal
+		infix fun AnyExcept.x(signal: KClass<out SIGNAL>): RuleAnyExceptSignal
+		infix fun AnyExcept.x(keyword: any): RuleAnyExceptSignal
+		
+		/* "from" x any.xxx(...) %= "to" */
+		
+		infix fun STATE.x(anyOf: AnyOf): RuleStateAnyOf
+		infix fun any.x(anyOf: AnyOf): RuleStateAnyOf
+		infix fun STATE.x(anyExcept: AnyExcept): RuleStateAnyExcept
+		infix fun any.x(anyExcept: AnyExcept): RuleStateAnyExcept
+		
+		/* any.xxx(...) x any.xxx(...) %= "to" */
+		
+		infix fun AnyOf.x(anyOf: AnyOf): RuleAnyOfAnyOf
+		infix fun AnyOf.x(anyExcept: AnyExcept): RuleAnyOfAnyExcept
+		infix fun AnyExcept.x(anyOf: AnyOf): RuleAnyExceptAnyOf
+		infix fun AnyExcept.x(anyExcept: AnyExcept): RuleAnyExceptAnyExcept
+		
+		interface AnyOf : List<STATE_OR_SIGNAL>
+		
+		interface AnyExcept : List<STATE_OR_SIGNAL>
+		
+		interface RuleAny
+		{
+			operator fun remAssign(state: STATE)
+		}
+		
+		interface RuleAnyOfSignal : RuleAny
+		interface RuleAnyExceptSignal : RuleAny
+		interface RuleStateAnyOf : RuleAny
+		interface RuleStateAnyExcept : RuleAny
+		interface RuleAnyOfAnyOf : RuleAny
+		interface RuleAnyOfAnyExcept : RuleAny
+		interface RuleAnyExceptAnyOf : RuleAny
+		interface RuleAnyExceptAnyExcept : RuleAny
 	}
 	
 	interface RuleLeft
@@ -73,14 +112,14 @@ interface KotlmataMachine<T : MACHINE>
 	val key: T
 	
 	/**
-	 * @param block Called if the state is switched and the next state's entry function returns an signal.
+	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
 	fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
 	
 	fun input(signal: SIGNAL)
 	
 	/**
-	 * @param block Called if the state is switched and the next state's entry function returns an signal.
+	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
 	
@@ -93,14 +132,16 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 	{
 		operator fun invoke(
 				name: String,
+				logLevel: Int = NO_LOG,
 				block: KotlmataMachine.Initializer.(machine: String) -> KotlmataMachine.Initializer.End
-		): KotlmataMutableMachine<String> = KotlmataMachineImpl(name, block)
+		): KotlmataMutableMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
 		
-		internal operator fun <T : MACHINE> invoke(
+		internal fun <T : MACHINE> create(
 				key: T,
+				logLevel: Int,
 				prefix: String,
 				block: KotlmataMachine.Initializer.(machine: T) -> KotlmataMachine.Initializer.End
-		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, block, prefix)
+		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, logLevel, prefix, block)
 	}
 	
 	@KotlmataMarker
@@ -204,22 +245,22 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		}
 	}
 	
-	infix fun modify(block: Modifier.(machine: T) -> Unit)
-	
 	operator fun invoke(block: Modifier.(machine: T) -> Unit) = modify(block)
+	
+	infix fun modify(block: Modifier.(machine: T) -> Unit)
 }
 
 private class KotlmataMachineImpl<T : MACHINE>(
 		override val key: T,
-		block: KotlmataMachine.Initializer.(T) -> KotlmataMachine.Initializer.End,
+		val logLevel: Int = NO_LOG,
 		val prefix: String = "Machine[$key]:",
-		var logLevel: Int = Log.logLevel
+		block: KotlmataMachine.Initializer.(T) -> KotlmataMachine.Initializer.End
 ) : KotlmataMutableMachine<T>
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
-	private var onException: (Kotlmata.Callback.(Exception) -> Unit)? = null
+	private var onError: (KotlmataFallback)? = null
 	
 	private lateinit var current: KotlmataState<out STATE>
 	
@@ -236,10 +277,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		{
 			block()
 		}
-		catch (e: Exception)
+		catch (e: Throwable)
 		{
-			onException?.also {
-				Kotlmata.Callback.it(e)
+			onError?.also {
+				Kotlmata.Marker.it(e)
 			} ?: throw e
 		}
 	}
@@ -256,19 +297,29 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			action { current.input(signal) }
 			logLevel.normal(prefix, signal, current.key) { MACHINE_END_SIGNAL }
 			it[current.key]?.next() ?: it[any]?.next()
-		}?.also {
-			if (it !in stateMap)
-			{
-				Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
-			}
 		}?.let {
-			stateMap[it]
+			when (it)
+			{
+				is stay ->
+				{
+					null
+				}
+				!in stateMap ->
+				{
+					Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
+					null
+				}
+				else ->
+				{
+					stateMap[it]
+				}
+			}
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
 			action { current.exit(signal) }
 			current = next
 			action { current.entry(signal, block) }
-			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_END_TRANSITION }
+			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
 	
@@ -291,19 +342,29 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			action { current.input(signal, type) }
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_END_TYPED }
 			it[current.key]?.next() ?: it[any]?.next()
-		}.also {
-			if (it !in stateMap)
-			{
-				Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
-			}
 		}?.let {
-			stateMap[it]
+			when (it)
+			{
+				is stay ->
+				{
+					null
+				}
+				!in stateMap ->
+				{
+					Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
+					null
+				}
+				else ->
+				{
+					stateMap[it]
+				}
+			}
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
 			action { current.exit(signal) }
 			current = next
 			action { current.entry(signal, type, block) }
-			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_END_TRANSITION }
+			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
 	
@@ -331,21 +392,12 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
 	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
-		override val log = object : KotlmataMachine.Initializer.Log
-		{
-			override fun level(level: Int)
-			{
-				this@ModifierImpl shouldNot expired
-				logLevel = level
-			}
-		}
-		
 		override val on = object : KotlmataMachine.Initializer.On
 		{
-			override fun exception(block: Kotlmata.Callback.(Exception) -> Unit)
+			override fun error(block: KotlmataFallback)
 			{
 				this@ModifierImpl shouldNot expired
-				onException = block
+				onError = block
 			}
 		}
 		
@@ -368,8 +420,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				this@ModifierImpl shouldNot expired
 				return this@KotlmataMachineImpl.current.key.takeIf {
-					it != PreStart
-				} ?: Log.w(prefix.trimEnd()) { OBTAIN_PRE_START }
+					it != initial
+				} ?: Log.w(prefix.trimEnd()) { OBTAIN_INITIAL }
 			}
 		
 		override val has = object : KotlmataMutableMachine.Modifier.Has
@@ -588,7 +640,88 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		override fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(T) -> Unit)
 		{
 			this@ModifierImpl shouldNot expired
-			stateMap[this] = KotlmataMutableState(this, "$prefix   ", logLevel, block)
+			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
+		}
+		
+		override fun <S : STATE, R> S.action(action: KotlmataAction2<SIGNAL, R>): KotlmataState.Catch
+		{
+			this@ModifierImpl shouldNot expired
+			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab") {
+				entry action action
+			}
+			return object : KotlmataState.Catch
+			{
+				override fun catch(fallback: KotlmataFallback)
+				{
+					this@ModifierImpl shouldNot expired
+					stateMap[this@action]?.modify {
+						entry action action catch fallback
+					}
+				}
+			}
+		}
+		
+		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>) = object : KotlmataState.Entry.Action<T>
+		{
+			override fun <R> action(action: KotlmataAction2<T, R>): KotlmataState.Catch
+			{
+				this@ModifierImpl shouldNot expired
+				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
+					entry via signal action action
+				}
+				return object : KotlmataState.Catch
+				{
+					override fun catch(fallback: KotlmataFallback)
+					{
+						this@ModifierImpl shouldNot expired
+						stateMap[this@via]?.modify {
+							entry via signal action action catch fallback
+						}
+					}
+				}
+			}
+		}
+		
+		override fun <S : STATE, T : SIGNAL> S.via(signal: T) = object : KotlmataState.Entry.Action<T>
+		{
+			override fun <R> action(action: KotlmataAction2<T, R>): KotlmataState.Catch
+			{
+				this@ModifierImpl shouldNot expired
+				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
+					entry via signal action action
+				}
+				return object : KotlmataState.Catch
+				{
+					override fun catch(fallback: KotlmataFallback)
+					{
+						this@ModifierImpl shouldNot expired
+						stateMap[this@via]?.modify {
+							entry via signal action action catch fallback
+						}
+					}
+				}
+			}
+		}
+		
+		override fun <S : STATE> S.via(signals: KotlmataState.Initializer.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
+		{
+			override fun <R> action(action: KotlmataAction2<SIGNAL, R>): KotlmataState.Catch
+			{
+				this@ModifierImpl shouldNot expired
+				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
+					entry via signals action action
+				}
+				return object : KotlmataState.Catch
+				{
+					override fun catch(fallback: KotlmataFallback)
+					{
+						this@ModifierImpl shouldNot expired
+						stateMap[this@via]?.modify {
+							entry via signals action action catch fallback
+						}
+					}
+				}
+			}
 		}
 		
 		override fun STATE.x(signal: SIGNAL) = ruleLeft(this, signal)
@@ -598,6 +731,145 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		override fun any.x(signal: SIGNAL) = ruleLeft(this, signal)
 		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
 		override fun any.x(keyword: any) = ruleLeft(this, keyword)
+		
+		override fun any.of(vararg args: STATE_OR_SIGNAL): KotlmataMachine.RuleDefine.AnyOf = object : KotlmataMachine.RuleDefine.AnyOf, List<STATE_OR_SIGNAL> by listOf(*args)
+		{
+			/* empty */
+		}
+		
+		override fun any.except(vararg args: STATE_OR_SIGNAL): KotlmataMachine.RuleDefine.AnyExcept = object : KotlmataMachine.RuleDefine.AnyExcept, List<STATE_OR_SIGNAL> by listOf(*args)
+		{
+			/* empty */
+		}
+		
+		override fun KotlmataMachine.RuleDefine.AnyOf.x(signal: SIGNAL) = ruleAnyOfSignal(this, signal)
+		
+		override fun KotlmataMachine.RuleDefine.AnyOf.x(signal: KClass<out SIGNAL>) = ruleAnyOfSignal(this, signal)
+		
+		override fun KotlmataMachine.RuleDefine.AnyOf.x(keyword: any) = ruleAnyOfSignal(this, keyword)
+		
+		override fun KotlmataMachine.RuleDefine.AnyExcept.x(signal: SIGNAL) = ruleAnyExceptSignal(this, signal)
+		
+		override fun KotlmataMachine.RuleDefine.AnyExcept.x(signal: KClass<out SIGNAL>) = ruleAnyExceptSignal(this, signal)
+		
+		override fun KotlmataMachine.RuleDefine.AnyExcept.x(keyword: any) = ruleAnyExceptSignal(this, keyword)
+		
+		override fun STATE.x(anyOf: KotlmataMachine.RuleDefine.AnyOf) = ruleStateAnyOf(this, anyOf)
+		
+		override fun any.x(anyOf: KotlmataMachine.RuleDefine.AnyOf) = ruleStateAnyOf(this, anyOf)
+		
+		override fun STATE.x(anyExcept: KotlmataMachine.RuleDefine.AnyExcept) = ruleStateAnyExcept(this, anyExcept)
+		
+		override fun any.x(anyExcept: KotlmataMachine.RuleDefine.AnyExcept) = ruleStateAnyExcept(this, anyExcept)
+		
+		override fun KotlmataMachine.RuleDefine.AnyOf.x(anyOf: KotlmataMachine.RuleDefine.AnyOf) = ruleAnyOfAnyOf(this, anyOf)
+		
+		override fun KotlmataMachine.RuleDefine.AnyOf.x(anyExcept: KotlmataMachine.RuleDefine.AnyExcept) = ruleAnyOfAnyExcept(this, anyExcept)
+		
+		override fun KotlmataMachine.RuleDefine.AnyExcept.x(anyOf: KotlmataMachine.RuleDefine.AnyOf) = ruleAnyExceptAnyOf(this, anyOf)
+		
+		override fun KotlmataMachine.RuleDefine.AnyExcept.x(anyExcept: KotlmataMachine.RuleDefine.AnyExcept) = ruleAnyExceptAnyExcept(this, anyExcept)
+		
+		private fun ruleAnyOfSignal(anyOf: KotlmataMachine.RuleDefine.AnyOf, signal: SIGNAL) = object : KotlmataMachine.RuleDefine.RuleAnyOfSignal
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				anyOf.forEach { from ->
+					from x signal %= state
+				}
+			}
+		}
+		
+		private fun ruleAnyExceptSignal(anyExcept: KotlmataMachine.RuleDefine.AnyExcept, signal: SIGNAL) = object : KotlmataMachine.RuleDefine.RuleAnyExceptSignal
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				any x signal %= state
+				anyExcept.forEach { from ->
+					ruleMap.let {
+						it[from]
+					}?.let {
+						it[signal]
+					} ?: run {
+						from x signal %= stay
+					}
+				}
+			}
+		}
+		
+		private fun ruleStateAnyOf(from: STATE, anyOf: KotlmataMachine.RuleDefine.AnyOf) = object : KotlmataMachine.RuleDefine.RuleStateAnyOf
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				anyOf.forEach { signal ->
+					from x signal %= state
+				}
+			}
+		}
+		
+		private fun ruleStateAnyExcept(from: STATE, anyExcept: KotlmataMachine.RuleDefine.AnyExcept) = object : KotlmataMachine.RuleDefine.RuleStateAnyExcept
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				from x any %= state
+				anyExcept.forEach { signal ->
+					ruleMap.let {
+						it[from]
+					}?.let {
+						it[signal]
+					} ?: run {
+						from x signal %= stay
+					}
+				}
+			}
+		}
+		
+		private fun ruleAnyOfAnyOf(anyOfState: KotlmataMachine.RuleDefine.AnyOf, anyOfSignal: KotlmataMachine.RuleDefine.AnyOf) = object : KotlmataMachine.RuleDefine.RuleAnyOfAnyOf
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				anyOfState.forEach { from ->
+					ruleStateAnyOf(from, anyOfSignal).remAssign(state)
+				}
+			}
+		}
+		
+		private fun ruleAnyOfAnyExcept(anyOfState: KotlmataMachine.RuleDefine.AnyOf, anyExceptSignal: KotlmataMachine.RuleDefine.AnyExcept) = object : KotlmataMachine.RuleDefine.RuleAnyOfAnyExcept
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				anyOfState.forEach { from ->
+					ruleStateAnyExcept(from, anyExceptSignal).remAssign(state)
+				}
+			}
+		}
+		
+		private fun ruleAnyExceptAnyOf(anyExceptState: KotlmataMachine.RuleDefine.AnyExcept, anyOfSignal: KotlmataMachine.RuleDefine.AnyOf) = object : KotlmataMachine.RuleDefine.RuleAnyExceptAnyOf
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				anyOfSignal.forEach { signal ->
+					ruleAnyExceptSignal(anyExceptState, signal).remAssign(state)
+				}
+			}
+		}
+		
+		private fun ruleAnyExceptAnyExcept(anyExceptState: KotlmataMachine.RuleDefine.AnyExcept, anyExceptSignal: KotlmataMachine.RuleDefine.AnyExcept) = object : KotlmataMachine.RuleDefine.RuleAnyExceptAnyExcept
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				ruleAnyExceptSignal(anyExceptState, any)
+				ruleStateAnyExcept(any, anyExceptSignal)
+			}
+		}
 		
 		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.RuleLeft
 		{

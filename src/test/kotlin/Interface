@@ -9,7 +9,11 @@ remove clear delete drop erase
 
 [State]————————————————————————————————————————————————————————————————————————————————
 KotlmataState("name") { state ->
-	entry action [action]
+	entry action { signal ->
+		[action]
+	} catch { throwable ->
+		[error handling]
+	}
 	entry via "signal" action [action]
 	entry via action [action]
 
@@ -52,15 +56,29 @@ KotlmataMachine("name") { machine ->
 	"state0" {
 		entry action [action]
 		entry via "signal" action [action]
+		entry via ("1" or "2" or "3") action [action]
 		input signal "signal" action [action]
+		input signal ("1" or "2" or "3") action [action]
 		exit action [action]
 	}
+
+	"state1" via String::class action [action]
 
 	"state0" x "signal" %= "state1"
 	"state1" x KClass<String> %= "state2"
 	"state1" x any %= "state2"
+
 	any x "signal" %= "state1"
 	any x any %= "state2"
+	"state1" x any %= "state2"
+
+	any.of("start", "release") x "signal" %= "state1"
+	any.of("start", "release") x any.of("1", "2") %= "state1"
+	"state1" x any.of("1", "2") %= "state2"
+
+	any.except("start", "release") x "signal" %= "state1"
+	any.except("start", "release") x any.except("1", "2") %= "state1"
+	"state1" x any.except("1", "2") %= "state2"
 
 	on exception [action]
 
@@ -91,7 +109,7 @@ mutableMachine { machine ->
 		// "state1"이 존재하지 않으면 실행
 	}
 
-	has transition ("state0" x "signal") then {
+	has rule ("state0" x "signal") then {
 		// ("state0" x "signal")이 존재하면 실행
 	} or {
 		// ("state0" x "signal")이 존재하지 않으면 실행
@@ -172,7 +190,6 @@ mutableDaemon.input(object, Any::class)
 
 [Kotlmata]————————————————————————————————————————————————————————————————————————————————
 Kotlmata.config {
-	log level 3
 	print debug { log ->
 		// 로그 출력
 	}
@@ -184,7 +201,7 @@ Kotlmata.config {
 	}
 }
 
-Kotlmata.start()
+Kotlmata.start(logLevel = 2)
 Kotlmata.shutdown()
 
 Kotlmata fork "daemon" of { // Daemon init 블럭과 동일 (존재하면 무시)
