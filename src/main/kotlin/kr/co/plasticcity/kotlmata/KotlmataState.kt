@@ -177,7 +177,7 @@ private class KotlmataStateImpl<T : STATE>(
 			null
 		}
 		sync?.let {
-			if (it !is Unit/* it is SIGNAL */) block(it)
+			if (/* it is SIGNAL && */it !is Unit) block(it)
 		}
 	}
 	

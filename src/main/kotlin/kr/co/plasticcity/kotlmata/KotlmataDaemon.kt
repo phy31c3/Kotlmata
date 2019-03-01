@@ -45,10 +45,10 @@ interface KotlmataDaemon<T : DAEMON>
 	
 	val key: T
 	
-	fun run()
-	fun pause()
-	fun stop()
-	fun terminate()
+	fun run(payload: Any? = null)
+	fun pause(payload: Any? = null)
+	fun stop(payload: Any? = null)
+	fun terminate(payload: Any? = null)
 	
 	/**
 	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
@@ -133,17 +133,17 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 		}
 		
-		val terminate: KotlmataAction = {
-			onTerminate()
+		val terminate: KotlmataAction1<Message.Terminate> = { terminateM ->
+			onTerminate(terminateM.payload)
 			logLevel.simple(key) { DAEMON_TERMINATE }
 		}
 		
 		core = KotlmataMachine.create("$key@core") {
 			"initial" { state ->
-				val start: KotlmataAction = {
+				val start: KotlmataAction1<Message.Control> = { controlM ->
 					logLevel.simple(key) { DAEMON_START }
-					onStart()
-					machine.input(Message.Run(), postSync)
+					onStart(controlM.payload)
+					machine.input(controlM.payload/* as? SIGNAL */ ?: controlM, postSync)
 				}
 				
 				input signal Message.Run::class action start
@@ -159,7 +159,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"run" { state ->
 				input signal Message.Pause::class action {}
 				input signal Message.Stop::class action {}
-				input signal (Message.Terminate::class or Message.Interrupted::class) action terminate
+				input signal Message.Terminate::class action terminate
 				
 				input signal Message.Sync::class action { syncM ->
 					machine.input(syncM.signal, postSync)
@@ -184,21 +184,21 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					stash += message
 				}
 				
-				entry action {
+				entry via Message.Pause::class action { pauseM ->
 					logLevel.simple(key) { DAEMON_PAUSE }
-					onPause()
+					onPause(pauseM.payload)
 				}
 				
-				input signal Message.Run::class action {
+				input signal Message.Run::class action { runM ->
 					sync?.let { syncM -> queue!!.offer(syncM) }
 					queue!! += stash
 					logLevel.simple(key) { DAEMON_RESUME }
-					onResume()
+					onResume(runM.payload)
 				}
 				input signal Message.Stop::class action {
 					sync?.let { syncM -> queue!!.offer(syncM) }
 				}
-				input signal (Message.Terminate::class or Message.Interrupted::class) action terminate
+				input signal Message.Terminate::class action terminate
 				
 				input signal Message.Sync::class action { syncM ->
 					sync = syncM
@@ -234,18 +234,18 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					}
 				}
 				
-				entry action {
+				entry via Message.Stop::class action { stopM ->
 					logLevel.simple(key) { DAEMON_STOP }
-					onStop()
+					onStop(stopM.payload)
 				}
 				
 				input signal Message.Run::class action { runM ->
 					cleanup(runM)
 					logLevel.simple(key) { DAEMON_RESUME }
-					onResume()
+					onResume(runM.payload)
 				}
 				input signal Message.Pause::class action cleanup
-				input signal (Message.Terminate::class or Message.Interrupted::class) action terminate
+				input signal Message.Terminate::class action terminate
 				
 				input signal Message.Sync::class action { syncM ->
 					sync = syncM
@@ -279,7 +279,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"stop" x Message.Pause::class %= "pause"
 			
 			any.except("terminate") x Message.Terminate::class %= "terminate"
-			any.except("terminate") x Message.Interrupted::class %= "terminate"
 			
 			start at "initial"
 		}
@@ -290,7 +289,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			machine = KotlmataMutableMachine.create(key, logLevel, "Daemon[$key]:$tab") {
 				initial {}
 				val initializer = InitializerImpl(block, this)
-				initial x Message.Run::class %= initializer.startAt
+				initial x any %= initializer.startAt
 				start at initial
 			}
 			logLevel.normal(key) { DAEMON_END_INIT }
@@ -306,7 +305,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			catch (e: InterruptedException)
 			{
-				core.input(Message.Interrupted())
+				core.input(Message.Terminate(null))
 				synchronized(lock) {
 					queue!!.clear()
 					queue = null
@@ -316,37 +315,37 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 	}
 	
-	override fun run()
+	override fun run(payload: Any?)
 	{
 		synchronized<Unit>(lock) {
-			val runM = Message.Run()
+			val runM = Message.Run(payload)
 			logLevel.detail(key, runM, runM.id) { DAEMON_REQUEST }
 			queue?.offer(runM)
 		}
 	}
 	
-	override fun pause()
+	override fun pause(payload: Any?)
 	{
 		synchronized<Unit>(lock) {
-			val pauseM = Message.Pause()
+			val pauseM = Message.Pause(payload)
 			logLevel.detail(key, pauseM, pauseM.id) { DAEMON_REQUEST }
 			queue?.offer(pauseM)
 		}
 	}
 	
-	override fun stop()
+	override fun stop(payload: Any?)
 	{
 		synchronized<Unit>(lock) {
-			val stopM = Message.Stop()
+			val stopM = Message.Stop(payload)
 			logLevel.detail(key, stopM, stopM.id) { DAEMON_REQUEST }
 			queue?.offer(stopM)
 		}
 	}
 	
-	override fun terminate()
+	override fun terminate(payload: Any?)
 	{
 		synchronized<Unit>(lock) {
-			val terminateM = Message.Terminate()
+			val terminateM = Message.Terminate(payload)
 			logLevel.detail(key, terminateM, terminateM.id) { DAEMON_REQUEST }
 			queue?.offer(terminateM)
 		}
@@ -453,11 +452,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	{
 		constructor(base: Int, additional: Int) : this(if (additional > 0) base + additional else base)
 		
-		class Run : Message(DAEMON_CONTROL)
-		class Pause : Message(DAEMON_CONTROL)
-		class Stop : Message(DAEMON_CONTROL)
-		class Terminate : Message(DAEMON_CONTROL)
-		class Interrupted : Message(DAEMON_CONTROL)
+		open class Control(val payload: Any?) : Message(DAEMON_CONTROL)
+		class Run(payload: Any?) : Control(payload)
+		class Pause(payload: Any?) : Control(payload)
+		class Stop(payload: Any?) : Control(payload)
+		class Terminate(payload: Any?) : Control(payload)
 		
 		class Sync(val signal: SIGNAL) : Message(SYNC)
 		
