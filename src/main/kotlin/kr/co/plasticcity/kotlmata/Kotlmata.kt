@@ -10,7 +10,11 @@ interface Kotlmata
 	object Marker
 	
 	fun config(block: Config.() -> Unit)
-	fun start()
+	/**
+	 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+	 */
+	fun start(logLevel: Int = NO_LOG)
+	
 	fun shutdown()
 	fun release()
 	
@@ -31,16 +35,7 @@ interface Kotlmata
 	@KotlmataMarker
 	interface Config
 	{
-		val log: Log
 		val print: Print
-		
-		interface Log
-		{
-			/**
-			 * @param level **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
-			 */
-			infix fun level(level: Int)
-		}
 		
 		interface Print
 		{
@@ -171,11 +166,19 @@ private class KotlmataImpl : Kotlmata
 		}
 		
 		core = KotlmataDaemon.create("core", "Kotlmata") {
-			on start {
+			on start { payload ->
+				if (payload is Int)
+				{
+					logLevel = payload
+				}
 				logLevel.simple { KOTLMATA_START }
 			}
 			
-			on resume {
+			on resume { payload ->
+				if (payload is Int)
+				{
+					logLevel = payload
+				}
 				logLevel.simple { KOTLMATA_RESTART }
 			}
 			
@@ -295,9 +298,9 @@ private class KotlmataImpl : Kotlmata
 		ConfigImpl(block)
 	}
 	
-	override fun start()
+	override fun start(logLevel: Int)
 	{
-		core.run()
+		core.run(logLevel)
 	}
 	
 	override fun shutdown()
@@ -390,15 +393,6 @@ private class KotlmataImpl : Kotlmata
 			block: Kotlmata.Config.() -> Unit
 	) : Kotlmata.Config, Expirable({ Log.e { EXPIRED_CONFIG } })
 	{
-		override val log = object : Kotlmata.Config.Log
-		{
-			override fun level(level: Int)
-			{
-				this@ConfigImpl shouldNot expired
-				logLevel = level
-			}
-		}
-		
 		override val print = object : Kotlmata.Config.Print
 		{
 			override fun debug(block: (String) -> Unit)

@@ -10,7 +10,6 @@ class Tests
 	fun init()
 	{
 		Kotlmata.config {
-			log level 3
 			print debug ::println
 			print warn ::println
 			print error ::error
@@ -329,7 +328,7 @@ class Tests
 	fun kotlmataTest()
 	{
 		var expire: Kotlmata.Post? = null
-		Kotlmata.start()
+		Kotlmata.start(3)
 		Kotlmata fork "daemon" of {
 			"state1" { state ->
 				entry action { println("데몬이 시작됨") }

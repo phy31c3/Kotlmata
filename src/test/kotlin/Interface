@@ -190,7 +190,6 @@ mutableDaemon.input(object, Any::class)
 
 [Kotlmata]————————————————————————————————————————————————————————————————————————————————
 Kotlmata.config {
-	log level 3
 	print debug { log ->
 		// 로그 출력
 	}
@@ -202,7 +201,7 @@ Kotlmata.config {
 	}
 }
 
-Kotlmata.start()
+Kotlmata.start(logLevel = 2)
 Kotlmata.shutdown()
 
 Kotlmata fork "daemon" of { // Daemon init 블럭과 동일 (존재하면 무시)
