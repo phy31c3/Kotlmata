@@ -6,9 +6,6 @@ interface Kotlmata
 {
 	companion object : Kotlmata by KotlmataImpl()
 	
-	@KotlmataMarker
-	object Marker
-	
 	fun config(block: Config.() -> Unit)
 	/**
 	 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)

@@ -280,7 +280,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		catch (e: Throwable)
 		{
 			onError?.also {
-				Kotlmata.Marker.it(e)
+				DSL.it(e)
 			} ?: throw e
 		}
 	}

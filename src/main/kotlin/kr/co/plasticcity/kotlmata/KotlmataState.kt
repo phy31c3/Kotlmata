@@ -167,12 +167,12 @@ private class KotlmataStateImpl<T : STATE>(
 	{
 		val sync = try
 		{
-			Kotlmata.Marker.first(signal)
+			DSL.first(signal)
 		}
 		catch (e: Throwable)
 		{
 			second?.also {
-				Kotlmata.Marker.it(e)
+				DSL.it(e)
 			} ?: throw e
 			null
 		}
@@ -186,12 +186,12 @@ private class KotlmataStateImpl<T : STATE>(
 	{
 		try
 		{
-			Kotlmata.Marker.first(signal)
+			DSL.first(signal)
 		}
 		catch (e: Throwable)
 		{
 			second?.also {
-				Kotlmata.Marker.it(e)
+				DSL.it(e)
 			} ?: throw e
 		}
 	}
