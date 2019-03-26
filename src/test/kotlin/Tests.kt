@@ -218,14 +218,25 @@ class Tests
 			}
 			
 			"error" {
-				input signal "error1" action {
+				entry action {
 					throw Exception("에러1 발생")
 				}
-				input signal "error2" action {
+				input signal "error" action {
 					throw Exception("에러2 발생")
 				} catch { throwable ->
 					println("상태 Fallback")
 					println(throwable)
+				}
+			}
+			
+			"errorSync" { state ->
+				entry action {
+					throw Exception("에러3 발생")
+				} catch { throwable, signal ->
+					println("상태 Fallback")
+					println("$state: catch 진입: $signal")
+					println(throwable)
+					"goToState1"
 				}
 			}
 			
@@ -235,6 +246,8 @@ class Tests
 			"state3" x "goToState4" %= "state4"
 			"state4" x "state4 sync" %= "state1"
 			"state1" x "goToError" %= "error"
+			"error" x "error" %= "errorSync"
+			"errorSync" x "goToState1" %= "state1"
 			
 			start at "state1"
 		}
@@ -310,8 +323,7 @@ class Tests
 		Thread.sleep(100)
 		
 		daemon.input("goToError")
-		daemon.input("error1")
-		daemon.input("error2")
+		daemon.input("error")
 		
 		Thread.sleep(500)
 		
