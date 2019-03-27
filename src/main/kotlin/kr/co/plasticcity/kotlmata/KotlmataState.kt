@@ -11,6 +11,14 @@ interface KotlmataState<T : STATE>
 				logLevel: Int = NO_LOG,
 				block: Initializer.(state: String) -> Unit
 		): KotlmataState<String> = KotlmataStateImpl(name, logLevel, block = block)
+		
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG,
+				block: Initializer.(state: String) -> Unit
+		) = lazy {
+			invoke(name, logLevel, block)
+		}
 	}
 	
 	@KotlmataMarker
@@ -105,6 +113,14 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 				logLevel: Int = NO_LOG,
 				block: (KotlmataState.Initializer.(state: String) -> Unit)? = null
 		): KotlmataMutableState<String> = KotlmataStateImpl(name, logLevel, block = block)
+		
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG,
+				block: (KotlmataState.Initializer.(state: String) -> Unit)? = null
+		) = lazy {
+			invoke(name, logLevel, block)
+		}
 		
 		internal fun <T : STATE> create(
 				key: T,

@@ -20,7 +20,7 @@ class Tests
 	fun stateTest()
 	{
 		var expired: KotlmataState.Initializer? = null
-		val state = KotlmataMutableState("s1") {
+		val state by KotlmataMutableState.lazy("s1") {
 			expired = this
 			val lambda1: KotlmataAction = {
 				println("기본 진입함수")
@@ -65,7 +65,7 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		val machine = KotlmataMutableMachine("m1") {
+		val machine by KotlmataMutableMachine.lazy("m1") {
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
@@ -171,7 +171,7 @@ class Tests
 		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
-		val daemon = KotlmataMutableDaemon("d1", 2) {
+		val daemon by KotlmataMutableDaemon.lazy("d1", 2) {
 			on start {
 				thread = Thread.currentThread()
 			}

@@ -12,6 +12,14 @@ interface KotlmataMachine<T : MACHINE>
 				block: Initializer.(machine: String) -> Initializer.End
 		): KotlmataMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
 		
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG,
+				block: Initializer.(machine: String) -> Initializer.End
+		) = lazy {
+			invoke(name, logLevel, block)
+		}
+		
 		internal fun create(
 				name: String,
 				block: Initializer.(machine: String) -> Initializer.End
@@ -135,6 +143,14 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 				logLevel: Int = NO_LOG,
 				block: KotlmataMachine.Initializer.(machine: String) -> KotlmataMachine.Initializer.End
 		): KotlmataMutableMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
+		
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG,
+				block: KotlmataMachine.Initializer.(machine: String) -> KotlmataMachine.Initializer.End
+		) = lazy {
+			invoke(name, logLevel, block)
+		}
 		
 		internal fun <T : MACHINE> create(
 				key: T,
