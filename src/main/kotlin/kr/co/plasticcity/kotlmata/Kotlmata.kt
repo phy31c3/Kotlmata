@@ -162,7 +162,7 @@ private class KotlmataImpl : Kotlmata
 			daemons.clear()
 		}
 		
-		core = KotlmataDaemon.create("core", "Kotlmata") {
+		core = KotlmataDaemon.create("Kotlmata@core", "Kotlmata") {
 			on start { payload ->
 				if (payload is Int)
 				{
@@ -189,7 +189,7 @@ private class KotlmataImpl : Kotlmata
 				cleanup()
 			}
 			
-			"core" {
+			"Core" {
 				input signal Message.Fork::class action { forkM ->
 					if (forkM.daemon !in daemons)
 					{
@@ -286,7 +286,7 @@ private class KotlmataImpl : Kotlmata
 				}
 			}
 			
-			start at "core"
+			start at "Core"
 		}
 	}
 	

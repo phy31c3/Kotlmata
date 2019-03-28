@@ -13,9 +13,9 @@ internal object DSL : KotlmataDSL
 
 internal object stay
 
-internal object initial
+internal object Initial
 {
-	override fun toString(): String = "initial"
+	override fun toString(): String = "Initial"
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing)

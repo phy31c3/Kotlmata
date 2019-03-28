@@ -425,7 +425,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				
 				stateMap[state]?.also {
 					this@KotlmataMachineImpl.current = it
-				} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_INITIAL_STATE }
+				} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_START_STATE }
 				
 				return KotlmataMachine.Initializer.End()
 			}
@@ -436,7 +436,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				this@ModifierImpl shouldNot expired
 				return this@KotlmataMachineImpl.current.key.takeIf {
-					it != initial
+					it != Initial
 				} ?: Log.w(prefix.trimEnd()) { OBTAIN_INITIAL }
 			}
 		

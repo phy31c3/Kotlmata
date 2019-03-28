@@ -69,13 +69,13 @@ internal class Logs
 		
 		/*########################## WARN ##########################*/
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. (%s) x (%s) -> (%s)"
-		const val OBTAIN_INITIAL = "%s Attempt to get 'initial' state: The 'initial' state can not be obtained."
+		const val OBTAIN_INITIAL = "%s Attempt to get 'Initial' state: The 'Initial' state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available inside the config block."
 		const val EXPIRED_POST = "Kotlmata: Use of expired 'Post' object: The object is only available inside the post block."
 		const val EXPIRED_MODIFIER = "%s Use of expired object: The object is only available inside the 'init' or 'modify' block."
-		const val UNDEFINED_INITIAL_STATE = "%s The initial state '%s' is undefined."
+		const val UNDEFINED_START_STATE = "%s The start state '%s' is undefined."
 	}
 }
 

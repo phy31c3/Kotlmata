@@ -185,7 +185,7 @@ private class KotlmataStateImpl<T : STATE>(
 		block?.let {
 			ModifierImpl(it)
 		}
-		if (key != initial)
+		if (key != Initial)
 		{
 			logLevel.simple(prefix, key) { STATE_CREATED }
 		}
