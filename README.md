@@ -1,5 +1,18 @@
 # Kotlmata
 Automata-based programming library for Kotlin.
+## Gradle
+```
+compile 'kr.co.plasticcity:kotlmata:0.2.1'
+```
+## Maven
+```
+<dependency>
+  <groupId>kr.co.plasticcity</groupId>
+  <artifactId>kotlmata</artifactId>
+  <version>0.2.1</version>
+  <type>pom</type>
+</dependency>
+```
 ## License
 ```$xslt
 Copyright 2018 Jongsun Yoo
