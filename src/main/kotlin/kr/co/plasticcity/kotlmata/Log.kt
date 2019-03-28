@@ -34,7 +34,7 @@ internal class Logs
 		const val DAEMON_REQUEST_SIGNAL = "Daemon[%s]: ## REQUEST@Signal input. {signal: %s, priority: %s} {id: %s}"
 		const val DAEMON_REQUEST_TYPED = "Daemon[%s]: ## REQUEST@Typed signal input. {signal: %s, type: %s, priority: %s} {id: %s}"
 		const val DAEMON_REQUEST_SYNC = "Daemon[%s]: ## REQUEST@Sync Input. {signal: %s} {id: %s}"
-		const val DAEMON_START_REQUEST = "Daemon[%s]: >> Start request. {id: %s}"
+		const val DAEMON_START_REQUEST = "Daemon[%s]: >> Start request. {remain: %s} {id: %s}"
 		const val DAEMON_KEEP_REQUEST = "Daemon[%s]:    Keep request. {id: %s}"
 		const val DAEMON_KEEP_SYNC = "Daemon[%s]:    Keep sync Input. {id: %s}"
 		const val DAEMON_DROP_REQUEST = "Daemon[%s]:    Request dropped. {id: %s}"

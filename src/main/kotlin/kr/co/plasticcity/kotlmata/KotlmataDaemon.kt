@@ -307,7 +307,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				while (true)
 				{
 					val message = queue!!.take()
-					logLevel.normal(key, message.id) { DAEMON_START_REQUEST }
+					logLevel.normal(key, queue!!.size, message.id) { DAEMON_START_REQUEST }
 					core.input(message)
 					logLevel.normal(key, message.id) { DAEMON_END_REQUEST }
 				}
