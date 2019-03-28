@@ -142,14 +142,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		val postSync: (SIGNAL) -> Unit = { signal ->
 			val syncM = Message.Sync(signal)
-			logLevel.detail(key, syncM.signal, syncM.id) { DAEMON_REQUEST_SYNC }
+			logLevel.detail(key, syncM.signal, syncM.id) { DAEMON_MESSAGE_SYNC }
 			queue!!.offer(syncM)
 		}
 		
 		val ignore: (SIGNAL, STATE) -> Unit = { signal, state ->
 			if (signal is Message)
 			{
-				logLevel.normal(key, state, signal.id) { DAEMON_IGNORE_REQUEST }
+				logLevel.normal(key, state, signal.id) { DAEMON_IGNORE_MESSAGE }
 			}
 		}
 		
@@ -195,7 +195,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				var sync: Message.Sync? = null
 				val stash: MutableList<Message> = ArrayList()
 				val keep: KotlmataAction1<Message> = { message ->
-					logLevel.normal(key, message.id) { DAEMON_KEEP_REQUEST }
+					logLevel.normal(key, message.id) { DAEMON_KEEP_MESSAGE }
 					stash += message
 				}
 				
@@ -237,7 +237,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 						(queueM.isSignal && queueM.olderThan(currentM)).apply {
 							if (this)
 							{
-								logLevel.detail(key, queueM.id) { DAEMON_DROP_REQUEST }
+								logLevel.detail(key, queueM.id) { DAEMON_DROP_MESSAGE }
 							}
 						}
 					}
@@ -307,9 +307,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				while (true)
 				{
 					val message = queue!!.take()
-					logLevel.normal(key, queue!!.size, message.id) { DAEMON_START_REQUEST }
+					logLevel.normal(key, queue!!.size, message.id) { DAEMON_START_MESSAGE }
 					core.input(message)
-					logLevel.normal(key, message.id) { DAEMON_END_REQUEST }
+					logLevel.normal(key, message.id) { DAEMON_END_MESSAGE }
 				}
 			}
 			catch (e: InterruptedException)
@@ -325,35 +325,35 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	override fun run(payload: Any?)
 	{
 		val runM = Message.Run(payload)
-		logLevel.detail(key, runM, runM.id) { DAEMON_REQUEST }
+		logLevel.detail(key, runM, runM.id) { DAEMON_MESSAGE }
 		queue?.offer(runM)
 	}
 	
 	override fun pause(payload: Any?)
 	{
 		val pauseM = Message.Pause(payload)
-		logLevel.detail(key, pauseM, pauseM.id) { DAEMON_REQUEST }
+		logLevel.detail(key, pauseM, pauseM.id) { DAEMON_MESSAGE }
 		queue?.offer(pauseM)
 	}
 	
 	override fun stop(payload: Any?)
 	{
 		val stopM = Message.Stop(payload)
-		logLevel.detail(key, stopM, stopM.id) { DAEMON_REQUEST }
+		logLevel.detail(key, stopM, stopM.id) { DAEMON_MESSAGE }
 		queue?.offer(stopM)
 	}
 	
 	override fun terminate(payload: Any?)
 	{
 		val terminateM = Message.Terminate(payload)
-		logLevel.detail(key, terminateM, terminateM.id) { DAEMON_REQUEST }
+		logLevel.detail(key, terminateM, terminateM.id) { DAEMON_MESSAGE }
 		queue?.offer(terminateM)
 	}
 	
 	override fun input(signal: SIGNAL, priority: Int)
 	{
 		val signalM = Message.Signal(signal, priority)
-		logLevel.detail(key, signalM.signal, signalM.priority, signalM.id) { DAEMON_REQUEST_SIGNAL }
+		logLevel.detail(key, signalM.signal, signalM.priority, signalM.id) { DAEMON_MESSAGE_SIGNAL }
 		queue?.offer(signalM)
 	}
 	
@@ -361,7 +361,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int)
 	{
 		val typedM = Message.TypedSignal(signal, type as KClass<SIGNAL>, priority)
-		logLevel.detail(key, typedM.signal, "${typedM.type.simpleName}::class", typedM.priority, typedM.id) { DAEMON_REQUEST_TYPED }
+		logLevel.detail(key, typedM.signal, "${typedM.type.simpleName}::class", typedM.priority, typedM.id) { DAEMON_MESSAGE_TYPED }
 		queue?.offer(typedM)
 	}
 	
@@ -369,7 +369,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	override fun modify(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 	{
 		val modifyM = Message.Modify(block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit)
-		logLevel.detail(key, modifyM, modifyM.id) { DAEMON_REQUEST }
+		logLevel.detail(key, modifyM, modifyM.id) { DAEMON_MESSAGE }
 		queue?.offer(modifyM)
 	}
 	
