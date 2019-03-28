@@ -80,12 +80,12 @@ KotlmataMachine("name") { machine ->
 	any.except("start", "release") x any.except("1", "2") %= "state1"
 	"state1" x any.except("1", "2") %= "state2"
 
-	on exception [action]
+	on error [action]
 
 	start at "state0"
 }
 
-val immutableMachine = KotlmataMachine("name") {
+val immutableMachine by KotlmataMachine.lazy("name") {
 	start at "state0"
 }
 
@@ -169,7 +169,7 @@ KotlmataDaemon("name") { daemon ->
 	start at "state0"
 }
 
-val mutableDaemon = KotlmataMutableDaemon("name") {
+val mutableDaemon by KotlmataMutableDaemon.lazy("name") {
 	on start [action]
 	start at "state0"
 }
