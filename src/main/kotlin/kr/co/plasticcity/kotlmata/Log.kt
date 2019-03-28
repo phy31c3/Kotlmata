@@ -30,16 +30,16 @@ internal class Logs
 		const val DAEMON_STOP = "Daemon[%s]:    STOP"
 		const val DAEMON_RESUME = "Daemon[%s]:    RESUME"
 		const val DAEMON_TERMINATE = "Daemon[%s]:    TERMINATE"
-		const val DAEMON_REQUEST = "Daemon[%s]: ## REQUEST@%s. {id: %s}"
-		const val DAEMON_REQUEST_SIGNAL = "Daemon[%s]: ## REQUEST@Signal input. {signal: %s, priority: %s} {id: %s}"
-		const val DAEMON_REQUEST_TYPED = "Daemon[%s]: ## REQUEST@Typed signal input. {signal: %s, type: %s, priority: %s} {id: %s}"
-		const val DAEMON_REQUEST_SYNC = "Daemon[%s]: ## REQUEST@Sync Input. {signal: %s} {id: %s}"
-		const val DAEMON_START_REQUEST = "Daemon[%s]: >> Start request. {id: %s}"
-		const val DAEMON_KEEP_REQUEST = "Daemon[%s]:    Keep request. {id: %s}"
+		const val DAEMON_MESSAGE = "Daemon[%s]: ## MESSAGE@%s. {id: %s}"
+		const val DAEMON_MESSAGE_SIGNAL = "Daemon[%s]: ## MESSAGE@Signal input. {signal: %s, priority: %s} {id: %s}"
+		const val DAEMON_MESSAGE_TYPED = "Daemon[%s]: ## MESSAGE@Typed signal input. {signal: %s, type: %s, priority: %s} {id: %s}"
+		const val DAEMON_MESSAGE_SYNC = "Daemon[%s]: ## MESSAGE@Sync Input. {signal: %s} {id: %s}"
+		const val DAEMON_START_MESSAGE = "Daemon[%s]: >> Start message. {remain: %s} {id: %s}"
+		const val DAEMON_KEEP_MESSAGE = "Daemon[%s]:    Keep message. {id: %s}"
 		const val DAEMON_KEEP_SYNC = "Daemon[%s]:    Keep sync Input. {id: %s}"
-		const val DAEMON_DROP_REQUEST = "Daemon[%s]:    Request dropped. {id: %s}"
-		const val DAEMON_IGNORE_REQUEST = "Daemon[%s]:    Request ignored. {daemon state: %s} {id: %s}"
-		const val DAEMON_END_REQUEST = "Daemon[%s]: << End request. {id: %s}"
+		const val DAEMON_DROP_MESSAGE = "Daemon[%s]:    Message dropped. {id: %s}"
+		const val DAEMON_IGNORE_MESSAGE = "Daemon[%s]:    Message ignored. {daemon state: %s} {id: %s}"
+		const val DAEMON_END_MESSAGE = "Daemon[%s]: << End message. {id: %s}"
 		
 		/* Machine */
 		const val MACHINE_START_BUILD = "%s >> Start machine build."
@@ -69,13 +69,13 @@ internal class Logs
 		
 		/*########################## WARN ##########################*/
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. (%s) x (%s) -> (%s)"
-		const val OBTAIN_INITIAL = "%s Attempt to get 'initial' state: The 'initial' state can not be obtained."
+		const val OBTAIN_INITIAL = "%s Attempt to get 'Initial' state: The 'Initial' state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available inside the config block."
 		const val EXPIRED_POST = "Kotlmata: Use of expired 'Post' object: The object is only available inside the post block."
 		const val EXPIRED_MODIFIER = "%s Use of expired object: The object is only available inside the 'init' or 'modify' block."
-		const val UNDEFINED_INITIAL_STATE = "%s The initial state '%s' is undefined."
+		const val UNDEFINED_START_STATE = "%s The start state '%s' is undefined."
 	}
 }
 

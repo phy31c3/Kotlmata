@@ -20,7 +20,7 @@ class Tests
 	fun stateTest()
 	{
 		var expired: KotlmataState.Initializer? = null
-		val state = KotlmataMutableState("s1") {
+		val state by KotlmataMutableState.lazy("s1") {
 			expired = this
 			val lambda1: KotlmataAction = {
 				println("기본 진입함수")
@@ -65,7 +65,7 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		val machine = KotlmataMutableMachine("m1") {
+		val machine by KotlmataMutableMachine.lazy("m1") {
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
@@ -171,7 +171,7 @@ class Tests
 		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
-		val daemon = KotlmataMutableDaemon("d1", 2) {
+		val daemon by KotlmataMutableDaemon.lazy("d1", 2) {
 			on start {
 				thread = Thread.currentThread()
 			}
@@ -218,14 +218,25 @@ class Tests
 			}
 			
 			"error" {
-				input signal "error1" action {
+				entry action {
 					throw Exception("에러1 발생")
 				}
-				input signal "error2" action {
+				input signal "error" action {
 					throw Exception("에러2 발생")
 				} catch { throwable ->
 					println("상태 Fallback")
 					println(throwable)
+				}
+			}
+			
+			"errorSync" { state ->
+				entry action {
+					throw Exception("에러3 발생")
+				} catch { throwable, signal ->
+					println("상태 Fallback")
+					println("$state: catch 진입: $signal")
+					println(throwable)
+					"goToState1"
 				}
 			}
 			
@@ -235,6 +246,8 @@ class Tests
 			"state3" x "goToState4" %= "state4"
 			"state4" x "state4 sync" %= "state1"
 			"state1" x "goToError" %= "error"
+			"error" x "error" %= "errorSync"
+			"errorSync" x "goToState1" %= "state1"
 			
 			start at "state1"
 		}
@@ -310,8 +323,7 @@ class Tests
 		Thread.sleep(100)
 		
 		daemon.input("goToError")
-		daemon.input("error1")
-		daemon.input("error2")
+		daemon.input("error")
 		
 		Thread.sleep(500)
 		

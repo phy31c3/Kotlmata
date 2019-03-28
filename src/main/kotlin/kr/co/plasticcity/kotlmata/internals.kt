@@ -1,19 +1,21 @@
 package kr.co.plasticcity.kotlmata
 
-@DslMarker
-internal annotation class KotlmataMarker
-
 internal typealias STATE = Any
 internal typealias SIGNAL = Any
 internal typealias STATE_OR_SIGNAL = Any
 internal typealias MACHINE = Any
 internal typealias DAEMON = MACHINE
 
+@DslMarker
+internal annotation class KotlmataMarker
+
+internal object DSL : KotlmataDSL
+
 internal object stay
 
-internal object initial
+internal object Initial
 {
-	override fun toString(): String = "initial"
+	override fun toString(): String = "Initial"
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing)
