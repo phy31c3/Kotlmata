@@ -234,8 +234,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				
 				val cleanup: KotlmataAction1<Message> = { currentM ->
 					queue!!.removeIf { queueM ->
-						(queueM.isSignal && queueM.olderThan(currentM)).apply {
-							if (this)
+						(queueM.isSignal && queueM.olderThan(currentM)).also {
+							if (it)
 							{
 								logLevel.detail(key, queueM.id) { DAEMON_DROP_MESSAGE }
 							}
