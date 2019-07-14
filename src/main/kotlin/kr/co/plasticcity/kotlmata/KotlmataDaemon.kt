@@ -131,6 +131,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	private var onResume: KotlmataCallback = {}
 	private var onTerminate: KotlmataCallback = {}
 	
+	@Volatile
 	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
 	
 	init
