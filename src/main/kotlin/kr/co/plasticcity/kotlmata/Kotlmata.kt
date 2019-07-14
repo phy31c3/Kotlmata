@@ -156,7 +156,7 @@ private class KotlmataImpl : Kotlmata
 	init
 	{
 		val cleanup = {
-			daemons.forEach { _, daemon ->
+			daemons.forEach { (_, daemon) ->
 				daemon.terminate()
 			}
 			daemons.clear()
@@ -190,98 +190,98 @@ private class KotlmataImpl : Kotlmata
 			}
 			
 			"Core" {
-				input signal Message.Fork::class action { forkM ->
-					if (forkM.daemon !in daemons)
+				input signal Request.Fork::class action { forkR ->
+					if (forkR.daemon !in daemons)
 					{
-						logLevel.detail(forkM, forkM.daemon) { KOTLMATA_COMMON }
-						daemons[forkM.daemon] = KotlmataMutableDaemon.create(forkM.daemon, logLevel, forkM.block)
+						logLevel.detail(forkR, forkR.daemon) { KOTLMATA_COMMON }
+						daemons[forkR.daemon] = KotlmataMutableDaemon.create(forkR.daemon, logLevel, forkR.block)
 					}
 					else
 					{
-						logLevel.normal(forkM, forkM.daemon) { KOTLMATA_COMMON_IGNORED_EXISTS }
+						logLevel.normal(forkR, forkR.daemon) { KOTLMATA_COMMON_IGNORED_EXISTS }
 					}
 				}
-				input signal Message.Modify::class action { modifyM ->
-					if (modifyM.daemon in daemons)
+				input signal Request.Modify::class action { modifyR ->
+					if (modifyR.daemon in daemons)
 					{
-						logLevel.detail(modifyM, modifyM.daemon) { KOTLMATA_COMMON }
-						daemons[modifyM.daemon]!! modify modifyM.block
+						logLevel.detail(modifyR, modifyR.daemon) { KOTLMATA_COMMON }
+						daemons[modifyR.daemon]!! modify modifyR.block
 					}
 					else
 					{
-						logLevel.normal(modifyM, modifyM.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal(modifyR, modifyR.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Message.Run::class action { runM ->
-					if (runM.daemon in daemons)
+				input signal Request.Run::class action { runR ->
+					if (runR.daemon in daemons)
 					{
-						logLevel.detail(runM, runM.daemon) { KOTLMATA_COMMON }
-						daemons[runM.daemon]!!.run()
+						logLevel.detail(runR, runR.daemon) { KOTLMATA_COMMON }
+						daemons[runR.daemon]!!.run()
 					}
 					else
 					{
-						logLevel.normal(runM, runM.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal(runR, runR.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Message.Pause::class action { pauseM ->
-					if (pauseM.daemon in daemons)
+				input signal Request.Pause::class action { pauseR ->
+					if (pauseR.daemon in daemons)
 					{
-						logLevel.detail(pauseM, pauseM.daemon) { KOTLMATA_COMMON }
-						daemons[pauseM.daemon]!!.pause()
+						logLevel.detail(pauseR, pauseR.daemon) { KOTLMATA_COMMON }
+						daemons[pauseR.daemon]!!.pause()
 					}
 					else
 					{
-						logLevel.normal(pauseM, pauseM.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal(pauseR, pauseR.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Message.Stop::class action { stopM ->
-					if (stopM.daemon in daemons)
+				input signal Request.Stop::class action { stopR ->
+					if (stopR.daemon in daemons)
 					{
-						logLevel.detail(stopM, stopM.daemon) { KOTLMATA_COMMON }
-						daemons[stopM.daemon]!!.stop()
+						logLevel.detail(stopR, stopR.daemon) { KOTLMATA_COMMON }
+						daemons[stopR.daemon]!!.stop()
 					}
 					else
 					{
-						logLevel.normal(stopM, stopM.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal(stopR, stopR.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Message.Terminate::class action { terminateM ->
-					if (terminateM.daemon in daemons)
+				input signal Request.Terminate::class action { terminateR ->
+					if (terminateR.daemon in daemons)
 					{
-						logLevel.detail(terminateM, terminateM.daemon) { KOTLMATA_COMMON }
-						daemons[terminateM.daemon]!!.terminate()
-						daemons -= terminateM.daemon
+						logLevel.detail(terminateR, terminateR.daemon) { KOTLMATA_COMMON }
+						daemons[terminateR.daemon]!!.terminate()
+						daemons -= terminateR.daemon
 					}
 					else
 					{
-						logLevel.normal(terminateM, terminateM.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal(terminateR, terminateR.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Message.Signal::class action { signalM ->
-					if (signalM.daemon in daemons)
+				input signal Request.Signal::class action { signalR ->
+					if (signalR.daemon in daemons)
 					{
-						logLevel.detail("", signalM.signal, signalM.priority, signalM.daemon) { KOTLMATA_SIGNAL }
-						daemons[signalM.daemon]!!.input(signalM.signal, signalM.priority)
+						logLevel.detail("", signalR.signal, signalR.priority, signalR.daemon) { KOTLMATA_SIGNAL }
+						daemons[signalR.daemon]!!.input(signalR.signal, signalR.priority)
 					}
 					else
 					{
-						logLevel.normal("", signalM.signal, signalM.priority, signalM.daemon) { KOTLMATA_SIGNAL_IGNORED }
+						logLevel.normal("", signalR.signal, signalR.priority, signalR.daemon) { KOTLMATA_SIGNAL_IGNORED }
 					}
 				}
-				input signal Message.TypedSignal::class action { typedM ->
-					if (typedM.daemon in daemons)
+				input signal Request.TypedSignal::class action { typedR ->
+					if (typedR.daemon in daemons)
 					{
-						logLevel.detail("", typedM.signal, "${typedM.type.simpleName}::class", typedM.priority, typedM.daemon) { KOTLMATA_TYPED }
-						daemons[typedM.daemon]!!.input(typedM.signal, typedM.type, typedM.priority)
+						logLevel.detail("", typedR.signal, "${typedR.type.simpleName}::class", typedR.priority, typedR.daemon) { KOTLMATA_TYPED }
+						daemons[typedR.daemon]!!.input(typedR.signal, typedR.type, typedR.priority)
 					}
 					else
 					{
-						logLevel.normal("", typedM.signal, "${typedM.type.simpleName}::class", typedM.priority, typedM.daemon) { KOTLMATA_TYPED_IGNORED }
+						logLevel.normal("", typedR.signal, "${typedR.type.simpleName}::class", typedR.priority, typedR.daemon) { KOTLMATA_TYPED_IGNORED }
 					}
 				}
-				input signal Message.Post::class action { postM ->
+				input signal Request.Post::class action { postR ->
 					logLevel.detail { KOTLMATA_START_POST }
-					PostImpl(postM.block)
+					PostImpl(postR.block)
 					logLevel.detail { KOTLMATA_END_POST }
 				}
 			}
@@ -315,7 +315,7 @@ private class KotlmataImpl : Kotlmata
 		@Suppress("UNCHECKED_CAST")
 		override fun of(block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End)
 		{
-			core.input(Message.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End))
+			core.input(Request.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End))
 		}
 	}
 	
@@ -324,28 +324,28 @@ private class KotlmataImpl : Kotlmata
 		@Suppress("UNCHECKED_CAST")
 		override fun set(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
 		{
-			core.input(Message.Modify(daemon, block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit))
+			core.input(Request.Modify(daemon, block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit))
 		}
 	}
 	
 	override fun run(daemon: DAEMON)
 	{
-		core.input(Message.Run(daemon))
+		core.input(Request.Run(daemon))
 	}
 	
 	override fun pause(daemon: DAEMON)
 	{
-		core.input(Message.Pause(daemon))
+		core.input(Request.Pause(daemon))
 	}
 	
 	override fun stop(daemon: DAEMON)
 	{
-		core.input(Message.Stop(daemon))
+		core.input(Request.Stop(daemon))
 	}
 	
 	override fun terminate(daemon: DAEMON)
 	{
-		core.input(Message.Terminate(daemon))
+		core.input(Request.Terminate(daemon))
 	}
 	
 	override fun <T : SIGNAL> input(signal: T) = object : Kotlmata.Type<T>
@@ -357,13 +357,13 @@ private class KotlmataImpl : Kotlmata
 			{
 				override fun to(daemon: DAEMON)
 				{
-					core.input(Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, priority))
+					core.input(Request.TypedSignal(daemon, signal, type as KClass<SIGNAL>, priority))
 				}
 			}
 			
 			override fun to(daemon: DAEMON)
 			{
-				core.input(Message.TypedSignal(daemon, signal, type as KClass<SIGNAL>, 0))
+				core.input(Request.TypedSignal(daemon, signal, type as KClass<SIGNAL>, 0))
 			}
 		}
 		
@@ -371,19 +371,19 @@ private class KotlmataImpl : Kotlmata
 		{
 			override fun to(daemon: DAEMON)
 			{
-				core.input(Message.Signal(daemon, signal, priority))
+				core.input(Request.Signal(daemon, signal, priority))
 			}
 		}
 		
 		override fun to(daemon: DAEMON)
 		{
-			core.input(Message.Signal(daemon, signal, 0))
+			core.input(Request.Signal(daemon, signal, 0))
 		}
 	}
 	
 	override fun post(block: Kotlmata.Post.() -> Unit)
 	{
-		core.input(Message.Post(block))
+		core.input(Request.Post(block))
 	}
 	
 	private inner class ConfigImpl internal constructor(
@@ -647,20 +647,20 @@ private class KotlmataImpl : Kotlmata
 		}
 	}
 	
-	private sealed class Message
+	private sealed class Request
 	{
-		class Fork(val daemon: DAEMON, val block: KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End) : Message()
-		class Modify(val daemon: DAEMON, val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Message()
+		class Fork(val daemon: DAEMON, val block: KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End) : Request()
+		class Modify(val daemon: DAEMON, val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request()
 		
-		class Run(val daemon: DAEMON) : Message()
-		class Pause(val daemon: DAEMON) : Message()
-		class Stop(val daemon: DAEMON) : Message()
-		class Terminate(val daemon: DAEMON) : Message()
+		class Run(val daemon: DAEMON) : Request()
+		class Pause(val daemon: DAEMON) : Request()
+		class Stop(val daemon: DAEMON) : Request()
+		class Terminate(val daemon: DAEMON) : Request()
 		
-		class Signal(val daemon: DAEMON, val signal: SIGNAL, val priority: Int) : Message()
-		class TypedSignal(val daemon: DAEMON, val signal: SIGNAL, val type: KClass<SIGNAL>, val priority: Int) : Message()
+		class Signal(val daemon: DAEMON, val signal: SIGNAL, val priority: Int) : Request()
+		class TypedSignal(val daemon: DAEMON, val signal: SIGNAL, val type: KClass<SIGNAL>, val priority: Int) : Request()
 		
-		class Post(val block: Kotlmata.Post.() -> Unit) : Message()
+		class Post(val block: Kotlmata.Post.() -> Unit) : Request()
 		
 		override fun toString(): String
 		{

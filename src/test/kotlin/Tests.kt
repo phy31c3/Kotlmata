@@ -171,7 +171,7 @@ class Tests
 		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
-		val daemon by KotlmataMutableDaemon.lazy("d1", 2) {
+		val daemon by KotlmataMutableDaemon.lazy("d1", 3) {
 			on start {
 				thread = Thread.currentThread()
 			}
