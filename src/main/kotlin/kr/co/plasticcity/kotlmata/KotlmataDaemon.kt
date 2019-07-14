@@ -5,6 +5,7 @@ import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import kotlin.reflect.KClass
+import kotlin.system.measureTimeMillis
 
 interface KotlmataDaemon<T : DAEMON>
 {
@@ -308,8 +309,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					val message = queue!!.take()
 					logLevel.normal(key, queue!!.size, message.id) { DAEMON_START_MESSAGE }
-					core.input(message)
-					logLevel.normal(key, message.id) { DAEMON_END_MESSAGE }
+					measureTimeMillis {
+						core.input(message)
+					}.also { time ->
+						logLevel.normal(key, time, message.id) { DAEMON_END_MESSAGE }
+					}
 				}
 			}
 			catch (e: InterruptedException)

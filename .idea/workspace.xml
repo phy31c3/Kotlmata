@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#6">
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#69: 소요시간 적용">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/modules/Kotlmata_main.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules/Kotlmata_main.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/modules/Kotlmata_test.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules/Kotlmata_test.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
@@ -40,8 +41,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="416">
-              <caret line="290" column="77" lean-forward="true" selection-start-line="290" selection-start-column="77" selection-end-line="290" selection-end-column="77" />
+            <state relative-caret-position="501">
+              <caret line="217" column="71" lean-forward="true" selection-start-line="217" selection-start-column="71" selection-end-line="217" selection-end-column="71" />
               <folding>
                 <element signature="e#36#250#0" expanded="true" />
               </folding>
@@ -52,8 +53,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="410">
-              <caret line="41" column="91" lean-forward="true" selection-start-line="41" selection-start-column="91" selection-end-line="41" selection-end-column="91" />
+            <state relative-caret-position="393">
+              <caret line="40" column="103" lean-forward="true" selection-start-line="40" selection-start-column="103" selection-end-line="40" selection-end-column="103" />
             </state>
           </provider>
         </entry>
@@ -163,6 +164,7 @@
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" />
         <option value="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -387,13 +389,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00077" summary="#12 데몬의 queue를 Nullable로">
-      <created>1537010965031</created>
-      <option name="number" value="00077" />
-      <option name="presentableId" value="LOCAL-00077" />
-      <option name="project" value="LOCAL" />
-      <updated>1537010965031</updated>
     </task>
     <task id="LOCAL-00078" summary="KotlmataMachine 누락한 expired 처리 수정">
       <created>1537012868043</created>
@@ -731,16 +726,17 @@
       <option name="project" value="LOCAL" />
       <updated>1553788186982</updated>
     </task>
-    <option name="localTasksCounter" value="126" />
+    <task id="LOCAL-00126" summary="gitignore 업데이트">
+      <created>1563079364925</created>
+      <option name="number" value="00126" />
+      <option name="presentableId" value="LOCAL-00126" />
+      <option name="project" value="LOCAL" />
+      <updated>1563079364926</updated>
+    </task>
+    <option name="localTasksCounter" value="127" />
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Tests_daemonTest - 2019.03.29 at 00h 03m 10s.xml">
-      <configuration name="Tests.daemonTest" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="Tests_daemonTest - 2019.03.29 at 00h 03m 42s.xml">
-      <configuration name="Tests.daemonTest" configurationId="JUnit" />
-    </history-entry>
     <history-entry file="Tests_daemonTest - 2019.03.29 at 00h 04m 05s.xml">
       <configuration name="Tests.daemonTest" configurationId="JUnit" />
     </history-entry>
@@ -763,6 +759,12 @@
       <configuration name="Tests.daemonTest" configurationId="JUnit" />
     </history-entry>
     <history-entry file="Tests_daemonTest - 2019.07.14 at 13h 37m 48s.xml">
+      <configuration name="Tests.daemonTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="Tests_daemonTest - 2019.07.14 at 13h 39m 16s.xml">
+      <configuration name="Tests.daemonTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="Tests_daemonTest - 2019.07.14 at 13h 41m 48s.xml">
       <configuration name="Tests.daemonTest" configurationId="JUnit" />
     </history-entry>
   </component>
@@ -861,7 +863,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="interface 파일 정리 #26" />
     <MESSAGE value="by lazy 제거 #31" />
     <MESSAGE value="on exception의 파라미터를 throwable로 #40" />
     <MESSAGE value="상태전이 로그 버그 수정" />
@@ -886,7 +887,8 @@
     <MESSAGE value="데몬 생성을 데몬 스레드에서 하는것 재검토 #61" />
     <MESSAGE value="#64: 남아있는 메시지 개수 로그찍기" />
     <MESSAGE value="0.2.1: Interface 수정" />
-    <option name="LAST_COMMIT_MESSAGE" value="0.2.1: Interface 수정" />
+    <MESSAGE value="gitignore 업데이트" />
+    <option name="LAST_COMMIT_MESSAGE" value="gitignore 업데이트" />
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
@@ -945,7 +947,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/.idea/dictionaries/JongsunYu.xml" />
     <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.2.51/649a609725b857dd285cf69d49d4f1f77335076e/kotlin-stdlib-1.2.51-sources.jar!/kotlin/jvm/internal/ClassReference.kt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1000">
@@ -1263,17 +1264,24 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="19" column="5" lean-forward="true" selection-start-line="19" selection-start-column="5" selection-end-line="19" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="410">
-          <caret line="41" column="91" lean-forward="true" selection-start-line="41" selection-start-column="91" selection-end-line="41" selection-end-column="91" />
+        <state relative-caret-position="393">
+          <caret line="40" column="103" lean-forward="true" selection-start-line="40" selection-start-column="103" selection-end-line="40" selection-end-column="103" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="416">
-          <caret line="290" column="77" lean-forward="true" selection-start-line="290" selection-start-column="77" selection-end-line="290" selection-end-column="77" />
+        <state relative-caret-position="501">
+          <caret line="217" column="71" lean-forward="true" selection-start-line="217" selection-start-column="71" selection-end-line="217" selection-end-column="71" />
           <folding>
             <element signature="e#36#250#0" expanded="true" />
           </folding>

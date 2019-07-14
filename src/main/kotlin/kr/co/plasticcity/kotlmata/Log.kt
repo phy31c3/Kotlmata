@@ -39,7 +39,7 @@ internal class Logs
 		const val DAEMON_KEEP_SYNC = "Daemon[%s]:    Keep sync Input. {id: %s}"
 		const val DAEMON_DROP_MESSAGE = "Daemon[%s]:    Message dropped. {id: %s}"
 		const val DAEMON_IGNORE_MESSAGE = "Daemon[%s]:    Message ignored. {daemon state: %s} {id: %s}"
-		const val DAEMON_END_MESSAGE = "Daemon[%s]: << End message. {id: %s}"
+		const val DAEMON_END_MESSAGE = "Daemon[%s]: << End message. {spent: %sms} {id: %s}"
 		
 		/* Machine */
 		const val MACHINE_START_BUILD = "%s >> Start machine build."
