@@ -27,6 +27,7 @@ interface KotlmataState<T : STATE>
 		val entry: Entry
 		val input: Input
 		val exit: Exit
+		val error: Error
 		
 		infix fun SIGNAL.or(signal: SIGNAL): Signals
 		
@@ -83,6 +84,12 @@ interface KotlmataState<T : STATE>
 			infix fun catch(fallback: KotlmataFallback)
 			infix fun catch(fallback: KotlmataFallback1<SIGNAL>)
 		}
+	}
+	
+	interface Error
+	{
+		operator fun invoke(fallback: KotlmataFallback)
+		operator fun invoke(fallback: KotlmataFallback1<SIGNAL>)
 	}
 	
 	val key: T
@@ -179,6 +186,7 @@ private class KotlmataStateImpl<T : STATE>(
 	private var exit: ExitBundle? = null
 	private var entryMap: MutableMap<SIGNAL, EntryBundle>? = null
 	private var inputMap: MutableMap<SIGNAL, InputBundle>? = null
+	private var error: KotlmataFallback1<SIGNAL>? = null
 	
 	init
 	{
@@ -202,6 +210,8 @@ private class KotlmataStateImpl<T : STATE>(
 		{
 			second?.let {
 				DSL.it(e, signal) ?: Unit
+			} ?: error?.let {
+				DSL.it(e, signal)
 			} ?: throw e
 		}
 		sync?.let {
@@ -209,7 +219,7 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	/* for others */
+	/* for input, exit */
 	private fun InputBundle.action(signal: SIGNAL)
 	{
 		try
@@ -219,6 +229,8 @@ private class KotlmataStateImpl<T : STATE>(
 		catch (e: Throwable)
 		{
 			second?.also {
+				DSL.it(e, signal)
+			} ?: error?.let {
 				DSL.it(e, signal)
 			} ?: throw e
 		}
@@ -569,6 +581,21 @@ private class KotlmataStateImpl<T : STATE>(
 						this@KotlmataStateImpl.exit = ExitBundle(action, fallback)
 					}
 				}
+			}
+		}
+		
+		override val error = object : KotlmataState.Error
+		{
+			override fun invoke(fallback: KotlmataFallback)
+			{
+				this@ModifierImpl shouldNot expired
+				this@KotlmataStateImpl.error = { throwable, _ -> fallback(throwable) }
+			}
+			
+			override fun invoke(fallback: KotlmataFallback1<SIGNAL>)
+			{
+				this@ModifierImpl shouldNot expired
+				this@KotlmataStateImpl.error = fallback
 			}
 		}
 		

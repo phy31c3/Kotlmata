@@ -187,6 +187,9 @@ class Tests
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				input signal "goToState2" action { println("state2로 이동") }
+				input signal "goToError" action {
+					throw Exception("에러1 발생")
+				}
 				shouldGC = WeakReference(this)
 			}
 			
@@ -218,12 +221,10 @@ class Tests
 			}
 			
 			"error" {
-				entry action {
-					throw Exception("에러1 발생")
-				}
 				input signal "error" action {
 					throw Exception("에러2 발생")
-				} catch { throwable ->
+				}
+				error { throwable ->
 					println("상태 Fallback")
 					println(throwable)
 				}
@@ -233,7 +234,7 @@ class Tests
 				entry action {
 					throw Exception("에러3 발생")
 				} catch { throwable, signal ->
-					println("상태 Fallback")
+					println("진입동작 Fallback")
 					println("$state: catch 진입: $signal")
 					println(throwable)
 					"goToState1"
