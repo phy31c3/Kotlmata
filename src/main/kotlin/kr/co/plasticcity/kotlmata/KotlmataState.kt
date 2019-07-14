@@ -88,8 +88,8 @@ interface KotlmataState<T : STATE>
 	
 	interface Error
 	{
-		operator fun invoke(fallback: KotlmataFallback)
-		operator fun invoke(fallback: KotlmataFallback1<SIGNAL>)
+		infix fun action(fallback: KotlmataFallback)
+		infix fun action(fallback: KotlmataFallback1<SIGNAL>)
 	}
 	
 	val key: T
@@ -586,13 +586,13 @@ private class KotlmataStateImpl<T : STATE>(
 		
 		override val error = object : KotlmataState.Error
 		{
-			override fun invoke(fallback: KotlmataFallback)
+			override fun action(fallback: KotlmataFallback)
 			{
 				this@ModifierImpl shouldNot expired
 				this@KotlmataStateImpl.error = { throwable, _ -> fallback(throwable) }
 			}
 			
-			override fun invoke(fallback: KotlmataFallback1<SIGNAL>)
+			override fun action(fallback: KotlmataFallback1<SIGNAL>)
 			{
 				this@ModifierImpl shouldNot expired
 				this@KotlmataStateImpl.error = fallback
