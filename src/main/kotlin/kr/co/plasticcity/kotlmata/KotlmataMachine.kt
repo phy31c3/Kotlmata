@@ -675,7 +675,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					}
 				}
 				
-				override fun <R> catch(fallback: KotlmataFallback2<SIGNAL, R>)
+				override fun <R> catch(fallback: KotlmataFallback1R<SIGNAL, R>)
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[this@action]?.modify {
@@ -703,7 +703,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 						}
 					}
 					
-					override fun <R> catch(fallback: KotlmataFallback2<T, R>)
+					override fun <R> catch(fallback: KotlmataFallback1R<T, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
@@ -732,7 +732,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 						}
 					}
 					
-					override fun <R> catch(fallback: KotlmataFallback2<T, R>)
+					override fun <R> catch(fallback: KotlmataFallback1R<T, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
@@ -761,7 +761,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 						}
 					}
 					
-					override fun <R> catch(fallback: KotlmataFallback2<SIGNAL, R>)
+					override fun <R> catch(fallback: KotlmataFallback1R<SIGNAL, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
