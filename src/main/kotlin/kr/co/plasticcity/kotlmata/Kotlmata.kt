@@ -4,7 +4,7 @@ import kotlin.reflect.KClass
 
 interface Kotlmata
 {
-	companion object : Kotlmata by KotlmataImpl()
+	companion object : Kotlmata by KotlmataImpl
 	
 	fun config(block: Config.() -> Unit)
 	/**
@@ -146,7 +146,7 @@ interface Kotlmata
 	}
 }
 
-private class KotlmataImpl : Kotlmata
+private object KotlmataImpl : Kotlmata
 {
 	private var logLevel = NO_LOG
 	
@@ -386,7 +386,7 @@ private class KotlmataImpl : Kotlmata
 		core.input(Request.Post(block))
 	}
 	
-	private inner class ConfigImpl internal constructor(
+	private class ConfigImpl internal constructor(
 			block: Kotlmata.Config.() -> Unit
 	) : Kotlmata.Config, Expirable({ Log.e { EXPIRED_CONFIG } })
 	{
@@ -418,7 +418,7 @@ private class KotlmataImpl : Kotlmata
 		}
 	}
 	
-	private inner class PostImpl internal constructor(
+	private class PostImpl internal constructor(
 			block: Kotlmata.Post.() -> Unit
 	) : Kotlmata.Post, Expirable({ Log.e { EXPIRED_POST } })
 	{
