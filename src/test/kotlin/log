@@ -8,7 +8,7 @@
 포스트 블럭 끝				: 'Kotlmata: << End post block.'												3
 
 [KotlmataDaemon]
-생명주기						: 'KotlmataDaemon[$s]: START' 																		1
+생명주기						: 'KotlmataDaemon[$s]: START' 													1
 요청됨
 (타입지정)신호 요청됨
 빠른 입력 요청됨

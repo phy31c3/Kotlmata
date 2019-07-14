@@ -143,14 +143,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		val postSync: (SIGNAL) -> Unit = { signal ->
 			val syncR = Request.Sync(signal)
-			logLevel.detail(key, syncR.signal, syncR.id) { DAEMON_REQUEST_SYNC }
+			logLevel.detail(key, syncR) { DAEMON_PUT_REQUEST }
 			queue!!.offer(syncR)
 		}
 		
 		val ignore: (SIGNAL, STATE) -> Unit = { signal, state ->
 			if (signal is Request)
 			{
-				logLevel.normal(key, state, signal.id) { DAEMON_IGNORE_REQUEST }
+				logLevel.normal(key, state, signal) { DAEMON_IGNORE_REQUEST }
 			}
 		}
 		
@@ -164,7 +164,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				val start: KotlmataAction1<Request.Control> = { controlR ->
 					logLevel.simple(key) { DAEMON_START }
 					onStart(controlR.payload)
-					machine.input(controlR.payload/* as? SIGNAL */ ?: controlR, postSync)
+					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", postSync)
 				}
 				
 				input signal Request.Run::class action start
@@ -196,7 +196,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				var sync: Request.Sync? = null
 				val stash: MutableList<Request> = ArrayList()
 				val keep: KotlmataAction1<Request> = { request ->
-					logLevel.normal(key, request.id) { DAEMON_KEEP_REQUEST }
+					logLevel.normal(key, request) { DAEMON_KEEP_REQUEST }
 					stash += request
 				}
 				
@@ -217,8 +217,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Terminate::class action terminate
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
+					logLevel.normal(key, syncR) { DAEMON_KEEP_REQUEST }
 					sync = syncR
-					logLevel.normal(key, syncR.id) { DAEMON_KEEP_SYNC }
 				}
 				input signal Request.Signal::class action keep
 				input signal Request.TypedSignal::class action keep
@@ -238,7 +238,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 						(queueR.isSignal && queueR.olderThan(currentR)).also {
 							if (it)
 							{
-								logLevel.detail(key, queueR.id) { DAEMON_DROP_REQUEST }
+								logLevel.detail(key, queueR) { DAEMON_DROP_REQUEST }
 							}
 						}
 					}
@@ -259,8 +259,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Terminate::class action terminate
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
+					logLevel.normal(key, syncR) { DAEMON_KEEP_REQUEST }
 					sync = syncR
-					logLevel.normal(key, syncR.id) { DAEMON_KEEP_SYNC }
 				}
 				input action { signal -> ignore(signal, state) }
 				
@@ -308,11 +308,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				while (true)
 				{
 					val request = queue!!.take()
-					logLevel.normal(key, queue!!.size, request.id) { DAEMON_START_REQUEST }
+					logLevel.normal(key, queue!!.size, request) { DAEMON_START_REQUEST }
 					measureTimeMillis {
 						core.input(request)
 					}.also { time ->
-						logLevel.normal(key, time, request.id) { DAEMON_END_REQUEST }
+						logLevel.normal(key, time, request) { DAEMON_END_REQUEST }
 					}
 				}
 			}
@@ -329,35 +329,35 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	override fun run(payload: Any?)
 	{
 		val runR = Request.Run(payload)
-		logLevel.detail(key, runR, runR.id) { DAEMON_REQUEST }
+		logLevel.detail(key, runR) { DAEMON_PUT_REQUEST }
 		queue?.offer(runR)
 	}
 	
 	override fun pause(payload: Any?)
 	{
 		val pauseR = Request.Pause(payload)
-		logLevel.detail(key, pauseR, pauseR.id) { DAEMON_REQUEST }
+		logLevel.detail(key, pauseR) { DAEMON_PUT_REQUEST }
 		queue?.offer(pauseR)
 	}
 	
 	override fun stop(payload: Any?)
 	{
 		val stopR = Request.Stop(payload)
-		logLevel.detail(key, stopR, stopR.id) { DAEMON_REQUEST }
+		logLevel.detail(key, stopR) { DAEMON_PUT_REQUEST }
 		queue?.offer(stopR)
 	}
 	
 	override fun terminate(payload: Any?)
 	{
 		val terminateR = Request.Terminate(payload)
-		logLevel.detail(key, terminateR, terminateR.id) { DAEMON_REQUEST }
+		logLevel.detail(key, terminateR) { DAEMON_PUT_REQUEST }
 		queue?.offer(terminateR)
 	}
 	
 	override fun input(signal: SIGNAL, priority: Int)
 	{
 		val signalR = Request.Signal(signal, priority)
-		logLevel.detail(key, signalR.signal, signalR.priority, signalR.id) { DAEMON_REQUEST_SIGNAL }
+		logLevel.detail(key, signalR) { DAEMON_PUT_REQUEST }
 		queue?.offer(signalR)
 	}
 	
@@ -365,7 +365,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int)
 	{
 		val typedR = Request.TypedSignal(signal, type as KClass<SIGNAL>, priority)
-		logLevel.detail(key, typedR.signal, "${typedR.type.simpleName}::class", typedR.priority, typedR.id) { DAEMON_REQUEST_TYPED }
+		logLevel.detail(key, typedR) { DAEMON_PUT_REQUEST }
 		queue?.offer(typedR)
 	}
 	
@@ -373,7 +373,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	override fun modify(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 	{
 		val modifyR = Request.Modify(block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit)
-		logLevel.detail(key, modifyR, modifyR.id) { DAEMON_REQUEST }
+		logLevel.detail(key, modifyR) { DAEMON_PUT_REQUEST }
 		queue?.offer(modifyR)
 	}
 	
@@ -445,11 +445,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 	}
 	
-	private sealed class Request(val priority: Int) : Comparable<Request>
+	private sealed class Request(val priority: Int, info: String? = null) : Comparable<Request>
 	{
-		constructor(base: Int, additional: Int) : this(if (additional > 0) base + additional else base)
+		constructor(basePriority: Int, subPriority: Int, info: String) : this(if (subPriority > 0) basePriority + subPriority else basePriority, info)
 		
-		open class Control(val payload: Any?) : Request(DAEMON_CONTROL)
+		open class Control(val payload: Any?) : Request(DAEMON_CONTROL, "payload: $payload")
 		class Run(payload: Any?) : Control(payload)
 		class Pause(payload: Any?) : Control(payload)
 		class Stop(payload: Any?) : Control(payload)
@@ -457,10 +457,10 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		class Modify(val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request(MODIFY)
 		
-		class Sync(val signal: SIGNAL) : Request(SYNC)
+		class Sync(val signal: SIGNAL) : Request(SYNC, "signal: $signal")
 		
-		class Signal(val signal: SIGNAL, priority: Int) : Request(SIGNAL, priority)
-		class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>, priority: Int) : Request(SIGNAL, priority)
+		class Signal(val signal: SIGNAL, priority: Int) : Request(SIGNAL, priority, "signal: $signal, priority: $priority")
+		class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>, priority: Int) : Request(SIGNAL, priority, "signal: $signal, type: ${type.simpleName}::class, priority: $priority")
 		
 		companion object
 		{
@@ -474,6 +474,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		val order = ticket.getAndIncrement()
 		val id = this.hashCode().toString(16)
+		val desc = "{id: $id, request: ${this::class.simpleName ?: super.toString()}${info?.let { ", $it" }}}"
 		
 		val isSignal = priority >= SIGNAL
 		
@@ -488,7 +489,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		override fun toString(): String
 		{
-			return this::class.simpleName ?: super.toString()
+			return desc
 		}
 	}
 }
