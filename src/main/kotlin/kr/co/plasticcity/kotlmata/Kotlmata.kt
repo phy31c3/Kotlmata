@@ -162,7 +162,7 @@ private class KotlmataImpl : Kotlmata
 			daemons.clear()
 		}
 		
-		core = KotlmataDaemon.create("Kotlmata@core", "Kotlmata") {
+		core = KotlmataDaemon.create("Kotlmata@core") {
 			on start { payload ->
 				if (payload is Int)
 				{

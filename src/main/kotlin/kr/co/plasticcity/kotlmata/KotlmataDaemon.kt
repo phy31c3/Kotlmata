@@ -17,7 +17,7 @@ interface KotlmataDaemon<T : DAEMON>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				threadName: String = "KotlmataDaemon[$name]",
+				threadName: String? = null,
 				isDaemon: Boolean = false,
 				block: Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
 		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
@@ -28,7 +28,7 @@ interface KotlmataDaemon<T : DAEMON>
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				threadName: String = "KotlmataDaemon[$name]",
+				threadName: String? = null,
 				isDaemon: Boolean = false,
 				block: Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
 		) = lazy {
@@ -37,9 +37,8 @@ interface KotlmataDaemon<T : DAEMON>
 		
 		internal fun <T : DAEMON> create(
 				key: T,
-				threadName: String,
 				block: Initializer.(daemon: T) -> KotlmataMachine.Initializer.End
-		): KotlmataDaemon<T> = KotlmataDaemonImpl(key, threadName = threadName, block = block)
+		): KotlmataDaemon<T> = KotlmataDaemonImpl(key, block = block)
 	}
 	
 	@KotlmataMarker
@@ -85,7 +84,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				threadName: String = "KotlmataDaemon[$name]",
+				threadName: String? = null,
 				isDaemon: Boolean = false,
 				block: KotlmataDaemon.Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
 		): KotlmataMutableDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
@@ -96,7 +95,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				threadName: String = "KotlmataDaemon[$name]",
+				threadName: String? = null,
 				isDaemon: Boolean = false,
 				block: KotlmataDaemon.Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
 		) = lazy {
@@ -118,7 +117,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 private class KotlmataDaemonImpl<T : DAEMON>(
 		override val key: T,
 		val logLevel: Int = NO_LOG,
-		threadName: String = "KotlmataDaemon[$key]",
+		threadName: String? = null,
 		isDaemon: Boolean = false,
 		block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End
 ) : KotlmataMutableDaemon<T>
@@ -294,7 +293,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			start at "Initial"
 		}
 		
-		thread(name = threadName, isDaemon = isDaemon, start = true) {
+		thread(name = threadName ?: "$key", isDaemon = isDaemon, start = true) {
 			logLevel.normal(key, threadName, isDaemon) { DAEMON_START_THREAD }
 			logLevel.normal(key) { DAEMON_START_INIT }
 			machine = KotlmataMutableMachine.create(key, logLevel, "Daemon[$key]:$tab") {
