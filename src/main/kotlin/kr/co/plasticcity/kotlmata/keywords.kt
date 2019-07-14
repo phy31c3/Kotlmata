@@ -7,9 +7,10 @@ object of
 @KotlmataMarker
 interface KotlmataDSL
 
-typealias KotlmataAction = KotlmataDSL.(signal: SIGNAL) -> Unit
-typealias KotlmataAction1<T> = KotlmataDSL.(signal: T) -> Unit
-typealias KotlmataAction2<T, R> = KotlmataDSL.(signal: T) -> R
+typealias KotlmataAction = KotlmataAction1R<SIGNAL, Unit>
+typealias KotlmataAction1<T> = KotlmataAction1R<T, Unit>
+typealias KotlmataActionR<R> = KotlmataAction1R<SIGNAL, R>
+typealias KotlmataAction1R<T, R> = KotlmataDSL.(signal: T) -> R
 
 typealias KotlmataFallback = KotlmataDSL.(throwable: Throwable) -> Unit
 typealias KotlmataFallbackR<R> = KotlmataDSL.(throwable: Throwable) -> R
