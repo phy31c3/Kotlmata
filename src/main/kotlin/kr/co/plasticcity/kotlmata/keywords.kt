@@ -1,8 +1,14 @@
 package kr.co.plasticcity.kotlmata
 
+import kotlin.reflect.KClass
+
 object all
 object any
 object of
+
+data class TypedSignal<T : SIGNAL>(val signal: T, val type: KClass<in T>)
+
+infix fun <T : SIGNAL> T.asType(type: KClass<in T>) = TypedSignal(this, type)
 
 @KotlmataMarker
 interface KotlmataDSL
