@@ -6,12 +6,14 @@ object all
 object any
 object of
 
-data class TypedSignal<T : SIGNAL>(val signal: T, val type: KClass<in T>)
-
-infix fun <T : SIGNAL> T.asType(type: KClass<in T>) = TypedSignal(this, type)
-
 @KotlmataMarker
 interface KotlmataDSL
+{
+	data class SyncInput internal constructor(val signal: SIGNAL, val type: KClass<SIGNAL>? = null)
+	
+	@Suppress("UNCHECKED_CAST")
+	infix fun <T : SIGNAL> T.asType(type: KClass<in T>) = SyncInput(this, type as KClass<SIGNAL>)
+}
 
 typealias KotlmataAction = KotlmataAction1R<SIGNAL, Unit>
 typealias KotlmataActionR<R> = KotlmataAction1R<SIGNAL, R>

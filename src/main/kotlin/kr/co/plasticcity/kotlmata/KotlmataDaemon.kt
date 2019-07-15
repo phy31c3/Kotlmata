@@ -141,8 +141,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			machine modify modifyR.block
 		}
 		
-		val postSync: (SIGNAL) -> Unit = { signal ->
-			val syncR = Request.Sync(signal)
+		val postSync: (KotlmataDSL.SyncInput) -> Unit = {
+			val syncR = Request.Sync(it.signal, it.type)
 			logLevel.detail(key, syncR) { DAEMON_PUT_REQUEST }
 			queue!!.offer(syncR)
 		}
@@ -181,7 +181,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Terminate::class action terminate
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
-					machine.input(syncR.signal, postSync)
+					syncR.type?.also {
+						machine.input(syncR.signal, it, postSync)
+					} ?: machine.input(syncR.signal, postSync)
 				}
 				input signal Request.Signal::class action { signalR ->
 					machine.input(signalR.signal, postSync)
@@ -457,7 +459,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		class Modify(val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request(MODIFY)
 		
-		class Sync(val signal: SIGNAL) : Request(SYNC, "signal: $signal")
+		class Sync(val signal: SIGNAL, val type: KClass<SIGNAL>?) : Request(SYNC, "signal: $signal, type: ${type?.let { "${it.simpleName}::class" } ?: "null"}")
 		
 		class Signal(val signal: SIGNAL, priority: Int) : Request(SIGNAL, priority, "signal: $signal, priority: $priority")
 		class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>, priority: Int) : Request(SIGNAL, priority, "signal: $signal, type: ${type.simpleName}::class, priority: $priority")
@@ -474,7 +476,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		val order = ticket.getAndIncrement()
 		val id = this.hashCode().toString(16)
-		val desc = "{id: $id, request: ${this::class.simpleName ?: super.toString()}${info?.let { ", $it" }}}"
+		val desc = "{id: $id, request: ${this::class.simpleName}${info?.let { ", $it" }}}"
 		
 		val isSignal = priority >= SIGNAL
 		

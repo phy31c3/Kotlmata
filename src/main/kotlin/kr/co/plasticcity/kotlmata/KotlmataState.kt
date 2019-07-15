@@ -97,12 +97,12 @@ interface KotlmataState<T : STATE>
 	/**
 	 * @param block If 'entry action' returns a next signal, the block is executed.
 	 */
-	fun entry(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
+	fun entry(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
 	
 	/**
 	 * @param block If 'entry action' returns a next signal, the block is executed.
 	 */
-	fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
+	fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
 	
 	fun input(signal: SIGNAL)
 	
@@ -200,7 +200,7 @@ private class KotlmataStateImpl<T : STATE>(
 	}
 	
 	/* for entry */
-	private fun EntryBundle.action(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
+	private fun EntryBundle.action(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
 	{
 		val sync = try
 		{
@@ -215,7 +215,8 @@ private class KotlmataStateImpl<T : STATE>(
 			} ?: throw e
 		}
 		sync?.let {
-			if (/* it is SIGNAL */it !is Unit) block(it)
+			if (it is KotlmataDSL.SyncInput) block(it)
+			else if (/* it is SIGNAL */it !is Unit) block(KotlmataDSL.SyncInput(it))
 		}
 	}
 	
@@ -236,7 +237,7 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	override fun entry(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
+	override fun entry(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
 	{
 		val bundle = entryMap?.let {
 			when
@@ -262,7 +263,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE }
 	}
 	
-	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
+	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
 	{
 		val bundle = entryMap?.let {
 			when (type)

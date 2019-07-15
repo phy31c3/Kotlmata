@@ -214,9 +214,9 @@ class Tests
 				entry action {
 					Thread.sleep(10)
 					println("$state: 기본 진입함수")
-					"state4 sync"
+					"goToState1" asType Any::class
 				}
-				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
+				input signal Any::class action { s -> println("$state: Any 타입 입력함수: $s") }
 				exit action { println("$state: 퇴장함수") }
 			}
 			
@@ -245,7 +245,7 @@ class Tests
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
 			"state3" x "goToState4" %= "state4"
-			"state4" x "state4 sync" %= "state1"
+			"state4" x Any::class %= "state1"
 			"state1" x "goToError" %= "error"
 			"error" x "error" %= "errorSync"
 			"errorSync" x "goToState1" %= "state1"

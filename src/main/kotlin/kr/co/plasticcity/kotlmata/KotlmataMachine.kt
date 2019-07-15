@@ -119,19 +119,18 @@ interface KotlmataMachine<T : MACHINE>
 	
 	val key: T
 	
-	/**
-	 * @param block Called if the state is switched and the next state's entry function returns a signal.
-	 */
-	fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
-	
 	fun input(signal: SIGNAL)
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	
 	/**
 	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
+	fun input(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
 	
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
+	/**
+	 * @param block Called if the state is switched and the next state's entry function returns a signal.
+	 */
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
 }
 
 interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
@@ -301,7 +300,25 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
+	override fun input(signal: SIGNAL)
+	{
+		input(signal) { syncInput ->
+			syncInput.type?.also {
+				input(syncInput.signal, it)
+			} ?: input(syncInput.signal)
+		}
+	}
+	
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
+	{
+		input(signal, type) { syncInput ->
+			syncInput.type?.also {
+				input(syncInput.signal, it)
+			} ?: input(syncInput.signal)
+		}
+	}
+	
+	override fun input(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
@@ -339,14 +356,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun input(signal: SIGNAL)
-	{
-		input(signal) {
-			input(it)
-		}
-	}
-	
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
@@ -367,7 +377,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				!in stateMap ->
 				{
-					Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
+					Log.w(prefix.trimEnd(), current.key, "${type.simpleName}::class", it) { TRANSITION_FAILED }
 					null
 				}
 				else ->
@@ -376,18 +386,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 		}?.let { next ->
-			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
+			logLevel.simple(prefix, current.key, "${type.simpleName}::class", next.key) { MACHINE_START_TRANSITION }
 			action { current.exit(signal) }
 			current = next
 			action { current.entry(signal, type, block) }
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
-		}
-	}
-	
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
-	{
-		input(signal, type) {
-			input(it)
 		}
 	}
 	
