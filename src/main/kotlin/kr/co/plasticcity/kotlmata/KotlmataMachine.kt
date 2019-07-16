@@ -300,22 +300,29 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun input(signal: SIGNAL)
+	private fun input(begin: KotlmataDSL.SyncInput)
 	{
-		input(signal) { syncInput ->
-			syncInput.type?.also {
-				input(syncInput.signal, it)
-			} ?: input(syncInput.signal)
+		var next: KotlmataDSL.SyncInput? = begin
+		while (next != null) next.also {
+			next = null
+			if (it.type == null) input(it.signal) { sync ->
+				next = sync
+			}
+			else input(it.signal, it.type) { sync ->
+				next = sync
+			}
 		}
 	}
 	
+	override fun input(signal: SIGNAL)
+	{
+		input(KotlmataDSL.SyncInput(signal))
+	}
+	
+	@Suppress("UNCHECKED_CAST")
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	{
-		input(signal, type) { syncInput ->
-			syncInput.type?.also {
-				input(syncInput.signal, it)
-			} ?: input(syncInput.signal)
-		}
+		input(KotlmataDSL.SyncInput(signal, type as KClass<SIGNAL>))
 	}
 	
 	override fun input(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
