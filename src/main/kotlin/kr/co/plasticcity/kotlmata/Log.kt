@@ -30,11 +30,12 @@ internal class Logs
 		const val DAEMON_STOP = "Daemon[%s]:    STOP"
 		const val DAEMON_RESUME = "Daemon[%s]:    RESUME"
 		const val DAEMON_TERMINATE = "Daemon[%s]:    TERMINATE"
-		const val DAEMON_PUT_REQUEST = "Daemon[%s]: ## put REQUEST %s"
+		const val DAEMON_PUT_REQUEST = "Daemon[%s]: ## Put REQUEST %s"
 		const val DAEMON_START_REQUEST = "Daemon[%s]: >> Start REQUEST. {remain: %s} %s"
 		const val DAEMON_KEEP_REQUEST = "Daemon[%s]:    Keep REQUEST. %s"
-		const val DAEMON_DROP_REQUEST = "Daemon[%s]:    REQUEST dropped. %s"
-		const val DAEMON_IGNORE_REQUEST = "Daemon[%s]:    REQUEST ignored. {daemon state: %s} %s"
+		const val DAEMON_STORE_REQUEST = "Daemon[%s]:    Store REQUEST. %s"
+		const val DAEMON_REMOVE_REQUEST = "Daemon[%s]:    Remove REQUEST. %s"
+		const val DAEMON_IGNORE_REQUEST = "Daemon[%s]:    Ignore REQUEST. {daemon state: %s} %s"
 		const val DAEMON_END_REQUEST = "Daemon[%s]: << End REQUEST. {spent: %sms} %s"
 		
 		/* Machine */

@@ -664,7 +664,7 @@ private object KotlmataImpl : Kotlmata
 		
 		override fun toString(): String
 		{
-			return this::class.simpleName ?: super.toString()
+			return this::class.simpleName?.toUpperCase() ?: super.toString()
 		}
 	}
 }
