@@ -219,7 +219,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Terminate::class action terminate
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
-					logLevel.normal(key, syncR) { DAEMON_KEEP_REQUEST }
+					logLevel.normal(key, syncR) { DAEMON_STORE_REQUEST }
 					sync = syncR
 				}
 				input signal Request.Signal::class action keep
@@ -240,7 +240,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 						(queueR.isSignal && queueR.olderThan(currentR)).also {
 							if (it)
 							{
-								logLevel.detail(key, queueR) { DAEMON_DROP_REQUEST }
+								logLevel.detail(key, queueR) { DAEMON_REMOVE_REQUEST }
 							}
 						}
 					}
@@ -261,7 +261,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Terminate::class action terminate
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
-					logLevel.normal(key, syncR) { DAEMON_KEEP_REQUEST }
+					logLevel.normal(key, syncR) { DAEMON_STORE_REQUEST }
 					sync = syncR
 				}
 				input action { signal -> ignore(signal, state) }
@@ -476,7 +476,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		val order = ticket.getAndIncrement()
 		val id = this.hashCode().toString(16)
-		val desc = "{id: $id, request: ${this::class.simpleName}${info?.let { ", $it" }}}"
+		val desc = "{id: $id, request: ${this::class.simpleName?.toUpperCase()}${info?.let { ", $it" } ?: ""}}"
 		
 		val isSignal = priority >= SIGNAL
 		

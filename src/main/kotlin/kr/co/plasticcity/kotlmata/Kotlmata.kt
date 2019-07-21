@@ -468,12 +468,12 @@ private object KotlmataImpl : Kotlmata
 					this@PostImpl shouldNot expired
 					if (daemon !in daemons)
 					{
-						logLevel.detail("   Fork", daemon) { KOTLMATA_COMMON }
+						logLevel.detail("${tab}Fork", daemon) { KOTLMATA_COMMON }
 						daemons[daemon] = KotlmataMutableDaemon.create(daemon, logLevel, block)
 					}
 					else
 					{
-						logLevel.normal("   Fork", daemon) { KOTLMATA_COMMON_IGNORED_EXISTS }
+						logLevel.normal("${tab}Fork", daemon) { KOTLMATA_COMMON_IGNORED_EXISTS }
 					}
 				}
 			}
@@ -489,12 +489,12 @@ private object KotlmataImpl : Kotlmata
 					this@PostImpl shouldNot expired
 					if (daemon in daemons)
 					{
-						logLevel.detail("   Modify", daemon) { KOTLMATA_COMMON }
+						logLevel.detail("${tab}Modify", daemon) { KOTLMATA_COMMON }
 						daemons[daemon]!! modify block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit
 					}
 					else
 					{
-						logLevel.normal("   Modify", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+						logLevel.normal("${tab}Modify", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
 			}
@@ -507,12 +507,12 @@ private object KotlmataImpl : Kotlmata
 				this@PostImpl shouldNot expired
 				if (daemon in daemons)
 				{
-					logLevel.detail("   Run", daemon) { KOTLMATA_COMMON }
+					logLevel.detail("${tab}Run", daemon) { KOTLMATA_COMMON }
 					daemons[daemon]!!.run()
 				}
 				else
 				{
-					logLevel.normal("   Run", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+					logLevel.normal("${tab}Run", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 				}
 			}
 		}
@@ -524,12 +524,12 @@ private object KotlmataImpl : Kotlmata
 				this@PostImpl shouldNot expired
 				if (daemon in daemons)
 				{
-					logLevel.detail("   Pause", daemon) { KOTLMATA_COMMON }
+					logLevel.detail("${tab}Pause", daemon) { KOTLMATA_COMMON }
 					daemons[daemon]!!.pause()
 				}
 				else
 				{
-					logLevel.normal("   Pause", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+					logLevel.normal("${tab}Pause", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 				}
 			}
 		}
@@ -541,12 +541,12 @@ private object KotlmataImpl : Kotlmata
 				this@PostImpl shouldNot expired
 				if (daemon in daemons)
 				{
-					logLevel.detail("   Stop", daemon) { KOTLMATA_COMMON }
+					logLevel.detail("${tab}Stop", daemon) { KOTLMATA_COMMON }
 					daemons[daemon]!!.stop()
 				}
 				else
 				{
-					logLevel.normal("   Stop", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+					logLevel.normal("${tab}Stop", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 				}
 			}
 		}
@@ -558,13 +558,13 @@ private object KotlmataImpl : Kotlmata
 				this@PostImpl shouldNot expired
 				if (daemon in daemons)
 				{
-					logLevel.detail("   Terminate", daemon) { KOTLMATA_COMMON }
+					logLevel.detail("${tab}Terminate", daemon) { KOTLMATA_COMMON }
 					daemons[daemon]!!.terminate()
 					daemons -= daemon
 				}
 				else
 				{
-					logLevel.normal("   Terminate", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
+					logLevel.normal("${tab}Terminate", daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 				}
 			}
 		}
@@ -664,7 +664,7 @@ private object KotlmataImpl : Kotlmata
 		
 		override fun toString(): String
 		{
-			return this::class.simpleName ?: super.toString()
+			return this::class.simpleName?.toUpperCase() ?: super.toString()
 		}
 	}
 }
