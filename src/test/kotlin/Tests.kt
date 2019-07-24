@@ -237,7 +237,15 @@ class Tests
 					println("진입동작 Fallback")
 					println("$state: catch 진입: $signal")
 					println(throwable)
-					"goToState1"
+					"goToState5"
+				}
+			}
+			
+			"state5" { state ->
+				entry action { println("$state: 기본 진입함수") }
+				input signal "consume" action {
+					println("consume 입력하면 String 타입이지만 전이는 하지 않는다")
+					consume
 				}
 			}
 			
@@ -248,7 +256,8 @@ class Tests
 			"state4" x Any::class %= "state1"
 			"state1" x "goToError" %= "error"
 			"error" x "error" %= "errorSync"
-			"errorSync" x "goToState1" %= "state1"
+			"errorSync" x "goToState5" %= "state5"
+			"state5" x String::class %= "state1"
 			
 			start at "state1"
 		}
@@ -325,6 +334,8 @@ class Tests
 		
 		daemon.input("goToError")
 		daemon.input("error")
+		daemon.input("consume")
+		daemon.input("some string")
 		
 		Thread.sleep(500)
 		

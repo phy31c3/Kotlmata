@@ -10,6 +10,10 @@ internal typealias DAEMON = MACHINE
 internal annotation class KotlmataMarker
 
 internal object DSL : KotlmataDSL
+{
+	override val consume = KotlmataDSL.InputActionReturn.Consume
+	override val forward = KotlmataDSL.InputActionReturn.Forward
+}
 
 internal object stay
 
