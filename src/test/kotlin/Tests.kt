@@ -171,7 +171,7 @@ class Tests
 		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
-		val daemon by KotlmataMutableDaemon.lazy("d1", 2) {
+		val daemon by KotlmataMutableDaemon.lazy("d1", 3) {
 			on start {
 				thread = Thread.currentThread()
 			}
@@ -187,6 +187,9 @@ class Tests
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				input signal "goToState2" action { println("state2로 이동") }
+				input signal "goToError" action {
+					throw Exception("에러1 발생")
+				}
 				shouldGC = WeakReference(this)
 			}
 			
@@ -211,19 +214,17 @@ class Tests
 				entry action {
 					Thread.sleep(10)
 					println("$state: 기본 진입함수")
-					"state4 sync"
+					"goToState1" asType Any::class
 				}
-				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
+				input signal Any::class action { s -> println("$state: Any 타입 입력함수: $s") }
 				exit action { println("$state: 퇴장함수") }
 			}
 			
 			"error" {
-				entry action {
-					throw Exception("에러1 발생")
-				}
 				input signal "error" action {
 					throw Exception("에러2 발생")
-				} catch { throwable ->
+				}
+				error action { throwable ->
 					println("상태 Fallback")
 					println(throwable)
 				}
@@ -233,10 +234,18 @@ class Tests
 				entry action {
 					throw Exception("에러3 발생")
 				} catch { throwable, signal ->
-					println("상태 Fallback")
+					println("진입동작 Fallback")
 					println("$state: catch 진입: $signal")
 					println(throwable)
-					"goToState1"
+					"goToState5"
+				}
+			}
+			
+			"state5" { state ->
+				entry action { println("$state: 기본 진입함수") }
+				input signal "consume" action {
+					println("consume 입력하면 String 타입이지만 전이는 하지 않는다")
+					consume
 				}
 			}
 			
@@ -244,10 +253,11 @@ class Tests
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
 			"state3" x "goToState4" %= "state4"
-			"state4" x "state4 sync" %= "state1"
+			"state4" x Any::class %= "state1"
 			"state1" x "goToError" %= "error"
 			"error" x "error" %= "errorSync"
-			"errorSync" x "goToState1" %= "state1"
+			"errorSync" x "goToState5" %= "state5"
+			"state5" x String::class %= "state1"
 			
 			start at "state1"
 		}
@@ -324,6 +334,8 @@ class Tests
 		
 		daemon.input("goToError")
 		daemon.input("error")
+		daemon.input("consume")
+		daemon.input("some string")
 		
 		Thread.sleep(500)
 		

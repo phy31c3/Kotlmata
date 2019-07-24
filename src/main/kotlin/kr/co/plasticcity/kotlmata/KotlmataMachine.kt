@@ -39,7 +39,7 @@ interface KotlmataMachine<T : MACHINE>
 		
 		interface Start
 		{
-			infix fun at(state: STATE): Initializer.End
+			infix fun at(state: STATE): End
 		}
 		
 		class End internal constructor()
@@ -48,7 +48,7 @@ interface KotlmataMachine<T : MACHINE>
 	interface StateDefine
 	{
 		operator fun <S : STATE> S.invoke(block: KotlmataState.Initializer.(state: S) -> Unit)
-		infix fun <S : STATE, R> S.action(action: KotlmataAction2<SIGNAL, R>): KotlmataState.Entry.Catch<SIGNAL>
+		infix fun <S : STATE, R> S.action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE> S.via(signals: KotlmataState.Initializer.Signals): KotlmataState.Entry.Action<SIGNAL>
@@ -119,19 +119,18 @@ interface KotlmataMachine<T : MACHINE>
 	
 	val key: T
 	
-	/**
-	 * @param block Called if the state is switched and the next state's entry function returns a signal.
-	 */
-	fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
-	
 	fun input(signal: SIGNAL)
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
 	
 	/**
 	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
+	fun input(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
 	
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
+	/**
+	 * @param block Called if the state is switched and the next state's entry function returns a signal.
+	 */
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
 }
 
 interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
@@ -301,7 +300,32 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun input(signal: SIGNAL, block: (signal: SIGNAL) -> Unit)
+	private fun input(begin: KotlmataDSL.SyncInput)
+	{
+		var next: KotlmataDSL.SyncInput? = begin
+		while (next != null) next.also {
+			next = null
+			if (it.type == null) input(it.signal) { sync ->
+				next = sync
+			}
+			else input(it.signal, it.type) { sync ->
+				next = sync
+			}
+		}
+	}
+	
+	override fun input(signal: SIGNAL)
+	{
+		input(KotlmataDSL.SyncInput(signal))
+	}
+	
+	@Suppress("UNCHECKED_CAST")
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
+	{
+		input(KotlmataDSL.SyncInput(signal, type as KClass<SIGNAL>))
+	}
+	
+	override fun input(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
@@ -310,9 +334,15 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		ruleMap.let {
 			logLevel.normal(prefix, signal, current.key) { MACHINE_START_SIGNAL }
-			action { current.input(signal) }
+			var ret: KotlmataDSL.InputActionReturn = DSL.forward
+			action { ret = current.input(signal) }
 			logLevel.normal(prefix, signal, current.key) { MACHINE_END_SIGNAL }
-			it[current.key]?.next() ?: it[any]?.next()
+			if (ret === DSL.consume)
+			{
+				logLevel.simple(prefix) { MACHINE_SIGNAL_CONSUMED }
+				null
+			}
+			else it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			when (it)
 			{
@@ -339,14 +369,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun input(signal: SIGNAL)
-	{
-		input(signal) {
-			input(it)
-		}
-	}
-	
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (signal: SIGNAL) -> Unit)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
@@ -355,9 +378,15 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		ruleMap.let {
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_START_TYPED }
-			action { current.input(signal, type) }
+			var ret: KotlmataDSL.InputActionReturn = DSL.forward
+			action { ret = current.input(signal, type) }
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_END_TYPED }
-			it[current.key]?.next() ?: it[any]?.next()
+			if (ret === DSL.consume)
+			{
+				logLevel.simple(prefix) { MACHINE_SIGNAL_CONSUMED }
+				null
+			}
+			else it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			when (it)
 			{
@@ -367,7 +396,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				!in stateMap ->
 				{
-					Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
+					Log.w(prefix.trimEnd(), current.key, "${type.simpleName}::class", it) { TRANSITION_FAILED }
 					null
 				}
 				else ->
@@ -376,18 +405,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 		}?.let { next ->
-			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
+			logLevel.simple(prefix, current.key, "${type.simpleName}::class", next.key) { MACHINE_START_TRANSITION }
 			action { current.exit(signal) }
 			current = next
 			action { current.entry(signal, type, block) }
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
-		}
-	}
-	
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
-	{
-		input(signal, type) {
-			input(it)
 		}
 	}
 	
@@ -659,7 +681,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
 		}
 		
-		override fun <S : STATE, R> S.action(action: KotlmataAction2<SIGNAL, R>): KotlmataState.Entry.Catch<SIGNAL>
+		override fun <S : STATE, R> S.action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab") {
@@ -675,7 +697,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					}
 				}
 				
-				override fun <R> catch(fallback: KotlmataFallback2<SIGNAL, R>)
+				override fun <R> catch(fallback: KotlmataFallback1R<SIGNAL, R>)
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[this@action]?.modify {
@@ -687,7 +709,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun <R> action(action: KotlmataAction2<T, R>): KotlmataState.Entry.Catch<T>
+			override fun <R> action(action: KotlmataAction1R<T, R>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
@@ -703,7 +725,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 						}
 					}
 					
-					override fun <R> catch(fallback: KotlmataFallback2<T, R>)
+					override fun <R> catch(fallback: KotlmataFallback1R<T, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
@@ -716,7 +738,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE, T : SIGNAL> S.via(signal: T) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun <R> action(action: KotlmataAction2<T, R>): KotlmataState.Entry.Catch<T>
+			override fun <R> action(action: KotlmataAction1R<T, R>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
@@ -732,7 +754,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 						}
 					}
 					
-					override fun <R> catch(fallback: KotlmataFallback2<T, R>)
+					override fun <R> catch(fallback: KotlmataFallback1R<T, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
@@ -745,7 +767,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE> S.via(signals: KotlmataState.Initializer.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
 		{
-			override fun <R> action(action: KotlmataAction2<SIGNAL, R>): KotlmataState.Entry.Catch<SIGNAL>
+			override fun <R> action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
@@ -761,7 +783,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 						}
 					}
 					
-					override fun <R> catch(fallback: KotlmataFallback2<SIGNAL, R>)
+					override fun <R> catch(fallback: KotlmataFallback1R<SIGNAL, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
