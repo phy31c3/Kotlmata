@@ -337,7 +337,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			var ret: KotlmataDSL.InputActionReturn = DSL.forward
 			action { ret = current.input(signal) }
 			logLevel.normal(prefix, signal, current.key) { MACHINE_END_SIGNAL }
-			if (ret === DSL.consume) null
+			if (ret === DSL.consume)
+			{
+				logLevel.simple(prefix) { MACHINE_SIGNAL_CONSUMED }
+				null
+			}
 			else it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			when (it)
@@ -377,7 +381,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			var ret: KotlmataDSL.InputActionReturn = DSL.forward
 			action { ret = current.input(signal, type) }
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_END_TYPED }
-			if (ret === DSL.consume) null
+			if (ret === DSL.consume)
+			{
+				logLevel.simple(prefix) { MACHINE_SIGNAL_CONSUMED }
+				null
+			}
 			else it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			when (it)
