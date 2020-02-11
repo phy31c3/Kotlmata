@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="kotlin 1.2 -&gt; 1.3 업데이트">
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#83: gradle 업데이트">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,75 +74,6 @@
         <option value="Kotlin File" />
       </list>
     </option>
-  </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>&quot;core&quot;</find>
-      <find>REQUEST</find>
-      <find>request</find>
-      <find>Request</find>
-      <find>on exception</find>
-      <find>apply {</find>
-      <find>MESSAGE</find>
-      <find>Message</find>
-      <find>message</find>
-      <find>sync</find>
-      <find>([a-z]+)M</find>
-      <find>([a-z]+)M[.]</find>
-      <find>([a-z]+)M[)]</find>
-      <find>= ([a-z]+)M\n</find>
-      <find>([a-z]+)M[,]</find>
-      <find>([a-z]+)M^[a-z]</find>
-      <find>KotlmataAction2&lt;SI</find>
-      <find>KotlmataAction2&lt;SIGNAL</find>
-      <find>catch</find>
-      <find>Fallback</find>
-      <find>construc</find>
-      <find>typedSignal: KotlmataDSL</find>
-      <find>TypedSignal&lt;*&gt;</find>
-      <find>if (</find>
-      <find>simpleName ?:</find>
-      <find>UNCHECKED_CAST</find>
-      <find>typedSignal</find>
-      <find>s</find>
-      <find>asdf</find>
-      <find>a</find>
-    </findStrings>
-    <replaceStrings>
-      <replace>rule</replace>
-      <replace>init</replace>
-      <replace />
-      <replace>$tab&quot;</replace>
-      <replace>tab</replace>
-      <replace>&quot;initial&quot;</replace>
-      <replace>initial</replace>
-      <replace>KotlmataAction2&lt;SIGNAL, Unit&gt;</replace>
-      <replace>KotlmataCallback</replace>
-      <replace>KotlmataFallback</replace>
-      <replace>KotlmataAction2&lt;SIGNAL, R&gt;</replace>
-      <replace>KotlmataAction2&lt;T, R&gt;</replace>
-      <replace>InputBundle</replace>
-      <replace>DSL.</replace>
-      <replace>&quot;Terminate&quot;</replace>
-      <replace>MESSAGE</replace>
-      <replace>message</replace>
-      <replace>Message</replace>
-      <replace>&quot;Core&quot;</replace>
-      <replace>REQUEST</replace>
-      <replace>Request</replace>
-      <replace>request</replace>
-      <replace>$1R</replace>
-      <replace>$1R.</replace>
-      <replace>$1R\)</replace>
-      <replace>= $1R\n</replace>
-      <replace>$1R,</replace>
-      <replace>KotlmataDSL</replace>
-      <replace>TypedSignal&lt;SIGNAL&gt;</replace>
-      <replace>KotlmataActionR&lt;</replace>
-    </replaceStrings>
-    <dirStrings>
-      <dir>D:\workspace\Kotlmata\src\main\kotlin\kr\co\plasticcity\kotlmata</dir>
-    </dirStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -679,30 +610,30 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="960" y="427" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581180265705" />
-    <state x="353" y="37" width="2145" height="1302" key="CommitChangelistDialog2" timestamp="1581256238786">
+    <state x="353" y="37" width="2145" height="1302" key="CommitChangelistDialog2" timestamp="1581438448952">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="353" y="37" width="2145" height="1302" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581256238786" />
+    <state x="353" y="37" width="2145" height="1302" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581438448952" />
     <state x="248" y="121" key="DiffContextDialog" timestamp="1581256313549">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="248" y="121" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581256313549" />
-    <state width="784" height="1257" key="GridCell.Tab.0.bottom" timestamp="1581255908306">
+    <state width="783" height="1257" key="GridCell.Tab.0.bottom" timestamp="1581438500075">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="784" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581255908306" />
-    <state width="784" height="1257" key="GridCell.Tab.0.center" timestamp="1581255908306">
+    <state width="783" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581438500075" />
+    <state width="783" height="1257" key="GridCell.Tab.0.center" timestamp="1581438500075">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="784" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581255908306" />
-    <state width="784" height="1257" key="GridCell.Tab.0.left" timestamp="1581255908306">
+    <state width="783" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581438500075" />
+    <state width="783" height="1257" key="GridCell.Tab.0.left" timestamp="1581438500075">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="784" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581255908306" />
-    <state width="784" height="1257" key="GridCell.Tab.0.right" timestamp="1581255908306">
+    <state width="783" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581438500075" />
+    <state width="783" height="1257" key="GridCell.Tab.0.right" timestamp="1581438500075">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="784" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581255908306" />
+    <state width="783" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581438500075" />
     <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1581256314076">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -711,61 +642,5 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="781" y="330" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581256205585" />
-  </component>
-  <component name="debuggerHistoryManager">
-    <expressions id="watch">
-      <expression>
-        <expression-string>from</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>key</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>d::class.superclasses</expression-string>
-        <language-id>kotlin</language-id>
-        <custom-info>import kotlin.reflect.full.superclasses</custom-info>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>d::class.allSupertypes</expression-string>
-        <language-id>kotlin</language-id>
-        <custom-info>import kotlin.reflect.full.allSupertypes</custom-info>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>&quot;a&quot;::class.allSuperclasses</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>d::class.allSuperclasses</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>action(&quot;state1&quot;)</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>action(&quot;&quot;)</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>action()</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>super.toString()</expression-string>
-        <language-id>kotlin</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-    </expressions>
   </component>
 </project>
