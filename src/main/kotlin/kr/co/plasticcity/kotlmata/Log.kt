@@ -52,8 +52,8 @@ internal class Logs
 		const val MACHINE_END_TRANSITION = "%s << End transition."
 		
 		/* State */
-		const val STATE_CREATED = "%s %s: Created"
-		const val STATE_UPDATED = "%s %s: Updated"
+		const val STATE_CREATED = "%s '%s' is created."
+		const val STATE_UPDATED = "%s '%s' is updated."
 		const val STATE_ENTRY_DEFAULT = "%s %s: Entry action default. {signal: %s}"
 		const val STATE_ENTRY_SIGNAL = "%s %s: Entry action. {signal: %s}"
 		const val STATE_ENTRY_TYPED = "%s %s: Entry action. {signal: %s, type: %s}"
