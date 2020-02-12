@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="KotlmataAction, KotlmataFallback 의 typealias 를 플랫하게">
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="EntryBundle -&gt; EntryDef">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,7 +103,7 @@
       <recent name="D:\workspace\Kotlmata\src\test\kotlin" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.Tests.daemonTest">
+  <component name="RunManager" selected="JUnit.Tests.stateTest">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method v="2">
@@ -610,30 +610,30 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="960" y="427" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526063026" />
-    <state x="353" y="37" width="2145" height="1302" key="CommitChangelistDialog2" timestamp="1581526036987">
+    <state x="353" y="37" width="2145" height="1302" key="CommitChangelistDialog2" timestamp="1581529059328">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="353" y="37" width="2145" height="1302" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526036987" />
+    <state x="353" y="37" width="2145" height="1302" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581529059328" />
     <state x="248" y="121" key="DiffContextDialog" timestamp="1581526467367">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="248" y="121" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526467367" />
-    <state width="783" height="1257" key="GridCell.Tab.0.bottom" timestamp="1581526069085">
+    <state width="783" height="1257" key="GridCell.Tab.0.bottom" timestamp="1581529073029">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526069085" />
-    <state width="783" height="1257" key="GridCell.Tab.0.center" timestamp="1581526069085">
+    <state width="783" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581529073029" />
+    <state width="783" height="1257" key="GridCell.Tab.0.center" timestamp="1581529073029">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526069085" />
-    <state width="783" height="1257" key="GridCell.Tab.0.left" timestamp="1581526069085">
+    <state width="783" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581529073029" />
+    <state width="783" height="1257" key="GridCell.Tab.0.left" timestamp="1581529073028">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526069085" />
-    <state width="783" height="1257" key="GridCell.Tab.0.right" timestamp="1581526069085">
+    <state width="783" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581529073028" />
+    <state width="783" height="1257" key="GridCell.Tab.0.right" timestamp="1581529073029">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526069085" />
+    <state width="783" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581529073029" />
     <state width="2516" height="351" key="GridCell.Tab.1.bottom" timestamp="1581526069082">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>

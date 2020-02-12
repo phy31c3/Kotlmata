@@ -170,9 +170,9 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 	infix fun modify(block: Modifier.(state: T) -> Unit)
 }
 
-private typealias EntryBundle = Pair<KotlmataActionR<Any?>, KotlmataFallback1R<SIGNAL, Any?>?>
-private typealias InputBundle = Pair<KotlmataActionR<Any?>, KotlmataFallback1R<SIGNAL, Any?>?>
-private typealias ExitBundle = Pair<KotlmataAction, KotlmataFallback1<SIGNAL>?>
+private class EntryDef(val action: KotlmataActionR<Any?>, val fallback: KotlmataFallback1R<SIGNAL, Any?>? = null)
+private class InputDef(val action: KotlmataActionR<Any?>, val fallback: KotlmataFallback1R<SIGNAL, Any?>? = null)
+private class ExitDef(val action: KotlmataAction, val fallback: KotlmataFallback1<SIGNAL>? = null)
 
 private class KotlmataStateImpl<T : STATE>(
 		override val key: T,
@@ -181,11 +181,11 @@ private class KotlmataStateImpl<T : STATE>(
 		block: (KotlmataState.Initializer.(T) -> Unit)? = null
 ) : KotlmataMutableState<T>
 {
-	private var entry: EntryBundle? = null
-	private var input: InputBundle? = null
-	private var exit: ExitBundle? = null
-	private var entryMap: MutableMap<SIGNAL, EntryBundle>? = null
-	private var inputMap: MutableMap<SIGNAL, InputBundle>? = null
+	private var entry: EntryDef? = null
+	private var input: InputDef? = null
+	private var exit: ExitDef? = null
+	private var entryMap: MutableMap<SIGNAL, EntryDef>? = null
+	private var inputMap: MutableMap<SIGNAL, InputDef>? = null
 	private var error: KotlmataFallback1<SIGNAL>? = null
 	
 	init
@@ -199,15 +199,15 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	private fun EntryBundle.actionEntry(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
+	private fun EntryDef.actionEntry(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
 	{
 		val sync = try
 		{
-			DSL.first(signal)
+			DSL.action(signal)
 		}
 		catch (e: Throwable)
 		{
-			second?.let {
+			fallback?.let {
 				DSL.it(e, signal) ?: Unit
 			} ?: error?.let {
 				DSL.it(e, signal)
@@ -219,15 +219,15 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	private fun InputBundle.actionInput(signal: SIGNAL): KotlmataDSL.InputActionReturn
+	private fun InputDef.actionInput(signal: SIGNAL): KotlmataDSL.InputActionReturn
 	{
 		val ret = try
 		{
-			DSL.first(signal)
+			DSL.action(signal)
 		}
 		catch (e: Throwable)
 		{
-			second?.also {
+			fallback?.also {
 				DSL.it(e, signal)
 			} ?: error?.let {
 				DSL.it(e, signal)
@@ -237,15 +237,15 @@ private class KotlmataStateImpl<T : STATE>(
 		else DSL.forward
 	}
 	
-	private fun ExitBundle.actionExit(signal: SIGNAL)
+	private fun ExitDef.actionExit(signal: SIGNAL)
 	{
 		try
 		{
-			DSL.first(signal)
+			DSL.action(signal)
 		}
 		catch (e: Throwable)
 		{
-			second?.also {
+			fallback?.also {
 				DSL.it(e, signal)
 			} ?: error?.let {
 				DSL.it(e, signal)
@@ -376,13 +376,13 @@ private class KotlmataStateImpl<T : STATE>(
 			block: KotlmataMutableState.Modifier.(T) -> Unit
 	) : KotlmataMutableState.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
-		private val entryMap: MutableMap<SIGNAL, EntryBundle>
-			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, EntryBundle>().also {
+		private val entryMap: MutableMap<SIGNAL, EntryDef>
+			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, EntryDef>().also {
 				this@KotlmataStateImpl.entryMap = it
 			}
 		
-		private val inputMap: MutableMap<SIGNAL, InputBundle>
-			get() = this@KotlmataStateImpl.inputMap ?: HashMap<SIGNAL, InputBundle>().also {
+		private val inputMap: MutableMap<SIGNAL, InputDef>
+			get() = this@KotlmataStateImpl.inputMap ?: HashMap<SIGNAL, InputDef>().also {
 				this@KotlmataStateImpl.inputMap = it
 			}
 		
@@ -392,19 +392,19 @@ private class KotlmataStateImpl<T : STATE>(
 			override fun <R> action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>
 			{
 				this@ModifierImpl shouldNot expired
-				this@KotlmataStateImpl.entry = EntryBundle(action, null)
+				this@KotlmataStateImpl.entry = EntryDef(action)
 				return object : KotlmataState.Entry.Catch<SIGNAL>
 				{
 					override fun <R> catch(fallback: KotlmataFallbackR<R>)
 					{
 						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.entry = EntryBundle(action, { throwable, _ -> fallback(throwable) })
+						this@KotlmataStateImpl.entry = EntryDef(action, { throwable, _ -> fallback(throwable) })
 					}
 					
 					override fun <R> catch(fallback: KotlmataFallback1R<SIGNAL, R>)
 					{
 						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.entry = EntryBundle(action, fallback)
+						this@KotlmataStateImpl.entry = EntryDef(action, fallback)
 					}
 				}
 			}
@@ -414,19 +414,19 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun <R> action(action: KotlmataAction1R<T, R>): KotlmataState.Entry.Catch<T>
 				{
 					this@ModifierImpl shouldNot expired
-					entryMap[signal] = EntryBundle(action as KotlmataActionR<Any?>, null)
+					entryMap[signal] = EntryDef(action as KotlmataActionR<Any?>)
 					return object : KotlmataState.Entry.Catch<T>
 					{
 						override fun <R> catch(fallback: KotlmataFallbackR<R>)
 						{
 							this@ModifierImpl shouldNot expired
-							entryMap[signal] = EntryBundle(action, { throwable, _ -> fallback(throwable) })
+							entryMap[signal] = EntryDef(action, { throwable, _ -> fallback(throwable) })
 						}
 						
 						override fun <R> catch(fallback: KotlmataFallback1R<T, R>)
 						{
 							this@ModifierImpl shouldNot expired
-							entryMap[signal] = EntryBundle(action, fallback as KotlmataFallback1R<SIGNAL, Any?>)
+							entryMap[signal] = EntryDef(action, fallback as KotlmataFallback1R<SIGNAL, Any?>)
 						}
 					}
 				}
@@ -437,19 +437,19 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun <R> action(action: KotlmataAction1R<T, R>): KotlmataState.Entry.Catch<T>
 				{
 					this@ModifierImpl shouldNot expired
-					entryMap[signal] = EntryBundle(action as KotlmataActionR<Any?>, null)
+					entryMap[signal] = EntryDef(action as KotlmataActionR<Any?>)
 					return object : KotlmataState.Entry.Catch<T>
 					{
 						override fun <R> catch(fallback: KotlmataFallbackR<R>)
 						{
 							this@ModifierImpl shouldNot expired
-							entryMap[signal] = EntryBundle(action, { throwable, _ -> fallback(throwable) })
+							entryMap[signal] = EntryDef(action, { throwable, _ -> fallback(throwable) })
 						}
 						
 						override fun <R> catch(fallback: KotlmataFallback1R<T, R>)
 						{
 							this@ModifierImpl shouldNot expired
-							entryMap[signal] = EntryBundle(action, fallback as KotlmataFallback1R<SIGNAL, Any?>)
+							entryMap[signal] = EntryDef(action, fallback as KotlmataFallback1R<SIGNAL, Any?>)
 						}
 					}
 				}
@@ -461,7 +461,7 @@ private class KotlmataStateImpl<T : STATE>(
 				{
 					this@ModifierImpl shouldNot expired
 					signals.forEach {
-						entryMap[it] = EntryBundle(action, null)
+						entryMap[it] = EntryDef(action)
 					}
 					return object : KotlmataState.Entry.Catch<SIGNAL>
 					{
@@ -469,7 +469,7 @@ private class KotlmataStateImpl<T : STATE>(
 						{
 							this@ModifierImpl shouldNot expired
 							signals.forEach {
-								entryMap[it] = EntryBundle(action, { throwable, _ -> fallback(throwable) })
+								entryMap[it] = EntryDef(action, { throwable, _ -> fallback(throwable) })
 							}
 						}
 						
@@ -477,7 +477,7 @@ private class KotlmataStateImpl<T : STATE>(
 						{
 							this@ModifierImpl shouldNot expired
 							signals.forEach {
-								entryMap[it] = EntryBundle(action, fallback)
+								entryMap[it] = EntryDef(action, fallback)
 							}
 						}
 					}
@@ -491,19 +491,19 @@ private class KotlmataStateImpl<T : STATE>(
 			override fun <R> action(action: KotlmataActionR<R>): KotlmataState.Input.Catch<SIGNAL>
 			{
 				this@ModifierImpl shouldNot expired
-				this@KotlmataStateImpl.input = InputBundle(action, null)
+				this@KotlmataStateImpl.input = InputDef(action)
 				return object : KotlmataState.Input.Catch<SIGNAL>
 				{
 					override fun <R> catch(fallback: KotlmataFallbackR<R>)
 					{
 						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.input = InputBundle(action, { throwable, _ -> fallback(throwable) })
+						this@KotlmataStateImpl.input = InputDef(action, { throwable, _ -> fallback(throwable) })
 					}
 					
 					override fun <R> catch(fallback: KotlmataFallback1R<SIGNAL, R>)
 					{
 						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.input = InputBundle(action, fallback)
+						this@KotlmataStateImpl.input = InputDef(action, fallback)
 					}
 				}
 			}
@@ -513,19 +513,19 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun <R> action(action: KotlmataAction1R<T, R>): KotlmataState.Input.Catch<T>
 				{
 					this@ModifierImpl shouldNot expired
-					inputMap[signal] = InputBundle(action as KotlmataAction, null)
+					inputMap[signal] = InputDef(action as KotlmataAction)
 					return object : KotlmataState.Input.Catch<T>
 					{
 						override fun <R> catch(fallback: KotlmataFallbackR<R>)
 						{
 							this@ModifierImpl shouldNot expired
-							inputMap[signal] = InputBundle(action, { throwable, _ -> fallback(throwable) })
+							inputMap[signal] = InputDef(action, { throwable, _ -> fallback(throwable) })
 						}
 						
 						override fun <R> catch(fallback: KotlmataFallback1R<T, R>)
 						{
 							this@ModifierImpl shouldNot expired
-							inputMap[signal] = InputBundle(action, fallback as KotlmataFallback1<SIGNAL>)
+							inputMap[signal] = InputDef(action, fallback as KotlmataFallback1<SIGNAL>)
 						}
 					}
 				}
@@ -536,19 +536,19 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun <R> action(action: KotlmataAction1R<T, R>): KotlmataState.Input.Catch<T>
 				{
 					this@ModifierImpl shouldNot expired
-					inputMap[signal] = InputBundle(action as KotlmataAction, null)
+					inputMap[signal] = InputDef(action as KotlmataAction)
 					return object : KotlmataState.Input.Catch<T>
 					{
 						override fun <R> catch(fallback: KotlmataFallbackR<R>)
 						{
 							this@ModifierImpl shouldNot expired
-							inputMap[signal] = InputBundle(action, { throwable, _ -> fallback(throwable) })
+							inputMap[signal] = InputDef(action, { throwable, _ -> fallback(throwable) })
 						}
 						
 						override fun <R> catch(fallback: KotlmataFallback1R<T, R>)
 						{
 							this@ModifierImpl shouldNot expired
-							inputMap[signal] = InputBundle(action, fallback as KotlmataFallback1<SIGNAL>)
+							inputMap[signal] = InputDef(action, fallback as KotlmataFallback1<SIGNAL>)
 						}
 					}
 				}
@@ -560,7 +560,7 @@ private class KotlmataStateImpl<T : STATE>(
 				{
 					this@ModifierImpl shouldNot expired
 					signals.forEach {
-						inputMap[it] = InputBundle(action, null)
+						inputMap[it] = InputDef(action)
 					}
 					return object : KotlmataState.Input.Catch<SIGNAL>
 					{
@@ -568,7 +568,7 @@ private class KotlmataStateImpl<T : STATE>(
 						{
 							this@ModifierImpl shouldNot expired
 							signals.forEach {
-								inputMap[it] = InputBundle(action, { throwable, _ -> fallback(throwable) })
+								inputMap[it] = InputDef(action, { throwable, _ -> fallback(throwable) })
 							}
 						}
 						
@@ -576,7 +576,7 @@ private class KotlmataStateImpl<T : STATE>(
 						{
 							this@ModifierImpl shouldNot expired
 							signals.forEach {
-								inputMap[it] = InputBundle(action, fallback)
+								inputMap[it] = InputDef(action, fallback)
 							}
 						}
 					}
@@ -589,19 +589,19 @@ private class KotlmataStateImpl<T : STATE>(
 			override fun action(action: KotlmataAction): KotlmataState.Exit.Catch
 			{
 				this@ModifierImpl shouldNot expired
-				this@KotlmataStateImpl.exit = ExitBundle(action, null)
+				this@KotlmataStateImpl.exit = ExitDef(action)
 				return object : KotlmataState.Exit.Catch
 				{
 					override fun catch(fallback: KotlmataFallback)
 					{
 						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.exit = ExitBundle(action, { throwable, _ -> fallback(throwable) })
+						this@KotlmataStateImpl.exit = ExitDef(action, { throwable, _ -> fallback(throwable) })
 					}
 					
 					override fun catch(fallback: KotlmataFallback1<SIGNAL>)
 					{
 						this@ModifierImpl shouldNot expired
-						this@KotlmataStateImpl.exit = ExitBundle(action, fallback)
+						this@KotlmataStateImpl.exit = ExitDef(action, fallback)
 					}
 				}
 			}
