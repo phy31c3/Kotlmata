@@ -224,7 +224,7 @@ class Tests
 				input signal "error" action {
 					throw Exception("에러2 발생")
 				}
-				error action { throwable ->
+				catch error { throwable ->
 					println("상태 Fallback")
 					println(throwable)
 				}

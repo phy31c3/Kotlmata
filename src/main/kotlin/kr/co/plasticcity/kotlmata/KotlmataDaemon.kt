@@ -114,6 +114,8 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 	infix fun modify(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 }
 
+private class LifecycleDef(val callback: KotlmataCallback? = null, val fallback: KotlmataFallback? = null)
+
 private class KotlmataDaemonImpl<T : DAEMON>(
 		override val key: T,
 		val logLevel: Int = NO_LOG,
@@ -124,11 +126,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 {
 	private val core: KotlmataMachine<String>
 	
-	private var onStart: KotlmataCallback = {}
-	private var onPause: KotlmataCallback = {}
-	private var onStop: KotlmataCallback = {}
-	private var onResume: KotlmataCallback = {}
-	private var onTerminate: KotlmataCallback = {}
+	private var onStart: LifecycleDef = LifecycleDef()
+	private var onPause: LifecycleDef = LifecycleDef()
+	private var onStop: LifecycleDef = LifecycleDef()
+	private var onResume: LifecycleDef = LifecycleDef()
+	private var onTerminate: LifecycleDef = LifecycleDef()
 	
 	@Volatile
 	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
@@ -423,7 +425,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				onTerminate = block
 			}
 			
-			override fun error(block: KotlmataFallback) = initializer.on.error(block)
+			override fun error(block: KotlmataError) = initializer.on.error(block)
 		}
 		
 		override val start = object : KotlmataMachine.Initializer.Start

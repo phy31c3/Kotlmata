@@ -34,7 +34,7 @@ interface KotlmataMachine<T : MACHINE>
 		
 		interface On
 		{
-			infix fun error(block: KotlmataFallback)
+			infix fun error(block: KotlmataError)
 		}
 		
 		interface Start
@@ -275,7 +275,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
-	private var onError: (KotlmataFallback)? = null
+	private var onError: (KotlmataError)? = null
 	
 	private lateinit var current: KotlmataState<out STATE>
 	
@@ -432,7 +432,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	{
 		override val on = object : KotlmataMachine.Initializer.On
 		{
-			override fun error(block: KotlmataFallback)
+			override fun error(block: KotlmataError)
 			{
 				this@ModifierImpl shouldNot expired
 				onError = block
@@ -689,19 +689,19 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 			return object : KotlmataState.Entry.Catch<SIGNAL>
 			{
-				override fun <R> catch(fallback: KotlmataFallbackR<R>)
+				override fun <R> catch(error: KotlmataErrorR<R>)
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[this@action]?.modify {
-						entry action action catch fallback
+						entry action action catch error
 					}
 				}
 				
-				override fun <R> catch(fallback: KotlmataFallback1R<SIGNAL, R>)
+				override fun <R> catch(error: KotlmataError1R<SIGNAL, R>)
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[this@action]?.modify {
-						entry action action catch fallback
+						entry action action catch error
 					}
 				}
 			}
@@ -717,19 +717,19 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
-					override fun <R> catch(fallback: KotlmataFallbackR<R>)
+					override fun <R> catch(error: KotlmataErrorR<R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal action action catch fallback
+							entry via signal action action catch error
 						}
 					}
 					
-					override fun <R> catch(fallback: KotlmataFallback1R<T, R>)
+					override fun <R> catch(error: KotlmataError1R<T, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal action action catch fallback
+							entry via signal action action catch error
 						}
 					}
 				}
@@ -746,19 +746,19 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
-					override fun <R> catch(fallback: KotlmataFallbackR<R>)
+					override fun <R> catch(error: KotlmataErrorR<R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal action action catch fallback
+							entry via signal action action catch error
 						}
 					}
 					
-					override fun <R> catch(fallback: KotlmataFallback1R<T, R>)
+					override fun <R> catch(error: KotlmataError1R<T, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal action action catch fallback
+							entry via signal action action catch error
 						}
 					}
 				}
@@ -775,19 +775,19 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<SIGNAL>
 				{
-					override fun <R> catch(fallback: KotlmataFallbackR<R>)
+					override fun <R> catch(error: KotlmataErrorR<R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signals action action catch fallback
+							entry via signals action action catch error
 						}
 					}
 					
-					override fun <R> catch(fallback: KotlmataFallback1R<SIGNAL, R>)
+					override fun <R> catch(error: KotlmataError1R<SIGNAL, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signals action action catch fallback
+							entry via signals action action catch error
 						}
 					}
 				}
