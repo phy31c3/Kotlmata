@@ -135,6 +135,18 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	@Volatile
 	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
 	
+	private fun LifecycleDef.call(payload: Any?)
+	{
+		try
+		{
+			callback?.invoke(DSL, payload)
+		}
+		catch (e: Throwable)
+		{
+			fallback?.invoke(DSL, e, payload)
+		}
+	}
+	
 	init
 	{
 		lateinit var machine: KotlmataMutableMachine<T>
@@ -157,7 +169,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		val terminate: KotlmataAction1<Request.Terminate> = { terminateR ->
-			onTerminate(terminateR.payload)
+			onTerminate.call(terminateR.payload)
 			logLevel.simple(key) { DAEMON_TERMINATE }
 		}
 		
@@ -165,7 +177,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"Initial" { state ->
 				val start: KotlmataAction1<Request.Control> = { controlR ->
 					logLevel.simple(key) { DAEMON_START }
-					onStart(controlR.payload)
+					onStart.call(controlR.payload)
 					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", postSync)
 				}
 				
@@ -206,14 +218,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				
 				entry via Request.Pause::class action { pauseR ->
 					logLevel.simple(key) { DAEMON_PAUSE }
-					onPause(pauseR.payload)
+					onPause.call(pauseR.payload)
 				}
 				
 				input signal Request.Run::class action { runR ->
 					sync?.let { syncR -> queue!!.offer(syncR) }
 					queue!! += stash
 					logLevel.simple(key) { DAEMON_RESUME }
-					onResume(runR.payload)
+					onResume.call(runR.payload)
 				}
 				input signal Request.Stop::class action {
 					sync?.let { syncR -> queue!!.offer(syncR) }
@@ -251,13 +263,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				
 				entry via Request.Stop::class action { stopR ->
 					logLevel.simple(key) { DAEMON_STOP }
-					onStop(stopR.payload)
+					onStop.call(stopR.payload)
 				}
 				
 				input signal Request.Run::class action { runR ->
 					cleanup(runR)
 					logLevel.simple(key) { DAEMON_RESUME }
-					onResume(runR.payload)
+					onResume.call(runR.payload)
 				}
 				input signal Request.Pause::class action cleanup
 				input signal Request.Terminate::class action terminate
@@ -398,31 +410,31 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			override fun start(block: KotlmataCallback)
 			{
 				this@InitializerImpl shouldNot expired
-				onStart = block
+				onStart = LifecycleDef(callback = block)
 			}
 			
 			override fun pause(block: KotlmataCallback)
 			{
 				this@InitializerImpl shouldNot expired
-				onPause = block
+				onPause = LifecycleDef(callback = block)
 			}
 			
 			override fun stop(block: KotlmataCallback)
 			{
 				this@InitializerImpl shouldNot expired
-				onStop = block
+				onStop = LifecycleDef(callback = block)
 			}
 			
 			override fun resume(block: KotlmataCallback)
 			{
 				this@InitializerImpl shouldNot expired
-				onResume = block
+				onResume = LifecycleDef(callback = block)
 			}
 			
 			override fun terminate(block: KotlmataCallback)
 			{
 				this@InitializerImpl shouldNot expired
-				onTerminate = block
+				onTerminate = LifecycleDef(callback = block)
 			}
 			
 			override fun error(block: KotlmataError) = initializer.on.error(block)
