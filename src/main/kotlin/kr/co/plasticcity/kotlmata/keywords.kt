@@ -35,9 +35,11 @@ typealias KotlmataActionR<R> = KotlmataDSL.(signal: SIGNAL) -> R
 typealias KotlmataAction1<T> = KotlmataDSL.(signal: T) -> Unit
 typealias KotlmataAction1R<T, R> = KotlmataDSL.(signal: T) -> R
 
-typealias KotlmataFallback = KotlmataDSL.(throwable: Throwable) -> Unit
-typealias KotlmataFallbackR<R> = KotlmataDSL.(throwable: Throwable) -> R
-typealias KotlmataFallback1<T> = KotlmataDSL.(throwable: Throwable, signal: T) -> Unit
-typealias KotlmataFallback1R<T, R> = KotlmataDSL.(throwable: Throwable, signal: T) -> R
+typealias KotlmataError = KotlmataDSL.(throwable: Throwable) -> Unit
+typealias KotlmataErrorR<R> = KotlmataDSL.(throwable: Throwable) -> R
+typealias KotlmataError1<T> = KotlmataDSL.(throwable: Throwable, signal: T) -> Unit
+typealias KotlmataError1R<T, R> = KotlmataDSL.(throwable: Throwable, signal: T) -> R
 
 typealias KotlmataCallback = KotlmataDSL.(payload: Any?) -> Unit
+typealias KotlmataFallback = KotlmataDSL.(throwable: Throwable) -> Unit
+typealias KotlmataFallback1 = KotlmataDSL.(throwable: Throwable, payload: Any?) -> Unit
