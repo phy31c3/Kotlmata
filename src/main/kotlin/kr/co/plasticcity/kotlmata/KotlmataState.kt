@@ -227,8 +227,8 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 		catch (e: Throwable)
 		{
-			error?.also {
-				DSL.it(e, signal)
+			error?.let {
+				DSL.it(e, signal) ?: Unit
 			} ?: catch?.let {
 				DSL.it(e, signal)
 			} ?: throw e
@@ -247,7 +247,7 @@ private class KotlmataStateImpl<T : STATE>(
 		{
 			error?.also {
 				DSL.it(e, signal)
-			} ?: catch?.let {
+			} ?: catch?.also {
 				DSL.it(e, signal)
 			} ?: throw e
 		}

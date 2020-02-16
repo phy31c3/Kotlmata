@@ -275,7 +275,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
-	private var onError: (KotlmataError)? = null
+	private var onError: KotlmataError? = null
 	
 	private lateinit var current: KotlmataState<out STATE>
 	
