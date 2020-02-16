@@ -15,7 +15,7 @@ interface Kotlmata
 	fun shutdown()
 	fun release()
 	
-	infix fun <T : DAEMON> fork(daemon: T): Of<T>
+	infix fun <T : DAEMON> fork(daemon: T): Construct<T>
 	infix fun <T : DAEMON> modify(daemon: T): Set<T>
 	
 	infix fun run(daemon: DAEMON)
@@ -42,9 +42,9 @@ interface Kotlmata
 		}
 	}
 	
-	interface Of<T : DAEMON>
+	interface Construct<T : DAEMON>
 	{
-		infix fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
+		infix fun construct(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
 	}
 	
 	interface Set<T : DAEMON>
@@ -101,11 +101,11 @@ interface Kotlmata
 		
 		interface Fork
 		{
-			infix fun <T : DAEMON> daemon(daemon: T): Of<T>
+			infix fun <T : DAEMON> daemon(daemon: T): Construct<T>
 			
-			interface Of<T : DAEMON>
+			interface Construct<T : DAEMON>
 			{
-				infix fun of(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
+				infix fun construct(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
 			}
 		}
 		
@@ -310,10 +310,10 @@ private object KotlmataImpl : Kotlmata
 		core.terminate()
 	}
 	
-	override fun <T : DAEMON> fork(daemon: T) = object : Kotlmata.Of<T>
+	override fun <T : DAEMON> fork(daemon: T) = object : Kotlmata.Construct<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun of(block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End)
+		override fun construct(block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End)
 		{
 			core.input(Request.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End))
 		}
@@ -461,9 +461,9 @@ private object KotlmataImpl : Kotlmata
 		
 		override val fork = object : Kotlmata.Post.Fork
 		{
-			override fun <T : DAEMON> daemon(daemon: T) = object : Kotlmata.Post.Fork.Of<T>
+			override fun <T : DAEMON> daemon(daemon: T) = object : Kotlmata.Post.Fork.Construct<T>
 			{
-				override fun of(block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End)
+				override fun construct(block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End)
 				{
 					this@PostImpl shouldNot expired
 					if (daemon !in daemons)

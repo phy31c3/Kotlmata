@@ -115,25 +115,25 @@ mutableMachine { machine ->
 		// ("state0" x "signal")이 존재하지 않으면 실행
 	}
 
-	insert state "state1" of {
+	insert state "state1" with {
 		// "state1" 삽입, 이미 존재하면 무시
 		// Initializer
 	}
 
-	insert or replace state "state1" of {
+	insert or replace state "state1" with {
 		// "state1" 삽입, 이미 존재하면 교체
 		// Initializer
     }
 
-	replace state "state1" of {
+	replace state "state1" with {
 		// "state1"이 존재할 경우에만 교체
 		// Initializer
 	}
 
-	update state "state1" set {
+	update state "state1" with {
 		// "state1"이 존재할 경우에만 업데이트
 		// Modifier
-	} or insert state "state1" of {
+	} or insert state "state1" with {
 		// "state1"이 존재하지 않으면 삽입
 		// Initializer
 	}
@@ -204,7 +204,7 @@ Kotlmata.config {
 Kotlmata.start(logLevel = 2)
 Kotlmata.shutdown()
 
-Kotlmata fork "daemon" of { // Daemon init 블럭과 동일 (존재하면 무시)
+Kotlmata fork "daemon" construct { // Daemon init 블럭과 동일 (존재하면 무시)
 	on start [action]
 	on terminate [action]
 
@@ -221,9 +221,9 @@ Kotlmata fork "daemon" of { // Daemon init 블럭과 동일 (존재하면 무시
 }
 
 Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일 (존재하지 않으면 무시)
-	update state "state1" set {
+	update state "state1" with {
 		input signal "signal" action [action]
-	} or insert state "state1" of {
+	} or insert state "state1" with {
 		entry action [action]
 		entry via "signal" action [action]
 		input signal "signal" action [action]
@@ -242,9 +242,9 @@ Kotlmata input "signal" type KClass<String> to "daemon"
 Kotlmata { // Kotlmata post 와 동일
 	has daemon "daemon" then {
 		modify daemon "daemon" set {
-			update state "state1" set {
+			update state "state1" with {
 				input signal "signal" action [action]
-			} or insert state "state1" of {
+			} or insert state "state1" with {
 				entry action [action]
 				entry via "signal" action [action]
 				input signal "signal" action [action]
@@ -252,7 +252,7 @@ Kotlmata { // Kotlmata post 와 동일
 			}
 		}
 	} or {
-		fork daemon "daemon" of {
+		fork daemon "daemon" construct {
 			on start [action]
 			on terminate [action]
 
@@ -268,7 +268,7 @@ Kotlmata { // Kotlmata post 와 동일
 			start at "state0"
 		}
 	} finally {
-		fork daemon "daemon" of {
+		fork daemon "daemon" construct {
 			on start [action]
 			on terminate [action]
 
