@@ -137,6 +137,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	private var onStop: LifecycleDef = LifecycleDef()
 	private var onResume: LifecycleDef = LifecycleDef()
 	private var onTerminate: LifecycleDef = LifecycleDef()
+	private var onError: KotlmataError? = null
 	
 	@Volatile
 	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
@@ -149,8 +150,10 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		catch (e: Throwable)
 		{
-			fallback?.let {
+			fallback?.also {
 				DSL.it(e, payload)
+			} ?: onError?.also {
+				DSL.it(e)
 			} ?: throw e
 		}
 	}
@@ -423,11 +426,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					override fun catch(error: KotlmataFallback)
 					{
+						this@InitializerImpl shouldNot expired
 						onStart = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
 					}
 					
 					override fun catch(error: KotlmataFallback1)
 					{
+						this@InitializerImpl shouldNot expired
 						onStart = LifecycleDef(callback = block, fallback = error)
 					}
 				}
@@ -441,11 +446,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					override fun catch(error: KotlmataFallback)
 					{
+						this@InitializerImpl shouldNot expired
 						onPause = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
 					}
 					
 					override fun catch(error: KotlmataFallback1)
 					{
+						this@InitializerImpl shouldNot expired
 						onPause = LifecycleDef(callback = block, fallback = error)
 					}
 				}
@@ -459,11 +466,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					override fun catch(error: KotlmataFallback)
 					{
+						this@InitializerImpl shouldNot expired
 						onStop = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
 					}
 					
 					override fun catch(error: KotlmataFallback1)
 					{
+						this@InitializerImpl shouldNot expired
 						onStop = LifecycleDef(callback = block, fallback = error)
 					}
 				}
@@ -477,11 +486,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					override fun catch(error: KotlmataFallback)
 					{
+						this@InitializerImpl shouldNot expired
 						onResume = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
 					}
 					
 					override fun catch(error: KotlmataFallback1)
 					{
+						this@InitializerImpl shouldNot expired
 						onResume = LifecycleDef(callback = block, fallback = error)
 					}
 				}
@@ -495,17 +506,24 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					override fun catch(error: KotlmataFallback)
 					{
+						this@InitializerImpl shouldNot expired
 						onTerminate = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
 					}
 					
 					override fun catch(error: KotlmataFallback1)
 					{
+						this@InitializerImpl shouldNot expired
 						onTerminate = LifecycleDef(callback = block, fallback = error)
 					}
 				}
 			}
 			
-			override fun error(block: KotlmataError) = initializer.on.error(block)
+			override fun error(block: KotlmataFallback)
+			{
+				this@InitializerImpl shouldNot expired
+				onError = block
+				initializer.on.error(block)
+			}
 		}
 		
 		override val start = object : KotlmataMachine.Initializer.Start
