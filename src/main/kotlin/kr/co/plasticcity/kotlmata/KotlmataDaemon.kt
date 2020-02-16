@@ -426,11 +426,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					override fun catch(error: KotlmataFallback)
 					{
+						this@InitializerImpl shouldNot expired
 						onStart = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
 					}
 					
 					override fun catch(error: KotlmataFallback1)
 					{
+						this@InitializerImpl shouldNot expired
 						onStart = LifecycleDef(callback = block, fallback = error)
 					}
 				}
@@ -444,11 +446,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					override fun catch(error: KotlmataFallback)
 					{
+						this@InitializerImpl shouldNot expired
 						onPause = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
 					}
 					
 					override fun catch(error: KotlmataFallback1)
 					{
+						this@InitializerImpl shouldNot expired
 						onPause = LifecycleDef(callback = block, fallback = error)
 					}
 				}
@@ -462,11 +466,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					override fun catch(error: KotlmataFallback)
 					{
+						this@InitializerImpl shouldNot expired
 						onStop = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
 					}
 					
 					override fun catch(error: KotlmataFallback1)
 					{
+						this@InitializerImpl shouldNot expired
 						onStop = LifecycleDef(callback = block, fallback = error)
 					}
 				}
@@ -480,11 +486,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					override fun catch(error: KotlmataFallback)
 					{
+						this@InitializerImpl shouldNot expired
 						onResume = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
 					}
 					
 					override fun catch(error: KotlmataFallback1)
 					{
+						this@InitializerImpl shouldNot expired
 						onResume = LifecycleDef(callback = block, fallback = error)
 					}
 				}
@@ -498,11 +506,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				{
 					override fun catch(error: KotlmataFallback)
 					{
+						this@InitializerImpl shouldNot expired
 						onTerminate = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
 					}
 					
 					override fun catch(error: KotlmataFallback1)
 					{
+						this@InitializerImpl shouldNot expired
 						onTerminate = LifecycleDef(callback = block, fallback = error)
 					}
 				}
