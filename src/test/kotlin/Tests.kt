@@ -217,7 +217,7 @@ class Tests
 				entry action {
 					Thread.sleep(10)
 					println("$state: 기본 진입함수")
-					"goToState1" asType Any::class
+					"goToState1" type Any::class
 				}
 				input signal Any::class action { s -> println("$state: Any 타입 입력함수: $s") }
 				exit action { println("$state: 퇴장함수") }
