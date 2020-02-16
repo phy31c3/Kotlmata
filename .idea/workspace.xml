@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/kotlin/Interface" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Interface" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
@@ -209,13 +209,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00090" summary="로그 정의 중">
-      <created>1537369501047</created>
-      <option name="number" value="00090" />
-      <option name="presentableId" value="LOCAL-00090" />
-      <option name="project" value="LOCAL" />
-      <updated>1537369501047</updated>
     </task>
     <task id="LOCAL-00091" summary="QuickInput -&gt; Express">
       <created>1537369940479</created>
@@ -553,7 +546,14 @@
       <option name="project" value="LOCAL" />
       <updated>1581854509604</updated>
     </task>
-    <option name="localTasksCounter" value="139" />
+    <task id="LOCAL-00139" summary="#90: fork ... of -&gt; fork ... construct">
+      <created>1581873896508</created>
+      <option name="number" value="00139" />
+      <option name="presentableId" value="LOCAL-00139" />
+      <option name="project" value="LOCAL" />
+      <updated>1581873896508</updated>
+    </task>
+    <option name="localTasksCounter" value="140" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -581,7 +581,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#39: internals, keywords 정리" />
     <MESSAGE value="#39: 다중신호 전이규칙 정의 인터페이스 삭제" />
     <MESSAGE value="#52: 데몬이 갑자기 인터럽트 된 경우 종료 처리" />
     <MESSAGE value="#52: 데몬 스레드 여부 설정 기능 &amp; 디폴트는 isDaemon = false" />
@@ -606,7 +605,8 @@
     <MESSAGE value="#86: LifecycleDef 적용" />
     <MESSAGE value="#86: KotlmataDaemon의 생명주기 콜백에 대한 catch" />
     <MESSAGE value="#100: 데몬의 생명주기 콜백에 대한 예외 핸들링" />
-    <option name="LAST_COMMIT_MESSAGE" value="#100: 데몬의 생명주기 콜백에 대한 예외 핸들링" />
+    <MESSAGE value="#90: fork ... of -&gt; fork ... construct" />
+    <option name="LAST_COMMIT_MESSAGE" value="#90: fork ... of -&gt; fork ... construct" />
   </component>
   <component name="WindowStateProjectService">
     <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1581850958884">
