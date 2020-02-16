@@ -174,12 +174,15 @@ class Tests
 		val daemon by KotlmataMutableDaemon.lazy("d1", 3) {
 			on start {
 				thread = Thread.currentThread()
+				throw Exception("onStart 에서 예외 발생")
+			} catch { throwable ->
+				println("onStart Fallback: $throwable")
 			}
 			on terminate {
 				println("데몬이 종료됨")
 			}
 			on error { throwable ->
-				println("머신 Fallback")
+				println("onError: $throwable")
 				println(throwable)
 			}
 			

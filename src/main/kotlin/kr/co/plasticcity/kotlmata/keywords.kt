@@ -41,4 +41,5 @@ typealias KotlmataError1<T> = KotlmataDSL.(throwable: Throwable, signal: T) -> U
 typealias KotlmataError1R<T, R> = KotlmataDSL.(throwable: Throwable, signal: T) -> R
 
 typealias KotlmataCallback = KotlmataDSL.(payload: Any?) -> Unit
-typealias KotlmataFallback = KotlmataDSL.(throwable: Throwable, payload: Any?) -> Unit
+typealias KotlmataFallback = KotlmataDSL.(throwable: Throwable) -> Unit
+typealias KotlmataFallback1 = KotlmataDSL.(throwable: Throwable, payload: Any?) -> Unit
