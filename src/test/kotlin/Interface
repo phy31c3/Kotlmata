@@ -204,7 +204,7 @@ Kotlmata.config {
 Kotlmata.start(logLevel = 2)
 Kotlmata.shutdown()
 
-Kotlmata fork "daemon" of { // Daemon init 블럭과 동일 (존재하면 무시)
+Kotlmata fork "daemon" construct { // Daemon init 블럭과 동일 (존재하면 무시)
 	on start [action]
 	on terminate [action]
 
@@ -252,7 +252,7 @@ Kotlmata { // Kotlmata post 와 동일
 			}
 		}
 	} or {
-		fork daemon "daemon" of {
+		fork daemon "daemon" construct {
 			on start [action]
 			on terminate [action]
 
@@ -268,7 +268,7 @@ Kotlmata { // Kotlmata post 와 동일
 			start at "state0"
 		}
 	} finally {
-		fork daemon "daemon" of {
+		fork daemon "daemon" construct {
 			on start [action]
 			on terminate [action]
 

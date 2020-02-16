@@ -3,6 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Interface" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Interface" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -622,10 +625,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="353" y="37" width="2145" height="1302" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581854508689" />
-    <state x="248" y="121" width="2048" height="1120" key="DiffContextDialog" timestamp="1581532467542">
+    <state x="230" y="67" width="2274" height="1283" key="DiffContextDialog" timestamp="1581873553861">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="248" y="121" width="2048" height="1120" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581532467542" />
+    <state x="230" y="67" width="2274" height="1283" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581873553861" />
     <state width="783" height="1257" key="GridCell.Tab.0.bottom" timestamp="1581855864153">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -658,10 +661,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="2516" height="351" key="GridCell.Tab.1.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526069082" />
-    <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1581532007481">
+    <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1581872722003">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581532007481" />
+    <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581872722003" />
     <state x="781" y="330" key="SettingsEditor" timestamp="1581256205585">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -670,5 +673,9 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581854512836" />
+    <state x="907" y="396" width="745" height="608" key="find.popup" timestamp="1581873605574">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="907" y="396" width="745" height="608" key="find.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581873605574" />
   </component>
 </project>

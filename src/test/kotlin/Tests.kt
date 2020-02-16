@@ -356,7 +356,7 @@ class Tests
 	{
 		var expire: Kotlmata.Post? = null
 		Kotlmata.start(3)
-		Kotlmata fork "daemon" of {
+		Kotlmata fork "daemon" construct {
 			"state1" { state ->
 				entry action { println("데몬이 시작됨") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
