@@ -513,7 +513,7 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun <R> action(action: KotlmataAction1R<T, R>): KotlmataState.Input.Catch<T>
 				{
 					this@ModifierImpl shouldNot expired
-					inputMap[signal] = InputDef(action as KotlmataAction)
+					inputMap[signal] = InputDef(action as KotlmataActionR<Any?>)
 					return object : KotlmataState.Input.Catch<T>
 					{
 						override fun <R> catch(error: KotlmataErrorR<R>)
@@ -536,7 +536,7 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun <R> action(action: KotlmataAction1R<T, R>): KotlmataState.Input.Catch<T>
 				{
 					this@ModifierImpl shouldNot expired
-					inputMap[signal] = InputDef(action as KotlmataAction)
+					inputMap[signal] = InputDef(action as KotlmataActionR<Any?>)
 					return object : KotlmataState.Input.Catch<T>
 					{
 						override fun <R> catch(error: KotlmataErrorR<R>)
