@@ -34,6 +34,7 @@ typealias KotlmataAction = KotlmataDSL.(signal: SIGNAL) -> Unit
 typealias KotlmataActionR<R> = KotlmataDSL.(signal: SIGNAL) -> R
 typealias KotlmataAction1<T> = KotlmataDSL.(signal: T) -> Unit
 typealias KotlmataAction1R<T, R> = KotlmataDSL.(signal: T) -> R
+typealias KotlmataAction2R<T, R> = KotlmataDSL.(signal: T, payload: Any?) -> R
 
 typealias KotlmataError = KotlmataDSL.(throwable: Throwable) -> Unit
 typealias KotlmataErrorR<R> = KotlmataDSL.(throwable: Throwable) -> R
