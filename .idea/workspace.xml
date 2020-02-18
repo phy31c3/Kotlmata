@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,7 +104,7 @@
       <recent name="D:\workspace\Kotlmata\src\test\kotlin" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.Tests.kotlmataTest">
+  <component name="RunManager" selected="JUnit.Tests.daemonTest">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method v="2">
@@ -189,8 +191,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.Tests.kotlmataTest" />
         <item itemvalue="JUnit.Tests.daemonTest" />
+        <item itemvalue="JUnit.Tests.kotlmataTest" />
         <item itemvalue="JUnit.Tests.machineTest" />
         <item itemvalue="JUnit.Tests.commonTest" />
       </list>
@@ -206,13 +208,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00096" summary="warning 로그 작성 완료">
-      <created>1537619675769</created>
-      <option name="number" value="00096" />
-      <option name="presentableId" value="LOCAL-00096" />
-      <option name="project" value="LOCAL" />
-      <updated>1537619675769</updated>
     </task>
     <task id="LOCAL-00097" summary="KotlmataState: key 제공을 파라미터 -&gt; 수신객체 멤버로">
       <created>1546713711235</created>
@@ -550,7 +545,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582044772906</updated>
     </task>
-    <option name="localTasksCounter" value="145" />
+    <task id="LOCAL-00145" summary="#92: StateDefine.extends() 구현">
+      <created>1582044907197</created>
+      <option name="number" value="00145" />
+      <option name="presentableId" value="LOCAL-00145" />
+      <option name="project" value="LOCAL" />
+      <updated>1582044907197</updated>
+    </task>
+    <option name="localTasksCounter" value="146" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -578,7 +580,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#53: logLevel 을 생성자에서 불변값으로 설정하기" />
     <MESSAGE value="#55: 상태의 각종 선언에 KotlmataAction 타입 사용" />
     <MESSAGE value="#55: KotlmataCallback, KotlmataFallback 적용" />
     <MESSAGE value="#59 Kotlmata.Marker -&gt; KotlmataDSL" />
@@ -603,7 +604,8 @@
     <MESSAGE value="#91: payload 테스트 추가" />
     <MESSAGE value="#91: defaultInput 위치 수정" />
     <MESSAGE value="#92: Initializer -&gt; Init" />
-    <option name="LAST_COMMIT_MESSAGE" value="#92: Initializer -&gt; Init" />
+    <MESSAGE value="#92: StateDefine.extends() 구현" />
+    <option name="LAST_COMMIT_MESSAGE" value="#92: StateDefine.extends() 구현" />
   </component>
   <component name="WindowStateProjectService">
     <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1582044824699">
@@ -618,30 +620,30 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044413163" />
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582044771973">
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582045489702">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044771973" />
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582045489702" />
     <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582044573038">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044573038" />
-    <state width="783" height="1257" key="GridCell.Tab.0.bottom" timestamp="1582039544603">
+    <state width="783" height="1257" key="GridCell.Tab.0.bottom" timestamp="1582045369531">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582039544603" />
-    <state width="783" height="1257" key="GridCell.Tab.0.center" timestamp="1582039544603">
+    <state width="783" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582045369531" />
+    <state width="783" height="1257" key="GridCell.Tab.0.center" timestamp="1582045369530">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582039544603" />
-    <state width="783" height="1257" key="GridCell.Tab.0.left" timestamp="1582039544603">
+    <state width="783" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582045369530" />
+    <state width="783" height="1257" key="GridCell.Tab.0.left" timestamp="1582045369530">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582039544603" />
-    <state width="783" height="1257" key="GridCell.Tab.0.right" timestamp="1582039544603">
+    <state width="783" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582045369530" />
+    <state width="783" height="1257" key="GridCell.Tab.0.right" timestamp="1582045369531">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582039544603" />
+    <state width="783" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582045369531" />
     <state width="2516" height="351" key="GridCell.Tab.1.bottom" timestamp="1581526069082">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -666,18 +668,18 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="781" y="330" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581256205585" />
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582044775439">
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582044909936">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044775439" />
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044909936" />
     <state x="994" y="432" key="VcsDiffUtil.ChangesDialog" timestamp="1582039770858">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="994" y="432" key="VcsDiffUtil.ChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582039770858" />
-    <state x="907" y="396" width="745" height="608" key="find.popup" timestamp="1582044471002">
+    <state x="907" y="396" width="745" height="608" key="find.popup" timestamp="1582045259999">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="907" y="396" width="745" height="608" key="find.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044471002" />
+    <state x="907" y="396" width="745" height="608" key="find.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582045259999" />
     <state x="936" y="341" width="672" height="676" key="search.everywhere.popup" timestamp="1582039503821">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
