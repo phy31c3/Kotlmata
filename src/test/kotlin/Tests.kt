@@ -193,6 +193,9 @@ class Tests
 				input signal "goToError" action {
 					throw Exception("에러1 발생")
 				}
+				input signal "payload" actionWithPayload { signal, payload ->
+					println("$state: signal = $signal, payload = $payload")
+				}
 				shouldGC = WeakReference(this)
 			}
 			
@@ -340,6 +343,10 @@ class Tests
 		daemon.input("consume")
 		daemon.input("some string")
 		
+		Thread.sleep(100)
+		
+		daemon.input("payload", "this is a payload")
+		
 		Thread.sleep(500)
 		
 		thread?.interrupt()
@@ -361,6 +368,9 @@ class Tests
 				entry action { println("데몬이 시작됨") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				input signal "goToState2" action { println("state2로 이동") }
+				input signal "payload" actionWithPayload { signal, payload ->
+					println("signal: $signal, payload: $payload")
+				}
 				exit action { println("$state: 퇴장함수") }
 			}
 			
@@ -388,7 +398,7 @@ class Tests
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
-			"state3" x "goToState4" %= "state4"
+			"state3" x "goToState1" %= "state1"
 			
 			start at "state1"
 		}
@@ -426,7 +436,8 @@ class Tests
 			input signal 3 to "daemon"
 		}
 		Kotlmata input 5 to "daemon"
-		Kotlmata input "goToState4" to "daemon"
+		Kotlmata input "goToState1" to "daemon"
+		Kotlmata input "payload" payload "this is a payload" to "daemon"
 		
 		Thread.sleep(100)
 		
