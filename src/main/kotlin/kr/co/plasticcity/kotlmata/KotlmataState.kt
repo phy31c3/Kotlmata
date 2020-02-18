@@ -105,10 +105,8 @@ interface KotlmataState<T : STATE>
 	 */
 	fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
 	
-	fun input(signal: SIGNAL): KotlmataDSL.InputActionReturn
-	fun input(signal: SIGNAL, payload: Any?): KotlmataDSL.InputActionReturn
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>): KotlmataDSL.InputActionReturn
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?): KotlmataDSL.InputActionReturn
+	fun input(signal: SIGNAL, payload: Any? = null): KotlmataDSL.InputActionReturn
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null): KotlmataDSL.InputActionReturn
 	
 	fun exit(signal: SIGNAL)
 }
@@ -302,11 +300,6 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE }
 	}
 	
-	override fun input(signal: SIGNAL): KotlmataDSL.InputActionReturn
-	{
-		return input(signal, payload = null)
-	}
-	
 	override fun input(signal: SIGNAL, payload: Any?): KotlmataDSL.InputActionReturn
 	{
 		val bundle = inputMap?.let {
@@ -334,11 +327,6 @@ private class KotlmataStateImpl<T : STATE>(
 			logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE }
 			DSL.forward
 		}
-	}
-	
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>): KotlmataDSL.InputActionReturn
-	{
-		return input(signal, type, null)
 	}
 	
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?): KotlmataDSL.InputActionReturn

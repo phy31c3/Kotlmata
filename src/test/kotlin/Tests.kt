@@ -267,9 +267,9 @@ class Tests
 		
 		daemon.input("any1")
 		daemon.run()
-		daemon.input("우선순위 10", 10)
-		daemon.input("우선순위 0", 0)
-		daemon.input("우선순위 -10", -10)
+		daemon.input("우선순위 10", priority = 10)
+		daemon.input("우선순위 0", priority = 0)
+		daemon.input("우선순위 -10", priority = -10)
 		daemon.pause()
 		daemon.input("goToState2")
 		daemon.run()

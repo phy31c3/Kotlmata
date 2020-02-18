@@ -119,18 +119,18 @@ interface KotlmataMachine<T : MACHINE>
 	
 	val key: T
 	
-	fun input(signal: SIGNAL)
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
+	fun input(signal: SIGNAL, payload: Any? = null)
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null)
 	
 	/**
 	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
-	fun input(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
+	fun input(signal: SIGNAL, payload: Any? = null, block: (KotlmataDSL.SyncInput) -> Unit)
 	
 	/**
 	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null, block: (KotlmataDSL.SyncInput) -> Unit)
 }
 
 interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
@@ -300,32 +300,32 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	private fun input(begin: KotlmataDSL.SyncInput)
+	private fun defaultInput(begin: KotlmataDSL.SyncInput, payload: Any?)
 	{
 		var next: KotlmataDSL.SyncInput? = begin
 		while (next != null) next.also {
 			next = null
-			if (it.type == null) input(it.signal) { sync ->
+			if (it.type == null) input(it.signal, payload) { sync ->
 				next = sync
 			}
-			else input(it.signal, it.type) { sync ->
+			else input(it.signal, it.type, payload) { sync ->
 				next = sync
 			}
 		}
 	}
 	
-	override fun input(signal: SIGNAL)
+	override fun input(signal: SIGNAL, payload: Any?)
 	{
-		input(KotlmataDSL.SyncInput(signal))
+		defaultInput(KotlmataDSL.SyncInput(signal), payload)
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?)
 	{
-		input(KotlmataDSL.SyncInput(signal, type as KClass<SIGNAL>))
+		defaultInput(KotlmataDSL.SyncInput(signal, type as KClass<SIGNAL>), payload)
 	}
 	
-	override fun input(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
+	override fun input(signal: SIGNAL, payload: Any?, block: (KotlmataDSL.SyncInput) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
@@ -333,10 +333,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		ruleMap.let {
-			logLevel.normal(prefix, signal, current.key) { MACHINE_START_SIGNAL }
+			logLevel.normal(prefix, signal, payload, current.key) { MACHINE_START_INPUT }
 			var ret: KotlmataDSL.InputActionReturn = DSL.forward
-			action { ret = current.input(signal) }
-			logLevel.normal(prefix, signal, current.key) { MACHINE_END_SIGNAL }
+			action { ret = current.input(signal, payload) }
+			logLevel.normal(prefix, signal, payload, current.key) { MACHINE_END_INPUT }
 			if (ret === DSL.consume)
 			{
 				logLevel.simple(prefix) { MACHINE_SIGNAL_CONSUMED }
@@ -369,7 +369,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, block: (KotlmataDSL.SyncInput) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
@@ -377,10 +377,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		ruleMap.let {
-			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_START_TYPED }
+			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, current.key) { MACHINE_START_TYPED_INPUT }
 			var ret: KotlmataDSL.InputActionReturn = DSL.forward
-			action { ret = current.input(signal, type) }
-			logLevel.normal(prefix, signal, "${type.simpleName}::class", current.key) { MACHINE_END_TYPED }
+			action { ret = current.input(signal, type, payload) }
+			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, current.key) { MACHINE_END_TYPED_INPUT }
 			if (ret === DSL.consume)
 			{
 				logLevel.simple(prefix) { MACHINE_SIGNAL_CONSUMED }

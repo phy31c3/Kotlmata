@@ -72,12 +72,12 @@ interface KotlmataDaemon<T : DAEMON>
 	/**
 	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
 	 */
-	fun input(signal: SIGNAL, priority: Int = 0)
+	fun input(signal: SIGNAL, payload: Any? = null, priority: Int = 0)
 	
 	/**
 	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
 	 */
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int = 0)
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null, priority: Int = 0)
 }
 
 interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
@@ -189,7 +189,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				val start: KotlmataAction1<Request.Control> = { controlR ->
 					logLevel.simple(key) { DAEMON_START }
 					onStart.call(controlR.payload)
-					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", postSync)
+					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", block = postSync)
 				}
 				
 				input signal Request.Run::class action start
@@ -206,15 +206,15 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Terminate::class action terminate
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
-					syncR.type?.also {
-						machine.input(syncR.signal, it, postSync)
-					} ?: machine.input(syncR.signal, postSync)
+					syncR.type?.also { type ->
+						machine.input(syncR.signal, type, block = postSync)
+					} ?: machine.input(syncR.signal, block = postSync)
 				}
-				input signal Request.Signal::class action { signalR ->
-					machine.input(signalR.signal, postSync)
+				input signal Request.Input::class action { inputR ->
+					machine.input(inputR.signal, inputR.payload, block = postSync)
 				}
-				input signal Request.TypedSignal::class action { typedR ->
-					machine.input(typedR.signal, typedR.type, postSync)
+				input signal Request.TypedInput::class action { typedR ->
+					machine.input(typedR.signal, typedR.type, typedR.payload, block = postSync)
 				}
 				input action { request -> ignore(request, state) }
 			}
@@ -247,8 +247,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					logLevel.normal(key, syncR) { DAEMON_STORE_REQUEST }
 					sync = syncR
 				}
-				input signal Request.Signal::class action keep
-				input signal Request.TypedSignal::class action keep
+				input signal Request.Input::class action keep
+				input signal Request.TypedInput::class action keep
 				input action { signal -> ignore(signal, state) }
 				
 				exit action {
@@ -381,17 +381,17 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		queue?.offer(terminateR)
 	}
 	
-	override fun input(signal: SIGNAL, priority: Int)
+	override fun input(signal: SIGNAL, payload: Any?, priority: Int)
 	{
-		val signalR = Request.Signal(signal, priority)
-		logLevel.detail(key, signalR) { DAEMON_PUT_REQUEST }
-		queue?.offer(signalR)
+		val inputR = Request.Input(signal, payload, priority)
+		logLevel.detail(key, inputR) { DAEMON_PUT_REQUEST }
+		queue?.offer(inputR)
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, priority: Int)
 	{
-		val typedR = Request.TypedSignal(signal, type as KClass<SIGNAL>, priority)
+		val typedR = Request.TypedInput(signal, type as KClass<SIGNAL>, payload, priority)
 		logLevel.detail(key, typedR) { DAEMON_PUT_REQUEST }
 		queue?.offer(typedR)
 	}
@@ -561,8 +561,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		class Sync(val signal: SIGNAL, val type: KClass<SIGNAL>?) : Request(SYNC, "signal: $signal, type: ${type?.let { "${it.simpleName}::class" } ?: "null"}")
 		
-		class Signal(val signal: SIGNAL, priority: Int) : Request(SIGNAL, priority, "signal: $signal, priority: $priority")
-		class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>, priority: Int) : Request(SIGNAL, priority, "signal: $signal, type: ${type.simpleName}::class, priority: $priority")
+		class Input(val signal: SIGNAL, val payload: Any?, priority: Int) : Request(SIGNAL, priority, "signal: $signal, payload: $payload, priority: $priority")
+		class TypedInput(val signal: SIGNAL, val type: KClass<SIGNAL>, val payload: Any?, priority: Int) : Request(SIGNAL, priority, "signal: $signal, type: ${type.simpleName}::class, payload: $payload, priority: $priority")
 		
 		companion object
 		{

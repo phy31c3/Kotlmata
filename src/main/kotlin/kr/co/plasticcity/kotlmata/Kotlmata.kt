@@ -52,9 +52,14 @@ interface Kotlmata
 		infix fun set(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 	}
 	
-	interface Type<T : SIGNAL> : Priority
+	interface Type<T : SIGNAL> : Payload
 	{
-		infix fun type(type: KClass<in T>): Priority
+		infix fun type(type: KClass<in T>): Payload
+	}
+	
+	interface Payload : Priority
+	{
+		infix fun payload(payload: Any?): Priority
 	}
 	
 	interface Priority : To
@@ -257,26 +262,26 @@ private object KotlmataImpl : Kotlmata
 						logLevel.normal(terminateR, terminateR.daemon) { KOTLMATA_COMMON_IGNORED_NONE }
 					}
 				}
-				input signal Request.Signal::class action { signalR ->
-					if (signalR.daemon in daemons)
+				input signal Request.Input::class action { inputR ->
+					if (inputR.daemon in daemons)
 					{
-						logLevel.detail("", signalR.signal, signalR.priority, signalR.daemon) { KOTLMATA_SIGNAL }
-						daemons[signalR.daemon]!!.input(signalR.signal, signalR.priority)
+						logLevel.detail("", inputR.signal, inputR.payload, inputR.priority, inputR.daemon) { KOTLMATA_INPUT }
+						daemons[inputR.daemon]!!.input(inputR.signal, inputR.payload, inputR.priority)
 					}
 					else
 					{
-						logLevel.normal("", signalR.signal, signalR.priority, signalR.daemon) { KOTLMATA_SIGNAL_IGNORED }
+						logLevel.normal("", inputR.signal, inputR.payload, inputR.priority, inputR.daemon) { KOTLMATA_INPUT_IGNORED }
 					}
 				}
-				input signal Request.TypedSignal::class action { typedR ->
+				input signal Request.TypedInput::class action { typedR ->
 					if (typedR.daemon in daemons)
 					{
-						logLevel.detail("", typedR.signal, "${typedR.type.simpleName}::class", typedR.priority, typedR.daemon) { KOTLMATA_TYPED }
-						daemons[typedR.daemon]!!.input(typedR.signal, typedR.type, typedR.priority)
+						logLevel.detail("", typedR.signal, "${typedR.type.simpleName}::class", typedR.payload, typedR.priority, typedR.daemon) { KOTLMATA_TYPED_INPUT }
+						daemons[typedR.daemon]!!.input(typedR.signal, typedR.type, typedR.payload, typedR.priority)
 					}
 					else
 					{
-						logLevel.normal("", typedR.signal, "${typedR.type.simpleName}::class", typedR.priority, typedR.daemon) { KOTLMATA_TYPED_IGNORED }
+						logLevel.normal("", typedR.signal, "${typedR.type.simpleName}::class", typedR.payload, typedR.priority, typedR.daemon) { KOTLMATA_TYPED_INPUT_IGNORED }
 					}
 				}
 				input signal Request.Post::class action { postR ->
@@ -351,19 +356,51 @@ private object KotlmataImpl : Kotlmata
 	override fun <T : SIGNAL> input(signal: T) = object : Kotlmata.Type<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun type(type: KClass<in T>) = object : Kotlmata.Priority
+		override fun type(type: KClass<in T>) = object : Kotlmata.Payload
 		{
+			override fun payload(payload: Any?) = object : Kotlmata.Priority
+			{
+				override fun priority(priority: Int) = object : Kotlmata.To
+				{
+					override fun to(daemon: DAEMON)
+					{
+						core.input(Request.TypedInput(daemon, signal, type as KClass<SIGNAL>, payload, priority))
+					}
+				}
+				
+				override fun to(daemon: DAEMON)
+				{
+					core.input(Request.TypedInput(daemon, signal, type as KClass<SIGNAL>, payload, 0))
+				}
+			}
+			
 			override fun priority(priority: Int) = object : Kotlmata.To
 			{
 				override fun to(daemon: DAEMON)
 				{
-					core.input(Request.TypedSignal(daemon, signal, type as KClass<SIGNAL>, priority))
+					core.input(Request.TypedInput(daemon, signal, type as KClass<SIGNAL>, null, priority))
 				}
 			}
 			
 			override fun to(daemon: DAEMON)
 			{
-				core.input(Request.TypedSignal(daemon, signal, type as KClass<SIGNAL>, 0))
+				core.input(Request.TypedInput(daemon, signal, type as KClass<SIGNAL>, null, 0))
+			}
+		}
+		
+		override fun payload(payload: Any?) = object : Kotlmata.Priority
+		{
+			override fun priority(priority: Int) = object : Kotlmata.To
+			{
+				override fun to(daemon: DAEMON)
+				{
+					core.input(Request.Input(daemon, signal, payload, priority))
+				}
+			}
+			
+			override fun to(daemon: DAEMON)
+			{
+				core.input(Request.Input(daemon, signal, payload, 0))
 			}
 		}
 		
@@ -371,13 +408,13 @@ private object KotlmataImpl : Kotlmata
 		{
 			override fun to(daemon: DAEMON)
 			{
-				core.input(Request.Signal(daemon, signal, priority))
+				core.input(Request.Input(daemon, signal, null, priority))
 			}
 		}
 		
 		override fun to(daemon: DAEMON)
 		{
-			core.input(Request.Signal(daemon, signal, 0))
+			core.input(Request.Input(daemon, signal, null, 0))
 		}
 	}
 	
@@ -573,8 +610,42 @@ private object KotlmataImpl : Kotlmata
 		{
 			override fun <T : SIGNAL> signal(signal: T) = object : Kotlmata.Type<T>
 			{
-				override fun type(type: KClass<in T>) = object : Kotlmata.Priority
+				override fun type(type: KClass<in T>) = object : Kotlmata.Payload
 				{
+					override fun payload(payload: Any?) = object : Kotlmata.Priority
+					{
+						override fun priority(priority: Int) = object : Kotlmata.To
+						{
+							override fun to(daemon: DAEMON)
+							{
+								this@PostImpl shouldNot expired
+								if (daemon in daemons)
+								{
+									logLevel.detail(tab, signal, "${type.simpleName}::class", payload, priority, daemon) { KOTLMATA_TYPED_INPUT }
+									daemons[daemon]!!.input(signal, type, payload, priority)
+								}
+								else
+								{
+									logLevel.normal(tab, signal, "${type.simpleName}::class", payload, priority, daemon) { KOTLMATA_TYPED_INPUT_IGNORED }
+								}
+							}
+						}
+						
+						override fun to(daemon: DAEMON)
+						{
+							this@PostImpl shouldNot expired
+							if (daemon in daemons)
+							{
+								logLevel.detail(tab, signal, "${type.simpleName}::class", payload, 0, daemon) { KOTLMATA_TYPED_INPUT }
+								daemons[daemon]!!.input(signal, type, payload, 0)
+							}
+							else
+							{
+								logLevel.normal(tab, signal, "${type.simpleName}::class", payload, 0, daemon) { KOTLMATA_TYPED_INPUT_IGNORED }
+							}
+						}
+					}
+					
 					override fun priority(priority: Int) = object : Kotlmata.To
 					{
 						override fun to(daemon: DAEMON)
@@ -582,12 +653,12 @@ private object KotlmataImpl : Kotlmata
 							this@PostImpl shouldNot expired
 							if (daemon in daemons)
 							{
-								logLevel.detail(tab, signal, "${type.simpleName}::class", priority, daemon) { KOTLMATA_TYPED }
-								daemons[daemon]!!.input(signal, type, priority)
+								logLevel.detail(tab, signal, "${type.simpleName}::class", null, priority, daemon) { KOTLMATA_TYPED_INPUT }
+								daemons[daemon]!!.input(signal, type, null, priority)
 							}
 							else
 							{
-								logLevel.normal(tab, signal, "${type.simpleName}::class", priority, daemon) { KOTLMATA_TYPED_IGNORED }
+								logLevel.normal(tab, signal, "${type.simpleName}::class", null, priority, daemon) { KOTLMATA_TYPED_INPUT_IGNORED }
 							}
 						}
 					}
@@ -597,12 +668,46 @@ private object KotlmataImpl : Kotlmata
 						this@PostImpl shouldNot expired
 						if (daemon in daemons)
 						{
-							logLevel.detail(tab, signal, "${type.simpleName}::class", 0, daemon) { KOTLMATA_TYPED }
-							daemons[daemon]!!.input(signal, type)
+							logLevel.detail(tab, signal, "${type.simpleName}::class", null, 0, daemon) { KOTLMATA_TYPED_INPUT }
+							daemons[daemon]!!.input(signal, type, null, 0)
 						}
 						else
 						{
-							logLevel.normal(tab, signal, "${type.simpleName}::class", 0, daemon) { KOTLMATA_TYPED_IGNORED }
+							logLevel.normal(tab, signal, "${type.simpleName}::class", null, 0, daemon) { KOTLMATA_TYPED_INPUT_IGNORED }
+						}
+					}
+				}
+				
+				override fun payload(payload: Any?) = object : Kotlmata.Priority
+				{
+					override fun priority(priority: Int) = object : Kotlmata.To
+					{
+						override fun to(daemon: DAEMON)
+						{
+							this@PostImpl shouldNot expired
+							if (daemon in daemons)
+							{
+								logLevel.detail(tab, signal, payload, priority, daemon) { KOTLMATA_INPUT }
+								daemons[daemon]!!.input(signal, payload, priority)
+							}
+							else
+							{
+								logLevel.normal(tab, signal, payload, priority, daemon) { KOTLMATA_INPUT_IGNORED }
+							}
+						}
+					}
+					
+					override fun to(daemon: DAEMON)
+					{
+						this@PostImpl shouldNot expired
+						if (daemon in daemons)
+						{
+							logLevel.detail(tab, signal, payload, 0, daemon) { KOTLMATA_INPUT }
+							daemons[daemon]!!.input(signal, payload, 0)
+						}
+						else
+						{
+							logLevel.normal(tab, signal, payload, 0, daemon) { KOTLMATA_INPUT_IGNORED }
 						}
 					}
 				}
@@ -614,12 +719,12 @@ private object KotlmataImpl : Kotlmata
 						this@PostImpl shouldNot expired
 						if (daemon in daemons)
 						{
-							logLevel.detail(tab, signal, priority, daemon) { KOTLMATA_SIGNAL }
-							daemons[daemon]!!.input(signal, priority)
+							logLevel.detail(tab, signal, null, priority, daemon) { KOTLMATA_INPUT }
+							daemons[daemon]!!.input(signal, null, priority)
 						}
 						else
 						{
-							logLevel.normal(tab, signal, priority, daemon) { KOTLMATA_SIGNAL_IGNORED }
+							logLevel.normal(tab, signal, null, priority, daemon) { KOTLMATA_INPUT_IGNORED }
 						}
 					}
 				}
@@ -629,12 +734,12 @@ private object KotlmataImpl : Kotlmata
 					this@PostImpl shouldNot expired
 					if (daemon in daemons)
 					{
-						logLevel.detail(tab, signal, 0, daemon) { KOTLMATA_SIGNAL }
-						daemons[daemon]!!.input(signal)
+						logLevel.detail(tab, signal, null, 0, daemon) { KOTLMATA_INPUT }
+						daemons[daemon]!!.input(signal, null, 0)
 					}
 					else
 					{
-						logLevel.normal(tab, signal, 0, daemon) { KOTLMATA_SIGNAL_IGNORED }
+						logLevel.normal(tab, signal, null, 0, daemon) { KOTLMATA_INPUT_IGNORED }
 					}
 				}
 			}
@@ -657,8 +762,8 @@ private object KotlmataImpl : Kotlmata
 		class Stop(val daemon: DAEMON) : Request()
 		class Terminate(val daemon: DAEMON) : Request()
 		
-		class Signal(val daemon: DAEMON, val signal: SIGNAL, val priority: Int) : Request()
-		class TypedSignal(val daemon: DAEMON, val signal: SIGNAL, val type: KClass<SIGNAL>, val priority: Int) : Request()
+		class Input(val daemon: DAEMON, val signal: SIGNAL, val payload: Any?, val priority: Int) : Request()
+		class TypedInput(val daemon: DAEMON, val signal: SIGNAL, val type: KClass<SIGNAL>, val payload: Any?, val priority: Int) : Request()
 		
 		class Post(val block: Kotlmata.Post.() -> Unit) : Request()
 		
