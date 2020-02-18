@@ -48,7 +48,7 @@ interface KotlmataMachine<T : MACHINE>
 	interface StateDefine
 	{
 		operator fun <S : STATE> S.invoke(block: KotlmataState.Init.(state: S) -> Unit)
-		infix fun <S : STATE> S.extends(block: KotlmataState.Init.(state: S) -> Unit)
+		infix fun <S : STATE> S.extends(block: KotlmataState.Init.(state: S) -> Unit) = invoke(block)
 		
 		infix fun <S : STATE, R> S.action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
@@ -677,15 +677,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <T : STATE> T.invoke(block: KotlmataState.Init.(T) -> Unit)
+		override fun <S : STATE> S.invoke(block: KotlmataState.Init.(state: S) -> Unit)
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
-		}
-		
-		override fun <S : STATE> S.extends(block: KotlmataState.Init.(state: S) -> Unit)
-		{
-			TODO("not implemented")
 		}
 		
 		override fun <S : STATE, R> S.action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>

@@ -2,13 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -212,13 +206,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00095" summary="initial -&gt; pre-start">
-      <created>1537616644994</created>
-      <option name="number" value="00095" />
-      <option name="presentableId" value="LOCAL-00095" />
-      <option name="project" value="LOCAL" />
-      <updated>1537616644995</updated>
     </task>
     <task id="LOCAL-00096" summary="warning 로그 작성 완료">
       <created>1537619675769</created>
@@ -556,7 +543,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582039932882</updated>
     </task>
-    <option name="localTasksCounter" value="144" />
+    <task id="LOCAL-00144" summary="#92: Initializer -&gt; Init">
+      <created>1582044772906</created>
+      <option name="number" value="00144" />
+      <option name="presentableId" value="LOCAL-00144" />
+      <option name="project" value="LOCAL" />
+      <updated>1582044772906</updated>
+    </task>
+    <option name="localTasksCounter" value="145" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -584,7 +578,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#53: 데몬의 머신 생성을 코어 스레드에서 수행하기" />
     <MESSAGE value="#53: logLevel 을 생성자에서 불변값으로 설정하기" />
     <MESSAGE value="#55: 상태의 각종 선언에 KotlmataAction 타입 사용" />
     <MESSAGE value="#55: KotlmataCallback, KotlmataFallback 적용" />
@@ -609,13 +602,14 @@
     <MESSAGE value="#91: 머신, 데몬, Kotlmata 에도 payload 적용" />
     <MESSAGE value="#91: payload 테스트 추가" />
     <MESSAGE value="#91: defaultInput 위치 수정" />
-    <option name="LAST_COMMIT_MESSAGE" value="#91: defaultInput 위치 수정" />
+    <MESSAGE value="#92: Initializer -&gt; Init" />
+    <option name="LAST_COMMIT_MESSAGE" value="#92: Initializer -&gt; Init" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1582044547789">
+    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1582044824699">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044547789" />
+    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044824699" />
     <state x="960" y="427" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1581526063026">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -624,10 +618,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044413163" />
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582044576736">
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582044771973">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044576736" />
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044771973" />
     <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582044573038">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -672,10 +666,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="781" y="330" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581256205585" />
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582039564281">
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582044775439">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582039564281" />
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044775439" />
     <state x="994" y="432" key="VcsDiffUtil.ChangesDialog" timestamp="1582039770858">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
