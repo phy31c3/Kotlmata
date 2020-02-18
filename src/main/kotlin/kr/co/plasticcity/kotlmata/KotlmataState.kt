@@ -9,20 +9,20 @@ interface KotlmataState<T : STATE>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: Initializer.(state: String) -> Unit
+				block: Init.(state: String) -> Unit
 		): KotlmataState<String> = KotlmataStateImpl(name, logLevel, block = block)
 		
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: Initializer.(state: String) -> Unit
+				block: Init.(state: String) -> Unit
 		) = lazy {
 			invoke(name, logLevel, block)
 		}
 	}
 	
 	@KotlmataMarker
-	interface Initializer
+	interface Init
 	{
 		val entry: Entry
 		val input: Input
@@ -42,7 +42,7 @@ interface KotlmataState<T : STATE>
 		infix fun <R> action(action: KotlmataActionR<R>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
-		infix fun via(signals: Initializer.Signals): Action<SIGNAL>
+		infix fun via(signals: Init.Signals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
 		{
@@ -61,7 +61,7 @@ interface KotlmataState<T : STATE>
 		infix fun <R> action(action: KotlmataActionR<R>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> signal(signal: T): Action<T>
-		infix fun signal(signals: Initializer.Signals): Action<SIGNAL>
+		infix fun signal(signals: Init.Signals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
 		{
@@ -118,13 +118,13 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: (KotlmataState.Initializer.(state: String) -> Unit)? = null
+				block: (KotlmataState.Init.(state: String) -> Unit)? = null
 		): KotlmataMutableState<String> = KotlmataStateImpl(name, logLevel, block = block)
 		
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: (KotlmataState.Initializer.(state: String) -> Unit)? = null
+				block: (KotlmataState.Init.(state: String) -> Unit)? = null
 		) = lazy {
 			invoke(name, logLevel, block)
 		}
@@ -133,12 +133,12 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 				key: T,
 				logLevel: Int,
 				prefix: String,
-				block: (KotlmataState.Initializer.(state: T) -> Unit)
+				block: (KotlmataState.Init.(state: T) -> Unit)
 		): KotlmataMutableState<T> = KotlmataStateImpl(key, logLevel, prefix, block)
 	}
 	
 	@KotlmataMarker
-	interface Modifier : KotlmataState.Initializer
+	interface Modifier : KotlmataState.Init
 	{
 		val delete: Delete
 	}
@@ -178,7 +178,7 @@ private class KotlmataStateImpl<T : STATE>(
 		override val key: T,
 		val logLevel: Int = NO_LOG,
 		val prefix: String = "State[$key]:",
-		block: (KotlmataState.Initializer.(T) -> Unit)? = null
+		block: (KotlmataState.Init.(T) -> Unit)? = null
 ) : KotlmataMutableState<T>
 {
 	private var entry: EntryDef? = null
@@ -458,7 +458,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun via(signals: KotlmataState.Initializer.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
+			override fun via(signals: KotlmataState.Init.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
 			{
 				override fun <R> action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>
 				{
@@ -606,7 +606,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun signal(signals: KotlmataState.Initializer.Signals) = object : KotlmataState.Input.Action<SIGNAL>
+			override fun signal(signals: KotlmataState.Init.Signals) = object : KotlmataState.Input.Action<SIGNAL>
 			{
 				override fun <R> action(action: KotlmataActionR<R>): KotlmataState.Input.Catch<SIGNAL>
 				{
@@ -788,9 +788,9 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		}
 		
-		override fun SIGNAL.or(signal: SIGNAL): KotlmataState.Initializer.Signals = object : KotlmataState.Initializer.Signals, MutableList<SIGNAL> by mutableListOf(this, signal)
+		override fun SIGNAL.or(signal: SIGNAL): KotlmataState.Init.Signals = object : KotlmataState.Init.Signals, MutableList<SIGNAL> by mutableListOf(this, signal)
 		{
-			override fun or(signal: SIGNAL): KotlmataState.Initializer.Signals
+			override fun or(signal: SIGNAL): KotlmataState.Init.Signals
 			{
 				add(signal)
 				return this

@@ -19,7 +19,7 @@ class Tests
 	@Test
 	fun stateTest()
 	{
-		var expired: KotlmataState.Initializer? = null
+		var expired: KotlmataState.Init? = null
 		val state by KotlmataMutableState.lazy("s1") {
 			expired = this
 			val lambda1: KotlmataAction = {
@@ -168,7 +168,7 @@ class Tests
 	@Test
 	fun daemonTest()
 	{
-		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
+		var shouldGC: WeakReference<KotlmataState.Init>? = null
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
 		val daemon by KotlmataMutableDaemon.lazy("d1", 3) {

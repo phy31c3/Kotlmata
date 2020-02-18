@@ -44,7 +44,7 @@ interface Kotlmata
 	
 	interface Construct<T : DAEMON>
 	{
-		infix fun construct(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
+		infix fun construct(block: KotlmataDaemon.Init.(daemon: T) -> KotlmataMachine.Init.End)
 	}
 	
 	interface Set<T : DAEMON>
@@ -110,7 +110,7 @@ interface Kotlmata
 			
 			interface Construct<T : DAEMON>
 			{
-				infix fun construct(block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End)
+				infix fun construct(block: KotlmataDaemon.Init.(daemon: T) -> KotlmataMachine.Init.End)
 			}
 		}
 		
@@ -318,9 +318,9 @@ private object KotlmataImpl : Kotlmata
 	override fun <T : DAEMON> fork(daemon: T) = object : Kotlmata.Construct<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun construct(block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End)
+		override fun construct(block: KotlmataDaemon.Init.(T) -> KotlmataMachine.Init.End)
 		{
-			core.input(Request.Fork(daemon, block as KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End))
+			core.input(Request.Fork(daemon, block as KotlmataDaemon.Init.(DAEMON) -> KotlmataMachine.Init.End))
 		}
 	}
 	
@@ -500,7 +500,7 @@ private object KotlmataImpl : Kotlmata
 		{
 			override fun <T : DAEMON> daemon(daemon: T) = object : Kotlmata.Post.Fork.Construct<T>
 			{
-				override fun construct(block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End)
+				override fun construct(block: KotlmataDaemon.Init.(T) -> KotlmataMachine.Init.End)
 				{
 					this@PostImpl shouldNot expired
 					if (daemon !in daemons)
@@ -754,7 +754,7 @@ private object KotlmataImpl : Kotlmata
 	
 	private sealed class Request
 	{
-		class Fork(val daemon: DAEMON, val block: KotlmataDaemon.Initializer.(DAEMON) -> KotlmataMachine.Initializer.End) : Request()
+		class Fork(val daemon: DAEMON, val block: KotlmataDaemon.Init.(DAEMON) -> KotlmataMachine.Init.End) : Request()
 		class Modify(val daemon: DAEMON, val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request()
 		
 		class Run(val daemon: DAEMON) : Request()
