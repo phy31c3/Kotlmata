@@ -137,7 +137,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 		                    logLevel: Int = NO_LOG,
 		                    threadName: String? = null,
 		                    isDaemon: Boolean = false
-		) = object : KotlmataDaemon.Companion.ExtendsInvoke
+		) = object : ExtendsInvoke
 		{
 			override fun extends(block: KotlmataDaemonDef<String>) = invoke(name, logLevel, threadName, isDaemon, block)
 		}
@@ -163,9 +163,19 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 				logLevel: Int = NO_LOG,
 				threadName: String? = null,
 				isDaemon: Boolean = false
-		) = object : KotlmataDaemon.Companion.ExtendsLazy
+		) = object : ExtendsLazy
 		{
 			override fun extends(block: KotlmataDaemonDef<String>) = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
+		}
+		
+		interface ExtendsInvoke
+		{
+			infix fun extends(block: KotlmataDaemonDef<String>): KotlmataMutableDaemon<String>
+		}
+		
+		interface ExtendsLazy
+		{
+			infix fun extends(block: KotlmataDaemonDef<String>): Lazy<KotlmataMutableDaemon<String>>
 		}
 		
 		internal fun <T : DAEMON> create(

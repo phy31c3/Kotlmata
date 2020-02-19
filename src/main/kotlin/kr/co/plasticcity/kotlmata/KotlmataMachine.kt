@@ -174,7 +174,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG
-		) = object : KotlmataMachine.Companion.ExtendsInvoke
+		) = object : ExtendsInvoke
 		{
 			override fun extends(block: KotlmataMachineDef<String>) = invoke(name, logLevel, block)
 		}
@@ -190,9 +190,19 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG
-		) = object : KotlmataMachine.Companion.ExtendsLazy
+		) = object : ExtendsLazy
 		{
 			override fun extends(block: KotlmataMachineDef<String>) = lazy { invoke(name, logLevel, block) }
+		}
+		
+		interface ExtendsInvoke
+		{
+			infix fun extends(block: KotlmataMachineDef<String>): KotlmataMutableMachine<String>
+		}
+		
+		interface ExtendsLazy
+		{
+			infix fun extends(block: KotlmataMachineDef<String>): Lazy<KotlmataMutableMachine<String>>
 		}
 		
 		internal fun <T : MACHINE> create(
