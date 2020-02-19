@@ -183,10 +183,23 @@ class Tests
 			}
 			on error { throwable ->
 				println("onError: $throwable")
-				println(throwable)
 			}
 			
-			"state1" { state ->
+			fun defaultExit(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
+				exit action {
+					println(msg)
+				}
+				block(state)
+			}
+			
+			val defaultEnter: (String, KotlmataStateDef<String>) -> KotlmataStateDef<String> = fun(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
+				entry action {
+					println(msg)
+				}
+				block(state)
+			}
+			
+			"state1" extends defaultExit("템플릿으로 정의된 퇴장함수 호출됨") { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				input signal "goToState2" action { println("state2로 이동") }
@@ -203,7 +216,7 @@ class Tests
 				entry action { println("$state: 기본 진입함수") }
 				input signal Integer::class action { s -> println("$state: Number 타입 입력함수: $s") }
 				input signal 5 action { println("state3로 이동") }
-				input signal "error" action { throw RuntimeException() }
+				input signal "error" action { throw Exception("state2에서 강제 예외 발생") }
 				exit action { println("$state: 퇴장함수") }
 			}
 			
@@ -226,7 +239,7 @@ class Tests
 				exit action { println("$state: 퇴장함수") }
 			}
 			
-			"error" {
+			"error" extends defaultEnter("템플릿으로 정의된 진입함수 호출됨") {
 				input signal "error" action {
 					throw Exception("에러2 발생")
 				}
