@@ -47,8 +47,8 @@ interface KotlmataMachine<T : MACHINE>
 	
 	interface StateDefine
 	{
-		operator fun <S : STATE> S.invoke(block: KotlmataStateInit<S>)
-		infix fun <S : STATE> S.extends(block: KotlmataStateInit<S>) = invoke(block)
+		operator fun <S : STATE> S.invoke(block: KotlmataStateDef<S>)
+		infix fun <S : STATE> S.extends(block: KotlmataStateDef<S>) = invoke(block)
 		
 		infix fun <S : STATE, R> S.action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
@@ -206,7 +206,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface with<T : STATE>
 			{
-				infix fun with(block: KotlmataStateInit<T>)
+				infix fun with(block: KotlmataStateDef<T>)
 			}
 			
 			interface remAssign
@@ -221,7 +221,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface with<T : STATE>
 			{
-				infix fun with(block: KotlmataStateInit<T>)
+				infix fun with(block: KotlmataStateDef<T>)
 			}
 		}
 		
@@ -237,7 +237,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface or<T : STATE>
 			{
-				infix fun or(block: KotlmataStateInit<T>)
+				infix fun or(block: KotlmataStateDef<T>)
 			}
 			
 			interface remAssign
@@ -677,7 +677,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE> S.invoke(block: KotlmataStateInit<S>)
+		override fun <S : STATE> S.invoke(block: KotlmataStateDef<S>)
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)

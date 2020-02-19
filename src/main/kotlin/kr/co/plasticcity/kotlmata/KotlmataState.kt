@@ -118,13 +118,13 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: KotlmataStateInit<String>? = null
+				block: KotlmataStateDef<String>? = null
 		): KotlmataMutableState<String> = KotlmataStateImpl(name, logLevel, block = block)
 		
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: KotlmataStateInit<String>? = null
+				block: KotlmataStateDef<String>? = null
 		) = lazy {
 			invoke(name, logLevel, block)
 		}
@@ -133,7 +133,7 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 				key: T,
 				logLevel: Int,
 				prefix: String,
-				block: KotlmataStateInit<T>
+				block: KotlmataStateDef<T>
 		): KotlmataMutableState<T> = KotlmataStateImpl(key, logLevel, prefix, block)
 	}
 	
