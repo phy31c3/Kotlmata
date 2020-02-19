@@ -65,7 +65,17 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		val machine by KotlmataMutableMachine.lazy("m1") {
+		fun template(msg: String, block: KotlmataMachineDef<String>): KotlmataMachineDef<String> = { machine ->
+			on error {
+				println("$msg: on error")
+			}
+			
+			block(machine)
+			
+			start at "state1"
+		}
+		
+		val machine by KotlmataMutableMachine.lazy("m1") extends template("템플릿에서 정의") {
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
@@ -111,10 +121,6 @@ class Tests
 			"state1" x any.of("goToState4-1", "goToState4-2", "goToState4-3") %= "state4"
 			"simple" x "goToSimple" %= "state1"
 			any.except("simple") x "goToSimple" %= "simple"
-			
-			on error {
-				println("어랏... 예외가 발생했네")
-			}
 			
 			start at "state1"
 		}
@@ -171,7 +177,18 @@ class Tests
 		var shouldGC: WeakReference<KotlmataState.Init>? = null
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
-		val daemon by KotlmataMutableDaemon.lazy("d1", 3) {
+		
+		fun template(msg: String, block: KotlmataDaemonDef<String>): KotlmataDaemonDef<String> = { daemon ->
+			on error {
+				println("$msg: on error")
+			}
+			
+			block(daemon)
+			
+			start at "state1"
+		}
+		
+		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends template("템플릿에서 정의") {
 			on start {
 				thread = Thread.currentThread()
 				throw Exception("onStart 에서 예외 발생")
@@ -180,9 +197,6 @@ class Tests
 			}
 			on terminate {
 				println("데몬이 종료됨")
-			}
-			on error { throwable ->
-				println("onError: $throwable")
 			}
 			
 			fun defaultExit(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
