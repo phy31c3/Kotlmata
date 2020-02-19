@@ -5,6 +5,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -208,13 +209,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00101" summary="interface 파일 정리 #26">
-      <created>1547216648010</created>
-      <option name="number" value="00101" />
-      <option name="presentableId" value="LOCAL-00101" />
-      <option name="project" value="LOCAL" />
-      <updated>1547216648010</updated>
     </task>
     <task id="LOCAL-00102" summary="by lazy 제거 #31">
       <created>1547303584063</created>
@@ -552,7 +546,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582130837968</updated>
     </task>
-    <option name="localTasksCounter" value="150" />
+    <task id="LOCAL-00150" summary="#92: 머신, 데몬 템플릿 인터페이스 구현">
+      <created>1582131693313</created>
+      <option name="number" value="00150" />
+      <option name="presentableId" value="LOCAL-00150" />
+      <option name="project" value="LOCAL" />
+      <updated>1582131693313</updated>
+    </task>
+    <option name="localTasksCounter" value="151" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -580,7 +581,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#64: 남아있는 메시지 개수 로그찍기" />
     <MESSAGE value="0.2.1: Interface 수정" />
     <MESSAGE value="gitignore 업데이트" />
     <MESSAGE value="#69: 소요시간 적용" />
@@ -605,7 +605,8 @@
     <MESSAGE value="#92: KotlmataStateInit -&gt; KotlmataStateDef" />
     <MESSAGE value="#92: 테스트 추가" />
     <MESSAGE value="#92: KotlmataMachineDef, KotlmataDaemonDef 추가" />
-    <option name="LAST_COMMIT_MESSAGE" value="#92: KotlmataMachineDef, KotlmataDaemonDef 추가" />
+    <MESSAGE value="#92: 머신, 데몬 템플릿 인터페이스 구현" />
+    <option name="LAST_COMMIT_MESSAGE" value="#92: 머신, 데몬 템플릿 인터페이스 구현" />
   </component>
   <component name="WindowStateProjectService">
     <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1582131586821">
@@ -620,14 +621,14 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044413163" />
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582130836804">
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582131692387">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582130836804" />
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582125641052">
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582131692387" />
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582131980529">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582125641052" />
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582131980529" />
     <state width="783" height="1257" key="GridCell.Tab.0.bottom" timestamp="1582131651221">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -668,10 +669,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="781" y="330" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581256205585" />
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582126948815">
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582131694701">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582126948815" />
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582131694701" />
     <state x="994" y="432" key="VcsDiffUtil.ChangesDialog" timestamp="1582039770858">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>

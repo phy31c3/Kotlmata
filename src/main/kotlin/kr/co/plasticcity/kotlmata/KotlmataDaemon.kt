@@ -31,7 +31,7 @@ interface KotlmataDaemon<T : DAEMON>
 		                    isDaemon: Boolean = false
 		) = object : ExtendsInvoke
 		{
-			override fun extends(block: KotlmataDaemonDef<String>): KotlmataDaemon<String> = invoke(name, logLevel, threadName, isDaemon, block)
+			override fun extends(block: KotlmataDaemonDef<String>) = invoke(name, logLevel, threadName, isDaemon, block)
 		}
 		
 		/**
@@ -57,7 +57,7 @@ interface KotlmataDaemon<T : DAEMON>
 				isDaemon: Boolean = false
 		) = object : ExtendsLazy
 		{
-			override fun extends(block: KotlmataDaemonDef<String>): Lazy<KotlmataDaemon<String>> = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
+			override fun extends(block: KotlmataDaemonDef<String>) = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
 		}
 		
 		interface ExtendsInvoke
@@ -133,6 +133,18 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
+		operator fun invoke(name: String,
+		                    logLevel: Int = NO_LOG,
+		                    threadName: String? = null,
+		                    isDaemon: Boolean = false
+		) = object : KotlmataDaemon.Companion.ExtendsInvoke
+		{
+			override fun extends(block: KotlmataDaemonDef<String>) = invoke(name, logLevel, threadName, isDaemon, block)
+		}
+		
+		/**
+		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+		 */
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -141,6 +153,19 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 				block: KotlmataDaemonDef<String>
 		) = lazy {
 			invoke(name, logLevel, threadName, isDaemon, block)
+		}
+		
+		/**
+		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+		 */
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG,
+				threadName: String? = null,
+				isDaemon: Boolean = false
+		) = object : KotlmataDaemon.Companion.ExtendsLazy
+		{
+			override fun extends(block: KotlmataDaemonDef<String>) = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
 		}
 		
 		internal fun <T : DAEMON> create(
