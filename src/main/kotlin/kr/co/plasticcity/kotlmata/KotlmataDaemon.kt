@@ -25,6 +25,18 @@ interface KotlmataDaemon<T : DAEMON>
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
+		operator fun invoke(name: String,
+		                    logLevel: Int = NO_LOG,
+		                    threadName: String? = null,
+		                    isDaemon: Boolean = false
+		) = object : ExtendsInvoke
+		{
+			override fun extends(block: KotlmataDaemonDef<String>): KotlmataDaemon<String> = invoke(name, logLevel, threadName, isDaemon, block)
+		}
+		
+		/**
+		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+		 */
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -33,6 +45,29 @@ interface KotlmataDaemon<T : DAEMON>
 				block: Init.(daemon: String) -> KotlmataMachine.Init.End
 		) = lazy {
 			invoke(name, logLevel, threadName, isDaemon, block)
+		}
+		
+		/**
+		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+		 */
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG,
+				threadName: String? = null,
+				isDaemon: Boolean = false
+		) = object : ExtendsLazy
+		{
+			override fun extends(block: KotlmataDaemonDef<String>): Lazy<KotlmataDaemon<String>> = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
+		}
+		
+		interface ExtendsInvoke
+		{
+			infix fun extends(block: KotlmataDaemonDef<String>): KotlmataDaemon<String>
+		}
+		
+		interface ExtendsLazy
+		{
+			infix fun extends(block: KotlmataDaemonDef<String>): Lazy<KotlmataDaemon<String>>
 		}
 		
 		internal fun <T : DAEMON> create(

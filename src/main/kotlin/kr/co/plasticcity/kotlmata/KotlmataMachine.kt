@@ -9,20 +9,46 @@ interface KotlmataMachine<T : MACHINE>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: Init.(machine: String) -> Init.End
+				block: KotlmataMachineDef<String>
 		): KotlmataMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
+		
+		operator fun invoke(
+				name: String,
+				logLevel: Int = NO_LOG
+		) = object : ExtendsInvoke
+		{
+			override fun extends(block: KotlmataMachineDef<String>): KotlmataMachine<String> = invoke(name, logLevel, block)
+		}
 		
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: Init.(machine: String) -> Init.End
+				block: KotlmataMachineDef<String>
 		) = lazy {
 			invoke(name, logLevel, block)
 		}
 		
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG
+		) = object : ExtendsLazy
+		{
+			override fun extends(block: KotlmataMachineDef<String>): Lazy<KotlmataMachine<String>> = lazy { invoke(name, logLevel, block) }
+		}
+		
+		interface ExtendsInvoke
+		{
+			infix fun extends(block: KotlmataMachineDef<String>): KotlmataMachine<String>
+		}
+		
+		interface ExtendsLazy
+		{
+			infix fun extends(block: KotlmataMachineDef<String>): Lazy<KotlmataMachine<String>>
+		}
+		
 		internal fun create(
 				name: String,
-				block: Init.(machine: String) -> Init.End
+				block: KotlmataMachineDef<String>
 		): KotlmataMachine<String> = KotlmataMachineImpl(name, block = block)
 	}
 	
