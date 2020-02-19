@@ -44,7 +44,7 @@ interface Kotlmata
 	
 	interface Construct<T : DAEMON>
 	{
-		infix fun construct(block: KotlmataDaemon.Init.(daemon: T) -> KotlmataMachine.Init.End)
+		infix fun construct(block: KotlmataDaemonDef<T>)
 	}
 	
 	interface Set<T : DAEMON>
@@ -110,7 +110,7 @@ interface Kotlmata
 			
 			interface Construct<T : DAEMON>
 			{
-				infix fun construct(block: KotlmataDaemon.Init.(daemon: T) -> KotlmataMachine.Init.End)
+				infix fun construct(block: KotlmataDaemonDef<T>)
 			}
 		}
 		

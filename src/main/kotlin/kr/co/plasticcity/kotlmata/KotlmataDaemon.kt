@@ -92,7 +92,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 				logLevel: Int = NO_LOG,
 				threadName: String? = null,
 				isDaemon: Boolean = false,
-				block: KotlmataDaemon.Init.(daemon: String) -> KotlmataMachine.Init.End
+				block: KotlmataDaemonDef<String>
 		): KotlmataMutableDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
 		
 		/**
@@ -103,7 +103,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 				logLevel: Int = NO_LOG,
 				threadName: String? = null,
 				isDaemon: Boolean = false,
-				block: KotlmataDaemon.Init.(daemon: String) -> KotlmataMachine.Init.End
+				block: KotlmataDaemonDef<String>
 		) = lazy {
 			invoke(name, logLevel, threadName, isDaemon, block)
 		}
@@ -111,7 +111,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 		internal fun <T : DAEMON> create(
 				key: T,
 				logLevel: Int,
-				block: KotlmataDaemon.Init.(daemon: T) -> KotlmataMachine.Init.End
+				block: KotlmataDaemonDef<T>
 		): KotlmataMutableDaemon<T> = KotlmataDaemonImpl(key, logLevel, block = block)
 	}
 	

@@ -142,13 +142,13 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: KotlmataMachine.Init.(machine: String) -> KotlmataMachine.Init.End
+				block: KotlmataMachineDef<String>
 		): KotlmataMutableMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
 		
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: KotlmataMachine.Init.(machine: String) -> KotlmataMachine.Init.End
+				block: KotlmataMachineDef<String>
 		) = lazy {
 			invoke(name, logLevel, block)
 		}
@@ -157,7 +157,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 				key: T,
 				logLevel: Int,
 				prefix: String,
-				block: KotlmataMachine.Init.(machine: T) -> KotlmataMachine.Init.End
+				block: KotlmataMachineDef<T>
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, logLevel, prefix, block)
 	}
 	
