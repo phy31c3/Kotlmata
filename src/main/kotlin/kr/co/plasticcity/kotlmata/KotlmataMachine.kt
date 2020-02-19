@@ -9,25 +9,51 @@ interface KotlmataMachine<T : MACHINE>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: Initializer.(machine: String) -> Initializer.End
+				block: KotlmataMachineDef<String>
 		): KotlmataMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
+		
+		operator fun invoke(
+				name: String,
+				logLevel: Int = NO_LOG
+		) = object : ExtendsInvoke
+		{
+			override fun extends(block: KotlmataMachineDef<String>) = invoke(name, logLevel, block)
+		}
 		
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: Initializer.(machine: String) -> Initializer.End
+				block: KotlmataMachineDef<String>
 		) = lazy {
 			invoke(name, logLevel, block)
 		}
 		
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG
+		) = object : ExtendsLazy
+		{
+			override fun extends(block: KotlmataMachineDef<String>) = lazy { invoke(name, logLevel, block) }
+		}
+		
+		interface ExtendsInvoke
+		{
+			infix fun extends(block: KotlmataMachineDef<String>): KotlmataMachine<String>
+		}
+		
+		interface ExtendsLazy
+		{
+			infix fun extends(block: KotlmataMachineDef<String>): Lazy<KotlmataMachine<String>>
+		}
+		
 		internal fun create(
 				name: String,
-				block: Initializer.(machine: String) -> Initializer.End
+				block: KotlmataMachineDef<String>
 		): KotlmataMachine<String> = KotlmataMachineImpl(name, block = block)
 	}
 	
 	@KotlmataMarker
-	interface Initializer : StateDefine, RuleDefine
+	interface Init : StateDefine, RuleDefine
 	{
 		val on: On
 		val start: Start
@@ -47,11 +73,13 @@ interface KotlmataMachine<T : MACHINE>
 	
 	interface StateDefine
 	{
-		operator fun <S : STATE> S.invoke(block: KotlmataState.Initializer.(state: S) -> Unit)
+		operator fun <S : STATE> S.invoke(block: KotlmataStateDef<S>)
+		infix fun <S : STATE> S.extends(block: KotlmataStateDef<S>) = invoke(block)
+		
 		infix fun <S : STATE, R> S.action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
-		infix fun <S : STATE> S.via(signals: KotlmataState.Initializer.Signals): KotlmataState.Entry.Action<SIGNAL>
+		infix fun <S : STATE> S.via(signals: KotlmataState.Init.Signals): KotlmataState.Entry.Action<SIGNAL>
 	}
 	
 	interface RuleDefine
@@ -140,22 +168,48 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: KotlmataMachine.Initializer.(machine: String) -> KotlmataMachine.Initializer.End
+				block: KotlmataMachineDef<String>
 		): KotlmataMutableMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
+		
+		operator fun invoke(
+				name: String,
+				logLevel: Int = NO_LOG
+		) = object : ExtendsInvoke
+		{
+			override fun extends(block: KotlmataMachineDef<String>) = invoke(name, logLevel, block)
+		}
 		
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: KotlmataMachine.Initializer.(machine: String) -> KotlmataMachine.Initializer.End
+				block: KotlmataMachineDef<String>
 		) = lazy {
 			invoke(name, logLevel, block)
+		}
+		
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG
+		) = object : ExtendsLazy
+		{
+			override fun extends(block: KotlmataMachineDef<String>) = lazy { invoke(name, logLevel, block) }
+		}
+		
+		interface ExtendsInvoke
+		{
+			infix fun extends(block: KotlmataMachineDef<String>): KotlmataMutableMachine<String>
+		}
+		
+		interface ExtendsLazy
+		{
+			infix fun extends(block: KotlmataMachineDef<String>): Lazy<KotlmataMutableMachine<String>>
 		}
 		
 		internal fun <T : MACHINE> create(
 				key: T,
 				logLevel: Int,
 				prefix: String,
-				block: KotlmataMachine.Initializer.(machine: T) -> KotlmataMachine.Initializer.End
+				block: KotlmataMachineDef<T>
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, logLevel, prefix, block)
 	}
 	
@@ -204,7 +258,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface with<T : STATE>
 			{
-				infix fun with(block: KotlmataState.Initializer.(state: T) -> Unit)
+				infix fun with(block: KotlmataStateDef<T>)
 			}
 			
 			interface remAssign
@@ -219,7 +273,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface with<T : STATE>
 			{
-				infix fun with(block: KotlmataState.Initializer.(state: T) -> Unit)
+				infix fun with(block: KotlmataStateDef<T>)
 			}
 		}
 		
@@ -235,7 +289,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface or<T : STATE>
 			{
-				infix fun or(block: KotlmataState.Initializer.(state: T) -> Unit)
+				infix fun or(block: KotlmataStateDef<T>)
 			}
 			
 			interface remAssign
@@ -269,7 +323,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		override val key: T,
 		val logLevel: Int = NO_LOG,
 		val prefix: String = "Machine[$key]:",
-		block: KotlmataMachine.Initializer.(T) -> KotlmataMachine.Initializer.End
+		block: KotlmataMachine.Init.(T) -> KotlmataMachine.Init.End
 ) : KotlmataMutableMachine<T>
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
@@ -426,11 +480,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	}
 	
 	private inner class ModifierImpl internal constructor(
-			init: (KotlmataMachine.Initializer.(T) -> KotlmataMachine.Initializer.End)? = null,
+			init: (KotlmataMachine.Init.(T) -> KotlmataMachine.Init.End)? = null,
 			modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
-	) : KotlmataMachine.Initializer, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
+	) : KotlmataMachine.Init, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
-		override val on = object : KotlmataMachine.Initializer.On
+		override val on = object : KotlmataMachine.Init.On
 		{
 			override fun error(block: KotlmataError)
 			{
@@ -439,9 +493,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override val start = object : KotlmataMachine.Initializer.Start
+		override val start = object : KotlmataMachine.Init.Start
 		{
-			override fun at(state: STATE): KotlmataMachine.Initializer.End
+			override fun at(state: STATE): KotlmataMachine.Init.End
 			{
 				this@ModifierImpl shouldNot expired
 				
@@ -449,7 +503,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					this@KotlmataMachineImpl.current = it
 				} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_START_STATE }
 				
-				return KotlmataMachine.Initializer.End()
+				return KotlmataMachine.Init.End()
 			}
 		}
 		
@@ -518,7 +572,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		{
 			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.with<T>
 			{
-				override fun with(block: KotlmataState.Initializer.(T) -> Unit)
+				override fun with(block: KotlmataState.Init.(T) -> Unit)
 				{
 					this@ModifierImpl shouldNot expired
 					if (state !in stateMap)
@@ -547,7 +601,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.with<T>
 				{
-					override fun with(block: KotlmataState.Initializer.(T) -> Unit)
+					override fun with(block: KotlmataState.Init.(T) -> Unit)
 					{
 						this@ModifierImpl shouldNot expired
 						state.invoke(block)
@@ -572,7 +626,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		{
 			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Replace.with<T>
 			{
-				override fun with(block: KotlmataState.Initializer.(T) -> Unit)
+				override fun with(block: KotlmataState.Init.(T) -> Unit)
 				{
 					this@ModifierImpl shouldNot expired
 					if (state in stateMap)
@@ -589,7 +643,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				val stop = object : KotlmataMutableMachine.Modifier.Update.or<T>
 				{
-					override fun or(block: KotlmataState.Initializer.(T) -> Unit)
+					override fun or(block: KotlmataState.Init.(T) -> Unit)
 					{
 						/* do nothing */
 					}
@@ -597,7 +651,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				
 				val or = object : KotlmataMutableMachine.Modifier.Update.or<T>
 				{
-					override fun or(block: KotlmataState.Initializer.(T) -> Unit)
+					override fun or(block: KotlmataState.Init.(T) -> Unit)
 					{
 						state.invoke(block)
 					}
@@ -675,7 +729,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <T : STATE> T.invoke(block: KotlmataState.Initializer.(T) -> Unit)
+		override fun <S : STATE> S.invoke(block: KotlmataStateDef<S>)
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
@@ -765,7 +819,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE> S.via(signals: KotlmataState.Initializer.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
+		override fun <S : STATE> S.via(signals: KotlmataState.Init.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
 		{
 			override fun <R> action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>
 			{

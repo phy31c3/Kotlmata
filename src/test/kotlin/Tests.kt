@@ -19,7 +19,7 @@ class Tests
 	@Test
 	fun stateTest()
 	{
-		var expired: KotlmataState.Initializer? = null
+		var expired: KotlmataState.Init? = null
 		val state by KotlmataMutableState.lazy("s1") {
 			expired = this
 			val lambda1: KotlmataAction = {
@@ -65,7 +65,17 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		val machine by KotlmataMutableMachine.lazy("m1") {
+		fun template(msg: String, block: KotlmataMachineDef<String>): KotlmataMachineDef<String> = { machine ->
+			on error {
+				println("$msg: on error")
+			}
+			
+			block(machine)
+			
+			start at "state1"
+		}
+		
+		val machine by KotlmataMutableMachine.lazy("m1") extends template("템플릿에서 정의") {
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
@@ -111,10 +121,6 @@ class Tests
 			"state1" x any.of("goToState4-1", "goToState4-2", "goToState4-3") %= "state4"
 			"simple" x "goToSimple" %= "state1"
 			any.except("simple") x "goToSimple" %= "simple"
-			
-			on error {
-				println("어랏... 예외가 발생했네")
-			}
 			
 			start at "state1"
 		}
@@ -168,10 +174,21 @@ class Tests
 	@Test
 	fun daemonTest()
 	{
-		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
+		var shouldGC: WeakReference<KotlmataState.Init>? = null
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
-		val daemon by KotlmataMutableDaemon.lazy("d1", 3) {
+		
+		fun template(msg: String, block: KotlmataDaemonDef<String>): KotlmataDaemonDef<String> = { daemon ->
+			on error {
+				println("$msg: on error")
+			}
+			
+			block(daemon)
+			
+			start at "state1"
+		}
+		
+		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends template("템플릿에서 정의") {
 			on start {
 				thread = Thread.currentThread()
 				throw Exception("onStart 에서 예외 발생")
@@ -181,12 +198,22 @@ class Tests
 			on terminate {
 				println("데몬이 종료됨")
 			}
-			on error { throwable ->
-				println("onError: $throwable")
-				println(throwable)
+			
+			fun defaultExit(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
+				exit action {
+					println(msg)
+				}
+				block(state)
 			}
 			
-			"state1" { state ->
+			val defaultEnter: (String, KotlmataStateDef<String>) -> KotlmataStateDef<String> = fun(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
+				entry action {
+					println(msg)
+				}
+				block(state)
+			}
+			
+			"state1" extends defaultExit("템플릿으로 정의된 퇴장함수 호출됨") { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				input signal "goToState2" action { println("state2로 이동") }
@@ -203,7 +230,7 @@ class Tests
 				entry action { println("$state: 기본 진입함수") }
 				input signal Integer::class action { s -> println("$state: Number 타입 입력함수: $s") }
 				input signal 5 action { println("state3로 이동") }
-				input signal "error" action { throw RuntimeException() }
+				input signal "error" action { throw Exception("state2에서 강제 예외 발생") }
 				exit action { println("$state: 퇴장함수") }
 			}
 			
@@ -226,7 +253,7 @@ class Tests
 				exit action { println("$state: 퇴장함수") }
 			}
 			
-			"error" {
+			"error" extends defaultEnter("템플릿으로 정의된 진입함수 호출됨") {
 				input signal "error" action {
 					throw Exception("에러2 발생")
 				}
