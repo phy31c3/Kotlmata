@@ -98,12 +98,12 @@ interface KotlmataState<T : STATE>
 	/**
 	 * @param block If 'entry action' returns a next signal, the block is executed.
 	 */
-	fun entry(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
+	fun entry(signal: SIGNAL, block: (KotlmataDSL.Sync) -> Unit)
 	
 	/**
 	 * @param block If 'entry action' returns a next signal, the block is executed.
 	 */
-	fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
+	fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (KotlmataDSL.Sync) -> Unit)
 	
 	fun input(signal: SIGNAL, payload: Any? = null): KotlmataDSL.InputActionReturn
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null): KotlmataDSL.InputActionReturn
@@ -199,7 +199,7 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	private fun EntryDef.actionEntry(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
+	private fun EntryDef.actionEntry(signal: SIGNAL, block: (KotlmataDSL.Sync) -> Unit)
 	{
 		val sync = try
 		{
@@ -214,8 +214,8 @@ private class KotlmataStateImpl<T : STATE>(
 			} ?: throw e
 		}
 		sync?.let {
-			if (it is KotlmataDSL.SyncInput) block(it)
-			else if (/* it is SIGNAL */it !is Unit) block(KotlmataDSL.SyncInput(it))
+			if (it is KotlmataDSL.Sync) block(it)
+			else if (/* it is SIGNAL */it !is Unit) block(KotlmataDSL.Sync(it))
 		}
 	}
 	
@@ -253,7 +253,7 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	override fun entry(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
+	override fun entry(signal: SIGNAL, block: (KotlmataDSL.Sync) -> Unit)
 	{
 		val bundle = entryMap?.let {
 			when
@@ -279,7 +279,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE }
 	}
 	
-	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
+	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (KotlmataDSL.Sync) -> Unit)
 	{
 		val bundle = entryMap?.let {
 			when (type)

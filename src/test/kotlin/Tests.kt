@@ -44,8 +44,8 @@ class Tests
 		state.entry(Any()) {}
 		state.entry("signal") {}
 		state.entry("a") {}
-		state.entry("b") { signal ->
-			state.input(signal)
+		state.entry("b") { sync ->
+			state.input(sync.signal)
 		}
 		state.input("basic")
 		state.input("basic", Any::class)
@@ -55,8 +55,8 @@ class Tests
 			delete action input signal "next"
 		}
 		
-		state.entry("b") { signal ->
-			state.input(signal)
+		state.entry("b") { sync ->
+			state.input(sync.signal)
 		}
 		
 		expired?.entry?.action {}

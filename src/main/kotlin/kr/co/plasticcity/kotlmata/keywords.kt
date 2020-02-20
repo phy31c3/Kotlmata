@@ -9,10 +9,10 @@ object of
 @KotlmataMarker
 interface KotlmataDSL
 {
-	data class SyncInput internal constructor(val signal: SIGNAL, val type: KClass<SIGNAL>? = null)
+	class Sync internal constructor(val signal: SIGNAL, val type: KClass<SIGNAL>? = null)
 	
 	@Suppress("UNCHECKED_CAST")
-	infix fun <T : SIGNAL> T.type(type: KClass<in T>) = SyncInput(this, type as KClass<SIGNAL>)
+	infix fun <T : SIGNAL> T.type(type: KClass<in T>) = Sync(this, type as KClass<SIGNAL>)
 	
 	sealed class InputActionReturn
 	{

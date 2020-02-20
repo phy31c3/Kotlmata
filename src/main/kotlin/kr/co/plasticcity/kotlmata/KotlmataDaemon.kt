@@ -236,7 +236,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			machine modify modifyR.block
 		}
 		
-		val postSync: (KotlmataDSL.SyncInput) -> Unit = {
+		val postSync: (KotlmataDSL.Sync) -> Unit = {
 			val syncR = Request.Sync(it.signal, it.type)
 			logLevel.detail(key, syncR) { DAEMON_PUT_REQUEST }
 			queue!!.offer(syncR)

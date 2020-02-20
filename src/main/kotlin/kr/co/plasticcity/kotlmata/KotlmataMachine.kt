@@ -174,12 +174,12 @@ interface KotlmataMachine<T : MACHINE>
 	/**
 	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
-	fun input(signal: SIGNAL, payload: Any? = null, block: (KotlmataDSL.SyncInput) -> Unit)
+	fun input(signal: SIGNAL, payload: Any? = null, block: (KotlmataDSL.Sync) -> Unit)
 	
 	/**
 	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null, block: (KotlmataDSL.SyncInput) -> Unit)
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null, block: (KotlmataDSL.Sync) -> Unit)
 }
 
 interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
@@ -377,18 +377,18 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	override fun input(signal: SIGNAL, payload: Any?)
 	{
-		defaultInput(KotlmataDSL.SyncInput(signal), payload)
+		defaultInput(KotlmataDSL.Sync(signal), payload)
 	}
 	
 	@Suppress("UNCHECKED_CAST")
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?)
 	{
-		defaultInput(KotlmataDSL.SyncInput(signal, type as KClass<SIGNAL>), payload)
+		defaultInput(KotlmataDSL.Sync(signal, type as KClass<SIGNAL>), payload)
 	}
 	
-	private fun defaultInput(begin: KotlmataDSL.SyncInput, payload: Any?)
+	private fun defaultInput(begin: KotlmataDSL.Sync, payload: Any?)
 	{
-		var next: KotlmataDSL.SyncInput? = begin
+		var next: KotlmataDSL.Sync? = begin
 		while (next != null) next.also {
 			next = null
 			if (it.type == null) input(it.signal, payload) { sync ->
@@ -400,7 +400,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun input(signal: SIGNAL, payload: Any?, block: (KotlmataDSL.SyncInput) -> Unit)
+	override fun input(signal: SIGNAL, payload: Any?, block: (KotlmataDSL.Sync) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
@@ -444,7 +444,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, block: (KotlmataDSL.SyncInput) -> Unit)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, block: (KotlmataDSL.Sync) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
 		{
