@@ -80,6 +80,8 @@ KotlmataMachine("name") { machine ->
 	any.except("start", "release") x any.except("1", "2") %= "state1"
 	"state1" x any.except("1", "2") %= "state2"
 
+	chain from "state1" to "state2" to "state3" via "signal"
+
 	on error [action]
 
 	start at "state0"
