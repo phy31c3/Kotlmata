@@ -202,7 +202,7 @@ Kotlmata.config {
 }
 
 Kotlmata.start(logLevel = 2)
-Kotlmata.shutdown()
+Kotlmata.stop()
 
 Kotlmata fork "daemon" construct { // Daemon init 블럭과 동일 (존재하면 무시)
 	on start [action]
