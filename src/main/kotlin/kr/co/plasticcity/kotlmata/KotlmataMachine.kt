@@ -135,6 +135,27 @@ interface KotlmataMachine<T : MACHINE>
 		interface RuleAnyOfAnyExcept : RuleAny
 		interface RuleAnyExceptAnyOf : RuleAny
 		interface RuleAnyExceptAnyExcept : RuleAny
+		
+		/* chain from "state1" to "state2" ... via "signal" */
+		
+		val chain: Chain
+		
+		interface Chain
+		{
+			infix fun from(state: STATE): To
+		}
+		
+		interface To
+		{
+			infix fun to(state: STATE): Via
+		}
+		
+		interface Via : To
+		{
+			infix fun via(signal: SIGNAL)
+			infix fun via(signal: KClass<out SIGNAL>)
+			infix fun via(keyword: any)
+		}
 	}
 	
 	interface RuleLeft
@@ -1006,6 +1027,56 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
 					ruleMap[from] = it
 				})[signal] = state
+			}
+		}
+		
+		override val chain = object : KotlmataMachine.RuleDefine.Chain
+		{
+			val states: MutableList<STATE> = mutableListOf()
+			
+			override fun from(state: STATE): KotlmataMachine.RuleDefine.To
+			{
+				this@ModifierImpl shouldNot expired
+				states.add(state)
+				return object : KotlmataMachine.RuleDefine.To
+				{
+					override fun to(state: STATE): KotlmataMachine.RuleDefine.Via
+					{
+						this@ModifierImpl shouldNot expired
+						states.add(state)
+						return object : KotlmataMachine.RuleDefine.Via, KotlmataMachine.RuleDefine.To by this
+						{
+							override fun via(signal: SIGNAL)
+							{
+								this@ModifierImpl shouldNot expired
+								done(signal)
+							}
+							
+							override fun via(signal: KClass<out SIGNAL>)
+							{
+								this@ModifierImpl shouldNot expired
+								done(signal)
+							}
+							
+							override fun via(keyword: any)
+							{
+								this@ModifierImpl shouldNot expired
+								done(keyword)
+							}
+							
+							private fun done(signal: Any)
+							{
+								(1 until states.size).forEach { i ->
+									val from = states[i - 1]
+									val to = states[i]
+									(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
+										ruleMap[from] = it
+									})[signal] = to
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 		

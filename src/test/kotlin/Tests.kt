@@ -282,6 +282,16 @@ class Tests
 				}
 			}
 			
+			"chain1" { state ->
+				entry action { println("$state: 기본 진입함수") }
+			}
+			"chain2" { state ->
+				entry action { println("$state: 기본 진입함수") }
+			}
+			"chain3" { state ->
+				entry action { println("$state: 기본 진입함수") }
+			}
+			
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
@@ -291,6 +301,7 @@ class Tests
 			"error" x "error" %= "errorSync"
 			"errorSync" x "goToState5" %= "state5"
 			"state5" x String::class %= "state1"
+			chain from "state1" to "chain1" to "chain2" to "chain3" via "next"
 			
 			start at "state1"
 		}
@@ -373,6 +384,13 @@ class Tests
 		Thread.sleep(100)
 		
 		daemon.input("payload", "this is a payload")
+		
+		Thread.sleep(100)
+		
+		daemon.input("next")
+		daemon.input("next")
+		daemon.input("next")
+		daemon.input("next")
 		
 		Thread.sleep(500)
 		
