@@ -361,18 +361,16 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		logLevel.normal(prefix) { MACHINE_END_BUILD }
 	}
 	
-	private inline fun action(block: () -> Unit)
+	private inline fun <T> tryCatch(block: () -> T?): T? = try
 	{
-		try
-		{
-			block()
-		}
-		catch (e: Throwable)
-		{
-			onError?.also {
-				DSL.it(e)
-			} ?: throw e
-		}
+		block()
+	}
+	catch (e: Throwable)
+	{
+		onError?.also { onError ->
+			DSL.onError(e)
+		} ?: throw e
+		null
 	}
 	
 	override fun input(signal: SIGNAL, payload: Any?)
@@ -409,8 +407,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		ruleMap.let {
 			logLevel.normal(prefix, signal, payload, current.key) { MACHINE_START_INPUT }
-			var ret: KotlmataDSL.InputActionReturn = DSL.forward
-			action { ret = current.input(signal, payload) }
+			val ret = tryCatch { current.input(signal, payload) }
 			logLevel.normal(prefix, signal, payload, current.key) { MACHINE_END_INPUT }
 			if (ret === DSL.consume)
 			{
@@ -437,9 +434,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
-			action { current.exit(signal) }
+			tryCatch { current.exit(signal) }
 			current = next
-			action { current.entry(signal, block) }
+			tryCatch { current.entry(signal) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
@@ -453,8 +450,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		ruleMap.let {
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, current.key) { MACHINE_START_TYPED_INPUT }
-			var ret: KotlmataDSL.InputActionReturn = DSL.forward
-			action { ret = current.input(signal, type, payload) }
+			val ret = tryCatch { current.input(signal, type, payload) }
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, current.key) { MACHINE_END_TYPED_INPUT }
 			if (ret === DSL.consume)
 			{
@@ -481,9 +477,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, "${type.simpleName}::class", next.key) { MACHINE_START_TRANSITION }
-			action { current.exit(signal) }
+			tryCatch { current.exit(signal) }
 			current = next
-			action { current.entry(signal, type, block) }
+			tryCatch { current.entry(signal) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}

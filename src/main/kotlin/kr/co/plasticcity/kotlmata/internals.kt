@@ -15,6 +15,15 @@ internal object DSL : KotlmataDSL
 	override val forward = KotlmataDSL.InputActionReturn.Forward
 }
 
+internal fun Any?.convertToSync() = when (this)
+{
+	null -> null
+	is Unit -> null
+	is Nothing -> null
+	is KotlmataDSL.Sync -> this
+	else /* this is SIGNAL */ -> KotlmataDSL.Sync(this)
+}
+
 internal object stay
 
 internal object Initial

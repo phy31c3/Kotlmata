@@ -41,11 +41,11 @@ class Tests
 			exit action { println("퇴장함수") }
 		}
 		
-		state.entry(Any()) {}
-		state.entry("signal") {}
-		state.entry("a") {}
-		state.entry("b") { sync ->
-			state.input(sync.signal)
+		state.entry(Any())
+		state.entry("signal")
+		state.entry("a")
+		state.entry("b")?.let { signal ->
+			state.input(signal)
 		}
 		state.input("basic")
 		state.input("basic", Any::class)
@@ -55,8 +55,11 @@ class Tests
 			delete action input signal "next"
 		}
 		
-		state.entry("b") { sync ->
-			state.input(sync.signal)
+		state.entry("b")?.let { signal ->
+			state.input(signal)
+		}
+		state.entry("a")?.let { signal ->
+			state.input(signal)
 		}
 		
 		expired?.entry?.action {}
