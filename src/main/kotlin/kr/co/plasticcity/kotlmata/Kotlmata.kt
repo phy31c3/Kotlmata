@@ -12,7 +12,8 @@ interface Kotlmata
 	 */
 	fun start(logLevel: Int = NO_LOG)
 	
-	fun shutdown()
+	fun pause()
+	fun stop()
 	fun release()
 	
 	infix fun <T : DAEMON> fork(daemon: T): Construct<T>
@@ -305,7 +306,12 @@ private object KotlmataImpl : Kotlmata
 		core.run(logLevel)
 	}
 	
-	override fun shutdown()
+	override fun pause()
+	{
+		core.pause()
+	}
+	
+	override fun stop()
 	{
 		core.stop()
 	}

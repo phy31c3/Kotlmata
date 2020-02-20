@@ -486,8 +486,8 @@ class Tests
 		
 		Thread.sleep(100)
 		
-		Kotlmata.input("shutdown 보다 더 빨리 실행될까?")
-		Kotlmata.shutdown()
+		Kotlmata.input("stop 보다 더 빨리 실행될까?")
+		Kotlmata.stop()
 		Kotlmata.release()
 		
 		Thread.sleep(100)
