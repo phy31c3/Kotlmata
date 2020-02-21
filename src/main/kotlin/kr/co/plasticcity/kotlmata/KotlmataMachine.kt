@@ -488,11 +488,13 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
+	@Suppress("OverridingDeprecatedMember")
 	override fun input(signal: KClass<out Any>, payload: Any?)
 	{
 		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
 	}
 	
+	@Suppress("OverridingDeprecatedMember")
 	override fun input(signal: KClass<out Any>, payload: Any?, block: (KotlmataDSL.Sync) -> Unit)
 	{
 		throw IllegalArgumentException("KClass<T> type cannot be used as input.")

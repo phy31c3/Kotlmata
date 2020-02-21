@@ -469,6 +469,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		queue?.offer(typedR)
 	}
 	
+	@Suppress("OverridingDeprecatedMember")
 	override fun input(signal: KClass<out Any>, payload: Any?, priority: Int)
 	{
 		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
