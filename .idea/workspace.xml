@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#101: 전이규칙 관련 타입 간소화">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -207,13 +206,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00110" summary="#48: Signals 선언 간소화">
-      <created>1550770365148</created>
-      <option name="number" value="00110" />
-      <option name="presentableId" value="LOCAL-00110" />
-      <option name="project" value="LOCAL" />
-      <updated>1550770365148</updated>
     </task>
     <task id="LOCAL-00111" summary="#48: Signals 더 간소화">
       <created>1550772634582</created>
@@ -551,7 +543,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582312523899</updated>
     </task>
-    <option name="localTasksCounter" value="159" />
+    <task id="LOCAL-00159" summary="#101: 전이규칙 관련 타입 간소화">
+      <created>1582315803415</created>
+      <option name="number" value="00159" />
+      <option name="presentableId" value="LOCAL-00159" />
+      <option name="project" value="LOCAL" />
+      <updated>1582315803415</updated>
+    </task>
+    <option name="localTasksCounter" value="160" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -593,7 +592,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="kotlin 1.2 -&gt; 1.3 업데이트" />
     <MESSAGE value="#86: KotlmataFallback -&gt; KotlmataError" />
     <MESSAGE value="#86: LifecycleDef 적용" />
     <MESSAGE value="#86: KotlmataDaemon의 생명주기 콜백에 대한 catch" />
@@ -618,13 +616,14 @@
     <MESSAGE value="#96: SyncInput -&gt; Sync" />
     <MESSAGE value="#101: 클래스 타입 입력 막기" />
     <MESSAGE value="#101: OverridingDeprecatedMember 어노테이션 추가" />
-    <option name="LAST_COMMIT_MESSAGE" value="#101: OverridingDeprecatedMember 어노테이션 추가" />
+    <MESSAGE value="#101: 전이규칙 관련 타입 간소화" />
+    <option name="LAST_COMMIT_MESSAGE" value="#101: 전이규칙 관련 타입 간소화" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1582314922198">
+    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1582315917662">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582314922198" />
+    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582315917662" />
     <state x="960" y="427" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1581526063026">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -633,14 +632,14 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582315190203" />
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582315713943">
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582316268766">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582315713943" />
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582315377785">
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582316268766" />
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582316247406">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582315377785" />
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582316247406" />
     <state width="806" height="1257" key="GridCell.Tab.0.bottom" timestamp="1582315412129">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -681,10 +680,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="781" y="330" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581256205585" />
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582312526557">
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582315804460">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582312526557" />
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582315804460" />
     <state x="994" y="432" key="VcsDiffUtil.ChangesDialog" timestamp="1582039770858">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>

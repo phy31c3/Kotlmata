@@ -94,7 +94,7 @@ interface KotlmataMachine<T : MACHINE>
 		infix fun any.x(signal: KClass<out SIGNAL>): RuleLeft
 		infix fun any.x(keyword: any): RuleLeft
 		
-		/* For 'using any' interface */
+		/* For 'AnyXX' interface */
 		
 		interface AnyOf : List<STATE_OR_SIGNAL>
 		interface AnyExcept : List<STATE_OR_SIGNAL>
@@ -124,6 +124,16 @@ interface KotlmataMachine<T : MACHINE>
 		infix fun AnyOf.x(anyExcept: AnyExcept): RuleAssignable
 		infix fun AnyExcept.x(anyOf: AnyOf): RuleAssignable
 		infix fun AnyExcept.x(anyExcept: AnyExcept): RuleAssignable
+		
+		/* For Signals interface */
+		infix fun SIGNAL.or(signal: SIGNAL): Signals
+		
+		interface Signals : MutableList<SIGNAL>
+		{
+			infix fun or(signal: SIGNAL): Signals
+		}
+		
+		infix fun STATE.x(signals: Signals): RuleAssignable
 		
 		/**
 		 * For chaining transition rule
@@ -876,6 +886,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
+		/*###################################################################################################################################
+		 * Basic transition rules
+		 *###################################################################################################################################*/
+		
 		override fun STATE.x(signal: SIGNAL) = ruleLeft(this, signal)
 		override fun STATE.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
 		override fun STATE.x(keyword: any) = ruleLeft(this, keyword)
@@ -884,6 +898,23 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
 		override fun any.x(keyword: any) = ruleLeft(this, keyword)
 		
+		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.RuleLeft
+		{
+			override val state: STATE = from
+			override val signal: SIGNAL = signal
+			
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
+					ruleMap[from] = it
+				})[signal] = state
+			}
+		}
+		
+		/*###################################################################################################################################
+		 * 'AnyXX' transition rules
+		 *###################################################################################################################################*/
 		override fun any.of(vararg args: STATE_OR_SIGNAL): KotlmataMachine.RuleDefine.AnyOf = object : KotlmataMachine.RuleDefine.AnyOf, List<STATE_OR_SIGNAL> by listOf(*args)
 		{
 			/* empty */
@@ -1023,20 +1054,22 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.RuleLeft
+		/*###################################################################################################################################
+		 * Signals transition rule
+		 *###################################################################################################################################*/
+		override fun SIGNAL.or(signal: SIGNAL): KotlmataMachine.RuleDefine.Signals
 		{
-			override val state: STATE = from
-			override val signal: SIGNAL = signal
-			
-			override fun remAssign(state: STATE)
-			{
-				this@ModifierImpl shouldNot expired
-				(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
-					ruleMap[from] = it
-				})[signal] = state
-			}
+			TODO("not implemented")
 		}
 		
+		override fun STATE.x(signals: KotlmataMachine.RuleDefine.Signals): KotlmataMachine.RuleAssignable
+		{
+			TODO("not implemented")
+		}
+		
+		/*###################################################################################################################################
+		 * Chaining transition rule
+		 *###################################################################################################################################*/
 		override val chain = object : KotlmataMachine.RuleDefine.Chain
 		{
 			val states: MutableList<STATE> = mutableListOf()
