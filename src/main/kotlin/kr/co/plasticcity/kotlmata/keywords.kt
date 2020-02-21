@@ -13,21 +13,6 @@ interface KotlmataDSL
 	
 	@Suppress("UNCHECKED_CAST")
 	infix fun <T : SIGNAL> T.type(type: KClass<in T>) = Sync(this, type as KClass<SIGNAL>)
-	
-	sealed class InputActionReturn
-	{
-		internal object Consume : InputActionReturn()
-		internal object Forward : InputActionReturn()
-	}
-	
-	/**
-	 * If input action returns this keyword, the signal is consumed and does not cause a state transition.
-	 */
-	val consume: InputActionReturn
-	/**
-	 * If input action returns this keyword or anything other than 'consume' (even null or Unit), the signal can cause a state transition.
-	 */
-	val forward: InputActionReturn
 }
 
 typealias KotlmataAction = KotlmataDSL.(signal: SIGNAL) -> Unit

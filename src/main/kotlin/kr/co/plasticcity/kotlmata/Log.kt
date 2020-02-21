@@ -47,7 +47,6 @@ internal class Logs
 		const val MACHINE_END_INPUT = "%s << End signal input. {signal: %s, payload: %s} {current state: %s}"
 		const val MACHINE_START_TYPED_INPUT = "%s >> Start typed signal input. {signal: %s, type: %s, payload: %s} {current state: %s}"
 		const val MACHINE_END_TYPED_INPUT = "%s << End typed signal input. {signal: %s, type: %s, payload: %s} {current state: %s}"
-		const val MACHINE_SIGNAL_CONSUMED = "%s >> Signal is consumed."
 		const val MACHINE_START_TRANSITION = "%s >> Start transition. (%s) x (%s) -> (%s)"
 		const val MACHINE_END_TRANSITION = "%s << End transition."
 		

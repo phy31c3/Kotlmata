@@ -361,7 +361,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		logLevel.normal(prefix) { MACHINE_END_BUILD }
 	}
 	
-	private inline fun <T> tryCatch(block: () -> T?): T? = try
+	private inline fun <T> tryCatchReturn(block: () -> T?): T? = try
 	{
 		block()
 	}
@@ -405,16 +405,15 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			return this[signal] ?: this[signal::class] ?: this[any]
 		}
 		
-		ruleMap.let {
+		tryCatchReturn {
 			logLevel.normal(prefix, signal, payload, current.key) { MACHINE_START_INPUT }
-			val ret = tryCatch { current.input(signal, payload) }
+			current.input(signal, payload)
+		}.also {
 			logLevel.normal(prefix, signal, payload, current.key) { MACHINE_END_INPUT }
-			if (ret === DSL.consume)
-			{
-				logLevel.simple(prefix) { MACHINE_SIGNAL_CONSUMED }
-				null
-			}
-			else it[current.key]?.next() ?: it[any]?.next()
+		}.convertToSync()?.also { sync ->
+			block(sync)
+		} ?: ruleMap.let {
+			it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			when (it)
 			{
@@ -434,9 +433,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
-			tryCatch { current.exit(signal) }
+			tryCatchReturn { current.exit(signal) }
 			current = next
-			tryCatch { current.entry(signal) }.convertToSync()?.also(block)
+			tryCatchReturn { current.entry(signal) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
@@ -448,16 +447,15 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			return this[type] ?: this[any]
 		}
 		
-		ruleMap.let {
+		tryCatchReturn {
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, current.key) { MACHINE_START_TYPED_INPUT }
-			val ret = tryCatch { current.input(signal, type, payload) }
+			current.input(signal, type, payload)
+		}.also {
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, current.key) { MACHINE_END_TYPED_INPUT }
-			if (ret === DSL.consume)
-			{
-				logLevel.simple(prefix) { MACHINE_SIGNAL_CONSUMED }
-				null
-			}
-			else it[current.key]?.next() ?: it[any]?.next()
+		}.convertToSync()?.also { sync ->
+			block(sync)
+		} ?: ruleMap.let {
+			it[current.key]?.next() ?: it[any]?.next()
 		}?.let {
 			when (it)
 			{
@@ -477,9 +475,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}?.let { next ->
 			logLevel.simple(prefix, current.key, "${type.simpleName}::class", next.key) { MACHINE_START_TRANSITION }
-			tryCatch { current.exit(signal) }
+			tryCatchReturn { current.exit(signal) }
 			current = next
-			tryCatch { current.entry(signal) }.convertToSync()?.also(block)
+			tryCatchReturn { current.entry(signal) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
