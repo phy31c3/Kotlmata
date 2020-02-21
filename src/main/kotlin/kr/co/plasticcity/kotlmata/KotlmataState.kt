@@ -95,18 +95,11 @@ interface KotlmataState<T : STATE>
 	
 	val key: T
 	
-	/**
-	 * @param block If 'entry action' returns a next signal, the block is executed.
-	 */
-	fun entry(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
+	fun entry(signal: SIGNAL): Any?
+	fun <T : SIGNAL> entry(signal: T, type: KClass<in T>): Any?
 	
-	/**
-	 * @param block If 'entry action' returns a next signal, the block is executed.
-	 */
-	fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
-	
-	fun input(signal: SIGNAL, payload: Any? = null): KotlmataDSL.InputActionReturn
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null): KotlmataDSL.InputActionReturn
+	fun input(signal: SIGNAL, payload: Any? = null): Any?
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null): Any?
 	
 	fun exit(signal: SIGNAL)
 }
@@ -199,63 +192,48 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	private fun EntryDef.actionEntry(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
+	private fun EntryDef.run(signal: SIGNAL): Any? = try
 	{
-		val sync = try
-		{
-			DSL.action(signal)
-		}
-		catch (e: Throwable)
-		{
-			error?.let {
-				DSL.it(e, signal) ?: Unit
-			} ?: catch?.let {
-				DSL.it(e, signal)
-			} ?: throw e
-		}
-		sync?.let {
-			if (it is KotlmataDSL.SyncInput) block(it)
-			else if (/* it is SIGNAL */it !is Unit) block(KotlmataDSL.SyncInput(it))
-		}
+		DSL.action(signal)
+	}
+	catch (e: Throwable)
+	{
+		error?.let {
+			DSL.it(e, signal) ?: Unit
+		} ?: catch?.let {
+			DSL.it(e, signal)
+		} ?: throw e
 	}
 	
-	private fun InputDef.actionInput(signal: SIGNAL, payload: Any?): KotlmataDSL.InputActionReturn
+	private fun InputDef.run(signal: SIGNAL, payload: Any?): Any? = try
 	{
-		val ret = try
-		{
-			DSL.action(signal, payload)
-		}
-		catch (e: Throwable)
-		{
-			error?.let {
-				DSL.it(e, signal) ?: Unit
-			} ?: catch?.let {
-				DSL.it(e, signal)
-			} ?: throw e
-		}
-		return if (ret === DSL.consume) DSL.consume
-		else DSL.forward
+		DSL.action(signal, payload)
+	}
+	catch (e: Throwable)
+	{
+		error?.let {
+			DSL.it(e, signal) ?: Unit
+		} ?: catch?.let {
+			DSL.it(e, signal)
+		} ?: throw e
 	}
 	
-	private fun ExitDef.actionExit(signal: SIGNAL)
+	private fun ExitDef.run(signal: SIGNAL) = try
 	{
-		try
-		{
-			DSL.action(signal)
-		}
-		catch (e: Throwable)
-		{
-			error?.also {
-				DSL.it(e, signal)
-			} ?: catch?.also {
-				DSL.it(e, signal)
-			} ?: throw e
-		}
+		DSL.action(signal)
+	}
+	catch (e: Throwable)
+	{
+		error?.let {
+			DSL.it(e, signal)
+		} ?: catch?.let {
+			DSL.it(e, signal)
+		} ?: throw e
 	}
 	
-	override fun entry(signal: SIGNAL, block: (KotlmataDSL.SyncInput) -> Unit)
+	override fun entry(signal: SIGNAL): Any?
 	{
-		val bundle = entryMap?.let {
+		val entryDef = entryMap?.let {
 			when
 			{
 				signal in it ->
@@ -274,14 +252,12 @@ private class KotlmataStateImpl<T : STATE>(
 			logLevel.normal(prefix, key, signal) { STATE_ENTRY_DEFAULT }
 		}
 		
-		bundle?.apply {
-			actionEntry(signal, block)
-		} ?: logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE }
+		return entryDef?.run(signal) ?: null.also { logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE } }
 	}
 	
-	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>, block: (KotlmataDSL.SyncInput) -> Unit)
+	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>): Any?
 	{
-		val bundle = entryMap?.let {
+		val entryDef = entryMap?.let {
 			when (type)
 			{
 				in it ->
@@ -295,14 +271,12 @@ private class KotlmataStateImpl<T : STATE>(
 			logLevel.normal(prefix, key, signal) { STATE_ENTRY_DEFAULT }
 		}
 		
-		bundle?.apply {
-			actionEntry(signal, block)
-		} ?: logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE }
+		return entryDef?.run(signal) ?: null.also { logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE } }
 	}
 	
-	override fun input(signal: SIGNAL, payload: Any?): KotlmataDSL.InputActionReturn
+	override fun input(signal: SIGNAL, payload: Any?): Any?
 	{
-		val bundle = inputMap?.let {
+		val inputDef = inputMap?.let {
 			when
 			{
 				signal in it ->
@@ -321,17 +295,12 @@ private class KotlmataStateImpl<T : STATE>(
 			logLevel.normal(prefix, key, signal) { STATE_INPUT_DEFAULT }
 		}
 		
-		return bundle?.run {
-			actionInput(signal, payload)
-		} ?: run {
-			logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE }
-			DSL.forward
-		}
+		return inputDef?.run(signal, payload) ?: null.also { logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE } }
 	}
 	
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?): KotlmataDSL.InputActionReturn
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?): Any?
 	{
-		val bundle = inputMap?.let {
+		val inputDef = inputMap?.let {
 			when (type)
 			{
 				in it ->
@@ -345,19 +314,14 @@ private class KotlmataStateImpl<T : STATE>(
 			logLevel.normal(prefix, key, signal) { STATE_INPUT_DEFAULT }
 		}
 		
-		return bundle?.run {
-			actionInput(signal, payload)
-		} ?: run {
-			logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE }
-			DSL.forward
-		}
+		return inputDef?.run(signal, payload) ?: null.also { logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE } }
 	}
 	
 	override fun exit(signal: SIGNAL)
 	{
 		exit?.apply {
 			logLevel.normal(prefix, key, signal) { STATE_EXIT }
-			actionExit(signal)
+			run(signal)
 		} ?: logLevel.normal(prefix, key, signal) { STATE_EXIT_NONE }
 	}
 	

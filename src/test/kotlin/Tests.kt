@@ -41,10 +41,10 @@ class Tests
 			exit action { println("퇴장함수") }
 		}
 		
-		state.entry(Any()) {}
-		state.entry("signal") {}
-		state.entry("a") {}
-		state.entry("b") { signal ->
+		state.entry(Any())
+		state.entry("signal")
+		state.entry("a")
+		state.entry("b")?.let { signal ->
 			state.input(signal)
 		}
 		state.input("basic")
@@ -55,7 +55,10 @@ class Tests
 			delete action input signal "next"
 		}
 		
-		state.entry("b") { signal ->
+		state.entry("b")?.let { signal ->
+			state.input(signal)
+		}
+		state.entry("a")?.let { signal ->
 			state.input(signal)
 		}
 		
@@ -188,7 +191,7 @@ class Tests
 			start at "state1"
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends template("템플릿에서 정의") {
+		val daemon by KotlmataMutableDaemon.lazy("d1", 1) extends template("템플릿에서 정의") {
 			on start {
 				thread = Thread.currentThread()
 				throw Exception("onStart 에서 예외 발생")
@@ -237,7 +240,7 @@ class Tests
 			"state3" { state ->
 				entry action {
 					println("$state: 기본 진입함수")
-					"sync input"
+					"entry sync"
 				}
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				exit action { println("$state: 퇴장함수") }
@@ -276,9 +279,9 @@ class Tests
 			
 			"state5" { state ->
 				entry action { println("$state: 기본 진입함수") }
-				input signal "consume" action {
-					println("consume 입력하면 String 타입이지만 전이는 하지 않는다")
-					consume
+				input signal "sync" action {
+					println("sync 는 흡수되고 input sync 로 전이한다")
+					"input sync"
 				}
 			}
 			
@@ -347,7 +350,7 @@ class Tests
 				expire = this
 				entry action {
 					println("$state: 수정된 기본 진입함수")
-					"sync input"
+					"수정된 entry sync"
 				}
 			}
 		}
@@ -378,8 +381,7 @@ class Tests
 		
 		daemon.input("goToError")
 		daemon.input("error")
-		daemon.input("consume")
-		daemon.input("some string")
+		daemon.input("sync")
 		
 		Thread.sleep(100)
 		

@@ -10,9 +10,14 @@ internal typealias DAEMON = MACHINE
 internal annotation class KotlmataMarker
 
 internal object DSL : KotlmataDSL
+
+internal fun Any?.convertToSync() = when (this)
 {
-	override val consume = KotlmataDSL.InputActionReturn.Consume
-	override val forward = KotlmataDSL.InputActionReturn.Forward
+	null -> null
+	is Unit -> null
+	is Nothing -> null
+	is KotlmataDSL.Sync -> this
+	else /* this is SIGNAL */ -> KotlmataDSL.Sync(this)
 }
 
 internal object stay

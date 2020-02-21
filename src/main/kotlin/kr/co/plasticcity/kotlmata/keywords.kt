@@ -9,25 +9,10 @@ object of
 @KotlmataMarker
 interface KotlmataDSL
 {
-	data class SyncInput internal constructor(val signal: SIGNAL, val type: KClass<SIGNAL>? = null)
+	class Sync internal constructor(val signal: SIGNAL, val type: KClass<SIGNAL>? = null)
 	
 	@Suppress("UNCHECKED_CAST")
-	infix fun <T : SIGNAL> T.type(type: KClass<in T>) = SyncInput(this, type as KClass<SIGNAL>)
-	
-	sealed class InputActionReturn
-	{
-		internal object Consume : InputActionReturn()
-		internal object Forward : InputActionReturn()
-	}
-	
-	/**
-	 * If input action returns this keyword, the signal is consumed and does not cause a state transition.
-	 */
-	val consume: InputActionReturn
-	/**
-	 * If input action returns this keyword or anything other than 'consume' (even null or Unit), the signal can cause a state transition.
-	 */
-	val forward: InputActionReturn
+	infix fun <T : SIGNAL> T.type(type: KClass<in T>) = Sync(this, type as KClass<SIGNAL>)
 }
 
 typealias KotlmataAction = KotlmataDSL.(signal: SIGNAL) -> Unit

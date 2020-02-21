@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -192,8 +191,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="JUnit.Tests.daemonTest" />
-        <item itemvalue="JUnit.Tests.machineTest" />
         <item itemvalue="JUnit.Tests.kotlmataTest" />
+        <item itemvalue="JUnit.Tests.machineTest" />
         <item itemvalue="JUnit.Tests.commonTest" />
       </list>
     </recent_temporary>
@@ -208,27 +207,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00105" summary="로그레벨 기본값을 노멀로">
-      <created>1550417060156</created>
-      <option name="number" value="00105" />
-      <option name="presentableId" value="LOCAL-00105" />
-      <option name="project" value="LOCAL" />
-      <updated>1550417060156</updated>
-    </task>
-    <task id="LOCAL-00106" summary="전이로그 스타일 수정 &amp; 로그레벨 simple 일 때 End transition 안보여주기">
-      <created>1550417679755</created>
-      <option name="number" value="00106" />
-      <option name="presentableId" value="LOCAL-00106" />
-      <option name="project" value="LOCAL" />
-      <updated>1550417679755</updated>
-    </task>
-    <task id="LOCAL-00107" summary="#46: Action, Callback -&gt; Marker">
-      <created>1550425068980</created>
-      <option name="number" value="00107" />
-      <option name="presentableId" value="LOCAL-00107" />
-      <option name="project" value="LOCAL" />
-      <updated>1550425068980</updated>
     </task>
     <task id="LOCAL-00108" summary="#46: Action 선언 위치 수정">
       <created>1550425628114</created>
@@ -552,7 +530,28 @@
       <option name="project" value="LOCAL" />
       <updated>1582134735161</updated>
     </task>
-    <option name="localTasksCounter" value="154" />
+    <task id="LOCAL-00154" summary="#95: Kotlmata.shutdown() -&gt; stop()">
+      <created>1582208617178</created>
+      <option name="number" value="00154" />
+      <option name="presentableId" value="LOCAL-00154" />
+      <option name="project" value="LOCAL" />
+      <updated>1582208617178</updated>
+    </task>
+    <task id="LOCAL-00155" summary="interface 문서에 chain 구문 추가">
+      <created>1582208689442</created>
+      <option name="number" value="00155" />
+      <option name="presentableId" value="LOCAL-00155" />
+      <option name="project" value="LOCAL" />
+      <updated>1582208689442</updated>
+    </task>
+    <task id="LOCAL-00156" summary="#96: SyncInput -&gt; Sync">
+      <created>1582211555954</created>
+      <option name="number" value="00156" />
+      <option name="presentableId" value="LOCAL-00156" />
+      <option name="project" value="LOCAL" />
+      <updated>1582211555954</updated>
+    </task>
+    <option name="localTasksCounter" value="157" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -577,12 +576,23 @@
         </entry>
       </map>
     </option>
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list />
+          </value>
+        </entry>
+        <entry key="User">
+          <value>
+            <list />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="상태단위 예외 핸들링 적용 #74" />
-    <MESSAGE value="#75: TypedSignal 추가" />
-    <MESSAGE value="#81: Kotlmata에 tab 적용" />
     <MESSAGE value="#78: 신호동작을 소비하는 기능 구현" />
     <MESSAGE value="#78: 신호 소비 로그 추가" />
     <MESSAGE value="kotlin 1.2 -&gt; 1.3 업데이트" />
@@ -605,13 +615,16 @@
     <MESSAGE value="#92: 머신, 데몬 템플릿 인터페이스 구현(2)" />
     <MESSAGE value="#92: 머신, 데몬 템플릿 인터페이스 구현(3)" />
     <MESSAGE value="#92: 머신, 데몬 템플릿 테스트 추가" />
-    <option name="LAST_COMMIT_MESSAGE" value="#92: 머신, 데몬 템플릿 테스트 추가" />
+    <MESSAGE value="#95: Kotlmata.shutdown() -&gt; stop()" />
+    <MESSAGE value="interface 문서에 chain 구문 추가" />
+    <MESSAGE value="#96: SyncInput -&gt; Sync" />
+    <option name="LAST_COMMIT_MESSAGE" value="#96: SyncInput -&gt; Sync" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1582206783830">
+    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1582216836564">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582206783830" />
+    <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582216836564" />
     <state x="960" y="427" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1581526063026">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -620,69 +633,149 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582044413163" />
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582208616249">
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582294969319">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582208616249" />
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582131980529">
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582294969319" />
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582293995791">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582131980529" />
-    <state width="783" height="1257" key="GridCell.Tab.0.bottom" timestamp="1582205254049">
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582293995791" />
+    <state width="806" height="1257" key="GridCell.Tab.0.bottom" timestamp="1582294928675">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582205254049" />
-    <state width="783" height="1257" key="GridCell.Tab.0.center" timestamp="1582205254049">
+    <state width="806" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582294928675" />
+    <state width="806" height="1257" key="GridCell.Tab.0.center" timestamp="1582294928674">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582205254049" />
-    <state width="783" height="1257" key="GridCell.Tab.0.left" timestamp="1582205254049">
+    <state width="806" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582294928674" />
+    <state width="806" height="1257" key="GridCell.Tab.0.left" timestamp="1582294928674">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582205254049" />
-    <state width="783" height="1257" key="GridCell.Tab.0.right" timestamp="1582205254049">
+    <state width="806" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582294928674" />
+    <state width="806" height="1257" key="GridCell.Tab.0.right" timestamp="1582294928674">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="783" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582205254049" />
-    <state width="2516" height="351" key="GridCell.Tab.1.bottom" timestamp="1581526069082">
+    <state width="806" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582294928674" />
+    <state width="2516" height="351" key="GridCell.Tab.1.bottom" timestamp="1582222959596">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2516" height="351" key="GridCell.Tab.1.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526069082" />
-    <state width="2516" height="351" key="GridCell.Tab.1.center" timestamp="1581526069082">
+    <state width="2516" height="351" key="GridCell.Tab.1.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582222959596" />
+    <state width="2516" height="351" key="GridCell.Tab.1.center" timestamp="1582222959595">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2516" height="351" key="GridCell.Tab.1.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526069082" />
-    <state width="2516" height="351" key="GridCell.Tab.1.left" timestamp="1581526069082">
+    <state width="2516" height="351" key="GridCell.Tab.1.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582222959595" />
+    <state width="2516" height="351" key="GridCell.Tab.1.left" timestamp="1582222959595">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2516" height="351" key="GridCell.Tab.1.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526069082" />
-    <state width="2516" height="351" key="GridCell.Tab.1.right" timestamp="1581526069082">
+    <state width="2516" height="351" key="GridCell.Tab.1.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582222959595" />
+    <state width="2516" height="351" key="GridCell.Tab.1.right" timestamp="1582222959595">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2516" height="351" key="GridCell.Tab.1.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526069082" />
-    <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1582125642647">
+    <state width="2516" height="351" key="GridCell.Tab.1.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582222959595" />
+    <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1582294000985">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582125642647" />
+    <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582294000985" />
     <state x="781" y="330" key="SettingsEditor" timestamp="1581256205585">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="781" y="330" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581256205585" />
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582208618765">
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582211557438">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582208618765" />
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582211557438" />
     <state x="994" y="432" key="VcsDiffUtil.ChangesDialog" timestamp="1582039770858">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="994" y="432" key="VcsDiffUtil.ChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582039770858" />
+    <state x="855" y="434" width="849" height="609" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1582222886804">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="855" y="434" width="849" height="609" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582222886804" />
     <state x="907" y="396" width="745" height="608" key="find.popup" timestamp="1582208592724">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="907" y="396" width="745" height="608" key="find.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582208592724" />
+    <state width="600" height="424" key="javadoc.popup" timestamp="1582211324598">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="600" height="424" key="javadoc.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582211324598" />
     <state x="936" y="341" width="672" height="676" key="search.everywhere.popup" timestamp="1582039503821">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="936" y="341" width="672" height="676" key="search.everywhere.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582039503821" />
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ArtifactsStructureConfigurable.UI">
+        <settings>
+          <artifact-editor />
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="FacetStructureConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="GlobalLibrariesConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="JdkListConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ModuleStructureConfigurable.UI">
+        <settings>
+          <last-edited>Kotlmata_test|Kotlmata</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.25891948" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ProjectLibrariesConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
   </component>
 </project>
