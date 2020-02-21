@@ -113,6 +113,9 @@ interface KotlmataDaemon<T : DAEMON>
 	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
 	 */
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null, priority: Int = 0)
+	
+	@Deprecated("KClass<T> type cannot be used as input.", level = DeprecationLevel.ERROR)
+	fun input(signal: KClass<out Any>, payload: Any? = null, priority: Int = 0)
 }
 
 interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
@@ -464,6 +467,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		val typedR = Request.TypedInput(signal, type as KClass<SIGNAL>, payload, priority)
 		logLevel.detail(key, typedR) { DAEMON_PUT_REQUEST }
 		queue?.offer(typedR)
+	}
+	
+	override fun input(signal: KClass<out Any>, payload: Any?, priority: Int)
+	{
+		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
 	}
 	
 	@Suppress("UNCHECKED_CAST")
