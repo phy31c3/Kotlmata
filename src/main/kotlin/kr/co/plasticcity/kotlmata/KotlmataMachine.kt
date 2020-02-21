@@ -180,6 +180,12 @@ interface KotlmataMachine<T : MACHINE>
 	 * @param block Called if the state is switched and the next state's entry function returns a signal.
 	 */
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null, block: (KotlmataDSL.Sync) -> Unit)
+	
+	@Deprecated("KClass<T> type cannot be used as input.", level = DeprecationLevel.ERROR)
+	fun input(signal: KClass<out Any>, payload: Any? = null)
+	
+	@Deprecated("KClass<T> type cannot be used as input.", level = DeprecationLevel.ERROR)
+	fun input(signal: KClass<out Any>, payload: Any? = null, block: (KotlmataDSL.Sync) -> Unit)
 }
 
 interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
@@ -480,6 +486,16 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			tryCatchReturn { current.entry(signal) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
+	}
+	
+	override fun input(signal: KClass<out Any>, payload: Any?)
+	{
+		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
+	}
+	
+	override fun input(signal: KClass<out Any>, payload: Any?, block: (KotlmataDSL.Sync) -> Unit)
+	{
+		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
 	}
 	
 	override fun modify(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
