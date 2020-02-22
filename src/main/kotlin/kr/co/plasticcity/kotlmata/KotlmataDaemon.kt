@@ -19,8 +19,20 @@ interface KotlmataDaemon<T : DAEMON>
 				logLevel: Int = NO_LOG,
 				threadName: String? = null,
 				isDaemon: Boolean = false,
-				block: Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
+				block: Init.(daemon: String) -> KotlmataMachine.Init.End
 		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
+		
+		/**
+		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+		 */
+		operator fun invoke(name: String,
+		                    logLevel: Int = NO_LOG,
+		                    threadName: String? = null,
+		                    isDaemon: Boolean = false
+		) = object : ExtendsInvoke
+		{
+			override fun extends(block: KotlmataDaemonDef<String>) = invoke(name, logLevel, threadName, isDaemon, block)
+		}
 		
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
@@ -30,29 +42,58 @@ interface KotlmataDaemon<T : DAEMON>
 				logLevel: Int = NO_LOG,
 				threadName: String? = null,
 				isDaemon: Boolean = false,
-				block: Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
+				block: Init.(daemon: String) -> KotlmataMachine.Init.End
 		) = lazy {
 			invoke(name, logLevel, threadName, isDaemon, block)
 		}
 		
+		/**
+		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+		 */
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG,
+				threadName: String? = null,
+				isDaemon: Boolean = false
+		) = object : ExtendsLazy
+		{
+			override fun extends(block: KotlmataDaemonDef<String>) = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
+		}
+		
+		interface ExtendsInvoke
+		{
+			infix fun extends(block: KotlmataDaemonDef<String>): KotlmataDaemon<String>
+		}
+		
+		interface ExtendsLazy
+		{
+			infix fun extends(block: KotlmataDaemonDef<String>): Lazy<KotlmataDaemon<String>>
+		}
+		
 		internal fun <T : DAEMON> create(
 				key: T,
-				block: Initializer.(daemon: T) -> KotlmataMachine.Initializer.End
+				block: Init.(daemon: T) -> KotlmataMachine.Init.End
 		): KotlmataDaemon<T> = KotlmataDaemonImpl(key, block = block)
 	}
 	
 	@KotlmataMarker
-	interface Initializer : KotlmataMachine.Initializer
+	interface Init : KotlmataMachine.Init
 	{
 		override val on: On
 		
-		interface On : KotlmataMachine.Initializer.On
+		interface On : KotlmataMachine.Init.On
 		{
-			infix fun start(block: KotlmataCallback)
-			infix fun pause(block: KotlmataCallback)
-			infix fun stop(block: KotlmataCallback)
-			infix fun resume(block: KotlmataCallback)
-			infix fun terminate(block: KotlmataCallback)
+			infix fun start(block: KotlmataCallback): Catch
+			infix fun pause(block: KotlmataCallback): Catch
+			infix fun stop(block: KotlmataCallback): Catch
+			infix fun resume(block: KotlmataCallback): Catch
+			infix fun terminate(block: KotlmataCallback): Catch
+		}
+		
+		interface Catch
+		{
+			infix fun catch(error: KotlmataFallback)
+			infix fun catch(error: KotlmataFallback1)
 		}
 	}
 	
@@ -66,12 +107,15 @@ interface KotlmataDaemon<T : DAEMON>
 	/**
 	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
 	 */
-	fun input(signal: SIGNAL, priority: Int = 0)
+	fun input(signal: SIGNAL, payload: Any? = null, priority: Int = 0)
 	
 	/**
 	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
 	 */
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int = 0)
+	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null, priority: Int = 0)
+	
+	@Deprecated("KClass<T> type cannot be used as input.", level = DeprecationLevel.ERROR)
+	fun input(signal: KClass<out Any>, payload: Any? = null, priority: Int = 0)
 }
 
 interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
@@ -86,8 +130,20 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 				logLevel: Int = NO_LOG,
 				threadName: String? = null,
 				isDaemon: Boolean = false,
-				block: KotlmataDaemon.Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
+				block: KotlmataDaemonDef<String>
 		): KotlmataMutableDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
+		
+		/**
+		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+		 */
+		operator fun invoke(name: String,
+		                    logLevel: Int = NO_LOG,
+		                    threadName: String? = null,
+		                    isDaemon: Boolean = false
+		) = object : ExtendsInvoke
+		{
+			override fun extends(block: KotlmataDaemonDef<String>) = invoke(name, logLevel, threadName, isDaemon, block)
+		}
 		
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
@@ -97,15 +153,38 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 				logLevel: Int = NO_LOG,
 				threadName: String? = null,
 				isDaemon: Boolean = false,
-				block: KotlmataDaemon.Initializer.(daemon: String) -> KotlmataMachine.Initializer.End
+				block: KotlmataDaemonDef<String>
 		) = lazy {
 			invoke(name, logLevel, threadName, isDaemon, block)
+		}
+		
+		/**
+		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
+		 */
+		fun lazy(
+				name: String,
+				logLevel: Int = NO_LOG,
+				threadName: String? = null,
+				isDaemon: Boolean = false
+		) = object : ExtendsLazy
+		{
+			override fun extends(block: KotlmataDaemonDef<String>) = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
+		}
+		
+		interface ExtendsInvoke
+		{
+			infix fun extends(block: KotlmataDaemonDef<String>): KotlmataMutableDaemon<String>
+		}
+		
+		interface ExtendsLazy
+		{
+			infix fun extends(block: KotlmataDaemonDef<String>): Lazy<KotlmataMutableDaemon<String>>
 		}
 		
 		internal fun <T : DAEMON> create(
 				key: T,
 				logLevel: Int,
-				block: KotlmataDaemon.Initializer.(daemon: T) -> KotlmataMachine.Initializer.End
+				block: KotlmataDaemonDef<T>
 		): KotlmataMutableDaemon<T> = KotlmataDaemonImpl(key, logLevel, block = block)
 	}
 	
@@ -114,24 +193,43 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 	infix fun modify(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 }
 
+private class LifecycleDef(val callback: KotlmataCallback? = null, val fallback: KotlmataFallback1? = null)
+
 private class KotlmataDaemonImpl<T : DAEMON>(
 		override val key: T,
 		val logLevel: Int = NO_LOG,
 		threadName: String? = null,
 		isDaemon: Boolean = false,
-		block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End
+		block: KotlmataDaemon.Init.(T) -> KotlmataMachine.Init.End
 ) : KotlmataMutableDaemon<T>
 {
 	private val core: KotlmataMachine<String>
 	
-	private var onStart: KotlmataCallback = {}
-	private var onPause: KotlmataCallback = {}
-	private var onStop: KotlmataCallback = {}
-	private var onResume: KotlmataCallback = {}
-	private var onTerminate: KotlmataCallback = {}
+	private var onStart: LifecycleDef = LifecycleDef()
+	private var onPause: LifecycleDef = LifecycleDef()
+	private var onStop: LifecycleDef = LifecycleDef()
+	private var onResume: LifecycleDef = LifecycleDef()
+	private var onTerminate: LifecycleDef = LifecycleDef()
+	private var onError: KotlmataError? = null
 	
 	@Volatile
 	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
+	
+	private fun LifecycleDef.call(payload: Any?)
+	{
+		try
+		{
+			callback?.invoke(DSL, payload)
+		}
+		catch (e: Throwable)
+		{
+			fallback?.also {
+				DSL.it(e, payload)
+			} ?: onError?.also {
+				DSL.it(e)
+			} ?: throw e
+		}
+	}
 	
 	init
 	{
@@ -141,7 +239,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			machine modify modifyR.block
 		}
 		
-		val postSync: (KotlmataDSL.SyncInput) -> Unit = {
+		val postSync: (KotlmataDSL.Sync) -> Unit = {
 			val syncR = Request.Sync(it.signal, it.type)
 			logLevel.detail(key, syncR) { DAEMON_PUT_REQUEST }
 			queue!!.offer(syncR)
@@ -155,7 +253,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		val terminate: KotlmataAction1<Request.Terminate> = { terminateR ->
-			onTerminate(terminateR.payload)
+			onTerminate.call(terminateR.payload)
 			logLevel.simple(key) { DAEMON_TERMINATE }
 		}
 		
@@ -163,8 +261,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"Initial" { state ->
 				val start: KotlmataAction1<Request.Control> = { controlR ->
 					logLevel.simple(key) { DAEMON_START }
-					onStart(controlR.payload)
-					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", postSync)
+					onStart.call(controlR.payload)
+					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", block = postSync)
 				}
 				
 				input signal Request.Run::class action start
@@ -181,15 +279,15 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Terminate::class action terminate
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
-					syncR.type?.also {
-						machine.input(syncR.signal, it, postSync)
-					} ?: machine.input(syncR.signal, postSync)
+					syncR.type?.also { type ->
+						machine.input(syncR.signal, type, block = postSync)
+					} ?: machine.input(syncR.signal, block = postSync)
 				}
-				input signal Request.Signal::class action { signalR ->
-					machine.input(signalR.signal, postSync)
+				input signal Request.Input::class action { inputR ->
+					machine.input(inputR.signal, inputR.payload, block = postSync)
 				}
-				input signal Request.TypedSignal::class action { typedR ->
-					machine.input(typedR.signal, typedR.type, postSync)
+				input signal Request.TypedInput::class action { typedR ->
+					machine.input(typedR.signal, typedR.type, typedR.payload, block = postSync)
 				}
 				input action { request -> ignore(request, state) }
 			}
@@ -204,14 +302,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				
 				entry via Request.Pause::class action { pauseR ->
 					logLevel.simple(key) { DAEMON_PAUSE }
-					onPause(pauseR.payload)
+					onPause.call(pauseR.payload)
 				}
 				
 				input signal Request.Run::class action { runR ->
 					sync?.let { syncR -> queue!!.offer(syncR) }
 					queue!! += stash
 					logLevel.simple(key) { DAEMON_RESUME }
-					onResume(runR.payload)
+					onResume.call(runR.payload)
 				}
 				input signal Request.Stop::class action {
 					sync?.let { syncR -> queue!!.offer(syncR) }
@@ -222,8 +320,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					logLevel.normal(key, syncR) { DAEMON_STORE_REQUEST }
 					sync = syncR
 				}
-				input signal Request.Signal::class action keep
-				input signal Request.TypedSignal::class action keep
+				input signal Request.Input::class action keep
+				input signal Request.TypedInput::class action keep
 				input action { signal -> ignore(signal, state) }
 				
 				exit action {
@@ -249,13 +347,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				
 				entry via Request.Stop::class action { stopR ->
 					logLevel.simple(key) { DAEMON_STOP }
-					onStop(stopR.payload)
+					onStop.call(stopR.payload)
 				}
 				
 				input signal Request.Run::class action { runR ->
 					cleanup(runR)
 					logLevel.simple(key) { DAEMON_RESUME }
-					onResume(runR.payload)
+					onResume.call(runR.payload)
 				}
 				input signal Request.Pause::class action cleanup
 				input signal Request.Terminate::class action terminate
@@ -300,8 +398,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			logLevel.normal(key) { DAEMON_START_INIT }
 			machine = KotlmataMutableMachine.create(key, logLevel, "Daemon[$key]:$tab") {
 				Initial {}
-				val initializer = InitializerImpl(block, this)
-				Initial x any %= initializer.startAt
+				val initialized = InitImpl(block, this)
+				Initial x any %= initialized.startAt
 				start at Initial
 			}
 			logLevel.normal(key) { DAEMON_END_INIT }
@@ -356,19 +454,25 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		queue?.offer(terminateR)
 	}
 	
-	override fun input(signal: SIGNAL, priority: Int)
+	override fun input(signal: SIGNAL, payload: Any?, priority: Int)
 	{
-		val signalR = Request.Signal(signal, priority)
-		logLevel.detail(key, signalR) { DAEMON_PUT_REQUEST }
-		queue?.offer(signalR)
+		val inputR = Request.Input(signal, payload, priority)
+		logLevel.detail(key, inputR) { DAEMON_PUT_REQUEST }
+		queue?.offer(inputR)
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, priority: Int)
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, priority: Int)
 	{
-		val typedR = Request.TypedSignal(signal, type as KClass<SIGNAL>, priority)
+		val typedR = Request.TypedInput(signal, type as KClass<SIGNAL>, payload, priority)
 		logLevel.detail(key, typedR) { DAEMON_PUT_REQUEST }
 		queue?.offer(typedR)
+	}
+	
+	@Suppress("OverridingDeprecatedMember")
+	override fun input(signal: KClass<out Any>, payload: Any?, priority: Int)
+	{
+		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
 	}
 	
 	@Suppress("UNCHECKED_CAST")
@@ -384,59 +488,134 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		return hashCode().toString(16)
 	}
 	
-	private inner class InitializerImpl internal constructor(
-			block: KotlmataDaemon.Initializer.(T) -> KotlmataMachine.Initializer.End,
-			initializer: KotlmataMachine.Initializer
-	) : KotlmataDaemon.Initializer, KotlmataMachine.Initializer by initializer, Expirable({ Log.e("Daemon[$key]:") { EXPIRED_MODIFIER } })
+	private inner class InitImpl internal constructor(
+			block: KotlmataDaemon.Init.(T) -> KotlmataMachine.Init.End,
+			init: KotlmataMachine.Init
+	) : KotlmataDaemon.Init, KotlmataMachine.Init by init, Expirable({ Log.e("Daemon[$key]:") { EXPIRED_MODIFIER } })
 	{
 		lateinit var startAt: STATE
 		
-		override val on = object : KotlmataDaemon.Initializer.On
+		override val on = object : KotlmataDaemon.Init.On
 		{
-			override fun start(block: KotlmataCallback)
+			override fun start(block: KotlmataCallback): KotlmataDaemon.Init.Catch
 			{
-				this@InitializerImpl shouldNot expired
-				onStart = block
+				this@InitImpl shouldNot expired
+				onStart = LifecycleDef(callback = block)
+				return object : KotlmataDaemon.Init.Catch
+				{
+					override fun catch(error: KotlmataFallback)
+					{
+						this@InitImpl shouldNot expired
+						onStart = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
+					}
+					
+					override fun catch(error: KotlmataFallback1)
+					{
+						this@InitImpl shouldNot expired
+						onStart = LifecycleDef(callback = block, fallback = error)
+					}
+				}
 			}
 			
-			override fun pause(block: KotlmataCallback)
+			override fun pause(block: KotlmataCallback): KotlmataDaemon.Init.Catch
 			{
-				this@InitializerImpl shouldNot expired
-				onPause = block
+				this@InitImpl shouldNot expired
+				onPause = LifecycleDef(callback = block)
+				return object : KotlmataDaemon.Init.Catch
+				{
+					override fun catch(error: KotlmataFallback)
+					{
+						this@InitImpl shouldNot expired
+						onPause = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
+					}
+					
+					override fun catch(error: KotlmataFallback1)
+					{
+						this@InitImpl shouldNot expired
+						onPause = LifecycleDef(callback = block, fallback = error)
+					}
+				}
 			}
 			
-			override fun stop(block: KotlmataCallback)
+			override fun stop(block: KotlmataCallback): KotlmataDaemon.Init.Catch
 			{
-				this@InitializerImpl shouldNot expired
-				onStop = block
+				this@InitImpl shouldNot expired
+				onStop = LifecycleDef(callback = block)
+				return object : KotlmataDaemon.Init.Catch
+				{
+					override fun catch(error: KotlmataFallback)
+					{
+						this@InitImpl shouldNot expired
+						onStop = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
+					}
+					
+					override fun catch(error: KotlmataFallback1)
+					{
+						this@InitImpl shouldNot expired
+						onStop = LifecycleDef(callback = block, fallback = error)
+					}
+				}
 			}
 			
-			override fun resume(block: KotlmataCallback)
+			override fun resume(block: KotlmataCallback): KotlmataDaemon.Init.Catch
 			{
-				this@InitializerImpl shouldNot expired
-				onResume = block
+				this@InitImpl shouldNot expired
+				onResume = LifecycleDef(callback = block)
+				return object : KotlmataDaemon.Init.Catch
+				{
+					override fun catch(error: KotlmataFallback)
+					{
+						this@InitImpl shouldNot expired
+						onResume = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
+					}
+					
+					override fun catch(error: KotlmataFallback1)
+					{
+						this@InitImpl shouldNot expired
+						onResume = LifecycleDef(callback = block, fallback = error)
+					}
+				}
 			}
 			
-			override fun terminate(block: KotlmataCallback)
+			override fun terminate(block: KotlmataCallback): KotlmataDaemon.Init.Catch
 			{
-				this@InitializerImpl shouldNot expired
-				onTerminate = block
+				this@InitImpl shouldNot expired
+				onTerminate = LifecycleDef(callback = block)
+				return object : KotlmataDaemon.Init.Catch
+				{
+					override fun catch(error: KotlmataFallback)
+					{
+						this@InitImpl shouldNot expired
+						onTerminate = LifecycleDef(callback = block, fallback = { throwable, _ -> error(throwable) })
+					}
+					
+					override fun catch(error: KotlmataFallback1)
+					{
+						this@InitImpl shouldNot expired
+						onTerminate = LifecycleDef(callback = block, fallback = error)
+					}
+				}
 			}
 			
-			override fun error(block: KotlmataFallback) = initializer.on.error(block)
+			override fun error(block: KotlmataFallback)
+			{
+				this@InitImpl shouldNot expired
+				onError = block
+				init.on.error(block)
+			}
 		}
 		
-		override val start = object : KotlmataMachine.Initializer.Start
+		override val start = object : KotlmataMachine.Init.Start
 		{
-			override fun at(state: STATE): KotlmataMachine.Initializer.End
+			override fun at(state: STATE): KotlmataMachine.Init.End
 			{
-				this@InitializerImpl shouldNot expired
+				this@InitImpl shouldNot expired
 				
 				/* For checking undefined initial state. */
-				initializer.start at state
+				init.start at state
 				
 				startAt = state
-				return KotlmataMachine.Initializer.End()
+				return KotlmataMachine.Init.End()
 			}
 		}
 		
@@ -461,8 +640,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		class Sync(val signal: SIGNAL, val type: KClass<SIGNAL>?) : Request(SYNC, "signal: $signal, type: ${type?.let { "${it.simpleName}::class" } ?: "null"}")
 		
-		class Signal(val signal: SIGNAL, priority: Int) : Request(SIGNAL, priority, "signal: $signal, priority: $priority")
-		class TypedSignal(val signal: SIGNAL, val type: KClass<SIGNAL>, priority: Int) : Request(SIGNAL, priority, "signal: $signal, type: ${type.simpleName}::class, priority: $priority")
+		class Input(val signal: SIGNAL, val payload: Any?, priority: Int) : Request(SIGNAL, priority, "signal: $signal, payload: $payload, priority: $priority")
+		class TypedInput(val signal: SIGNAL, val type: KClass<SIGNAL>, val payload: Any?, priority: Int) : Request(SIGNAL, priority, "signal: $signal, type: ${type.simpleName}::class, payload: $payload, priority: $priority")
 		
 		companion object
 		{

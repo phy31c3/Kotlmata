@@ -19,7 +19,7 @@ class Tests
 	@Test
 	fun stateTest()
 	{
-		var expired: KotlmataState.Initializer? = null
+		var expired: KotlmataState.Init? = null
 		val state by KotlmataMutableState.lazy("s1") {
 			expired = this
 			val lambda1: KotlmataAction = {
@@ -41,10 +41,10 @@ class Tests
 			exit action { println("퇴장함수") }
 		}
 		
-		state.entry(Any()) {}
-		state.entry("signal") {}
-		state.entry("a") {}
-		state.entry("b") { signal ->
+		state.entry(Any())
+		state.entry("signal")
+		state.entry("a")
+		state.entry("b")?.let { signal ->
 			state.input(signal)
 		}
 		state.input("basic")
@@ -55,7 +55,10 @@ class Tests
 			delete action input signal "next"
 		}
 		
-		state.entry("b") { signal ->
+		state.entry("b")?.let { signal ->
+			state.input(signal)
+		}
+		state.entry("a")?.let { signal ->
 			state.input(signal)
 		}
 		
@@ -65,7 +68,17 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		val machine by KotlmataMutableMachine.lazy("m1") {
+		fun template(msg: String, block: KotlmataMachineDef<String>): KotlmataMachineDef<String> = { machine ->
+			on error {
+				println("$msg: on error")
+			}
+			
+			block(machine)
+			
+			start at "state1"
+		}
+		
+		val machine by KotlmataMutableMachine.lazy("m1") extends template("템플릿에서 정의") {
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
@@ -112,10 +125,6 @@ class Tests
 			"simple" x "goToSimple" %= "state1"
 			any.except("simple") x "goToSimple" %= "simple"
 			
-			on error {
-				println("어랏... 예외가 발생했네")
-			}
-			
 			start at "state1"
 		}
 		
@@ -140,12 +149,12 @@ class Tests
 				println("state1 없음")
 			}
 			
-			update state "state1" set { state ->
+			update state "state1" with { state ->
 				input signal String::class action { s -> println("$state: 수정된 String 타입 입력함수: $s") }
 				delete action exit
 			}
 			
-			insert state "state2" of { state ->
+			insert state "state2" with { state ->
 				entry action { println("삽입된 $state") }
 			}
 			
@@ -168,27 +177,54 @@ class Tests
 	@Test
 	fun daemonTest()
 	{
-		var shouldGC: WeakReference<KotlmataState.Initializer>? = null
+		var shouldGC: WeakReference<KotlmataState.Init>? = null
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
-		val daemon by KotlmataMutableDaemon.lazy("d1", 3) {
+		
+		fun template(msg: String, block: KotlmataDaemonDef<String>): KotlmataDaemonDef<String> = { daemon ->
+			on error {
+				println("$msg: on error")
+			}
+			
+			block(daemon)
+			
+			start at "state1"
+		}
+		
+		val daemon by KotlmataMutableDaemon.lazy("d1", 1) extends template("템플릿에서 정의") {
 			on start {
 				thread = Thread.currentThread()
+				throw Exception("onStart 에서 예외 발생")
+			} catch { throwable ->
+				println("onStart Fallback: $throwable")
 			}
 			on terminate {
 				println("데몬이 종료됨")
 			}
-			on error { throwable ->
-				println("머신 Fallback")
-				println(throwable)
+			
+			fun defaultExit(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
+				exit action {
+					println(msg)
+				}
+				block(state)
 			}
 			
-			"state1" { state ->
+			val defaultEnter: (String, KotlmataStateDef<String>) -> KotlmataStateDef<String> = fun(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
+				entry action {
+					println(msg)
+				}
+				block(state)
+			}
+			
+			"state1" extends defaultExit("템플릿으로 정의된 퇴장함수 호출됨") { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				input signal "goToState2" action { println("state2로 이동") }
 				input signal "goToError" action {
 					throw Exception("에러1 발생")
+				}
+				input signal "payload" actionWithPayload { signal, payload ->
+					println("$state: signal = $signal, payload = $payload")
 				}
 				shouldGC = WeakReference(this)
 			}
@@ -197,14 +233,14 @@ class Tests
 				entry action { println("$state: 기본 진입함수") }
 				input signal Integer::class action { s -> println("$state: Number 타입 입력함수: $s") }
 				input signal 5 action { println("state3로 이동") }
-				input signal "error" action { throw RuntimeException() }
+				input signal "error" action { throw Exception("state2에서 강제 예외 발생") }
 				exit action { println("$state: 퇴장함수") }
 			}
 			
 			"state3" { state ->
 				entry action {
 					println("$state: 기본 진입함수")
-					"sync input"
+					"entry sync"
 				}
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				exit action { println("$state: 퇴장함수") }
@@ -214,17 +250,17 @@ class Tests
 				entry action {
 					Thread.sleep(10)
 					println("$state: 기본 진입함수")
-					"goToState1" asType Any::class
+					"goToState1" type Any::class
 				}
 				input signal Any::class action { s -> println("$state: Any 타입 입력함수: $s") }
 				exit action { println("$state: 퇴장함수") }
 			}
 			
-			"error" {
+			"error" extends defaultEnter("템플릿으로 정의된 진입함수 호출됨") {
 				input signal "error" action {
 					throw Exception("에러2 발생")
 				}
-				error action { throwable ->
+				catch error { throwable ->
 					println("상태 Fallback")
 					println(throwable)
 				}
@@ -243,10 +279,20 @@ class Tests
 			
 			"state5" { state ->
 				entry action { println("$state: 기본 진입함수") }
-				input signal "consume" action {
-					println("consume 입력하면 String 타입이지만 전이는 하지 않는다")
-					consume
+				input signal "sync" action {
+					println("sync 는 흡수되고 input sync 로 전이한다")
+					"input sync"
 				}
+			}
+			
+			"chain1" { state ->
+				entry action { println("$state: 기본 진입함수") }
+			}
+			"chain2" { state ->
+				entry action { println("$state: 기본 진입함수") }
+			}
+			"chain3" { state ->
+				entry action { println("$state: 기본 진입함수") }
 			}
 			
 			"state1" x "goToState2" %= "state2"
@@ -258,15 +304,17 @@ class Tests
 			"error" x "error" %= "errorSync"
 			"errorSync" x "goToState5" %= "state5"
 			"state5" x String::class %= "state1"
+			chain from "state1" to "chain1" to "chain2" to "chain3" via "next"
+			"chain3" x ("a" or "b" or "c") %= "state1"
 			
 			start at "state1"
 		}
 		
 		daemon.input("any1")
 		daemon.run()
-		daemon.input("우선순위 10", 10)
-		daemon.input("우선순위 0", 0)
-		daemon.input("우선순위 -10", -10)
+		daemon.input("우선순위 10", priority = 10)
+		daemon.input("우선순위 0", priority = 0)
+		daemon.input("우선순위 -10", priority = -10)
 		daemon.pause()
 		daemon.input("goToState2")
 		daemon.run()
@@ -299,11 +347,11 @@ class Tests
 		daemon {
 			"state1" x "goToState3" %= "state3"
 			
-			update state "state3" set { state ->
+			update state "state3" with { state ->
 				expire = this
 				entry action {
 					println("$state: 수정된 기본 진입함수")
-					"sync input"
+					"수정된 entry sync"
 				}
 			}
 		}
@@ -334,8 +382,19 @@ class Tests
 		
 		daemon.input("goToError")
 		daemon.input("error")
-		daemon.input("consume")
-		daemon.input("some string")
+		daemon.input("sync")
+		
+		Thread.sleep(100)
+		
+		daemon.input("payload", "this is a payload")
+		
+		Thread.sleep(100)
+		
+		daemon.input("next")
+		daemon.input("next")
+		daemon.input("next")
+		daemon.input("next")
+		daemon.input("c")
 		
 		Thread.sleep(500)
 		
@@ -353,11 +412,14 @@ class Tests
 	{
 		var expire: Kotlmata.Post? = null
 		Kotlmata.start(3)
-		Kotlmata fork "daemon" of {
+		Kotlmata fork "daemon" construct {
 			"state1" { state ->
 				entry action { println("데몬이 시작됨") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				input signal "goToState2" action { println("state2로 이동") }
+				input signal "payload" actionWithPayload { signal, payload ->
+					println("signal: $signal, payload: $payload")
+				}
 				exit action { println("$state: 퇴장함수") }
 			}
 			
@@ -385,7 +447,7 @@ class Tests
 			"state1" x "goToState2" %= "state2"
 			"state2" x 5 %= "state3"
 			"state3" x "goToState1" %= "state1"
-			"state3" x "goToState4" %= "state4"
+			"state3" x "goToState1" %= "state1"
 			
 			start at "state1"
 		}
@@ -413,7 +475,7 @@ class Tests
 			expire = this
 			has daemon "daemon" then {
 				modify daemon "daemon" set {
-					update state "state2" set { state ->
+					update state "state2" with { state ->
 						input signal Integer::class action { s -> println("$state: Post 에서 수정된 Number 타입 입력함수: $s") }
 						exit action { println("$state: Post 에서 수정된 퇴장함수") }
 					}
@@ -423,12 +485,13 @@ class Tests
 			input signal 3 to "daemon"
 		}
 		Kotlmata input 5 to "daemon"
-		Kotlmata input "goToState4" to "daemon"
+		Kotlmata input "goToState1" to "daemon"
+		Kotlmata input "payload" payload "this is a payload" to "daemon"
 		
 		Thread.sleep(100)
 		
-		Kotlmata.input("shutdown 보다 더 빨리 실행될까?")
-		Kotlmata.shutdown()
+		Kotlmata.input("stop 보다 더 빨리 실행될까?")
+		Kotlmata.stop()
 		Kotlmata.release()
 		
 		Thread.sleep(100)
