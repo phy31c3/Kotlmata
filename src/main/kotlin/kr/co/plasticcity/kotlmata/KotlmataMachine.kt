@@ -1073,7 +1073,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				this@ModifierImpl shouldNot expired
 				signals.forEach { signal ->
-					this x signal %= state
+					this@x x signal %= state
 				}
 			}
 		}

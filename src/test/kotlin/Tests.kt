@@ -305,6 +305,7 @@ class Tests
 			"errorSync" x "goToState5" %= "state5"
 			"state5" x String::class %= "state1"
 			chain from "state1" to "chain1" to "chain2" to "chain3" via "next"
+			"chain3" x ("a" or "b" or "c") %= "state1"
 			
 			start at "state1"
 		}
@@ -393,6 +394,7 @@ class Tests
 		daemon.input("next")
 		daemon.input("next")
 		daemon.input("next")
+		daemon.input("c")
 		
 		Thread.sleep(500)
 		

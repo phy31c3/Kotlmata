@@ -4,7 +4,7 @@
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -208,13 +208,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00112" summary="#39: 인터페이스 문서 업데이트">
-      <created>1550985903595</created>
-      <option name="number" value="00112" />
-      <option name="presentableId" value="LOCAL-00112" />
-      <option name="project" value="LOCAL" />
-      <updated>1550985903595</updated>
     </task>
     <task id="LOCAL-00113" summary="#39: internals, keywords 정리">
       <created>1550991898131</created>
@@ -552,7 +545,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582316386404</updated>
     </task>
-    <option name="localTasksCounter" value="161" />
+    <task id="LOCAL-00161" summary="#103: 전이규칙 or 연산 구현 완료">
+      <created>1582373871315</created>
+      <option name="number" value="00161" />
+      <option name="presentableId" value="LOCAL-00161" />
+      <option name="project" value="LOCAL" />
+      <updated>1582373871315</updated>
+    </task>
+    <option name="localTasksCounter" value="162" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -594,7 +594,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#86: LifecycleDef 적용" />
     <MESSAGE value="#86: KotlmataDaemon의 생명주기 콜백에 대한 catch" />
     <MESSAGE value="#100: 데몬의 생명주기 콜백에 대한 예외 핸들링" />
     <MESSAGE value="#90: fork ... of -&gt; fork ... construct" />
@@ -619,7 +618,8 @@
     <MESSAGE value="#101: OverridingDeprecatedMember 어노테이션 추가" />
     <MESSAGE value="#101: 전이규칙 관련 타입 간소화" />
     <MESSAGE value="#101: 전이규칙 signals 구현 중" />
-    <option name="LAST_COMMIT_MESSAGE" value="#101: 전이규칙 signals 구현 중" />
+    <MESSAGE value="#103: 전이규칙 or 연산 구현 완료" />
+    <option name="LAST_COMMIT_MESSAGE" value="#103: 전이규칙 or 연산 구현 완료" />
   </component>
   <component name="WindowStateProjectService">
     <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1582373512825">
@@ -634,46 +634,46 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582315190203" />
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582316385520">
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582373870373">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582316385520" />
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582373870373" />
     <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582373768789">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582373768789" />
-    <state width="806" height="1257" key="GridCell.Tab.0.bottom" timestamp="1582373798217">
+    <state width="806" height="1257" key="GridCell.Tab.0.bottom" timestamp="1582375122286">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582373798217" />
-    <state width="806" height="1257" key="GridCell.Tab.0.center" timestamp="1582373798216">
+    <state width="806" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582375122286" />
+    <state width="806" height="1257" key="GridCell.Tab.0.center" timestamp="1582375122286">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582373798216" />
-    <state width="806" height="1257" key="GridCell.Tab.0.left" timestamp="1582373798216">
+    <state width="806" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582375122286" />
+    <state width="806" height="1257" key="GridCell.Tab.0.left" timestamp="1582375122286">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582373798216" />
-    <state width="806" height="1257" key="GridCell.Tab.0.right" timestamp="1582373798216">
+    <state width="806" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582375122286" />
+    <state width="806" height="1257" key="GridCell.Tab.0.right" timestamp="1582375122286">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582373798216" />
-    <state width="2516" height="385" key="GridCell.Tab.1.bottom" timestamp="1582303755163">
+    <state width="806" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582375122286" />
+    <state width="2516" height="385" key="GridCell.Tab.1.bottom" timestamp="1582374203439">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2516" height="385" key="GridCell.Tab.1.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582303755163" />
-    <state width="2516" height="385" key="GridCell.Tab.1.center" timestamp="1582303755163">
+    <state width="2516" height="385" key="GridCell.Tab.1.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582374203439" />
+    <state width="2516" height="385" key="GridCell.Tab.1.center" timestamp="1582374203439">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2516" height="385" key="GridCell.Tab.1.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582303755163" />
-    <state width="2516" height="385" key="GridCell.Tab.1.left" timestamp="1582303755163">
+    <state width="2516" height="385" key="GridCell.Tab.1.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582374203439" />
+    <state width="2516" height="385" key="GridCell.Tab.1.left" timestamp="1582374203438">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2516" height="385" key="GridCell.Tab.1.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582303755163" />
-    <state width="2516" height="385" key="GridCell.Tab.1.right" timestamp="1582303755163">
+    <state width="2516" height="385" key="GridCell.Tab.1.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582374203438" />
+    <state width="2516" height="385" key="GridCell.Tab.1.right" timestamp="1582374203439">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2516" height="385" key="GridCell.Tab.1.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582303755163" />
+    <state width="2516" height="385" key="GridCell.Tab.1.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582374203439" />
     <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1582315128762">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -682,18 +682,18 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="781" y="330" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581256205585" />
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582316388581">
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582373872722">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582316388581" />
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582373872722" />
     <state x="994" y="432" key="VcsDiffUtil.ChangesDialog" timestamp="1582316464531">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="994" y="432" key="VcsDiffUtil.ChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582316464531" />
-    <state x="855" y="434" width="849" height="609" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1582222886804">
+    <state x="855" y="434" width="849" height="609" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1582374224072">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="855" y="434" width="849" height="609" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582222886804" />
+    <state x="855" y="434" width="849" height="609" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582374224072" />
     <state x="907" y="396" width="745" height="608" key="find.popup" timestamp="1582303843146">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -706,6 +706,13 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="936" y="341" width="672" height="676" key="search.everywhere.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582039503821" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="JUnit">
+        <watch expression="signals" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="masterDetails">
     <states>
