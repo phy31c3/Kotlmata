@@ -1057,14 +1057,25 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		/*###################################################################################################################################
 		 * Signals transition rule
 		 *###################################################################################################################################*/
-		override fun SIGNAL.or(signal: SIGNAL): KotlmataMachine.RuleDefine.Signals
+		override fun SIGNAL.or(signal: SIGNAL): KotlmataMachine.RuleDefine.Signals = object : KotlmataMachine.RuleDefine.Signals, MutableList<SIGNAL> by mutableListOf(this, signal)
 		{
-			TODO("not implemented")
+			override fun or(signal: SIGNAL): KotlmataMachine.RuleDefine.Signals
+			{
+				this@ModifierImpl shouldNot expired
+				add(signal)
+				return this
+			}
 		}
 		
-		override fun STATE.x(signals: KotlmataMachine.RuleDefine.Signals): KotlmataMachine.RuleAssignable
+		override fun STATE.x(signals: KotlmataMachine.RuleDefine.Signals) = object : KotlmataMachine.RuleAssignable
 		{
-			TODO("not implemented")
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				signals.forEach { signal ->
+					this x signal %= state
+				}
+			}
 		}
 		
 		/*###################################################################################################################################
