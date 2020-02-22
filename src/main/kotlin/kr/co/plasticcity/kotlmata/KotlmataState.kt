@@ -756,6 +756,7 @@ private class KotlmataStateImpl<T : STATE>(
 		{
 			override fun or(signal: SIGNAL): KotlmataState.Init.Signals
 			{
+				this@ModifierImpl shouldNot expired
 				add(signal)
 				return this
 			}
