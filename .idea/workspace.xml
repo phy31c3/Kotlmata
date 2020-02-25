@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -95,7 +96,7 @@
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.25891948" />
-    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.Kotlin" />
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
   <component name="RecentsManager">
@@ -207,13 +208,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00113" summary="#39: internals, keywords 정리">
-      <created>1550991898131</created>
-      <option name="number" value="00113" />
-      <option name="presentableId" value="LOCAL-00113" />
-      <option name="project" value="LOCAL" />
-      <updated>1550991898132</updated>
     </task>
     <task id="LOCAL-00114" summary="#39: 다중신호 전이규칙 정의 인터페이스 삭제">
       <created>1550993410925</created>
@@ -551,7 +545,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582373871315</updated>
     </task>
-    <option name="localTasksCounter" value="162" />
+    <task id="LOCAL-00162" summary="#104: 타입지정된 진입동작 동작안하는 버그 수정">
+      <created>1582637184901</created>
+      <option name="number" value="00162" />
+      <option name="presentableId" value="LOCAL-00162" />
+      <option name="project" value="LOCAL" />
+      <updated>1582637184902</updated>
+    </task>
+    <option name="localTasksCounter" value="163" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -593,7 +594,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#86: KotlmataDaemon의 생명주기 콜백에 대한 catch" />
     <MESSAGE value="#100: 데몬의 생명주기 콜백에 대한 예외 핸들링" />
     <MESSAGE value="#90: fork ... of -&gt; fork ... construct" />
     <MESSAGE value="신호에도 payload를 실을 수 있게 하기 #91" />
@@ -618,9 +618,14 @@
     <MESSAGE value="#101: 전이규칙 관련 타입 간소화" />
     <MESSAGE value="#101: 전이규칙 signals 구현 중" />
     <MESSAGE value="#103: 전이규칙 or 연산 구현 완료" />
-    <option name="LAST_COMMIT_MESSAGE" value="#103: 전이규칙 or 연산 구현 완료" />
+    <MESSAGE value="#104: 타입지정된 진입동작 동작안하는 버그 수정" />
+    <option name="LAST_COMMIT_MESSAGE" value="#104: 타입지정된 진입동작 동작안하는 버그 수정" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="1027" y="534" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog" timestamp="1582640414849">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="1027" y="534" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582640414849" />
     <state x="1069" y="414" key="#com.intellij.ide.util.MemberChooser" timestamp="1582373512825">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -629,34 +634,34 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="960" y="427" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526063026" />
-    <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1582315190203">
+    <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1582638901515">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582315190203" />
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582373870373">
+    <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582638901515" />
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1582651713053">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582373870373" />
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582373768789">
+    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582651713053" />
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1582637106210">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582373768789" />
-    <state width="806" height="1257" key="GridCell.Tab.0.bottom" timestamp="1582379099272">
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582637106210" />
+    <state width="806" height="1257" key="GridCell.Tab.0.bottom" timestamp="1582642314873">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582379099272" />
-    <state width="806" height="1257" key="GridCell.Tab.0.center" timestamp="1582379099272">
+    <state width="806" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582642314873" />
+    <state width="806" height="1257" key="GridCell.Tab.0.center" timestamp="1582642314872">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582379099272" />
-    <state width="806" height="1257" key="GridCell.Tab.0.left" timestamp="1582379099272">
+    <state width="806" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582642314872" />
+    <state width="806" height="1257" key="GridCell.Tab.0.left" timestamp="1582642314872">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582379099272" />
-    <state width="806" height="1257" key="GridCell.Tab.0.right" timestamp="1582379099272">
+    <state width="806" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582642314872" />
+    <state width="806" height="1257" key="GridCell.Tab.0.right" timestamp="1582642314872">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582379099272" />
+    <state width="806" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582642314872" />
     <state width="2516" height="385" key="GridCell.Tab.1.bottom" timestamp="1582374203439">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -677,10 +682,14 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582315128762" />
-    <state x="781" y="330" key="SettingsEditor" timestamp="1581256205585">
+    <state x="946" y="353" key="SettingsEditor" timestamp="1582640284835">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="781" y="330" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581256205585" />
+    <state x="946" y="353" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582640284835" />
+    <state x="994" y="402" key="VCS.ChangeListViewerDialog" timestamp="1582636999459">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="994" y="402" key="VCS.ChangeListViewerDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582636999459" />
     <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1582373872722">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -712,77 +721,5 @@
         <watch expression="signals" />
       </configuration>
     </watches-manager>
-  </component>
-  <component name="masterDetails">
-    <states>
-      <state key="ArtifactsStructureConfigurable.UI">
-        <settings>
-          <artifact-editor />
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="FacetStructureConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="GlobalLibrariesConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="JdkListConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="ModuleStructureConfigurable.UI">
-        <settings>
-          <last-edited>Kotlmata_test|Kotlmata</last-edited>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.25891948" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="ProjectLibrariesConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-    </states>
   </component>
 </project>

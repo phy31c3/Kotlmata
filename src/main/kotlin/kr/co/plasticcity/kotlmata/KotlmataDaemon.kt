@@ -240,7 +240,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		val postSync: (KotlmataDSL.Sync) -> Unit = {
-			val syncR = Request.Sync(it.signal, it.type)
+			val syncR = Request.Sync(it.signal, it.type, it.payload)
 			logLevel.detail(key, syncR) { DAEMON_PUT_REQUEST }
 			queue!!.offer(syncR)
 		}
@@ -280,8 +280,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
 					syncR.type?.also { type ->
-						machine.input(syncR.signal, type, block = postSync)
-					} ?: machine.input(syncR.signal, block = postSync)
+						machine.input(syncR.signal, type, syncR.payload, block = postSync)
+					} ?: machine.input(syncR.signal, syncR.payload, block = postSync)
 				}
 				input signal Request.Input::class action { inputR ->
 					machine.input(inputR.signal, inputR.payload, block = postSync)
@@ -638,7 +638,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		class Modify(val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request(MODIFY)
 		
-		class Sync(val signal: SIGNAL, val type: KClass<SIGNAL>?) : Request(SYNC, "signal: $signal, type: ${type?.let { "${it.simpleName}::class" } ?: "null"}")
+		class Sync(val signal: SIGNAL, val type: KClass<SIGNAL>?, val payload: Any?) : Request(SYNC, "signal: $signal, type: ${type?.let { "${it.simpleName}::class, payload: $payload" } ?: "null"}")
 		
 		class Input(val signal: SIGNAL, val payload: Any?, priority: Int) : Request(SIGNAL, priority, "signal: $signal, payload: $payload, priority: $priority")
 		class TypedInput(val signal: SIGNAL, val type: KClass<SIGNAL>, val payload: Any?, priority: Int) : Request(SIGNAL, priority, "signal: $signal, type: ${type.simpleName}::class, payload: $payload, priority: $priority")

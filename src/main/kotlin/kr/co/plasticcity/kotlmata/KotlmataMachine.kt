@@ -386,24 +386,24 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	override fun input(signal: SIGNAL, payload: Any?)
 	{
-		defaultInput(KotlmataDSL.Sync(signal), payload)
+		defaultInput(KotlmataDSL.Sync(signal, null, payload))
 	}
 	
 	@Suppress("UNCHECKED_CAST")
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?)
 	{
-		defaultInput(KotlmataDSL.Sync(signal, type as KClass<SIGNAL>), payload)
+		defaultInput(KotlmataDSL.Sync(signal, type as KClass<SIGNAL>, payload))
 	}
 	
-	private fun defaultInput(begin: KotlmataDSL.Sync, payload: Any?)
+	private fun defaultInput(begin: KotlmataDSL.Sync)
 	{
 		var next: KotlmataDSL.Sync? = begin
 		while (next != null) next.also {
 			next = null
-			if (it.type == null) input(it.signal, payload) { sync ->
+			if (it.type == null) input(it.signal, it.payload) { sync ->
 				next = sync
 			}
-			else input(it.signal, it.type, payload) { sync ->
+			else input(it.signal, it.type, it.payload) { sync ->
 				next = sync
 			}
 		}
@@ -488,7 +488,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			logLevel.simple(prefix, current.key, "${type.simpleName}::class", next.key) { MACHINE_START_TRANSITION }
 			tryCatchReturn { current.exit(signal) }
 			current = next
-			tryCatchReturn { current.entry(signal) }.convertToSync()?.also(block)
+			tryCatchReturn { current.entry(signal, type) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
