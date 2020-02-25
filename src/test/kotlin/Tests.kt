@@ -285,6 +285,15 @@ class Tests
 				}
 			}
 			
+			"state6" {
+				entry via String::class action { state ->
+					println("$state: String::class 진입함수")
+				}
+				entry via "signal" action { state ->
+					println("$state: 'signal' 진입함수")
+				}
+			}
+			
 			"chain1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 			}
@@ -306,6 +315,8 @@ class Tests
 			"state5" x String::class %= "state1"
 			chain from "state1" to "chain1" to "chain2" to "chain3" via "next"
 			"chain3" x ("a" or "b" or "c") %= "state1"
+			"state1" x String::class %= "state6"
+			"state6" x String::class %= "state1"
 			
 			start at "state1"
 		}
@@ -395,6 +406,11 @@ class Tests
 		daemon.input("next")
 		daemon.input("next")
 		daemon.input("c")
+		
+		Thread.sleep(100)
+		
+		daemon.input("signal", String::class)
+		daemon.input("signal")
 		
 		Thread.sleep(500)
 		
