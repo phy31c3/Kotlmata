@@ -250,9 +250,9 @@ class Tests
 				entry action {
 					Thread.sleep(10)
 					println("$state: 기본 진입함수")
-					"goToState1" type Any::class
+					"goToState1" type Any::class payload "It's a payload"
 				}
-				input signal Any::class action { s -> println("$state: Any 타입 입력함수: $s") }
+				input signal Any::class actionWithPayload { signal, payload -> println("$state: Any 타입 입력함수: $signal, $payload") }
 				exit action { println("$state: 퇴장함수") }
 			}
 			

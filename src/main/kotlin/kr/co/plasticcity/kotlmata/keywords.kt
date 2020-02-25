@@ -44,10 +44,14 @@ object of
 @KotlmataMarker
 interface KotlmataDSL
 {
-	class Sync internal constructor(val signal: SIGNAL, val type: KClass<SIGNAL>? = null)
+	open class Sync internal constructor(val signal: SIGNAL, val type: KClass<SIGNAL>? = null, val payload: Any? = null)
+	class TypedSync internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Sync(signal, type)
 	
 	@Suppress("UNCHECKED_CAST")
-	infix fun <T : SIGNAL> T.type(type: KClass<in T>) = Sync(this, type as KClass<SIGNAL>)
+	infix fun <T : SIGNAL> T.type(type: KClass<in T>) = TypedSync(this, type as KClass<SIGNAL>)
+	
+	infix fun <T : SIGNAL> T.payload(payload: Any?) = Sync(this, null, payload)
+	infix fun TypedSync.payload(payload: Any?) = Sync(signal, type, payload)
 }
 
 typealias KotlmataAction = KotlmataDSL.(signal: SIGNAL) -> Unit
