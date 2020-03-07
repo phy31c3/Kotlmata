@@ -12,6 +12,7 @@ interface KotlmataState<T : STATE>
 				block: Init.(state: String) -> Unit
 		): KotlmataState<String> = KotlmataStateImpl(name, logLevel, block = block)
 		
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -188,7 +189,7 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 		if (key != Initial)
 		{
-			logLevel.simple(prefix, key) { STATE_CREATED }
+			logLevel.normal(prefix, key) { STATE_CREATED }
 		}
 	}
 	

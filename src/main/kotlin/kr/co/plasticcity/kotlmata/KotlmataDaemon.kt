@@ -20,7 +20,7 @@ interface KotlmataDaemon<T : DAEMON>
 				threadName: String? = null,
 				isDaemon: Boolean = false,
 				block: Init.(daemon: String) -> KotlmataMachine.Init.End
-		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
+		): KotlmataDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName ?: "thread-KotlmataDaemon[$name]", isDaemon, block)
 		
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
@@ -37,6 +37,7 @@ interface KotlmataDaemon<T : DAEMON>
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -50,6 +51,7 @@ interface KotlmataDaemon<T : DAEMON>
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -131,7 +133,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 				threadName: String? = null,
 				isDaemon: Boolean = false,
 				block: KotlmataDaemonDef<String>
-		): KotlmataMutableDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
+		): KotlmataMutableDaemon<String> = KotlmataDaemonImpl(name, logLevel, threadName ?: "thread-KotlmataDaemon[$name]", isDaemon, block)
 		
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
@@ -148,6 +150,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -161,6 +164,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -198,7 +202,7 @@ private class LifecycleDef(val callback: KotlmataCallback? = null, val fallback:
 private class KotlmataDaemonImpl<T : DAEMON>(
 		override val key: T,
 		val logLevel: Int = NO_LOG,
-		threadName: String? = null,
+		threadName: String = "thread-KotlmataDaemon[$key]",
 		isDaemon: Boolean = false,
 		block: KotlmataDaemon.Init.(T) -> KotlmataMachine.Init.End
 ) : KotlmataMutableDaemon<T>
@@ -393,8 +397,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			start at "Initial"
 		}
 		
-		thread(name = threadName ?: "$key", isDaemon = isDaemon, start = true) {
-			logLevel.normal(key, threadName, isDaemon) { DAEMON_START_THREAD }
+		thread(name = threadName, isDaemon = isDaemon, start = true) {
+			logLevel.simple(key, threadName, isDaemon) { DAEMON_START_THREAD }
 			logLevel.normal(key) { DAEMON_START_INIT }
 			machine = KotlmataMutableMachine.create(key, logLevel, "Daemon[$key]:$tab") {
 				Initial {}
@@ -422,7 +426,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				queue!!.clear()
 				queue = null
 			}
-			logLevel.normal(key, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
+			logLevel.simple(key, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
 		}
 	}
 	
