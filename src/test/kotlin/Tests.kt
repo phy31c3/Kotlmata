@@ -78,7 +78,7 @@ class Tests
 			start at "state1"
 		}
 		
-		val machine by KotlmataMutableMachine.lazy("m1") extends template("템플릿에서 정의") {
+		val machine by KotlmataMutableMachine.lazy("m1", 1) extends template("템플릿에서 정의") {
 			"state1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
@@ -427,7 +427,7 @@ class Tests
 	fun kotlmataTest()
 	{
 		var expire: Kotlmata.Post? = null
-		Kotlmata.start(3)
+		Kotlmata.start(2)
 		Kotlmata fork "daemon" construct {
 			"state1" { state ->
 				entry action { println("데몬이 시작됨") }
