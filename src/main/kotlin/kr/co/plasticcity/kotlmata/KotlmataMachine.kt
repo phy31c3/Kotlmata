@@ -165,6 +165,7 @@ interface KotlmataMachine<T : MACHINE>
 	interface RuleAssignable
 	{
 		operator fun remAssign(state: STATE)
+		operator fun remAssign(keyword: self) = remAssign(state = keyword)
 	}
 	
 	interface RuleLeft : RuleAssignable
@@ -436,6 +437,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					null
 				}
+				is self ->
+				{
+					current
+				}
 				!in stateMap ->
 				{
 					Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
@@ -477,6 +482,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				is stay ->
 				{
 					null
+				}
+				is self ->
+				{
+					current
 				}
 				!in stateMap ->
 				{
