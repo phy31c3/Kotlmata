@@ -20,6 +20,7 @@ interface KotlmataMachine<T : MACHINE>
 			override fun extends(block: KotlmataMachineDef<String>) = invoke(name, logLevel, block)
 		}
 		
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -28,6 +29,7 @@ interface KotlmataMachine<T : MACHINE>
 			invoke(name, logLevel, block)
 		}
 		
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG
@@ -211,6 +213,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			override fun extends(block: KotlmataMachineDef<String>) = invoke(name, logLevel, block)
 		}
 		
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -219,6 +222,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			invoke(name, logLevel, block)
 		}
 		
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG
