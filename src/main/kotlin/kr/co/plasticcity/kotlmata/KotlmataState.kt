@@ -333,7 +333,7 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	override fun toString(): String
 	{
-		return hashCode().toString(16)
+		return "KotlmataState[$key]{${hashCode().toString(16)}}"
 	}
 	
 	private inner class ModifierImpl internal constructor(

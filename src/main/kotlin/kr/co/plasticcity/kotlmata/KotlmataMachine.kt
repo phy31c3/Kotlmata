@@ -514,7 +514,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	override fun toString(): String
 	{
-		return hashCode().toString(16)
+		return "KotlmataMachine[$key]{${hashCode().toString(16)}}"
 	}
 	
 	private inner class ModifierImpl internal constructor(
