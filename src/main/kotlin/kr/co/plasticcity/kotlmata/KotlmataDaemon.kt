@@ -485,7 +485,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	override fun toString(): String
 	{
-		return hashCode().toString(16)
+		return "KotlmataDaemon[$key]{${hashCode().toString(16)}}"
 	}
 	
 	private inner class InitImpl internal constructor(
