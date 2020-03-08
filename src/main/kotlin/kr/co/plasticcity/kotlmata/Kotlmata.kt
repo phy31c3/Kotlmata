@@ -7,6 +7,7 @@ interface Kotlmata
 	companion object : Kotlmata by KotlmataImpl
 	
 	fun config(block: Config.() -> Unit)
+	
 	/**
 	 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 	 */
@@ -23,6 +24,10 @@ interface Kotlmata
 	infix fun pause(daemon: DAEMON)
 	infix fun stop(daemon: DAEMON)
 	infix fun terminate(daemon: DAEMON)
+	fun run(daemon: DAEMON, payload: Any? = null)
+	fun pause(daemon: DAEMON, payload: Any? = null)
+	fun stop(daemon: DAEMON, payload: Any? = null)
+	fun terminate(daemon: DAEMON, payload: Any? = null)
 	
 	infix fun <T : SIGNAL> input(signal: T): Type<T>
 	
@@ -128,22 +133,12 @@ interface Kotlmata
 		interface Run
 		{
 			infix fun daemon(daemon: DAEMON)
+			fun daemon(daemon: DAEMON, payload: Any? = null)
 		}
 		
-		interface Pause
-		{
-			infix fun daemon(daemon: DAEMON)
-		}
-		
-		interface Stop
-		{
-			infix fun daemon(daemon: DAEMON)
-		}
-		
-		interface Terminate
-		{
-			infix fun daemon(daemon: DAEMON)
-		}
+		interface Pause : Run
+		interface Stop : Run
+		interface Terminate : Run
 		
 		interface Input
 		{
@@ -161,38 +156,31 @@ private object KotlmataImpl : Kotlmata
 	
 	init
 	{
-		val cleanup = {
-			daemons.forEach { (_, daemon) ->
-				daemon.terminate()
-			}
-			daemons.clear()
-		}
-		
 		core = KotlmataDaemon.create("Kotlmata@core") {
 			on start { payload ->
-				if (payload is Int)
-				{
-					logLevel = payload
-				}
+				if (payload is Int) logLevel = payload
 				logLevel.simple { KOTLMATA_START }
 			}
 			
-			on resume { payload ->
-				if (payload is Int)
-				{
-					logLevel = payload
-				}
-				logLevel.simple { KOTLMATA_RESTART }
+			on pause {
+				logLevel.simple { KOTLMATA_PAUSE }
 			}
 			
 			on stop {
-				logLevel.simple { KOTLMATA_SHUTDOWN }
-				cleanup()
+				logLevel.simple { KOTLMATA_STOP }
+			}
+			
+			on resume { payload ->
+				if (payload is Int) logLevel = payload
+				logLevel.simple { KOTLMATA_RESUME }
 			}
 			
 			on terminate {
 				logLevel.simple { KOTLMATA_RELEASE }
-				cleanup()
+				daemons.forEach { (_, daemon) ->
+					daemon.terminate()
+				}
+				daemons.clear()
 			}
 			
 			"Core" {
@@ -222,7 +210,7 @@ private object KotlmataImpl : Kotlmata
 					if (runR.daemon in daemons)
 					{
 						logLevel.detail(runR, runR.daemon) { KOTLMATA_COMMON }
-						daemons[runR.daemon]!!.run()
+						daemons[runR.daemon]!!.run(runR.payload)
 					}
 					else
 					{
@@ -233,7 +221,7 @@ private object KotlmataImpl : Kotlmata
 					if (pauseR.daemon in daemons)
 					{
 						logLevel.detail(pauseR, pauseR.daemon) { KOTLMATA_COMMON }
-						daemons[pauseR.daemon]!!.pause()
+						daemons[pauseR.daemon]!!.pause(pauseR.payload)
 					}
 					else
 					{
@@ -244,7 +232,7 @@ private object KotlmataImpl : Kotlmata
 					if (stopR.daemon in daemons)
 					{
 						logLevel.detail(stopR, stopR.daemon) { KOTLMATA_COMMON }
-						daemons[stopR.daemon]!!.stop()
+						daemons[stopR.daemon]!!.stop(stopR.payload)
 					}
 					else
 					{
@@ -255,7 +243,7 @@ private object KotlmataImpl : Kotlmata
 					if (terminateR.daemon in daemons)
 					{
 						logLevel.detail(terminateR, terminateR.daemon) { KOTLMATA_COMMON }
-						daemons[terminateR.daemon]!!.terminate()
+						daemons[terminateR.daemon]!!.terminate(terminateR.payload)
 						daemons -= terminateR.daemon
 					}
 					else
@@ -357,6 +345,26 @@ private object KotlmataImpl : Kotlmata
 	override fun terminate(daemon: DAEMON)
 	{
 		core.input(Request.Terminate(daemon))
+	}
+	
+	override fun run(daemon: DAEMON, payload: Any?)
+	{
+		core.input(Request.Run(daemon, payload))
+	}
+	
+	override fun pause(daemon: DAEMON, payload: Any?)
+	{
+		core.input(Request.Pause(daemon, payload))
+	}
+	
+	override fun stop(daemon: DAEMON, payload: Any?)
+	{
+		core.input(Request.Stop(daemon, payload))
+	}
+	
+	override fun terminate(daemon: DAEMON, payload: Any?)
+	{
+		core.input(Request.Terminate(daemon, payload))
 	}
 	
 	override fun <T : SIGNAL> input(signal: T) = object : Kotlmata.Type<T>
@@ -547,11 +555,16 @@ private object KotlmataImpl : Kotlmata
 		{
 			override fun daemon(daemon: DAEMON)
 			{
+				daemon(daemon, null)
+			}
+			
+			override fun daemon(daemon: DAEMON, payload: Any?)
+			{
 				this@PostImpl shouldNot expired
 				if (daemon in daemons)
 				{
 					logLevel.detail("${tab}Run", daemon) { KOTLMATA_COMMON }
-					daemons[daemon]!!.run()
+					daemons[daemon]!!.run(payload)
 				}
 				else
 				{
@@ -564,11 +577,16 @@ private object KotlmataImpl : Kotlmata
 		{
 			override fun daemon(daemon: DAEMON)
 			{
+				daemon(daemon, null)
+			}
+			
+			override fun daemon(daemon: DAEMON, payload: Any?)
+			{
 				this@PostImpl shouldNot expired
 				if (daemon in daemons)
 				{
 					logLevel.detail("${tab}Pause", daemon) { KOTLMATA_COMMON }
-					daemons[daemon]!!.pause()
+					daemons[daemon]!!.pause(payload)
 				}
 				else
 				{
@@ -581,11 +599,16 @@ private object KotlmataImpl : Kotlmata
 		{
 			override fun daemon(daemon: DAEMON)
 			{
+				daemon(daemon, null)
+			}
+			
+			override fun daemon(daemon: DAEMON, payload: Any?)
+			{
 				this@PostImpl shouldNot expired
 				if (daemon in daemons)
 				{
 					logLevel.detail("${tab}Stop", daemon) { KOTLMATA_COMMON }
-					daemons[daemon]!!.stop()
+					daemons[daemon]!!.stop(payload)
 				}
 				else
 				{
@@ -598,11 +621,16 @@ private object KotlmataImpl : Kotlmata
 		{
 			override fun daemon(daemon: DAEMON)
 			{
+				daemon(daemon, null)
+			}
+			
+			override fun daemon(daemon: DAEMON, payload: Any?)
+			{
 				this@PostImpl shouldNot expired
 				if (daemon in daemons)
 				{
 					logLevel.detail("${tab}Terminate", daemon) { KOTLMATA_COMMON }
-					daemons[daemon]!!.terminate()
+					daemons[daemon]!!.terminate(payload)
 					daemons -= daemon
 				}
 				else
@@ -763,10 +791,10 @@ private object KotlmataImpl : Kotlmata
 		class Fork(val daemon: DAEMON, val block: KotlmataDaemon.Init.(DAEMON) -> KotlmataMachine.Init.End) : Request()
 		class Modify(val daemon: DAEMON, val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request()
 		
-		class Run(val daemon: DAEMON) : Request()
-		class Pause(val daemon: DAEMON) : Request()
-		class Stop(val daemon: DAEMON) : Request()
-		class Terminate(val daemon: DAEMON) : Request()
+		class Run(val daemon: DAEMON, val payload: Any? = null) : Request()
+		class Pause(val daemon: DAEMON, val payload: Any? = null) : Request()
+		class Stop(val daemon: DAEMON, val payload: Any? = null) : Request()
+		class Terminate(val daemon: DAEMON, val payload: Any? = null) : Request()
 		
 		class Input(val daemon: DAEMON, val signal: SIGNAL, val payload: Any?, val priority: Int) : Request()
 		class TypedInput(val daemon: DAEMON, val signal: SIGNAL, val type: KClass<SIGNAL>, val payload: Any?, val priority: Int) : Request()

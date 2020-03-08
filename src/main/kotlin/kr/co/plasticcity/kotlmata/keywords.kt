@@ -41,6 +41,15 @@ object any
  */
 object of
 
+/**
+ * In Machine:
+ * ```
+ * "state" x "signal" %= self
+ * any x "signal" %= self
+ * ```
+ */
+object self
+
 @KotlmataMarker
 interface KotlmataDSL
 {

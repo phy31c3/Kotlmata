@@ -20,6 +20,7 @@ interface KotlmataMachine<T : MACHINE>
 			override fun extends(block: KotlmataMachineDef<String>) = invoke(name, logLevel, block)
 		}
 		
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -28,6 +29,7 @@ interface KotlmataMachine<T : MACHINE>
 			invoke(name, logLevel, block)
 		}
 		
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG
@@ -163,6 +165,7 @@ interface KotlmataMachine<T : MACHINE>
 	interface RuleAssignable
 	{
 		operator fun remAssign(state: STATE)
+		operator fun remAssign(keyword: self) = remAssign(state = keyword)
 	}
 	
 	interface RuleLeft : RuleAssignable
@@ -211,6 +214,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			override fun extends(block: KotlmataMachineDef<String>) = invoke(name, logLevel, block)
 		}
 		
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
@@ -219,6 +223,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			invoke(name, logLevel, block)
 		}
 		
+		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG
@@ -432,6 +437,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					null
 				}
+				is self ->
+				{
+					current
+				}
 				!in stateMap ->
 				{
 					Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
@@ -474,6 +483,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					null
 				}
+				is self ->
+				{
+					current
+				}
 				!in stateMap ->
 				{
 					Log.w(prefix.trimEnd(), current.key, "${type.simpleName}::class", it) { TRANSITION_FAILED }
@@ -514,7 +527,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	override fun toString(): String
 	{
-		return hashCode().toString(16)
+		return "KotlmataMachine[$key]{${hashCode().toString(16)}}"
 	}
 	
 	private inner class ModifierImpl internal constructor(
@@ -549,9 +562,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			get()
 			{
 				this@ModifierImpl shouldNot expired
-				return this@KotlmataMachineImpl.current.key.takeIf {
-					it != Initial
-				} ?: Log.w(prefix.trimEnd()) { OBTAIN_INITIAL }
+				return this@KotlmataMachineImpl.current.key
 			}
 		
 		override val has = object : KotlmataMutableMachine.Modifier.Has
