@@ -562,9 +562,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			get()
 			{
 				this@ModifierImpl shouldNot expired
-				return this@KotlmataMachineImpl.current.key.takeIf {
-					it !== CONSTRUCTED
-				} ?: Log.w(prefix.trimEnd()) { OBTAIN_FAILED }
+				return this@KotlmataMachineImpl.current.key
 			}
 		
 		override val has = object : KotlmataMutableMachine.Modifier.Has

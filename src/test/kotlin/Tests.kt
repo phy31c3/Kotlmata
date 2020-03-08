@@ -191,7 +191,7 @@ class Tests
 			start at "state1"
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 1) extends template("템플릿에서 정의") {
+		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends template("템플릿에서 정의") {
 			on start {
 				thread = Thread.currentThread()
 				throw Exception("onStart 에서 예외 발생")
@@ -478,7 +478,7 @@ class Tests
 		Kotlmata input "무시해라1" to "daemon"
 		Kotlmata input "무시해라2" to "daemon"
 		Kotlmata modify "daemon" set {
-			current
+			println("현재 상태: $current")
 		}
 		
 		Thread.sleep(100)

@@ -67,7 +67,6 @@ internal class Logs
 		
 		/*########################## WARN ##########################*/
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. [%s] x (%s) -> [%s]"
-		const val OBTAIN_FAILED = "%s Attempt to get 'CONSTRUCTED' state: The 'CONSTRUCTED' state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available inside the config block."
