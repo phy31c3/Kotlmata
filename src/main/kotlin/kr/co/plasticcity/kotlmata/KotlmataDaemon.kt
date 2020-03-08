@@ -403,10 +403,10 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			logLevel.simple(key, threadName, isDaemon) { DAEMON_START_THREAD }
 			logLevel.normal(key) { DAEMON_START_INIT }
 			machine = KotlmataMutableMachine.create(key, logLevel, "Daemon[$key]:$suffix") {
-				Initial {}
+				Created {}
 				val initialized = InitImpl(block, this)
-				Initial x any %= initialized.startAt
-				start at Initial
+				Created x any %= initialized.startAt
+				start at Created
 			}
 			logLevel.normal(key) { DAEMON_END_INIT }
 			try

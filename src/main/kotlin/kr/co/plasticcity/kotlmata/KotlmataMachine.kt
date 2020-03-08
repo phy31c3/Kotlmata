@@ -563,7 +563,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				this@ModifierImpl shouldNot expired
 				return this@KotlmataMachineImpl.current.key.takeIf {
-					it != Initial
+					it != Created
 				} ?: Log.w(prefix.trimEnd()) { OBTAIN_INITIAL }
 			}
 		
