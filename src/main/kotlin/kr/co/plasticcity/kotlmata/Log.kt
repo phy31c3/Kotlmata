@@ -7,8 +7,9 @@ internal class Logs
 		/*########################## DEBUG ##########################*/
 		/* Kotlmata */
 		const val KOTLMATA_START = "Kotlmata: START"
-		const val KOTLMATA_RESTART = "Kotlmata: RESTART"
-		const val KOTLMATA_SHUTDOWN = "Kotlmata: SHUTDOWN"
+		const val KOTLMATA_PAUSE = "Kotlmata: PAUSE"
+		const val KOTLMATA_STOP = "Kotlmata: STOP"
+		const val KOTLMATA_RESUME = "Kotlmata: RESUME"
 		const val KOTLMATA_RELEASE = "Kotlmata: RELEASE"
 		const val KOTLMATA_COMMON = "Kotlmata: %s {daemon: %s}"
 		const val KOTLMATA_INPUT = "Kotlmata:%s Input signal {signal: %s, payload: %s, priority: %s} {daemon: %s}"
@@ -66,7 +67,6 @@ internal class Logs
 		
 		/*########################## WARN ##########################*/
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. [%s] x (%s) -> [%s]"
-		const val OBTAIN_INITIAL = "%s Attempt to get 'Initial' state: The 'Initial' state can not be obtained."
 		
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available inside the config block."

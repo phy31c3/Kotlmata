@@ -191,7 +191,7 @@ class Tests
 			start at "state1"
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 1) extends template("템플릿에서 정의") {
+		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends template("템플릿에서 정의") {
 			on start {
 				thread = Thread.currentThread()
 				throw Exception("onStart 에서 예외 발생")
@@ -429,8 +429,13 @@ class Tests
 	fun kotlmataTest()
 	{
 		var expire: Kotlmata.Post? = null
-		Kotlmata.start(2)
+		Kotlmata.start(1)
 		Kotlmata fork "daemon" construct {
+			
+			on start { payload ->
+				println("데몬 on start: payload = $payload")
+			}
+			
 			"state1" { state ->
 				entry action { println("데몬이 시작됨") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
@@ -473,12 +478,12 @@ class Tests
 		Kotlmata input "무시해라1" to "daemon"
 		Kotlmata input "무시해라2" to "daemon"
 		Kotlmata modify "daemon" set {
-			current
+			println("현재 상태: $current")
 		}
 		
 		Thread.sleep(100)
 		
-		Kotlmata run "daemon"
+		Kotlmata.run("daemon", "payload")
 		Kotlmata input "goToState2" to "daemon"
 		Kotlmata input "한타임 쉬고" to "daemon"
 		Kotlmata input "우선순위 5" priority 5 to "daemon"
@@ -508,7 +513,7 @@ class Tests
 		
 		Thread.sleep(100)
 		
-		Kotlmata.input("stop 보다 더 빨리 실행될까?")
+		Kotlmata input "stop 보다 더 빨리 실행될까?" to "daemon"
 		Kotlmata.stop()
 		Kotlmata.release()
 		

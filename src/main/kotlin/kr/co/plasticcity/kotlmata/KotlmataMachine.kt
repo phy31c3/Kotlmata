@@ -562,9 +562,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			get()
 			{
 				this@ModifierImpl shouldNot expired
-				return this@KotlmataMachineImpl.current.key.takeIf {
-					it != Initial
-				} ?: Log.w(prefix.trimEnd()) { OBTAIN_INITIAL }
+				return this@KotlmataMachineImpl.current.key
 			}
 		
 		override val has = object : KotlmataMutableMachine.Modifier.Has

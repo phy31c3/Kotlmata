@@ -264,7 +264,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		core = KotlmataMachine.create("$key@core") {
-			"Initial" { state ->
+			"Constructed" { state ->
 				val start: KotlmataAction1<Request.Control> = { controlR ->
 					logLevel.simple(key, suffix) { DAEMON_START }
 					onStart.call(controlR.payload)
@@ -381,9 +381,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 			
-			"Initial" x Request.Run::class %= "Run"
-			"Initial" x Request.Pause::class %= "Pause"
-			"Initial" x Request.Stop::class %= "Stop"
+			"Constructed" x Request.Run::class %= "Run"
+			"Constructed" x Request.Pause::class %= "Pause"
+			"Constructed" x Request.Stop::class %= "Stop"
 			
 			"Run" x Request.Pause::class %= "Pause"
 			"Run" x Request.Stop::class %= "Stop"
@@ -396,17 +396,17 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			
 			any.except("Terminate") x Request.Terminate::class %= "Terminate"
 			
-			start at "Initial"
+			start at "Constructed"
 		}
 		
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
 			logLevel.simple(key, threadName, isDaemon) { DAEMON_START_THREAD }
 			logLevel.normal(key) { DAEMON_START_INIT }
 			machine = KotlmataMutableMachine.create(key, logLevel, "Daemon[$key]:$suffix") {
-				Initial {}
-				val initialized = InitImpl(block, this)
-				Initial x any %= initialized.startAt
-				start at Initial
+				CONSTRUCTED { /* for creating state */ }
+				val init = InitImpl(block, this)
+				CONSTRUCTED x any %= init.startAt
+				start at CONSTRUCTED
 			}
 			logLevel.normal(key) { DAEMON_END_INIT }
 			try
