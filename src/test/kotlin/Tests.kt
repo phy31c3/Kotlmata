@@ -430,7 +430,7 @@ class Tests
 	{
 		var expire: Kotlmata.Post? = null
 		Kotlmata.start(1)
-		Kotlmata fork "daemon" construct {
+		Kotlmata fork "daemon" with {
 			
 			on start { payload ->
 				println("데몬 on start: payload = $payload")
@@ -477,7 +477,7 @@ class Tests
 		
 		Kotlmata input "무시해라1" to "daemon"
 		Kotlmata input "무시해라2" to "daemon"
-		Kotlmata modify "daemon" set {
+		Kotlmata modify "daemon" with {
 			println("현재 상태: $current")
 		}
 		
@@ -497,7 +497,7 @@ class Tests
 		Kotlmata {
 			expire = this
 			has daemon "daemon" then {
-				modify daemon "daemon" set {
+				modify daemon "daemon" with {
 					update state "state2" with { state ->
 						input signal Integer::class action { s -> println("$state: Post 에서 수정된 Number 타입 입력함수: $s") }
 						exit action { println("$state: Post 에서 수정된 퇴장함수") }
