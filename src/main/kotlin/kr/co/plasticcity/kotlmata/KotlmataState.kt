@@ -296,7 +296,9 @@ private class KotlmataStateImpl<T : STATE>(
 			logLevel.normal(prefix, key, signal) { STATE_INPUT_DEFAULT }
 		}
 		
-		return inputDef?.run(signal, payload) ?: null.also { logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE } }
+		return inputDef?.run(signal, payload) ?: null.also {
+			if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE }
+		}
 	}
 	
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?): Any?
@@ -315,7 +317,9 @@ private class KotlmataStateImpl<T : STATE>(
 			logLevel.normal(prefix, key, signal) { STATE_INPUT_DEFAULT }
 		}
 		
-		return inputDef?.run(signal, payload) ?: null.also { logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE } }
+		return inputDef?.run(signal, payload) ?: null.also {
+			if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE }
+		}
 	}
 	
 	override fun exit(signal: SIGNAL)
@@ -323,7 +327,7 @@ private class KotlmataStateImpl<T : STATE>(
 		exit?.apply {
 			logLevel.normal(prefix, key, signal) { STATE_EXIT }
 			run(signal)
-		} ?: logLevel.normal(prefix, key, signal) { STATE_EXIT_NONE }
+		} ?: if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_EXIT_NONE }
 	}
 	
 	override fun modify(block: KotlmataMutableState.Modifier.(T) -> Unit)

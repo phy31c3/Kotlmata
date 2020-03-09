@@ -429,7 +429,7 @@ class Tests
 	fun kotlmataTest()
 	{
 		var expire: Kotlmata.Post? = null
-		Kotlmata.start(1)
+		Kotlmata.start(2)
 		Kotlmata fork "daemon" with {
 			
 			on start { payload ->
