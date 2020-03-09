@@ -422,10 +422,16 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		tryCatchReturn {
-			logLevel.normal(prefix, signal, payload, current.key) { MACHINE_START_INPUT }
+			if (current.key !== CONSTRUCTED)
+			{
+				logLevel.normal(prefix, signal, payload, current.key) { MACHINE_START_INPUT }
+			}
 			current.input(signal, payload)
 		}.also {
-			logLevel.normal(prefix, signal, payload, current.key) { MACHINE_END_INPUT }
+			if (current.key !== CONSTRUCTED)
+			{
+				logLevel.normal(prefix, signal, payload, current.key) { MACHINE_END_INPUT }
+			}
 		}.convertToSync()?.also { sync ->
 			block(sync)
 		} ?: ruleMap.let {

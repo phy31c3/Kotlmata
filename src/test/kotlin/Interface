@@ -206,7 +206,7 @@ Kotlmata.config {
 Kotlmata.start(logLevel = 2)
 Kotlmata.stop()
 
-Kotlmata fork "daemon" construct { // Daemon init 블럭과 동일 (존재하면 무시)
+Kotlmata fork "daemon" with { // Daemon init 블럭과 동일 (존재하면 무시)
 	on start [action]
 	on terminate [action]
 
@@ -222,7 +222,7 @@ Kotlmata fork "daemon" construct { // Daemon init 블럭과 동일 (존재하면
 	start at "state0"
 }
 
-Kotlmata modify "daemon" set { // Daemon modify 블럭과 동일 (존재하지 않으면 무시)
+Kotlmata modify "daemon" with { // Daemon modify 블럭과 동일 (존재하지 않으면 무시)
 	update state "state1" with {
 		input signal "signal" action [action]
 	} or insert state "state1" with {
@@ -243,7 +243,7 @@ Kotlmata input "signal" type KClass<String> to "daemon"
 
 Kotlmata { // Kotlmata post 와 동일
 	has daemon "daemon" then {
-		modify daemon "daemon" set {
+		modify daemon "daemon" with {
 			update state "state1" with {
 				input signal "signal" action [action]
 			} or insert state "state1" with {
@@ -254,7 +254,7 @@ Kotlmata { // Kotlmata post 와 동일
 			}
 		}
 	} or {
-		fork daemon "daemon" construct {
+		fork daemon "daemon" with {
 			on start [action]
 			on terminate [action]
 
@@ -270,7 +270,7 @@ Kotlmata { // Kotlmata post 와 동일
 			start at "state0"
 		}
 	} finally {
-		fork daemon "daemon" construct {
+		fork daemon "daemon" with {
 			on start [action]
 			on terminate [action]
 

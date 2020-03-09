@@ -2,14 +2,14 @@
 Automata-based programming library for Kotlin.
 ## Gradle
 ```
-implementation 'kr.co.plasticcity:kotlmata:0.4.2'
+implementation 'kr.co.plasticcity:kotlmata:0.4.3'
 ```
 ## Maven
 ```
 <dependency>
   <groupId>kr.co.plasticcity</groupId>
   <artifactId>kotlmata</artifactId>
-  <version>0.4.2</version>
+  <version>0.4.3</version>
   <type>pom</type>
 </dependency>
 ```
