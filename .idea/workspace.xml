@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="" />
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#115: catch error를 다시 error action으로...">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -204,13 +208,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00123" summary="데몬 생성을 데몬 스레드에서 하는것 재검토 #61">
-      <created>1553710541293</created>
-      <option name="number" value="00123" />
-      <option name="presentableId" value="LOCAL-00123" />
-      <option name="project" value="LOCAL" />
-      <updated>1553710541293</updated>
     </task>
     <task id="LOCAL-00124" summary="#64: 남아있는 메시지 개수 로그찍기">
       <created>1553786231768</created>
@@ -548,7 +545,14 @@
       <option name="project" value="LOCAL" />
       <updated>1583775139775</updated>
     </task>
-    <option name="localTasksCounter" value="172" />
+    <task id="LOCAL-00172" summary="#114: Kotlmata input의 priority에 주석 달기">
+      <created>1583945555571</created>
+      <option name="number" value="00172" />
+      <option name="presentableId" value="LOCAL-00172" />
+      <option name="project" value="LOCAL" />
+      <updated>1583945555571</updated>
+    </task>
+    <option name="localTasksCounter" value="173" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -590,7 +594,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#92: KotlmataStateInit -&gt; KotlmataStateDef" />
     <MESSAGE value="#92: 테스트 추가" />
     <MESSAGE value="#92: KotlmataMachineDef, KotlmataDaemonDef 추가" />
     <MESSAGE value="#92: 머신, 데몬 템플릿 인터페이스 구현" />
@@ -615,7 +618,8 @@
     <MESSAGE value="0.4.2" />
     <MESSAGE value="#113: Kotlmata fork 시 construct 네이밍이 어색해보임" />
     <MESSAGE value="0.4.3" />
-    <option name="LAST_COMMIT_MESSAGE" value="0.4.3" />
+    <MESSAGE value="#114: Kotlmata input의 priority에 주석 달기" />
+    <option name="LAST_COMMIT_MESSAGE" value="#114: Kotlmata input의 priority에 주석 달기" />
   </component>
   <component name="WindowStateProjectService">
     <state x="1027" y="534" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog" timestamp="1582640414849">
@@ -630,34 +634,34 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="960" y="427" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1581526063026" />
-    <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1582638901515">
+    <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1583945656318">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582638901515" />
-    <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2" timestamp="1583943771311">
+    <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583945656318" />
+    <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2" timestamp="1583947371347">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583943771311" />
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1583942709896">
+    <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583947371347" />
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1583947216800">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583942709896" />
-    <state width="962" height="1257" key="GridCell.Tab.0.bottom" timestamp="1583945445036">
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583947216800" />
+    <state width="962" height="1257" key="GridCell.Tab.0.bottom" timestamp="1583945946091">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583945445036" />
-    <state width="962" height="1257" key="GridCell.Tab.0.center" timestamp="1583945445036">
+    <state width="962" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583945946091" />
+    <state width="962" height="1257" key="GridCell.Tab.0.center" timestamp="1583945946091">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583945445036" />
-    <state width="962" height="1257" key="GridCell.Tab.0.left" timestamp="1583945445036">
+    <state width="962" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583945946091" />
+    <state width="962" height="1257" key="GridCell.Tab.0.left" timestamp="1583945946091">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583945445036" />
-    <state width="962" height="1257" key="GridCell.Tab.0.right" timestamp="1583945445036">
+    <state width="962" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583945946091" />
+    <state width="962" height="1257" key="GridCell.Tab.0.right" timestamp="1583945946091">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583945445036" />
+    <state width="962" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583945946091" />
     <state width="2516" height="273" key="GridCell.Tab.1.bottom" timestamp="1583057103955">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -674,10 +678,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="2516" height="273" key="GridCell.Tab.1.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583057103955" />
-    <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1583775022345">
+    <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1583947228624">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583775022345" />
+    <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583947228624" />
     <state x="946" y="353" key="SettingsEditor" timestamp="1583226633888">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -702,10 +706,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="855" y="434" width="849" height="609" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582923028478" />
-    <state x="907" y="396" width="745" height="608" key="find.popup" timestamp="1583771418174">
+    <state x="907" y="396" width="1089" height="835" key="find.popup" timestamp="1583947418299">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="907" y="396" width="745" height="608" key="find.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583771418174" />
+    <state x="907" y="396" width="1089" height="835" key="find.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583947418299" />
     <state width="600" height="424" key="javadoc.popup" timestamp="1582211324598">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
