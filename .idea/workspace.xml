@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,7 +105,7 @@
       <recent name="D:\workspace\Kotlmata\src\test\kotlin" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.Tests.kotlmataTest">
+  <component name="RunManager" selected="JUnit.Tests.daemonTest">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method v="2">
@@ -190,8 +192,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.Tests.kotlmataTest" />
         <item itemvalue="JUnit.Tests.daemonTest" />
+        <item itemvalue="JUnit.Tests.kotlmataTest" />
         <item itemvalue="JUnit.Tests.machineTest" />
         <item itemvalue="JUnit.Tests.commonTest" />
       </list>
@@ -207,13 +209,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00122" summary="#59 Kotlmata.Marker -&gt; KotlmataDSL">
-      <created>1553524074572</created>
-      <option name="number" value="00122" />
-      <option name="presentableId" value="LOCAL-00122" />
-      <option name="project" value="LOCAL" />
-      <updated>1553524074572</updated>
     </task>
     <task id="LOCAL-00123" summary="데몬 생성을 데몬 스레드에서 하는것 재검토 #61">
       <created>1553710541293</created>
@@ -551,7 +546,14 @@
       <option name="project" value="LOCAL" />
       <updated>1583772864856</updated>
     </task>
-    <option name="localTasksCounter" value="171" />
+    <task id="LOCAL-00171" summary="0.4.3">
+      <created>1583775139775</created>
+      <option name="number" value="00171" />
+      <option name="presentableId" value="LOCAL-00171" />
+      <option name="project" value="LOCAL" />
+      <updated>1583775139775</updated>
+    </task>
+    <option name="localTasksCounter" value="172" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -593,7 +595,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#92: KotlmataStateInit&lt;S&gt; 추가" />
     <MESSAGE value="#92: KotlmataStateInit -&gt; KotlmataStateDef" />
     <MESSAGE value="#92: 테스트 추가" />
     <MESSAGE value="#92: KotlmataMachineDef, KotlmataDaemonDef 추가" />
@@ -618,7 +619,8 @@
     <MESSAGE value="#110: Initial -&gt; CONSTRUCTED" />
     <MESSAGE value="0.4.2" />
     <MESSAGE value="#113: Kotlmata fork 시 construct 네이밍이 어색해보임" />
-    <option name="LAST_COMMIT_MESSAGE" value="#113: Kotlmata fork 시 construct 네이밍이 어색해보임" />
+    <MESSAGE value="0.4.3" />
+    <option name="LAST_COMMIT_MESSAGE" value="0.4.3" />
   </component>
   <component name="WindowStateProjectService">
     <state x="1027" y="534" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog" timestamp="1582640414849">
@@ -637,30 +639,30 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582638901515" />
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2" timestamp="1583774746300">
+    <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2" timestamp="1583943771311">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="353" y="13" width="2145" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583774746300" />
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1583775021703">
+    <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583943771311" />
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1583942709896">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583775021703" />
-    <state width="806" height="1257" key="GridCell.Tab.0.bottom" timestamp="1583774678775">
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583942709896" />
+    <state width="962" height="1257" key="GridCell.Tab.0.bottom" timestamp="1583943104378">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583774678775" />
-    <state width="806" height="1257" key="GridCell.Tab.0.center" timestamp="1583774678774">
+    <state width="962" height="1257" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583943104378" />
+    <state width="962" height="1257" key="GridCell.Tab.0.center" timestamp="1583943104377">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583774678774" />
-    <state width="806" height="1257" key="GridCell.Tab.0.left" timestamp="1583774678774">
+    <state width="962" height="1257" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583943104377" />
+    <state width="962" height="1257" key="GridCell.Tab.0.left" timestamp="1583943104377">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583774678774" />
-    <state width="806" height="1257" key="GridCell.Tab.0.right" timestamp="1583774678775">
+    <state width="962" height="1257" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583943104377" />
+    <state width="962" height="1257" key="GridCell.Tab.0.right" timestamp="1583943104378">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="806" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583774678775" />
+    <state width="962" height="1257" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583943104378" />
     <state width="2516" height="273" key="GridCell.Tab.1.bottom" timestamp="1583057103955">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
