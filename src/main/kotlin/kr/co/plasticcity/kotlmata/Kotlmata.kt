@@ -70,6 +70,9 @@ interface Kotlmata
 	
 	interface Priority : To
 	{
+		/**
+		 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
+		 */
 		infix fun priority(priority: Int): To
 	}
 	
