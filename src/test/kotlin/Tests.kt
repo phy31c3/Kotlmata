@@ -217,8 +217,14 @@ class Tests
 			}
 			
 			"state1" extends defaultExit("템플릿으로 정의된 퇴장함수 호출됨") { state ->
-				entry action { println("$state: 기본 진입함수") }
-				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
+				entry action {
+					println("$state: 기본 진입함수")
+					null
+				}
+				input signal String::class action { s ->
+					println("$state: String 타입 입력함수: $s")
+					null
+				}
 				input signal "goToState2" action { println("state2로 이동") }
 				input signal "goToError" action {
 					throw Exception("에러1 발생")
@@ -294,6 +300,12 @@ class Tests
 				}
 			}
 			
+			"state7" { state ->
+				exit action {
+					println("$state: 퇴장함수")
+				}
+			}
+			
 			"chain1" { state ->
 				entry action { println("$state: 기본 진입함수") }
 			}
@@ -317,7 +329,8 @@ class Tests
 			"chain3" x ("a" or "b" or "c") %= "state1"
 			"state1" x "signal" %= "state6"
 			"state6" x String::class %= self
-			"state6" x "goToState1" %= "state1"
+			"state6" x "goToState7" %= "state7"
+			"state7" x "goToState1" %= "state1"
 			
 			start at "state1"
 		}
@@ -412,6 +425,7 @@ class Tests
 		
 		daemon.input("signal")
 		daemon.input("signal", String::class)
+		daemon.input("goToState7")
 		daemon.input("goToState1")
 		
 		Thread.sleep(500)
