@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#115: catch error를 다시 error action으로...">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -208,13 +207,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00124" summary="#64: 남아있는 메시지 개수 로그찍기">
-      <created>1553786231768</created>
-      <option name="number" value="00124" />
-      <option name="presentableId" value="LOCAL-00124" />
-      <option name="project" value="LOCAL" />
-      <updated>1553786231768</updated>
     </task>
     <task id="LOCAL-00125" summary="0.2.1: Interface 수정">
       <created>1553788186982</created>
@@ -552,7 +544,14 @@
       <option name="project" value="LOCAL" />
       <updated>1583945555571</updated>
     </task>
-    <option name="localTasksCounter" value="173" />
+    <task id="LOCAL-00173" summary="#115: catch error를 다시 error action으로...">
+      <created>1583947446852</created>
+      <option name="number" value="00173" />
+      <option name="presentableId" value="LOCAL-00173" />
+      <option name="project" value="LOCAL" />
+      <updated>1583947446852</updated>
+    </task>
+    <option name="localTasksCounter" value="174" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -594,7 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#92: 테스트 추가" />
     <MESSAGE value="#92: KotlmataMachineDef, KotlmataDaemonDef 추가" />
     <MESSAGE value="#92: 머신, 데몬 템플릿 인터페이스 구현" />
     <MESSAGE value="#92: 머신, 데몬 템플릿 인터페이스 구현(2)" />
@@ -619,7 +617,8 @@
     <MESSAGE value="#113: Kotlmata fork 시 construct 네이밍이 어색해보임" />
     <MESSAGE value="0.4.3" />
     <MESSAGE value="#114: Kotlmata input의 priority에 주석 달기" />
-    <option name="LAST_COMMIT_MESSAGE" value="#114: Kotlmata input의 priority에 주석 달기" />
+    <MESSAGE value="#115: catch error를 다시 error action으로..." />
+    <option name="LAST_COMMIT_MESSAGE" value="#115: catch error를 다시 error action으로..." />
   </component>
   <component name="WindowStateProjectService">
     <state x="1027" y="534" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog" timestamp="1582640414849">
