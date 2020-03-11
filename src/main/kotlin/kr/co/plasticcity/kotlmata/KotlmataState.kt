@@ -28,7 +28,7 @@ interface KotlmataState<T : STATE>
 		val entry: Entry
 		val input: Input
 		val exit: Exit
-		val catch: Catch
+		val error: Error
 		
 		infix fun SIGNAL.or(signal: SIGNAL): Signals
 		
@@ -88,10 +88,10 @@ interface KotlmataState<T : STATE>
 		}
 	}
 	
-	interface Catch
+	interface Error
 	{
-		infix fun error(error: KotlmataError)
-		infix fun error(error: KotlmataError1<SIGNAL>)
+		infix fun action(error: KotlmataError)
+		infix fun action(error: KotlmataError1<SIGNAL>)
 	}
 	
 	val key: T
@@ -180,7 +180,7 @@ private class KotlmataStateImpl<T : STATE>(
 	private var exit: ExitDef? = null
 	private var entryMap: MutableMap<SIGNAL, EntryDef>? = null
 	private var inputMap: MutableMap<SIGNAL, InputDef>? = null
-	private var catch: KotlmataError1<SIGNAL>? = null
+	private var error: KotlmataError1<SIGNAL>? = null
 	
 	init
 	{
@@ -201,7 +201,7 @@ private class KotlmataStateImpl<T : STATE>(
 	{
 		error?.let {
 			DSL.it(e, signal) ?: Unit
-		} ?: catch?.let {
+		} ?: this@KotlmataStateImpl.error?.let {
 			DSL.it(e, signal)
 		} ?: throw e
 	}
@@ -214,7 +214,7 @@ private class KotlmataStateImpl<T : STATE>(
 	{
 		error?.let {
 			DSL.it(e, signal) ?: Unit
-		} ?: catch?.let {
+		} ?: this@KotlmataStateImpl.error?.let {
 			DSL.it(e, signal)
 		} ?: throw e
 	}
@@ -227,7 +227,7 @@ private class KotlmataStateImpl<T : STATE>(
 	{
 		error?.let {
 			DSL.it(e, signal)
-		} ?: catch?.let {
+		} ?: this@KotlmataStateImpl.error?.let {
 			DSL.it(e, signal)
 		} ?: throw e
 	}
@@ -657,18 +657,18 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		}
 		
-		override val catch = object : KotlmataState.Catch
+		override val error = object : KotlmataState.Error
 		{
-			override fun error(error: KotlmataError)
+			override fun action(error: KotlmataError)
 			{
 				this@ModifierImpl shouldNot expired
-				this@KotlmataStateImpl.catch = { throwable, _ -> error(throwable) }
+				this@KotlmataStateImpl.error = { throwable, _ -> error(throwable) }
 			}
 			
-			override fun error(error: KotlmataError1<SIGNAL>)
+			override fun action(error: KotlmataError1<SIGNAL>)
 			{
 				this@ModifierImpl shouldNot expired
-				this@KotlmataStateImpl.catch = error
+				this@KotlmataStateImpl.error = error
 			}
 		}
 		
