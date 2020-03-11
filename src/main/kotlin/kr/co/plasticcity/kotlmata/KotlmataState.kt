@@ -251,9 +251,11 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		} ?: entry?.also {
 			logLevel.normal(prefix, key, signal) { STATE_RUN_ENTRY_DEFAULT }
+		} ?: null.also {
+			logLevel.normal(prefix, key, signal) { STATE_NO_ENTRY }
 		}
 		
-		return entryDef?.run(signal) ?: null.also { logLevel.normal(prefix, key, signal) { STATE_NO_ENTRY } }
+		return entryDef?.run(signal)
 	}
 	
 	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>): Any?
@@ -270,9 +272,11 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		} ?: entry?.also {
 			logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_RUN_ENTRY_DEFAULT_TYPED }
+		} ?: null.also {
+			logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_NO_ENTRY_TYPED }
 		}
 		
-		return entryDef?.run(signal) ?: null.also { logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_NO_ENTRY_TYPED } }
+		return entryDef?.run(signal)
 	}
 	
 	override fun input(signal: SIGNAL, payload: Any?): Any?
@@ -294,11 +298,11 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		} ?: input?.also {
 			logLevel.normal(prefix, key, signal) { STATE_RUN_INPUT_DEFAULT }
-		}
-		
-		return inputDef?.run(signal, payload) ?: null.also {
+		} ?: null.also {
 			if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_NO_INPUT }
 		}
+		
+		return inputDef?.run(signal, payload)
 	}
 	
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?): Any?
@@ -315,11 +319,11 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		} ?: input?.also {
 			logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_RUN_INPUT_DEFAULT_TYPED }
-		}
-		
-		return inputDef?.run(signal, payload) ?: null.also {
+		} ?: null.also {
 			if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_NO_INPUT_TYPED }
 		}
+		
+		return inputDef?.run(signal, payload)
 	}
 	
 	override fun exit(signal: SIGNAL)
