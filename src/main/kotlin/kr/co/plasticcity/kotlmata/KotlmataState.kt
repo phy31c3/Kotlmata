@@ -239,21 +239,21 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				signal in it ->
 				{
-					logLevel.normal(prefix, key, signal) { STATE_ENTRY_SIGNAL }
+					logLevel.normal(prefix, key, signal) { STATE_RUN_ENTRY_OBJECT }
 					it[signal]
 				}
 				signal::class in it ->
 				{
-					logLevel.normal(prefix, key, signal, "${signal::class.simpleName}::class") { STATE_ENTRY_TYPED }
+					logLevel.normal(prefix, key, "${signal::class.simpleName}::class", signal) { STATE_RUN_ENTRY_CLASS }
 					it[signal::class]
 				}
 				else -> null
 			}
 		} ?: entry?.also {
-			logLevel.normal(prefix, key, signal) { STATE_ENTRY_DEFAULT }
+			logLevel.normal(prefix, key, signal) { STATE_RUN_ENTRY_DEFAULT }
 		}
 		
-		return entryDef?.run(signal) ?: null.also { logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE } }
+		return entryDef?.run(signal) ?: null.also { logLevel.normal(prefix, key, signal) { STATE_NO_ENTRY } }
 	}
 	
 	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>): Any?
@@ -263,16 +263,16 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				in it ->
 				{
-					logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_ENTRY_TYPED }
+					logLevel.normal(prefix, key, "${type.simpleName}::class", signal, "${type.simpleName}::class") { STATE_RUN_ENTRY_CLASS_TYPED }
 					it[type]
 				}
 				else -> null
 			}
 		} ?: entry?.also {
-			logLevel.normal(prefix, key, signal) { STATE_ENTRY_DEFAULT }
+			logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_RUN_ENTRY_DEFAULT_TYPED }
 		}
 		
-		return entryDef?.run(signal) ?: null.also { logLevel.normal(prefix, key, signal) { STATE_ENTRY_NONE } }
+		return entryDef?.run(signal) ?: null.also { logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_NO_ENTRY_TYPED } }
 	}
 	
 	override fun input(signal: SIGNAL, payload: Any?): Any?
@@ -282,22 +282,22 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				signal in it ->
 				{
-					logLevel.normal(prefix, key, signal) { STATE_INPUT_SIGNAL }
+					logLevel.normal(prefix, key, signal) { STATE_RUN_INPUT_OBJECT }
 					it[signal]
 				}
 				signal::class in it ->
 				{
-					logLevel.normal(prefix, key, signal, "${signal::class.simpleName}::class") { STATE_INPUT_TYPED }
+					logLevel.normal(prefix, key, "${signal::class.simpleName}::class", signal) { STATE_RUN_INPUT_CLASS }
 					it[signal::class]
 				}
 				else -> null
 			}
 		} ?: input?.also {
-			logLevel.normal(prefix, key, signal) { STATE_INPUT_DEFAULT }
+			logLevel.normal(prefix, key, signal) { STATE_RUN_INPUT_DEFAULT }
 		}
 		
 		return inputDef?.run(signal, payload) ?: null.also {
-			if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE }
+			if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_NO_INPUT }
 		}
 	}
 	
@@ -308,26 +308,26 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				in it ->
 				{
-					logLevel.normal(prefix, key, signal, "${signal::class.simpleName}::class") { STATE_INPUT_TYPED }
+					logLevel.normal(prefix, key, "${type.simpleName}::class", signal, "${type.simpleName}::class") { STATE_RUN_INPUT_CLASS_TYPED }
 					it[type]
 				}
 				else -> null
 			}
 		} ?: input?.also {
-			logLevel.normal(prefix, key, signal) { STATE_INPUT_DEFAULT }
+			logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_RUN_INPUT_DEFAULT_TYPED }
 		}
 		
 		return inputDef?.run(signal, payload) ?: null.also {
-			if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_INPUT_NONE }
+			if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_NO_INPUT_TYPED }
 		}
 	}
 	
 	override fun exit(signal: SIGNAL)
 	{
 		exit?.apply {
-			logLevel.normal(prefix, key, signal) { STATE_EXIT }
+			logLevel.normal(prefix, key, signal) { STATE_RUN_EXIT }
 			run(signal)
-		} ?: if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_EXIT_NONE }
+		} ?: if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_NO_EXIT }
 	}
 	
 	override fun modify(block: KotlmataMutableState.Modifier.(T) -> Unit)
