@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -63,9 +63,6 @@
       </state>
     </system>
   </component>
-  <component name="FavoritesManager">
-    <favorites_list name="Kotlmata" />
-  </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
@@ -85,7 +82,6 @@
   <component name="ProjectViewState">
     <option name="autoscrollFromSource" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
@@ -95,7 +91,7 @@
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.25891948" />
-    <property name="settings.editor.selected.configurable" value="settings.saveactions" />
+    <property name="settings.editor.selected.configurable" value="terminal" />
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
   <component name="RecentsManager">
@@ -569,9 +565,7 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="COLUMN_ORDER" />
-            </State>
+            <State />
           </value>
         </entry>
       </map>
@@ -590,6 +584,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
@@ -641,10 +636,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583947371347" />
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1583947216800">
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1585344916745">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583947216800" />
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1585344916745" />
     <state width="962" height="1257" key="GridCell.Tab.0.bottom" timestamp="1583951950424">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -677,14 +672,14 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="2516" height="273" key="GridCell.Tab.1.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583057103955" />
-    <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1583947228624">
+    <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1585344945672">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583947228624" />
-    <state x="946" y="353" key="SettingsEditor" timestamp="1583226633888">
+    <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1585344945672" />
+    <state x="946" y="353" key="SettingsEditor" timestamp="1589041198261">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="946" y="353" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583226633888" />
+    <state x="946" y="353" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589041198261" />
     <state x="994" y="402" key="VCS.ChangeListViewerDialog" timestamp="1583652360176">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -717,6 +712,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="658" y="308" key="new project wizard/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583226310877" />
+    <state x="921" y="426" width="700" height="530" key="recent.locations.popup" timestamp="1589039796888">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="921" y="426" width="700" height="530" key="recent.locations.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589039796888" />
     <state x="936" y="341" width="672" height="676" key="search.everywhere.popup" timestamp="1582039503821">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
