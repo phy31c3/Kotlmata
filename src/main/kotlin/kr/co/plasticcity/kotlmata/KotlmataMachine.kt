@@ -136,6 +136,9 @@ interface KotlmataMachine<T : MACHINE>
 		}
 		
 		infix fun STATE.x(signals: Signals): RuleAssignable
+		infix fun any.x(signals: Signals): RuleAssignable
+		infix fun AnyOf.x(signals: Signals): RuleAssignable
+		infix fun AnyExcept.x(signals: Signals): RuleAssignable
 		
 		/**
 		 * For chaining transition rule
@@ -1091,6 +1094,48 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				this@ModifierImpl shouldNot expired
 				signals.forEach { signal ->
 					this@x x signal %= state
+				}
+			}
+		}
+		
+		override fun any.x(signals: KotlmataMachine.RuleDefine.Signals) = object : KotlmataMachine.RuleAssignable
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				signals.forEach { signal ->
+					this@x x signal %= state
+				}
+			}
+		}
+		
+		override fun KotlmataMachine.RuleDefine.AnyOf.x(signals: KotlmataMachine.RuleDefine.Signals) = object : KotlmataMachine.RuleAssignable
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				forEach { from ->
+					from x signals %= state
+				}
+			}
+		}
+		
+		override fun KotlmataMachine.RuleDefine.AnyExcept.x(signals: KotlmataMachine.RuleDefine.Signals) = object : KotlmataMachine.RuleAssignable
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				any x signals %= state
+				forEach { from ->
+					signals.forEach { signal ->
+						ruleMap.let {
+							it[from]
+						}?.let {
+							it[signal]
+						} ?: run {
+							from x signal %= stay
+						}
+					}
 				}
 			}
 		}
