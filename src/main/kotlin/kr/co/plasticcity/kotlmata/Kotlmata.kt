@@ -50,7 +50,7 @@ interface Kotlmata
 	
 	interface ForkWith<T : DAEMON>
 	{
-		infix fun with(block: KotlmataDaemonDef<T>)
+		infix fun with(block: DaemonTemplate<T>)
 	}
 	
 	interface ModifyWith<T : DAEMON>
@@ -119,7 +119,7 @@ interface Kotlmata
 			
 			interface With<T : DAEMON>
 			{
-				infix fun with(block: KotlmataDaemonDef<T>)
+				infix fun with(block: DaemonTemplate<T>)
 			}
 		}
 		

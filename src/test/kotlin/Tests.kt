@@ -68,7 +68,7 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		fun template(msg: String, block: KotlmataMachineDef<String>): KotlmataMachineDef<String> = { machine ->
+		fun template(msg: String, block: MachineTemplate<String>): MachineTemplate<String> = { machine ->
 			on error {
 				println("$msg: on error")
 			}
@@ -181,7 +181,7 @@ class Tests
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
 		
-		fun template(msg: String, block: KotlmataDaemonDef<String>): KotlmataDaemonDef<String> = { daemon ->
+		fun template(msg: String, block: DaemonTemplate<String>): DaemonTemplate<String> = { daemon ->
 			on error {
 				println("$msg: on error")
 			}
@@ -202,14 +202,14 @@ class Tests
 				println("데몬이 종료됨")
 			}
 			
-			fun defaultExit(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
+			fun defaultExit(msg: String, block: StateTemplate<String>): StateTemplate<String> = { state ->
 				exit action {
 					println(msg)
 				}
 				block(state)
 			}
 			
-			val defaultEnter: (String, KotlmataStateDef<String>) -> KotlmataStateDef<String> = fun(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
+			val defaultEnter: (String, StateTemplate<String>) -> StateTemplate<String> = fun(msg: String, block: StateTemplate<String>): StateTemplate<String> = { state ->
 				entry action {
 					println(msg)
 				}

@@ -9,7 +9,7 @@ interface KotlmataMachine<T : MACHINE>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: KotlmataMachineDef<String>
+				block: MachineTemplate<String>
 		): KotlmataMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
 		
 		operator fun invoke(
@@ -17,14 +17,14 @@ interface KotlmataMachine<T : MACHINE>
 				logLevel: Int = NO_LOG
 		) = object : ExtendsInvoke
 		{
-			override fun extends(block: KotlmataMachineDef<String>) = invoke(name, logLevel, block)
+			override fun extends(block: MachineTemplate<String>) = invoke(name, logLevel, block)
 		}
 		
 		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: KotlmataMachineDef<String>
+				block: MachineTemplate<String>
 		) = lazy {
 			invoke(name, logLevel, block)
 		}
@@ -35,22 +35,22 @@ interface KotlmataMachine<T : MACHINE>
 				logLevel: Int = NO_LOG
 		) = object : ExtendsLazy
 		{
-			override fun extends(block: KotlmataMachineDef<String>) = lazy { invoke(name, logLevel, block) }
+			override fun extends(block: MachineTemplate<String>) = lazy { invoke(name, logLevel, block) }
 		}
 		
 		interface ExtendsInvoke
 		{
-			infix fun extends(block: KotlmataMachineDef<String>): KotlmataMachine<String>
+			infix fun extends(block: MachineTemplate<String>): KotlmataMachine<String>
 		}
 		
 		interface ExtendsLazy
 		{
-			infix fun extends(block: KotlmataMachineDef<String>): Lazy<KotlmataMachine<String>>
+			infix fun extends(block: MachineTemplate<String>): Lazy<KotlmataMachine<String>>
 		}
 		
 		internal fun create(
 				name: String,
-				block: KotlmataMachineDef<String>
+				block: MachineTemplate<String>
 		): KotlmataMachine<String> = KotlmataMachineImpl(name, block = block)
 	}
 	
@@ -75,8 +75,8 @@ interface KotlmataMachine<T : MACHINE>
 	
 	interface StateDefine
 	{
-		operator fun <S : STATE> S.invoke(block: KotlmataStateDef<S>)
-		infix fun <S : STATE> S.extends(block: KotlmataStateDef<S>) = invoke(block)
+		operator fun <S : STATE> S.invoke(block: StateTemplate<S>)
+		infix fun <S : STATE> S.extends(block: StateTemplate<S>) = invoke(block)
 		
 		infix fun <S : STATE, R> S.action(action: KotlmataActionR<R>): KotlmataState.Entry.Catch<SIGNAL>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
@@ -206,7 +206,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		operator fun invoke(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: KotlmataMachineDef<String>
+				block: MachineTemplate<String>
 		): KotlmataMutableMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
 		
 		operator fun invoke(
@@ -214,14 +214,14 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 				logLevel: Int = NO_LOG
 		) = object : ExtendsInvoke
 		{
-			override fun extends(block: KotlmataMachineDef<String>) = invoke(name, logLevel, block)
+			override fun extends(block: MachineTemplate<String>) = invoke(name, logLevel, block)
 		}
 		
 		@Suppress("unused")
 		fun lazy(
 				name: String,
 				logLevel: Int = NO_LOG,
-				block: KotlmataMachineDef<String>
+				block: MachineTemplate<String>
 		) = lazy {
 			invoke(name, logLevel, block)
 		}
@@ -232,24 +232,24 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 				logLevel: Int = NO_LOG
 		) = object : ExtendsLazy
 		{
-			override fun extends(block: KotlmataMachineDef<String>) = lazy { invoke(name, logLevel, block) }
+			override fun extends(block: MachineTemplate<String>) = lazy { invoke(name, logLevel, block) }
 		}
 		
 		interface ExtendsInvoke
 		{
-			infix fun extends(block: KotlmataMachineDef<String>): KotlmataMutableMachine<String>
+			infix fun extends(block: MachineTemplate<String>): KotlmataMutableMachine<String>
 		}
 		
 		interface ExtendsLazy
 		{
-			infix fun extends(block: KotlmataMachineDef<String>): Lazy<KotlmataMutableMachine<String>>
+			infix fun extends(block: MachineTemplate<String>): Lazy<KotlmataMutableMachine<String>>
 		}
 		
 		internal fun <T : MACHINE> create(
 				key: T,
 				logLevel: Int,
 				prefix: String,
-				block: KotlmataMachineDef<T>
+				block: MachineTemplate<T>
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, logLevel, prefix, block)
 	}
 	
@@ -298,7 +298,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface with<T : STATE>
 			{
-				infix fun with(block: KotlmataStateDef<T>)
+				infix fun with(block: StateTemplate<T>)
 			}
 			
 			interface remAssign
@@ -313,7 +313,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface with<T : STATE>
 			{
-				infix fun with(block: KotlmataStateDef<T>)
+				infix fun with(block: StateTemplate<T>)
 			}
 		}
 		
@@ -329,7 +329,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface or<T : STATE>
 			{
-				infix fun or(block: KotlmataStateDef<T>)
+				infix fun or(block: StateTemplate<T>)
 			}
 			
 			interface remAssign
@@ -787,7 +787,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE> S.invoke(block: KotlmataStateDef<S>)
+		override fun <S : STATE> S.invoke(block: StateTemplate<S>)
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
