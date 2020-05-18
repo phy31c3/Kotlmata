@@ -9,15 +9,22 @@ internal typealias DAEMON = MACHINE
 @DslMarker
 internal annotation class KotlmataMarker
 
-internal object DSL : KotlmataDSL
+internal object Action : ActionDSL
+internal object Function : FunctionDSL
+internal class Payload(override val payload: Any?) : PayloadDSL
+internal class PayloadFunction(override val payload: Any?) : PayloadFunctionDSL
+internal class Error(override val throwable: Throwable) : ErrorDSL
+internal class ErrorFunction(override val throwable: Throwable) : ErrorFunctionDSL
+internal class ErrorPayload(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadDSL
+internal class ErrorPayloadFunction(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadFunctionDSL
 
 internal fun Any?.convertToSync() = when (this)
 {
 	null -> null
 	is Unit -> null
 	is Nothing -> null
-	is KotlmataDSL.Sync -> this
-	else /* this is SIGNAL */ -> KotlmataDSL.Sync(this)
+	is FunctionDSL.Sync -> this
+	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
 }
 
 internal object stay

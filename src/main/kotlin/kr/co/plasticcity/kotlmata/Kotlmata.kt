@@ -50,7 +50,7 @@ interface Kotlmata
 	
 	interface ForkWith<T : DAEMON>
 	{
-		infix fun with(block: KotlmataDaemonDef<T>)
+		infix fun with(block: DaemonTemplate<T>)
 	}
 	
 	interface ModifyWith<T : DAEMON>
@@ -119,7 +119,7 @@ interface Kotlmata
 			
 			interface With<T : DAEMON>
 			{
-				infix fun with(block: KotlmataDaemonDef<T>)
+				infix fun with(block: DaemonTemplate<T>)
 			}
 		}
 		
@@ -160,8 +160,8 @@ private object KotlmataImpl : Kotlmata
 	init
 	{
 		core = KotlmataDaemon.create("Kotlmata@core") {
-			on start { payload ->
-				if (payload is Int) logLevel = payload
+			on start {
+				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_START }
 			}
 			
@@ -173,8 +173,8 @@ private object KotlmataImpl : Kotlmata
 				logLevel.simple { KOTLMATA_STOP }
 			}
 			
-			on resume { payload ->
-				if (payload is Int) logLevel = payload
+			on resume {
+				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_RESUME }
 			}
 			

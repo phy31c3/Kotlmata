@@ -22,10 +22,10 @@ class Tests
 		var expired: KotlmataState.Init? = null
 		val state by KotlmataMutableState.lazy("s1") {
 			expired = this
-			val lambda1: KotlmataAction = {
+			val lambda1: EntryAction<SIGNAL> = {
 				println("기본 진입함수")
 			}
-			val lambda2: KotlmataAction1<String> = { signal ->
+			val lambda2: EntryAction<String> = { signal ->
 				println("String 타입 진입함수: $signal")
 			}
 			entry action lambda1
@@ -68,7 +68,7 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		fun template(msg: String, block: KotlmataMachineDef<String>): KotlmataMachineDef<String> = { machine ->
+		fun template(msg: String, block: MachineTemplate<String>): MachineTemplate<String> = { machine ->
 			on error {
 				println("$msg: on error")
 			}
@@ -181,7 +181,7 @@ class Tests
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
 		
-		fun template(msg: String, block: KotlmataDaemonDef<String>): KotlmataDaemonDef<String> = { daemon ->
+		fun template(msg: String, block: DaemonTemplate<String>): DaemonTemplate<String> = { daemon ->
 			on error {
 				println("$msg: on error")
 			}
@@ -195,21 +195,21 @@ class Tests
 			on start {
 				thread = Thread.currentThread()
 				throw Exception("onStart 에서 예외 발생")
-			} catch { throwable ->
+			} catch {
 				println("onStart Fallback: $throwable")
 			}
 			on terminate {
 				println("데몬이 종료됨")
 			}
 			
-			fun defaultExit(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
+			fun defaultExit(msg: String, block: StateTemplate<String>): StateTemplate<String> = { state ->
 				exit action {
 					println(msg)
 				}
 				block(state)
 			}
 			
-			val defaultEnter: (String, KotlmataStateDef<String>) -> KotlmataStateDef<String> = fun(msg: String, block: KotlmataStateDef<String>): KotlmataStateDef<String> = { state ->
+			val defaultEnter: (String, StateTemplate<String>) -> StateTemplate<String> = fun(msg: String, block: StateTemplate<String>): StateTemplate<String> = { state ->
 				entry action {
 					println(msg)
 				}
@@ -229,7 +229,7 @@ class Tests
 				input signal "goToError" action {
 					throw Exception("에러1 발생")
 				}
-				input signal "payload" actionWithPayload { signal, payload ->
+				input signal "payload" action { signal ->
 					println("$state: signal = $signal, payload = $payload")
 				}
 				shouldGC = WeakReference(this)
@@ -258,7 +258,9 @@ class Tests
 					println("$state: 기본 진입함수")
 					"goToState1" type Any::class payload "It's a payload"
 				}
-				input signal Any::class actionWithPayload { signal, payload -> println("$state: Any 타입 입력함수: $signal, $payload") }
+				input signal Any::class action { signal ->
+					println("$state: Any 타입 입력함수: $signal, $payload")
+				}
 				exit action { println("$state: 퇴장함수") }
 			}
 			
@@ -275,7 +277,7 @@ class Tests
 			"errorSync" { state ->
 				entry action {
 					throw Exception("에러3 발생")
-				} catch { throwable, signal ->
+				} catch { signal ->
 					println("진입동작 Fallback")
 					println("$state: catch 진입: $signal")
 					println(throwable)
@@ -446,7 +448,7 @@ class Tests
 		Kotlmata.start(2)
 		Kotlmata fork "daemon" with {
 			
-			on start { payload ->
+			on start {
 				println("데몬 on start: payload = $payload")
 			}
 			
@@ -454,7 +456,7 @@ class Tests
 				entry action { println("데몬이 시작됨") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				input signal "goToState2" action { println("state2로 이동") }
-				input signal "payload" actionWithPayload { signal, payload ->
+				input signal "payload" action { signal ->
 					println("signal: $signal, payload: $payload")
 				}
 				exit action { println("$state: 퇴장함수") }
