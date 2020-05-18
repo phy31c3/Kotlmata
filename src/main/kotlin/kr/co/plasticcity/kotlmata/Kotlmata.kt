@@ -161,7 +161,7 @@ private object KotlmataImpl : Kotlmata
 	{
 		core = KotlmataDaemon.create("Kotlmata@core") {
 			on start {
-				if (payload is Int) logLevel = payload
+				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_START }
 			}
 			
@@ -174,7 +174,7 @@ private object KotlmataImpl : Kotlmata
 			}
 			
 			on resume {
-				if (payload is Int) logLevel = payload
+				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_RESUME }
 			}
 			
