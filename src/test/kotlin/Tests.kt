@@ -229,7 +229,7 @@ class Tests
 				input signal "goToError" action {
 					throw Exception("에러1 발생")
 				}
-				input signal "payload" actionWithPayload { signal, payload ->
+				input signal "payload" action { signal, payload ->
 					println("$state: signal = $signal, payload = $payload")
 				}
 				shouldGC = WeakReference(this)
@@ -258,7 +258,7 @@ class Tests
 					println("$state: 기본 진입함수")
 					"goToState1" type Any::class payload "It's a payload"
 				}
-				input signal Any::class actionWithPayload { signal, payload -> println("$state: Any 타입 입력함수: $signal, $payload") }
+				input signal Any::class action { signal, payload -> println("$state: Any 타입 입력함수: $signal, $payload") }
 				exit action { println("$state: 퇴장함수") }
 			}
 			
@@ -454,7 +454,7 @@ class Tests
 				entry action { println("데몬이 시작됨") }
 				input signal String::class action { s -> println("$state: String 타입 입력함수: $s") }
 				input signal "goToState2" action { println("state2로 이동") }
-				input signal "payload" actionWithPayload { signal, payload ->
+				input signal "payload" action { signal, payload ->
 					println("signal: $signal, payload: $payload")
 				}
 				exit action { println("$state: 퇴장함수") }
