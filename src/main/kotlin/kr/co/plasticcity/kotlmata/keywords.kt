@@ -51,7 +51,9 @@ object of
 object self
 
 @KotlmataMarker
-interface KotlmataDSL
+interface ActionDSL
+
+interface FunctionDSL : ActionDSL
 {
 	open class Sync internal constructor(val signal: SIGNAL, val type: KClass<SIGNAL>? = null, val payload: Any? = null)
 	class TypedSync internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Sync(signal, type)
@@ -63,20 +65,37 @@ interface KotlmataDSL
 	infix fun TypedSync.payload(payload: Any?) = Sync(signal, type, payload)
 }
 
-typealias KotlmataAction = KotlmataDSL.(signal: SIGNAL) -> Unit
-typealias KotlmataActionR<R> = KotlmataDSL.(signal: SIGNAL) -> R
-typealias KotlmataAction1<T> = KotlmataDSL.(signal: T) -> Unit
-typealias KotlmataAction1R<T, R> = KotlmataDSL.(signal: T) -> R
-typealias KotlmataAction2R<T, R> = KotlmataDSL.(signal: T, payload: Any?) -> R
+interface ErrorDSL : ActionDSL
+{
+	val throwable: Throwable
+}
 
-typealias KotlmataError = KotlmataDSL.(throwable: Throwable) -> Unit
-typealias KotlmataErrorR<R> = KotlmataDSL.(throwable: Throwable) -> R
-typealias KotlmataError1<T> = KotlmataDSL.(throwable: Throwable, signal: T) -> Unit
-typealias KotlmataError1R<T, R> = KotlmataDSL.(throwable: Throwable, signal: T) -> R
+interface PayloadDSL : ActionDSL
+{
+	val payload: Any?
+}
 
-typealias KotlmataCallback = KotlmataDSL.(payload: Any?) -> Unit
-typealias KotlmataFallback = KotlmataDSL.(throwable: Throwable) -> Unit
-typealias KotlmataFallback1 = KotlmataDSL.(throwable: Throwable, payload: Any?) -> Unit
+interface PayloadFunctionDSL : PayloadDSL, FunctionDSL
+interface ErrorFunctionDSL : ErrorDSL, FunctionDSL
+interface ErrorPayloadDSL : ErrorDSL, PayloadDSL
+interface ErrorPayloadFunctionDSL : ErrorFunctionDSL, PayloadDSL
+
+typealias EntryAction<T> = ActionDSL.(signal: T) -> Unit
+typealias EntryFunction<T, R> = FunctionDSL.(signal: T) -> R
+typealias EntryError<T, R> = ErrorDSL.(signal: T) -> R
+typealias EntryCatch<T, R> = ErrorFunctionDSL.(signal: T) -> R
+typealias InputAction<T> = PayloadDSL.(signal: T) -> Unit
+typealias InputFunction<T, R> = PayloadFunctionDSL.(signal: T) -> R
+typealias InputError<T, R> = ErrorPayloadDSL.(signal: T) -> R
+typealias InputCatch<T, R> = ErrorPayloadFunctionDSL.(signal: T) -> R
+typealias ExitAction = ActionDSL.(signal: SIGNAL) -> Unit
+typealias ExitError = ErrorDSL.(signal: SIGNAL) -> Unit
+
+typealias StateError = ErrorDSL.(signal: SIGNAL) -> Unit
+typealias MachineError = ErrorDSL.() -> Unit
+
+typealias DaemonCallback = PayloadDSL.() -> Unit
+typealias DaemonFallback = ErrorPayloadDSL.() -> Unit
 
 typealias StateTemplate<S> = KotlmataState.Init.(state: S) -> Unit
 typealias MachineTemplate<M> = KotlmataMachine.Init.(machine: M) -> KotlmataMachine.Init.End
