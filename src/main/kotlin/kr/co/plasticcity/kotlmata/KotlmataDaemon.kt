@@ -313,13 +313,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				
 				input signal Request.Run::class action { runR ->
-					sync?.let { syncR -> queue!!.offer(syncR) }
+					sync?.also { syncR -> queue!!.offer(syncR) }
 					queue!! += stash
 					logLevel.simple(key, suffix) { DAEMON_RESUME }
 					onResume.call(runR.payload)
 				}
 				input signal Request.Stop::class action {
-					sync?.let { syncR -> queue!!.offer(syncR) }
+					sync?.also { syncR -> queue!!.offer(syncR) }
 				}
 				input signal Request.Terminate::class action terminate
 				input signal Request.Modify::class action modifyMachine
@@ -349,7 +349,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 							}
 						}
 					}
-					sync?.let { syncR -> queue!!.offer(syncR) }
+					sync?.also { syncR -> queue!!.offer(syncR) }
 				}
 				
 				entry via Request.Stop::class action { stopR ->
