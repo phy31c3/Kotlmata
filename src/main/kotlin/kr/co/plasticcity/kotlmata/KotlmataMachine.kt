@@ -802,11 +802,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 			return object : KotlmataState.Entry.Catch<SIGNAL>
 			{
-				override fun <R> catch(error: EntryCatch<SIGNAL, R>)
+				override fun <R> intercept(error: EntryCatch<SIGNAL, R>)
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[this@function]?.modify {
-						entry function action catch error
+						entry function action intercept error
 					}
 				}
 			}
@@ -822,11 +822,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
-					override fun <R> catch(error: EntryCatch<T, R>)
+					override fun <R> intercept(error: EntryCatch<T, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal function action catch error
+							entry via signal function action intercept error
 						}
 					}
 				}
@@ -843,11 +843,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
-					override fun <R> catch(error: EntryCatch<T, R>)
+					override fun <R> intercept(error: EntryCatch<T, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal function action catch error
+							entry via signal function action intercept error
 						}
 					}
 				}
@@ -864,11 +864,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<SIGNAL>
 				{
-					override fun <R> catch(error: EntryCatch<SIGNAL, R>)
+					override fun <R> intercept(error: EntryCatch<SIGNAL, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signals function action catch error
+							entry via signals function action intercept error
 						}
 					}
 				}

@@ -277,7 +277,7 @@ class Tests
 			"errorSync" { state ->
 				entry function {
 					throw Exception("에러3 발생")
-				} catch { signal ->
+				} intercept { signal ->
 					println("진입동작 Fallback")
 					println("$state: catch 진입: $signal")
 					println(throwable)

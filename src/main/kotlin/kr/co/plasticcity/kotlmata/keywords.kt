@@ -78,15 +78,15 @@ interface PayloadDSL : ActionDSL
 interface PayloadFunctionDSL : PayloadDSL, FunctionDSL
 interface ErrorFunctionDSL : ErrorDSL, FunctionDSL
 interface ErrorPayloadDSL : ErrorDSL, PayloadDSL
-interface ErrorPayloadFunctionDSL : ErrorFunctionDSL, PayloadDSL
+interface ErrorPayloadFunctionDSL : ErrorPayloadDSL, FunctionDSL
 
 typealias EntryAction<T> = ActionDSL.(signal: T) -> Unit
 typealias EntryFunction<T, R> = FunctionDSL.(signal: T) -> R
-typealias EntryError<T, R> = ErrorDSL.(signal: T) -> R
+typealias EntryError<T> = ErrorDSL.(signal: T) -> Unit
 typealias EntryCatch<T, R> = ErrorFunctionDSL.(signal: T) -> R
 typealias InputAction<T> = PayloadDSL.(signal: T) -> Unit
 typealias InputFunction<T, R> = PayloadFunctionDSL.(signal: T) -> R
-typealias InputError<T, R> = ErrorPayloadDSL.(signal: T) -> R
+typealias InputError<T> = ErrorPayloadDSL.(signal: T) -> Unit
 typealias InputCatch<T, R> = ErrorPayloadFunctionDSL.(signal: T) -> R
 typealias ExitAction = ActionDSL.(signal: SIGNAL) -> Unit
 typealias ExitError = ErrorDSL.(signal: SIGNAL) -> Unit
