@@ -112,13 +112,13 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 		operator fun <T : STATE> invoke(
 				tag: T,
 				logLevel: Int = NO_LOG,
-				block: StateTemplate<T>? = null
+				block: StateTemplate<T>
 		): KotlmataMutableState<T> = KotlmataStateImpl(tag, logLevel, block = block)
 		
 		fun <T : STATE> lazy(
 				tag: T,
 				logLevel: Int = NO_LOG,
-				block: StateTemplate<T>? = null
+				block: StateTemplate<T>
 		) = lazy {
 			invoke(tag, logLevel, block)
 		}
@@ -172,7 +172,7 @@ private class KotlmataStateImpl<T : STATE>(
 		override val tag: T,
 		val logLevel: Int = NO_LOG,
 		val prefix: String = "State[$tag]:",
-		block: (KotlmataState.Init.(T) -> Unit)? = null
+		block: (KotlmataState.Init.(T) -> Unit)
 ) : KotlmataMutableState<T>
 {
 	private var entry: EntryDef? = null
