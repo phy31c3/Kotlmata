@@ -172,7 +172,7 @@ private class KotlmataStateImpl<T : STATE>(
 		override val tag: T,
 		val logLevel: Int = NO_LOG,
 		val prefix: String = "State[$tag]:",
-		block: (KotlmataState.Init.(T) -> Unit)
+		block: (StateTemplate<T>)
 ) : KotlmataMutableState<T>
 {
 	private var entry: EntryDef? = null

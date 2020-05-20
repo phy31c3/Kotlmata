@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#28: 인스턴트 상태, 머신 등을 만들 때 key 타입을 열어줄지 고민">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -177,13 +174,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00132" summary="#78: 신호동작을 소비하는 기능 구현">
-      <created>1563987660127</created>
-      <option name="number" value="00132" />
-      <option name="presentableId" value="LOCAL-00132" />
-      <option name="project" value="LOCAL" />
-      <updated>1563987660128</updated>
     </task>
     <task id="LOCAL-00133" summary="#78: 신호 소비 로그 추가">
       <created>1563988616164</created>
@@ -521,7 +511,14 @@
       <option name="project" value="LOCAL" />
       <updated>1589826349766</updated>
     </task>
-    <option name="localTasksCounter" value="181" />
+    <task id="LOCAL-00181" summary="#120: 상태 정의의 불필요한 nullable 삭제">
+      <created>1589985851818</created>
+      <option name="number" value="00181" />
+      <option name="presentableId" value="LOCAL-00181" />
+      <option name="project" value="LOCAL" />
+      <updated>1589985851818</updated>
+    </task>
+    <option name="localTasksCounter" value="182" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -562,7 +559,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#96: SyncInput -&gt; Sync" />
     <MESSAGE value="#101: 클래스 타입 입력 막기" />
     <MESSAGE value="#101: OverridingDeprecatedMember 어노테이션 추가" />
     <MESSAGE value="#101: 전이규칙 관련 타입 간소화" />
@@ -587,7 +583,8 @@
     <MESSAGE value="#120: State 인터페이스 간소화" />
     <MESSAGE value="#120: 파라미터 -&gt; 프로퍼티 전환 완료" />
     <MESSAGE value="#120: action, function 이분화 적용" />
-    <option name="LAST_COMMIT_MESSAGE" value="#120: action, function 이분화 적용" />
+    <MESSAGE value="#120: 상태 정의의 불필요한 nullable 삭제" />
+    <option name="LAST_COMMIT_MESSAGE" value="#120: 상태 정의의 불필요한 nullable 삭제" />
   </component>
   <component name="WindowStateProjectService">
     <state x="1027" y="534" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog" timestamp="1582640414849">
@@ -606,30 +603,30 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="524" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589978421967" />
-    <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2" timestamp="1589982982891">
+    <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2" timestamp="1589985850779">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589982982891" />
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1589977291039">
+    <state x="171" y="13" width="2327" height="1372" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589985850779" />
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog" timestamp="1589985976578">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589977291039" />
-    <state width="962" height="1272" key="GridCell.Tab.0.bottom" timestamp="1589982730342">
+    <state x="230" y="67" width="2274" height="1328" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589985976578" />
+    <state width="962" height="1272" key="GridCell.Tab.0.bottom" timestamp="1589986000457">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1272" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589982730342" />
-    <state width="962" height="1272" key="GridCell.Tab.0.center" timestamp="1589982730342">
+    <state width="962" height="1272" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589986000457" />
+    <state width="962" height="1272" key="GridCell.Tab.0.center" timestamp="1589986000457">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1272" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589982730342" />
-    <state width="962" height="1272" key="GridCell.Tab.0.left" timestamp="1589982730341">
+    <state width="962" height="1272" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589986000457" />
+    <state width="962" height="1272" key="GridCell.Tab.0.left" timestamp="1589986000457">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1272" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589982730341" />
-    <state width="962" height="1272" key="GridCell.Tab.0.right" timestamp="1589982730342">
+    <state width="962" height="1272" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589986000457" />
+    <state width="962" height="1272" key="GridCell.Tab.0.right" timestamp="1589986000457">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1272" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589982730342" />
+    <state width="962" height="1272" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589986000457" />
     <state width="2516" height="273" key="GridCell.Tab.1.bottom" timestamp="1583057103955">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -646,10 +643,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="2516" height="273" key="GridCell.Tab.1.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583057103955" />
-    <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1589977291492">
+    <state x="1003" y="409" key="RollbackChangesDialog" timestamp="1589985976969">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589977291492" />
+    <state x="1003" y="409" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589985976969" />
     <state x="946" y="353" key="SettingsEditor" timestamp="1589828284812">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -658,10 +655,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="994" y="402" key="VCS.ChangeListViewerDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1583652360176" />
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1589826351009">
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2" timestamp="1589985853406">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589826351009" />
+    <state x="872" y="420" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589985853406" />
     <state x="994" y="432" key="VcsDiffUtil.ChangesDialog" timestamp="1582316464531">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -674,10 +671,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="855" y="434" width="849" height="609" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1582923028478" />
-    <state x="907" y="396" width="1089" height="835" key="find.popup" timestamp="1589982997200">
+    <state x="907" y="396" width="1089" height="835" key="find.popup" timestamp="1589986076095">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="907" y="396" width="1089" height="835" key="find.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589982997200" />
+    <state x="907" y="396" width="1089" height="835" key="find.popup/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1589986076095" />
     <state width="600" height="424" key="javadoc.popup" timestamp="1582211324598">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>

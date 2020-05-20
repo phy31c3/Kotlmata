@@ -315,9 +315,9 @@ private object KotlmataImpl : Kotlmata
 	override fun <T : DAEMON> fork(daemon: T) = object : Kotlmata.ForkWith<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun with(block: KotlmataDaemon.Init.(T) -> KotlmataMachine.Init.End)
+		override fun with(block: DaemonTemplate<T>)
 		{
-			core.input(Request.Fork(daemon, block as KotlmataDaemon.Init.(DAEMON) -> KotlmataMachine.Init.End))
+			core.input(Request.Fork(daemon, block as DaemonTemplate<DAEMON>))
 		}
 	}
 	
@@ -517,7 +517,7 @@ private object KotlmataImpl : Kotlmata
 		{
 			override fun <T : DAEMON> daemon(daemon: T) = object : Kotlmata.Post.Fork.With<T>
 			{
-				override fun with(block: KotlmataDaemon.Init.(T) -> KotlmataMachine.Init.End)
+				override fun with(block: DaemonTemplate<T>)
 				{
 					this@PostImpl shouldNot expired
 					if (daemon !in daemons)
@@ -791,7 +791,7 @@ private object KotlmataImpl : Kotlmata
 	
 	private sealed class Request
 	{
-		class Fork(val daemon: DAEMON, val block: KotlmataDaemon.Init.(DAEMON) -> KotlmataMachine.Init.End) : Request()
+		class Fork(val daemon: DAEMON, val block: DaemonTemplate<DAEMON>) : Request()
 		class Modify(val daemon: DAEMON, val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request()
 		
 		class Run(val daemon: DAEMON, val payload: Any? = null) : Request()

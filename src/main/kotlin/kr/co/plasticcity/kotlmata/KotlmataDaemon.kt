@@ -19,7 +19,7 @@ interface KotlmataDaemon<T : DAEMON>
 				logLevel: Int = NO_LOG,
 				threadName: String? = null,
 				isDaemon: Boolean = false,
-				block: Init.(daemon: T) -> KotlmataMachine.Init.End
+				block: DaemonTemplate<T>
 		): KotlmataDaemon<T> = KotlmataDaemonImpl(tag, logLevel, threadName ?: "thread-KotlmataDaemon[$tag]", isDaemon, block)
 		
 		/**
@@ -43,7 +43,7 @@ interface KotlmataDaemon<T : DAEMON>
 				logLevel: Int = NO_LOG,
 				threadName: String? = null,
 				isDaemon: Boolean = false,
-				block: Init.(daemon: T) -> KotlmataMachine.Init.End
+				block: DaemonTemplate<T>
 		) = lazy {
 			invoke(tag, logLevel, threadName, isDaemon, block)
 		}
@@ -192,7 +192,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		val logLevel: Int = NO_LOG,
 		threadName: String = "thread-KotlmataDaemon[$tag]",
 		isDaemon: Boolean = false,
-		block: KotlmataDaemon.Init.(T) -> KotlmataMachine.Init.End
+		block: DaemonTemplate<T>
 ) : KotlmataMutableDaemon<T>
 {
 	private val core: KotlmataMachine<String>
@@ -485,7 +485,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	}
 	
 	private inner class InitImpl internal constructor(
-			block: KotlmataDaemon.Init.(T) -> KotlmataMachine.Init.End,
+			block: DaemonTemplate<T>,
 			init: KotlmataMachine.Init
 	) : KotlmataDaemon.Init, KotlmataMachine.Init by init, Expirable({ Log.e("Daemon[$tag]:") { EXPIRED_MODIFIER } })
 	{

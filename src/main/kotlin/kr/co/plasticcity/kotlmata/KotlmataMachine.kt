@@ -355,7 +355,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		override val tag: T,
 		val logLevel: Int = NO_LOG,
 		val prefix: String = "Machine[$tag]:",
-		block: KotlmataMachine.Init.(T) -> KotlmataMachine.Init.End
+		block: MachineTemplate<T>
 ) : KotlmataMutableMachine<T>
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
@@ -532,7 +532,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	}
 	
 	private inner class ModifierImpl internal constructor(
-			init: (KotlmataMachine.Init.(T) -> KotlmataMachine.Init.End)? = null,
+			init: (MachineTemplate<T>)? = null,
 			modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
 	) : KotlmataMachine.Init, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
@@ -622,7 +622,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		{
 			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.with<T>
 			{
-				override fun with(block: KotlmataState.Init.(T) -> Unit)
+				override fun with(block: StateTemplate<T>)
 				{
 					this@ModifierImpl shouldNot expired
 					if (state !in stateMap)
@@ -651,7 +651,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.with<T>
 				{
-					override fun with(block: KotlmataState.Init.(T) -> Unit)
+					override fun with(block: StateTemplate<T>)
 					{
 						this@ModifierImpl shouldNot expired
 						state.invoke(block)
@@ -676,7 +676,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		{
 			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Replace.with<T>
 			{
-				override fun with(block: KotlmataState.Init.(T) -> Unit)
+				override fun with(block: StateTemplate<T>)
 				{
 					this@ModifierImpl shouldNot expired
 					if (state in stateMap)
@@ -693,7 +693,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				val stop = object : KotlmataMutableMachine.Modifier.Update.or<T>
 				{
-					override fun or(block: KotlmataState.Init.(T) -> Unit)
+					override fun or(block: StateTemplate<T>)
 					{
 						/* do nothing */
 					}
@@ -701,7 +701,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				
 				val or = object : KotlmataMutableMachine.Modifier.Update.or<T>
 				{
-					override fun or(block: KotlmataState.Init.(T) -> Unit)
+					override fun or(block: StateTemplate<T>)
 					{
 						state.invoke(block)
 					}
