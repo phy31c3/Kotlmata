@@ -159,7 +159,7 @@ private object KotlmataImpl : Kotlmata
 	
 	init
 	{
-		core = KotlmataDaemon.create("Kotlmata@core") {
+		core = KotlmataDaemon("Kotlmata@core") {
 			on start {
 				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_START }
@@ -191,7 +191,7 @@ private object KotlmataImpl : Kotlmata
 					if (forkR.daemon !in daemons)
 					{
 						logLevel.detail(forkR, forkR.daemon) { KOTLMATA_COMMON }
-						daemons[forkR.daemon] = KotlmataMutableDaemon.create(forkR.daemon, logLevel, forkR.block)
+						daemons[forkR.daemon] = KotlmataMutableDaemon(tag = forkR.daemon, logLevel = logLevel, block = forkR.block)
 					}
 					else
 					{
@@ -523,7 +523,7 @@ private object KotlmataImpl : Kotlmata
 					if (daemon !in daemons)
 					{
 						logLevel.detail("${tab}Fork", daemon) { KOTLMATA_COMMON }
-						daemons[daemon] = KotlmataMutableDaemon.create(daemon, logLevel, block)
+						daemons[daemon] = KotlmataMutableDaemon(tag = daemon, logLevel = logLevel, block = block)
 					}
 					else
 					{
