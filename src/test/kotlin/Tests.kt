@@ -217,9 +217,8 @@ class Tests
 			}
 			
 			"state1" extends defaultExit("템플릿으로 정의된 퇴장함수 호출됨") { state ->
-				entry function {
+				entry action {
 					println("$state: 기본 진입함수")
-					null
 				}
 				input signal String::class function { s ->
 					println("$state: String 타입 입력함수: $s")

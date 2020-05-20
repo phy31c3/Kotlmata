@@ -6,19 +6,18 @@ interface KotlmataState<T : STATE>
 {
 	companion object
 	{
-		operator fun invoke(
-				name: String,
+		operator fun <T : STATE> invoke(
+				tag: T,
 				logLevel: Int = NO_LOG,
-				block: Init.(state: String) -> Unit
-		): KotlmataState<String> = KotlmataStateImpl(name, logLevel, block = block)
+				block: StateTemplate<T>
+		): KotlmataState<T> = KotlmataStateImpl(tag, logLevel, block = block)
 		
-		@Suppress("unused")
-		fun lazy(
-				name: String,
+		fun <T : STATE> lazy(
+				tag: T,
 				logLevel: Int = NO_LOG,
-				block: Init.(state: String) -> Unit
+				block: StateTemplate<T>
 		) = lazy {
-			invoke(name, logLevel, block)
+			invoke(tag, logLevel, block)
 		}
 	}
 	
@@ -95,7 +94,7 @@ interface KotlmataState<T : STATE>
 		infix fun action(error: StateError)
 	}
 	
-	val key: T
+	val tag: T
 	
 	fun entry(signal: SIGNAL): Any?
 	fun <T : SIGNAL> entry(signal: T, type: KClass<in T>): Any?
@@ -110,26 +109,26 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 {
 	companion object
 	{
-		operator fun invoke(
-				name: String,
+		operator fun <T : STATE> invoke(
+				tag: T,
 				logLevel: Int = NO_LOG,
-				block: StateTemplate<String>? = null
-		): KotlmataMutableState<String> = KotlmataStateImpl(name, logLevel, block = block)
+				block: StateTemplate<T>? = null
+		): KotlmataMutableState<T> = KotlmataStateImpl(tag, logLevel, block = block)
 		
-		fun lazy(
-				name: String,
+		fun <T : STATE> lazy(
+				tag: T,
 				logLevel: Int = NO_LOG,
-				block: StateTemplate<String>? = null
+				block: StateTemplate<T>? = null
 		) = lazy {
-			invoke(name, logLevel, block)
+			invoke(tag, logLevel, block)
 		}
 		
 		internal fun <T : STATE> create(
-				key: T,
+				tag: T,
 				logLevel: Int,
 				prefix: String,
 				block: StateTemplate<T>
-		): KotlmataMutableState<T> = KotlmataStateImpl(key, logLevel, prefix, block)
+		): KotlmataMutableState<T> = KotlmataStateImpl(tag, logLevel, prefix, block)
 	}
 	
 	@KotlmataMarker
@@ -170,9 +169,9 @@ private class InputDef(val action: InputFunction<SIGNAL, Any?>, val catch: Input
 private class ExitDef(val action: ExitAction, val catch: ExitError? = null)
 
 private class KotlmataStateImpl<T : STATE>(
-		override val key: T,
+		override val tag: T,
 		val logLevel: Int = NO_LOG,
-		val prefix: String = "State[$key]:",
+		val prefix: String = "State[$tag]:",
 		block: (KotlmataState.Init.(T) -> Unit)? = null
 ) : KotlmataMutableState<T>
 {
@@ -188,9 +187,9 @@ private class KotlmataStateImpl<T : STATE>(
 		block?.let {
 			ModifierImpl(it)
 		}
-		if (key !== CONSTRUCTED)
+		if (tag !== CONSTRUCTED)
 		{
-			logLevel.normal(prefix, key) { STATE_CREATED }
+			logLevel.normal(prefix, tag) { STATE_CREATED }
 		}
 	}
 	
@@ -240,20 +239,20 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				signal in it ->
 				{
-					logLevel.normal(prefix, key, signal) { STATE_RUN_ENTRY_OBJECT }
+					logLevel.normal(prefix, tag, signal) { STATE_RUN_ENTRY_OBJECT }
 					it[signal]
 				}
 				signal::class in it ->
 				{
-					logLevel.normal(prefix, key, "${signal::class.simpleName}::class", signal) { STATE_RUN_ENTRY_CLASS }
+					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class", signal) { STATE_RUN_ENTRY_CLASS }
 					it[signal::class]
 				}
 				else -> null
 			}
 		} ?: entry?.also {
-			logLevel.normal(prefix, key, signal) { STATE_RUN_ENTRY_DEFAULT }
+			logLevel.normal(prefix, tag, signal) { STATE_RUN_ENTRY_DEFAULT }
 		} ?: null.also {
-			logLevel.normal(prefix, key, signal) { STATE_NO_ENTRY }
+			logLevel.normal(prefix, tag, signal) { STATE_NO_ENTRY }
 		}
 		
 		return entryDef?.run(signal)
@@ -266,15 +265,15 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				in it ->
 				{
-					logLevel.normal(prefix, key, "${type.simpleName}::class", signal, "${type.simpleName}::class") { STATE_RUN_ENTRY_CLASS_TYPED }
+					logLevel.normal(prefix, tag, "${type.simpleName}::class", signal, "${type.simpleName}::class") { STATE_RUN_ENTRY_CLASS_TYPED }
 					it[type]
 				}
 				else -> null
 			}
 		} ?: entry?.also {
-			logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_RUN_ENTRY_DEFAULT_TYPED }
+			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_RUN_ENTRY_DEFAULT_TYPED }
 		} ?: null.also {
-			logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_NO_ENTRY_TYPED }
+			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_ENTRY_TYPED }
 		}
 		
 		return entryDef?.run(signal)
@@ -287,20 +286,20 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				signal in it ->
 				{
-					logLevel.normal(prefix, key, signal) { STATE_RUN_INPUT_OBJECT }
+					logLevel.normal(prefix, tag, signal) { STATE_RUN_INPUT_OBJECT }
 					it[signal]
 				}
 				signal::class in it ->
 				{
-					logLevel.normal(prefix, key, "${signal::class.simpleName}::class", signal) { STATE_RUN_INPUT_CLASS }
+					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class", signal) { STATE_RUN_INPUT_CLASS }
 					it[signal::class]
 				}
 				else -> null
 			}
 		} ?: input?.also {
-			logLevel.normal(prefix, key, signal) { STATE_RUN_INPUT_DEFAULT }
+			logLevel.normal(prefix, tag, signal) { STATE_RUN_INPUT_DEFAULT }
 		} ?: null.also {
-			if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_NO_INPUT }
+			if (tag !== CONSTRUCTED) logLevel.normal(prefix, tag, signal) { STATE_NO_INPUT }
 		}
 		
 		return inputDef?.run(signal, payload)
@@ -313,15 +312,15 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				in it ->
 				{
-					logLevel.normal(prefix, key, "${type.simpleName}::class", signal, "${type.simpleName}::class") { STATE_RUN_INPUT_CLASS_TYPED }
+					logLevel.normal(prefix, tag, "${type.simpleName}::class", signal, "${type.simpleName}::class") { STATE_RUN_INPUT_CLASS_TYPED }
 					it[type]
 				}
 				else -> null
 			}
 		} ?: input?.also {
-			logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_RUN_INPUT_DEFAULT_TYPED }
+			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_RUN_INPUT_DEFAULT_TYPED }
 		} ?: null.also {
-			if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal, "${type.simpleName}::class") { STATE_NO_INPUT_TYPED }
+			if (tag !== CONSTRUCTED) logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_INPUT_TYPED }
 		}
 		
 		return inputDef?.run(signal, payload)
@@ -330,20 +329,20 @@ private class KotlmataStateImpl<T : STATE>(
 	override fun exit(signal: SIGNAL)
 	{
 		exit?.apply {
-			logLevel.normal(prefix, key, signal) { STATE_RUN_EXIT }
+			logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT }
 			run(signal)
-		} ?: if (key !== CONSTRUCTED) logLevel.normal(prefix, key, signal) { STATE_NO_EXIT }
+		} ?: if (tag !== CONSTRUCTED) logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
 	}
 	
 	override fun modify(block: KotlmataMutableState.Modifier.(T) -> Unit)
 	{
 		ModifierImpl(block)
-		logLevel.normal(prefix, key) { STATE_UPDATED }
+		logLevel.normal(prefix, tag) { STATE_UPDATED }
 	}
 	
 	override fun toString(): String
 	{
-		return "KotlmataState[$key]{${hashCode().toString(16)}}"
+		return "KotlmataState[$tag]{${hashCode().toString(16)}}"
 	}
 	
 	private inner class ModifierImpl internal constructor(
@@ -638,7 +637,7 @@ private class KotlmataStateImpl<T : STATE>(
 		
 		init
 		{
-			block(key)
+			block(tag)
 			expire()
 		}
 	}

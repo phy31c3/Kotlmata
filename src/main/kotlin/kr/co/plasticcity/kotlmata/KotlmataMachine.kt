@@ -6,52 +6,45 @@ interface KotlmataMachine<T : MACHINE>
 {
 	companion object
 	{
-		operator fun invoke(
-				name: String,
+		operator fun <T : MACHINE> invoke(
+				tag: T,
 				logLevel: Int = NO_LOG,
-				block: MachineTemplate<String>
-		): KotlmataMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
+				block: MachineTemplate<T>
+		): KotlmataMachine<T> = KotlmataMachineImpl(tag, logLevel, block = block)
 		
-		operator fun invoke(
-				name: String,
+		operator fun <T : MACHINE> invoke(
+				tag: T,
 				logLevel: Int = NO_LOG
-		) = object : ExtendsInvoke
+		) = object : ExtendsInvoke<T>
 		{
-			override fun extends(block: MachineTemplate<String>) = invoke(name, logLevel, block)
+			override fun extends(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
 		}
 		
-		@Suppress("unused")
-		fun lazy(
-				name: String,
+		fun <T : MACHINE> lazy(
+				tag: T,
 				logLevel: Int = NO_LOG,
-				block: MachineTemplate<String>
+				block: MachineTemplate<T>
 		) = lazy {
-			invoke(name, logLevel, block)
+			invoke(tag, logLevel, block)
 		}
 		
-		@Suppress("unused")
-		fun lazy(
-				name: String,
+		fun <T : MACHINE> lazy(
+				tag: T,
 				logLevel: Int = NO_LOG
-		) = object : ExtendsLazy
+		) = object : ExtendsLazy<T>
 		{
-			override fun extends(block: MachineTemplate<String>) = lazy { invoke(name, logLevel, block) }
+			override fun extends(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
 		}
 		
-		interface ExtendsInvoke
+		interface ExtendsInvoke<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<String>): KotlmataMachine<String>
+			infix fun extends(block: MachineTemplate<T>): KotlmataMachine<T>
 		}
 		
-		interface ExtendsLazy
+		interface ExtendsLazy<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<String>): Lazy<KotlmataMachine<String>>
+			infix fun extends(block: MachineTemplate<T>): Lazy<KotlmataMachine<T>>
 		}
-		
-		internal fun create(
-				name: String,
-				block: MachineTemplate<String>
-		): KotlmataMachine<String> = KotlmataMachineImpl(name, block = block)
 	}
 	
 	@KotlmataMarker
@@ -178,7 +171,7 @@ interface KotlmataMachine<T : MACHINE>
 		val signal: SIGNAL
 	}
 	
-	val key: T
+	val tag: T
 	
 	fun input(signal: SIGNAL, payload: Any? = null)
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null)
@@ -204,54 +197,52 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 {
 	companion object
 	{
-		operator fun invoke(
-				name: String,
+		operator fun <T : MACHINE> invoke(
+				tag: T,
 				logLevel: Int = NO_LOG,
-				block: MachineTemplate<String>
-		): KotlmataMutableMachine<String> = KotlmataMachineImpl(name, logLevel, block = block)
+				block: MachineTemplate<T>
+		): KotlmataMutableMachine<T> = KotlmataMachineImpl(tag, logLevel, block = block)
 		
-		operator fun invoke(
-				name: String,
+		operator fun <T : MACHINE> invoke(
+				tag: T,
 				logLevel: Int = NO_LOG
-		) = object : ExtendsInvoke
+		) = object : ExtendsInvoke<T>
 		{
-			override fun extends(block: MachineTemplate<String>) = invoke(name, logLevel, block)
+			override fun extends(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
 		}
 		
-		@Suppress("unused")
-		fun lazy(
-				name: String,
+		fun <T : MACHINE> lazy(
+				tag: T,
 				logLevel: Int = NO_LOG,
-				block: MachineTemplate<String>
+				block: MachineTemplate<T>
 		) = lazy {
-			invoke(name, logLevel, block)
+			invoke(tag, logLevel, block)
 		}
 		
-		@Suppress("unused")
-		fun lazy(
-				name: String,
+		fun <T : MACHINE> lazy(
+				tag: T,
 				logLevel: Int = NO_LOG
-		) = object : ExtendsLazy
+		) = object : ExtendsLazy<T>
 		{
-			override fun extends(block: MachineTemplate<String>) = lazy { invoke(name, logLevel, block) }
+			override fun extends(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
 		}
 		
-		interface ExtendsInvoke
+		interface ExtendsInvoke<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<String>): KotlmataMutableMachine<String>
+			infix fun extends(block: MachineTemplate<T>): KotlmataMutableMachine<T>
 		}
 		
-		interface ExtendsLazy
+		interface ExtendsLazy<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<String>): Lazy<KotlmataMutableMachine<String>>
+			infix fun extends(block: MachineTemplate<T>): Lazy<KotlmataMutableMachine<T>>
 		}
 		
 		internal fun <T : MACHINE> create(
-				key: T,
+				tag: T,
 				logLevel: Int,
 				prefix: String,
 				block: MachineTemplate<T>
-		): KotlmataMutableMachine<T> = KotlmataMachineImpl(key, logLevel, prefix, block)
+		): KotlmataMutableMachine<T> = KotlmataMachineImpl(tag, logLevel, prefix, block)
 	}
 	
 	@KotlmataMarker
@@ -361,9 +352,9 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 }
 
 private class KotlmataMachineImpl<T : MACHINE>(
-		override val key: T,
+		override val tag: T,
 		val logLevel: Int = NO_LOG,
-		val prefix: String = "Machine[$key]:",
+		val prefix: String = "Machine[$tag]:",
 		block: KotlmataMachine.Init.(T) -> KotlmataMachine.Init.End
 ) : KotlmataMutableMachine<T>
 {
@@ -426,20 +417,20 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		tryCatchReturn {
-			if (current.key !== CONSTRUCTED)
+			if (current.tag !== CONSTRUCTED)
 			{
-				logLevel.normal(prefix, signal, payload, current.key) { MACHINE_START_INPUT }
+				logLevel.normal(prefix, signal, payload, current.tag) { MACHINE_START_INPUT }
 			}
 			current.input(signal, payload)
 		}.also {
-			if (current.key !== CONSTRUCTED)
+			if (current.tag !== CONSTRUCTED)
 			{
-				logLevel.normal(prefix, signal, payload, current.key) { MACHINE_END_INPUT }
+				logLevel.normal(prefix, signal, payload, current.tag) { MACHINE_END_INPUT }
 			}
 		}.convertToSync()?.also { sync ->
 			block(sync)
 		} ?: ruleMap.let {
-			it[current.key]?.next() ?: it[any]?.next()
+			it[current.tag]?.next() ?: it[any]?.next()
 		}?.let {
 			when (it)
 			{
@@ -453,7 +444,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				!in stateMap ->
 				{
-					Log.w(prefix.trimEnd(), current.key, signal, it) { TRANSITION_FAILED }
+					Log.w(prefix.trimEnd(), current.tag, signal, it) { TRANSITION_FAILED }
 					null
 				}
 				else ->
@@ -462,7 +453,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 		}?.let { next ->
-			logLevel.simple(prefix, current.key, signal, next.key) { MACHINE_START_TRANSITION }
+			logLevel.simple(prefix, current.tag, signal, next.tag) { MACHINE_START_TRANSITION }
 			tryCatchReturn { current.exit(signal) }
 			current = next
 			tryCatchReturn { current.entry(signal) }.convertToSync()?.also(block)
@@ -478,14 +469,14 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		tryCatchReturn {
-			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, current.key) { MACHINE_START_TYPED_INPUT }
+			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, current.tag) { MACHINE_START_TYPED_INPUT }
 			current.input(signal, type, payload)
 		}.also {
-			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, current.key) { MACHINE_END_TYPED_INPUT }
+			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, current.tag) { MACHINE_END_TYPED_INPUT }
 		}.convertToSync()?.also { sync ->
 			block(sync)
 		} ?: ruleMap.let {
-			it[current.key]?.next() ?: it[any]?.next()
+			it[current.tag]?.next() ?: it[any]?.next()
 		}?.let {
 			when (it)
 			{
@@ -499,7 +490,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				!in stateMap ->
 				{
-					Log.w(prefix.trimEnd(), current.key, "${type.simpleName}::class", it) { TRANSITION_FAILED }
+					Log.w(prefix.trimEnd(), current.tag, "${type.simpleName}::class", it) { TRANSITION_FAILED }
 					null
 				}
 				else ->
@@ -508,7 +499,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 		}?.let { next ->
-			logLevel.simple(prefix, current.key, "${type.simpleName}::class", next.key) { MACHINE_START_TRANSITION }
+			logLevel.simple(prefix, current.tag, "${type.simpleName}::class", next.tag) { MACHINE_START_TRANSITION }
 			tryCatchReturn { current.exit(signal) }
 			current = next
 			tryCatchReturn { current.entry(signal, type) }.convertToSync()?.also(block)
@@ -530,14 +521,14 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	override fun modify(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
 	{
-		logLevel.normal(prefix, current.key) { MACHINE_START_MODIFY }
+		logLevel.normal(prefix, current.tag) { MACHINE_START_MODIFY }
 		ModifierImpl(modify = block)
-		logLevel.normal(prefix, current.key) { MACHINE_END_MODIFY }
+		logLevel.normal(prefix, current.tag) { MACHINE_END_MODIFY }
 	}
 	
 	override fun toString(): String
 	{
-		return "KotlmataMachine[$key]{${hashCode().toString(16)}}"
+		return "KotlmataMachine[$tag]{${hashCode().toString(16)}}"
 	}
 	
 	private inner class ModifierImpl internal constructor(
@@ -572,7 +563,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			get()
 			{
 				this@ModifierImpl shouldNot expired
-				return this@KotlmataMachineImpl.current.key
+				return this@KotlmataMachineImpl.current.tag
 			}
 		
 		override val has = object : KotlmataMutableMachine.Modifier.Has
@@ -1164,7 +1155,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		init
 		{
-			init?.let { it(key) } ?: modify?.let { it(key) }
+			init?.let { it(tag) } ?: modify?.let { it(tag) }
 			expire()
 		}
 	}
