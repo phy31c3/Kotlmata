@@ -159,7 +159,7 @@ private object KotlmataImpl : Kotlmata
 	
 	init
 	{
-		core = KotlmataDaemon("Kotlmata@core") {
+		core = KotlmataDaemon("Kotlmata@core") { _, _ ->
 			on start {
 				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_START }

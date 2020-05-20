@@ -587,7 +587,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		init
 		{
-			block(tag)
+			block(tag, this@KotlmataDaemonImpl)
 			expire()
 		}
 	}

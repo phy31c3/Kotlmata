@@ -181,17 +181,17 @@ class Tests
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
 		
-		fun template(msg: String, block: DaemonTemplate<String>): DaemonTemplate<String> = { daemon ->
+		fun template(msg: String, block: DaemonTemplate<String>): DaemonTemplate<String> = { tag, daemon ->
 			on error {
 				println("$msg: on error")
 			}
 			
-			block(daemon)
+			block(tag, daemon)
 			
 			start at "state1"
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends template("템플릿에서 정의") {
+		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends template("템플릿에서 정의") { _, daemon ->
 			on start {
 				thread = Thread.currentThread()
 				throw Exception("onStart 에서 예외 발생")
@@ -302,6 +302,10 @@ class Tests
 			}
 			
 			"state7" { state ->
+				entry action {
+					println("action 내부에서 파라미터 daemon 인스턴스에 입력하기")
+					daemon.input("goToState1")
+				}
 				exit action {
 					println("$state: 퇴장함수")
 				}
@@ -427,7 +431,6 @@ class Tests
 		daemon.input("signal")
 		daemon.input("signal", String::class)
 		daemon.input("goToState7")
-		daemon.input("goToState1")
 		
 		Thread.sleep(500)
 		
@@ -445,7 +448,7 @@ class Tests
 	{
 		var expire: Kotlmata.Post? = null
 		Kotlmata.start(2)
-		Kotlmata fork "daemon" with {
+		Kotlmata fork "daemon" with { _, _ ->
 			
 			on start {
 				println("데몬 on start: payload = $payload")
