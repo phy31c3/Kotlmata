@@ -732,7 +732,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 						it[ruleLeft.state]
 					}?.let {
 						it[ruleLeft.signal]
-					}.let {
+					}?.let {
 						ruleLeft %= state
 					}
 				}
