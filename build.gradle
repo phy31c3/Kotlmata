@@ -34,7 +34,7 @@ publish {
 	userOrg = 'phy31c3'
 	groupId = 'kr.co.plasticcity'
 	artifactId = 'kotlmata'
-	publishVersion = '0.5.0'
+	publishVersion = '0.5.1'
 	desc = 'Kotlin State-based Programming Library'
 	website = 'https://github.com/phy31c3/Kotlmata'
 	repository = "${website}.git"
