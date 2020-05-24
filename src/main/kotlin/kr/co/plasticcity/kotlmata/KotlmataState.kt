@@ -40,7 +40,7 @@ interface KotlmataState<T : STATE>
 	interface Entry
 	{
 		infix fun action(action: EntryAction<SIGNAL>): Catch<SIGNAL> = function(action)
-		infix fun <R> function(action: EntryFunction<SIGNAL, R>): Catch<SIGNAL>
+		infix fun function(action: EntryFunction<SIGNAL>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
 		infix fun via(signals: Init.Signals): Action<SIGNAL>
@@ -48,20 +48,20 @@ interface KotlmataState<T : STATE>
 		interface Action<T : SIGNAL>
 		{
 			infix fun action(action: EntryAction<T>): Catch<T> = function(action)
-			infix fun <R> function(action: EntryFunction<T, R>): Catch<T>
+			infix fun function(action: EntryFunction<T>): Catch<T>
 		}
 		
 		interface Catch<T : SIGNAL>
 		{
 			infix fun catch(error: EntryError<T>) = intercept(error)
-			infix fun <R> intercept(error: EntryErrorFunction<T, R>)
+			infix fun intercept(error: EntryErrorFunction<T>)
 		}
 	}
 	
 	interface Input
 	{
 		infix fun action(action: InputAction<SIGNAL>): Catch<SIGNAL> = function(action)
-		infix fun <R> function(action: InputFunction<SIGNAL, R>): Catch<SIGNAL>
+		infix fun function(action: InputFunction<SIGNAL>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> signal(signal: T): Action<T>
 		infix fun signal(signals: Init.Signals): Action<SIGNAL>
@@ -69,13 +69,13 @@ interface KotlmataState<T : STATE>
 		interface Action<T : SIGNAL>
 		{
 			infix fun action(action: InputAction<T>): Catch<T> = function(action)
-			infix fun <R> function(action: InputFunction<T, R>): Catch<T>
+			infix fun function(action: InputFunction<T>): Catch<T>
 		}
 		
 		interface Catch<T : SIGNAL>
 		{
 			infix fun catch(error: InputError<T>) = intercept(error)
-			infix fun <R> intercept(error: InputErrorFunction<T, R>)
+			infix fun intercept(error: InputErrorFunction<T>)
 		}
 	}
 	
@@ -164,8 +164,8 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 	infix fun modify(block: Modifier.(state: T) -> Unit)
 }
 
-private class EntryDef(val action: EntryFunction<SIGNAL, Any?>, val catch: EntryErrorFunction<SIGNAL, Any?>? = null)
-private class InputDef(val action: InputFunction<SIGNAL, Any?>, val catch: InputErrorFunction<SIGNAL, Any?>? = null)
+private class EntryDef(val action: EntryFunction<SIGNAL>, val catch: EntryErrorFunction<SIGNAL>? = null)
+private class InputDef(val action: InputFunction<SIGNAL>, val catch: InputErrorFunction<SIGNAL>? = null)
 private class ExitDef(val action: ExitAction, val catch: ExitError? = null)
 
 private class KotlmataStateImpl<T : STATE>(
@@ -184,9 +184,7 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	init
 	{
-		block?.let {
-			ModifierImpl(it)
-		}
+		ModifierImpl(block)
 		if (tag !== CONSTRUCTED)
 		{
 			logLevel.normal(prefix, tag) { STATE_CREATED }
@@ -365,13 +363,13 @@ private class KotlmataStateImpl<T : STATE>(
 		@Suppress("UNCHECKED_CAST")
 		override val entry = object : KotlmataState.Entry
 		{
-			override fun <R> function(action: EntryFunction<SIGNAL, R>): KotlmataState.Entry.Catch<SIGNAL>
+			override fun function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 			{
 				this@ModifierImpl shouldNot expired
 				this@KotlmataStateImpl.entry = EntryDef(action)
 				return object : KotlmataState.Entry.Catch<SIGNAL>
 				{
-					override fun <R> intercept(error: EntryErrorFunction<SIGNAL, R>)
+					override fun intercept(error: EntryErrorFunction<SIGNAL>)
 					{
 						this@ModifierImpl shouldNot expired
 						this@KotlmataStateImpl.entry = EntryDef(action, error)
@@ -381,16 +379,16 @@ private class KotlmataStateImpl<T : STATE>(
 			
 			override fun <T : SIGNAL> via(signal: KClass<T>) = object : KotlmataState.Entry.Action<T>
 			{
-				override fun <R> function(action: EntryFunction<T, R>): KotlmataState.Entry.Catch<T>
+				override fun function(action: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 				{
 					this@ModifierImpl shouldNot expired
-					entryMap[signal] = EntryDef(action as EntryFunction<SIGNAL, Any?>)
+					entryMap[signal] = EntryDef(action as EntryFunction<SIGNAL>)
 					return object : KotlmataState.Entry.Catch<T>
 					{
-						override fun <R> intercept(error: EntryErrorFunction<T, R>)
+						override fun intercept(error: EntryErrorFunction<T>)
 						{
 							this@ModifierImpl shouldNot expired
-							entryMap[signal] = EntryDef(action, error as EntryErrorFunction<SIGNAL, Any?>)
+							entryMap[signal] = EntryDef(action, error as EntryErrorFunction<SIGNAL>)
 						}
 					}
 				}
@@ -398,16 +396,16 @@ private class KotlmataStateImpl<T : STATE>(
 			
 			override fun <T : SIGNAL> via(signal: T) = object : KotlmataState.Entry.Action<T>
 			{
-				override fun <R> function(action: EntryFunction<T, R>): KotlmataState.Entry.Catch<T>
+				override fun function(action: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 				{
 					this@ModifierImpl shouldNot expired
-					entryMap[signal] = EntryDef(action as EntryFunction<SIGNAL, Any?>)
+					entryMap[signal] = EntryDef(action as EntryFunction<SIGNAL>)
 					return object : KotlmataState.Entry.Catch<T>
 					{
-						override fun <R> intercept(error: EntryErrorFunction<T, R>)
+						override fun intercept(error: EntryErrorFunction<T>)
 						{
 							this@ModifierImpl shouldNot expired
-							entryMap[signal] = EntryDef(action, error as EntryErrorFunction<SIGNAL, Any?>)
+							entryMap[signal] = EntryDef(action, error as EntryErrorFunction<SIGNAL>)
 						}
 					}
 				}
@@ -415,7 +413,7 @@ private class KotlmataStateImpl<T : STATE>(
 			
 			override fun via(signals: KotlmataState.Init.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
 			{
-				override fun <R> function(action: EntryFunction<SIGNAL, R>): KotlmataState.Entry.Catch<SIGNAL>
+				override fun function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 				{
 					this@ModifierImpl shouldNot expired
 					signals.forEach {
@@ -423,7 +421,7 @@ private class KotlmataStateImpl<T : STATE>(
 					}
 					return object : KotlmataState.Entry.Catch<SIGNAL>
 					{
-						override fun <R> intercept(error: EntryErrorFunction<SIGNAL, R>)
+						override fun intercept(error: EntryErrorFunction<SIGNAL>)
 						{
 							this@ModifierImpl shouldNot expired
 							signals.forEach {
@@ -441,13 +439,13 @@ private class KotlmataStateImpl<T : STATE>(
 		@Suppress("UNCHECKED_CAST")
 		override val input = object : KotlmataState.Input
 		{
-			override fun <R> function(action: InputFunction<SIGNAL, R>): KotlmataState.Input.Catch<SIGNAL>
+			override fun function(action: InputFunction<SIGNAL>): KotlmataState.Input.Catch<SIGNAL>
 			{
 				this@ModifierImpl shouldNot expired
 				this@KotlmataStateImpl.input = InputDef(action)
 				return object : KotlmataState.Input.Catch<SIGNAL>
 				{
-					override fun <R> intercept(error: InputErrorFunction<SIGNAL, R>)
+					override fun intercept(error: InputErrorFunction<SIGNAL>)
 					{
 						this@ModifierImpl shouldNot expired
 						this@KotlmataStateImpl.input = InputDef(action, error)
@@ -457,16 +455,16 @@ private class KotlmataStateImpl<T : STATE>(
 			
 			override fun <T : SIGNAL> signal(signal: KClass<T>) = object : KotlmataState.Input.Action<T>
 			{
-				override fun <R> function(action: InputFunction<T, R>): KotlmataState.Input.Catch<T>
+				override fun function(action: InputFunction<T>): KotlmataState.Input.Catch<T>
 				{
 					this@ModifierImpl shouldNot expired
-					inputMap[signal] = InputDef(action as InputFunction<SIGNAL, Any?>)
+					inputMap[signal] = InputDef(action as InputFunction<SIGNAL>)
 					return object : KotlmataState.Input.Catch<T>
 					{
-						override fun <R> intercept(error: InputErrorFunction<T, R>)
+						override fun intercept(error: InputErrorFunction<T>)
 						{
 							this@ModifierImpl shouldNot expired
-							inputMap[signal] = InputDef(action, error as InputErrorFunction<SIGNAL, Any?>)
+							inputMap[signal] = InputDef(action, error as InputErrorFunction<SIGNAL>)
 						}
 					}
 				}
@@ -474,16 +472,16 @@ private class KotlmataStateImpl<T : STATE>(
 			
 			override fun <T : SIGNAL> signal(signal: T) = object : KotlmataState.Input.Action<T>
 			{
-				override fun <R> function(action: InputFunction<T, R>): KotlmataState.Input.Catch<T>
+				override fun function(action: InputFunction<T>): KotlmataState.Input.Catch<T>
 				{
 					this@ModifierImpl shouldNot expired
-					inputMap[signal] = InputDef(action as InputFunction<SIGNAL, Any?>)
+					inputMap[signal] = InputDef(action as InputFunction<SIGNAL>)
 					return object : KotlmataState.Input.Catch<T>
 					{
-						override fun <R> intercept(error: InputErrorFunction<T, R>)
+						override fun intercept(error: InputErrorFunction<T>)
 						{
 							this@ModifierImpl shouldNot expired
-							inputMap[signal] = InputDef(action, error as InputErrorFunction<SIGNAL, Any?>)
+							inputMap[signal] = InputDef(action, error as InputErrorFunction<SIGNAL>)
 						}
 					}
 				}
@@ -491,7 +489,7 @@ private class KotlmataStateImpl<T : STATE>(
 			
 			override fun signal(signals: KotlmataState.Init.Signals) = object : KotlmataState.Input.Action<SIGNAL>
 			{
-				override fun <R> function(action: InputFunction<SIGNAL, R>): KotlmataState.Input.Catch<SIGNAL>
+				override fun function(action: InputFunction<SIGNAL>): KotlmataState.Input.Catch<SIGNAL>
 				{
 					this@ModifierImpl shouldNot expired
 					signals.forEach {
@@ -499,7 +497,7 @@ private class KotlmataStateImpl<T : STATE>(
 					}
 					return object : KotlmataState.Input.Catch<SIGNAL>
 					{
-						override fun <R> intercept(error: InputErrorFunction<SIGNAL, R>)
+						override fun intercept(error: InputErrorFunction<SIGNAL>)
 						{
 							this@ModifierImpl shouldNot expired
 							signals.forEach {
