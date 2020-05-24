@@ -732,7 +732,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 						it[ruleLeft.state]
 					}?.let {
 						it[ruleLeft.signal]
-					}.let {
+					}?.let {
 						ruleLeft %= state
 					}
 				}
@@ -793,7 +793,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 			return object : KotlmataState.Entry.Catch<SIGNAL>
 			{
-				override fun <R> intercept(error: EntryCatch<SIGNAL, R>)
+				override fun <R> intercept(error: EntryErrorFunction<SIGNAL, R>)
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[this@function]?.modify {
@@ -813,7 +813,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
-					override fun <R> intercept(error: EntryCatch<T, R>)
+					override fun <R> intercept(error: EntryErrorFunction<T, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
@@ -834,7 +834,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
-					override fun <R> intercept(error: EntryCatch<T, R>)
+					override fun <R> intercept(error: EntryErrorFunction<T, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
@@ -855,7 +855,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<SIGNAL>
 				{
-					override fun <R> intercept(error: EntryCatch<SIGNAL, R>)
+					override fun <R> intercept(error: EntryErrorFunction<SIGNAL, R>)
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
