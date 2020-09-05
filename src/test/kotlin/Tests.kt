@@ -255,7 +255,7 @@ class Tests
 				entry function {
 					Thread.sleep(10)
 					println("$state: 기본 진입함수")
-					"goToState1" type Any::class payload "It's a payload"
+					"goToState1" `as` Any::class with "It's a payload"
 				}
 				input signal Any::class function { signal ->
 					println("$state: Any 타입 입력함수: $signal, $payload")
@@ -527,7 +527,7 @@ class Tests
 		}
 		Kotlmata input 5 to "daemon"
 		Kotlmata input "goToState1" to "daemon"
-		Kotlmata input "payload" payload "this is a payload" to "daemon"
+		Kotlmata input "payload" with "this is a payload" to "daemon"
 		
 		Thread.sleep(100)
 		

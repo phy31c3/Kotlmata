@@ -484,7 +484,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		return "KotlmataDaemon[$tag]{${hashCode().toString(16)}}"
 	}
 	
-	private inner class InitImpl internal constructor(
+	private inner class InitImpl(
 			block: DaemonTemplate<T>,
 			init: KotlmataMachine.Init
 	) : KotlmataDaemon.Init, KotlmataMachine.Init by init, Expirable({ Log.e("Daemon[$tag]:") { EXPIRED_MODIFIER } })

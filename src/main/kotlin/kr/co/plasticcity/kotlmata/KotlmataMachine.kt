@@ -531,7 +531,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		return "KotlmataMachine[$tag]{${hashCode().toString(16)}}"
 	}
 	
-	private inner class ModifierImpl internal constructor(
+	private inner class ModifierImpl(
 			init: (MachineTemplate<T>)? = null,
 			modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
 	) : KotlmataMachine.Init, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
