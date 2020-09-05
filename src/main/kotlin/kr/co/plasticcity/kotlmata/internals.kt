@@ -75,6 +75,7 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 
 internal const val tab: String = "   "
 
+internal const val UNDEFINED = -1
 internal const val NO_LOG = 0
 internal const val SIMPLE = 1
 internal const val NORMAL = 2

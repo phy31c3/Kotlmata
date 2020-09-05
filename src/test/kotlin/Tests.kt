@@ -149,12 +149,12 @@ class Tests
 				println("state1 없음")
 			}
 			
-			update state "state1" with { state ->
+			update state "state1" by { state ->
 				input signal String::class function { s -> println("$state: 수정된 String 타입 입력함수: $s") }
 				delete action exit
 			}
 			
-			insert state "state2" with { state ->
+			insert state "state2" by { state ->
 				entry function { println("삽입된 $state") }
 			}
 			
@@ -377,7 +377,7 @@ class Tests
 		daemon {
 			"state1" x "goToState3" %= "state3"
 			
-			update state "state3" with { state ->
+			update state "state3" by { state ->
 				expire = this
 				entry function {
 					println("$state: 수정된 기본 진입함수")
@@ -448,7 +448,7 @@ class Tests
 	{
 		var expire: Kotlmata.Post? = null
 		Kotlmata.start(2)
-		Kotlmata fork "daemon" with { _, _ ->
+		Kotlmata.fork("daemon", NO_LOG) by { _, _ ->
 			
 			on start {
 				println("데몬 on start: payload = $payload")
@@ -495,7 +495,7 @@ class Tests
 		
 		Kotlmata input "무시해라1" to "daemon"
 		Kotlmata input "무시해라2" to "daemon"
-		Kotlmata modify "daemon" with {
+		Kotlmata modify "daemon" by {
 			println("현재 상태: $current")
 		}
 		
@@ -515,8 +515,8 @@ class Tests
 		Kotlmata {
 			expire = this
 			has daemon "daemon" then {
-				modify daemon "daemon" with {
-					update state "state2" with { state ->
+				modify daemon "daemon" by {
+					update state "state2" by { state ->
 						input signal Integer::class function { s -> println("$state: Post 에서 수정된 Number 타입 입력함수: $s") }
 						exit action { println("$state: Post 에서 수정된 퇴장함수") }
 					}
