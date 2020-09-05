@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package kr.co.plasticcity.kotlmata
 
 import java.util.*
