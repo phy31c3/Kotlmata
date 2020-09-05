@@ -19,9 +19,9 @@ interface Kotlmata
 	fun stop()
 	fun release()
 	
-	fun <T : DAEMON> fork(daemon: T, logLevel: Int = UNDEFINED): ForkWith<T>
-	infix fun <T : DAEMON> fork(daemon: T): ForkWith<T> = fork(daemon, UNDEFINED)
-	infix fun <T : DAEMON> modify(daemon: T): ModifyWith<T>
+	fun <T : DAEMON> fork(daemon: T, logLevel: Int = UNDEFINED): Fork<T>
+	infix fun <T : DAEMON> fork(daemon: T): Fork<T> = fork(daemon, UNDEFINED)
+	infix fun <T : DAEMON> modify(daemon: T): Modify<T>
 	
 	fun run(daemon: DAEMON, payload: Any? = null)
 	fun pause(daemon: DAEMON, payload: Any? = null)
@@ -51,14 +51,14 @@ interface Kotlmata
 		}
 	}
 	
-	interface ForkWith<T : DAEMON>
+	interface Fork<T : DAEMON>
 	{
-		infix fun with(block: DaemonTemplate<T>)
+		infix fun by(block: DaemonTemplate<T>)
 	}
 	
-	interface ModifyWith<T : DAEMON>
+	interface Modify<T : DAEMON>
 	{
-		infix fun with(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
+		infix fun by(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 	}
 	
 	interface Type<T : SIGNAL> : Payload
@@ -118,22 +118,22 @@ interface Kotlmata
 		
 		interface Fork
 		{
-			fun <T : DAEMON> daemon(daemon: T, logLevel: Int = UNDEFINED): With<T>
-			infix fun <T : DAEMON> daemon(daemon: T): With<T> = daemon(daemon, UNDEFINED)
+			fun <T : DAEMON> daemon(daemon: T, logLevel: Int = UNDEFINED): By<T>
+			infix fun <T : DAEMON> daemon(daemon: T): By<T> = daemon(daemon, UNDEFINED)
 			
-			interface With<T : DAEMON>
+			interface By<T : DAEMON>
 			{
-				infix fun with(block: DaemonTemplate<T>)
+				infix fun by(block: DaemonTemplate<T>)
 			}
 		}
 		
 		interface Modify
 		{
-			infix fun <T : DAEMON> daemon(daemon: T): With<T>
+			infix fun <T : DAEMON> daemon(daemon: T): By<T>
 			
-			interface With<T : DAEMON>
+			interface By<T : DAEMON>
 			{
-				infix fun with(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
+				infix fun by(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 			}
 		}
 		
@@ -320,19 +320,19 @@ private object KotlmataImpl : Kotlmata
 		core.terminate()
 	}
 	
-	override fun <T : DAEMON> fork(daemon: T, logLevel: Int) = object : Kotlmata.ForkWith<T>
+	override fun <T : DAEMON> fork(daemon: T, logLevel: Int) = object : Kotlmata.Fork<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun with(block: DaemonTemplate<T>)
+		override fun by(block: DaemonTemplate<T>)
 		{
 			core.input(Request.Fork(daemon, logLevel, block as DaemonTemplate<DAEMON>))
 		}
 	}
 	
-	override fun <T : DAEMON> modify(daemon: T) = object : Kotlmata.ModifyWith<T>
+	override fun <T : DAEMON> modify(daemon: T) = object : Kotlmata.Modify<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun with(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
+		override fun by(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
 		{
 			core.input(Request.Modify(daemon, block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit))
 		}
@@ -503,9 +503,9 @@ private object KotlmataImpl : Kotlmata
 		
 		override val fork = object : Kotlmata.Post.Fork
 		{
-			override fun <T : DAEMON> daemon(daemon: T, logLevel: Int) = object : Kotlmata.Post.Fork.With<T>
+			override fun <T : DAEMON> daemon(daemon: T, logLevel: Int) = object : Kotlmata.Post.Fork.By<T>
 			{
-				override fun with(block: DaemonTemplate<T>)
+				override fun by(block: DaemonTemplate<T>)
 				{
 					this@PostImpl shouldNot expired
 					if (daemon !in daemons)
@@ -527,10 +527,10 @@ private object KotlmataImpl : Kotlmata
 		
 		override val modify = object : Kotlmata.Post.Modify
 		{
-			override fun <T : DAEMON> daemon(daemon: T) = object : Kotlmata.Post.Modify.With<T>
+			override fun <T : DAEMON> daemon(daemon: T) = object : Kotlmata.Post.Modify.By<T>
 			{
 				@Suppress("UNCHECKED_CAST")
-				override fun with(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
+				override fun by(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
 				{
 					this@PostImpl shouldNot expired
 					if (daemon in daemons)
