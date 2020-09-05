@@ -239,7 +239,7 @@ Kotlmata stop "daemon"
 Kotlmata terminate "daemon"
 
 Kotlmata input "signal" to "daemon"
-Kotlmata input "signal" type KClass<String> to "daemon"
+Kotlmata input "signal" `as` KClass<String> to "daemon"
 
 Kotlmata { // Kotlmata post 와 동일
 	has daemon "daemon" then {
@@ -292,6 +292,6 @@ Kotlmata { // Kotlmata post 와 동일
 
 	input signal "signal" to "daemon"
 	input signal "signal" priority 1 to "daemon"
-	input signal "signal" type Type::class to "daemon"
-	input signal "signal" type Type::class priority 2 to "daemon"
+	input signal "signal" `as` String::class to "daemon"
+	input signal "signal" `as` String::class with "payload" priority 2 to "daemon"
 }

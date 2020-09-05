@@ -343,7 +343,7 @@ private class KotlmataStateImpl<T : STATE>(
 		return "KotlmataState[$tag]{${hashCode().toString(16)}}"
 	}
 	
-	private inner class ModifierImpl internal constructor(
+	private inner class ModifierImpl(
 			block: KotlmataMutableState.Modifier.(T) -> Unit
 	) : KotlmataMutableState.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{

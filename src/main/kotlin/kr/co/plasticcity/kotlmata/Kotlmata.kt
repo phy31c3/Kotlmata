@@ -60,12 +60,12 @@ interface Kotlmata
 	
 	interface Type<T : SIGNAL> : Payload
 	{
-		infix fun type(type: KClass<in T>): Payload
+		infix fun `as`(type: KClass<in T>): Payload
 	}
 	
 	interface Payload : Priority
 	{
-		infix fun payload(payload: Any?): Priority
+		infix fun with(payload: Any?): Priority
 	}
 	
 	interface Priority : To
@@ -373,9 +373,9 @@ private object KotlmataImpl : Kotlmata
 	override fun <T : SIGNAL> input(signal: T) = object : Kotlmata.Type<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun type(type: KClass<in T>) = object : Kotlmata.Payload
+		override fun `as`(type: KClass<in T>) = object : Kotlmata.Payload
 		{
-			override fun payload(payload: Any?) = object : Kotlmata.Priority
+			override fun with(payload: Any?) = object : Kotlmata.Priority
 			{
 				override fun priority(priority: Int) = object : Kotlmata.To
 				{
@@ -405,7 +405,7 @@ private object KotlmataImpl : Kotlmata
 			}
 		}
 		
-		override fun payload(payload: Any?) = object : Kotlmata.Priority
+		override fun with(payload: Any?) = object : Kotlmata.Priority
 		{
 			override fun priority(priority: Int) = object : Kotlmata.To
 			{
@@ -440,7 +440,7 @@ private object KotlmataImpl : Kotlmata
 		core.input(Request.Post(block))
 	}
 	
-	private class ConfigImpl internal constructor(
+	private class ConfigImpl(
 			block: Kotlmata.Config.() -> Unit
 	) : Kotlmata.Config, Expirable({ Log.e { EXPIRED_CONFIG } })
 	{
@@ -472,7 +472,7 @@ private object KotlmataImpl : Kotlmata
 		}
 	}
 	
-	private class PostImpl internal constructor(
+	private class PostImpl(
 			block: Kotlmata.Post.() -> Unit
 	) : Kotlmata.Post, Expirable({ Log.e { EXPIRED_POST } })
 	{
@@ -647,9 +647,9 @@ private object KotlmataImpl : Kotlmata
 		{
 			override fun <T : SIGNAL> signal(signal: T) = object : Kotlmata.Type<T>
 			{
-				override fun type(type: KClass<in T>) = object : Kotlmata.Payload
+				override fun `as`(type: KClass<in T>) = object : Kotlmata.Payload
 				{
-					override fun payload(payload: Any?) = object : Kotlmata.Priority
+					override fun with(payload: Any?) = object : Kotlmata.Priority
 					{
 						override fun priority(priority: Int) = object : Kotlmata.To
 						{
@@ -715,7 +715,7 @@ private object KotlmataImpl : Kotlmata
 					}
 				}
 				
-				override fun payload(payload: Any?) = object : Kotlmata.Priority
+				override fun with(payload: Any?) = object : Kotlmata.Priority
 				{
 					override fun priority(priority: Int) = object : Kotlmata.To
 					{
