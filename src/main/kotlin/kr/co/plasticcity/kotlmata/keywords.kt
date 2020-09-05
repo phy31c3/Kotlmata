@@ -59,10 +59,10 @@ interface FunctionDSL : ActionDSL
 	class TypedSync internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Sync(signal, type)
 	
 	@Suppress("UNCHECKED_CAST")
-	infix fun <T : SIGNAL> T.type(type: KClass<in T>) = TypedSync(this, type as KClass<SIGNAL>)
+	infix fun <T : SIGNAL> T.`as`(type: KClass<in T>) = TypedSync(this, type as KClass<SIGNAL>)
 	
-	infix fun <T : SIGNAL> T.payload(payload: Any?) = Sync(this, null, payload)
-	infix fun TypedSync.payload(payload: Any?) = Sync(signal, type, payload)
+	infix fun <T : SIGNAL> T.with(payload: Any?) = Sync(this, null, payload)
+	infix fun TypedSync.with(payload: Any?) = Sync(signal, type, payload)
 }
 
 interface ErrorDSL : ActionDSL
