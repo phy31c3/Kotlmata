@@ -448,7 +448,7 @@ class Tests
 	{
 		var expire: Kotlmata.Post? = null
 		Kotlmata.start(2)
-		Kotlmata.fork("daemon", NO_LOG) by { _, _ ->
+		Kotlmata.fork("daemon", NO_LOG) by {
 			
 			on start {
 				println("데몬 on start: payload = $payload")

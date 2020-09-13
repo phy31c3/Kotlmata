@@ -53,7 +53,7 @@ interface Kotlmata
 	
 	interface Fork<T : DAEMON>
 	{
-		infix fun by(block: DaemonTemplate<T>)
+		infix fun by(block: ForkTemplate<T>)
 	}
 	
 	interface Modify<T : DAEMON>
@@ -123,7 +123,7 @@ interface Kotlmata
 			
 			interface By<T : DAEMON>
 			{
-				infix fun by(block: DaemonTemplate<T>)
+				infix fun by(block: ForkTemplate<T>)
 			}
 		}
 		
@@ -198,7 +198,7 @@ private object KotlmataImpl : Kotlmata
 						daemons[forkR.daemon] = KotlmataMutableDaemon(
 								tag = forkR.daemon,
 								logLevel = if (forkR.logLevel == UNDEFINED) logLevel else forkR.logLevel,
-								block = forkR.block
+								block = { tag, _ -> forkR.block(this, tag) }
 						)
 					}
 					else
@@ -323,9 +323,9 @@ private object KotlmataImpl : Kotlmata
 	override fun <T : DAEMON> fork(daemon: T, logLevel: Int) = object : Kotlmata.Fork<T>
 	{
 		@Suppress("UNCHECKED_CAST")
-		override fun by(block: DaemonTemplate<T>)
+		override fun by(block: ForkTemplate<T>)
 		{
-			core.input(Request.Fork(daemon, logLevel, block as DaemonTemplate<DAEMON>))
+			core.input(Request.Fork(daemon, logLevel, block as ForkTemplate<DAEMON>))
 		}
 	}
 	
@@ -505,7 +505,7 @@ private object KotlmataImpl : Kotlmata
 		{
 			override fun <T : DAEMON> daemon(daemon: T, logLevel: Int) = object : Kotlmata.Post.Fork.By<T>
 			{
-				override fun by(block: DaemonTemplate<T>)
+				override fun by(block: ForkTemplate<T>)
 				{
 					this@PostImpl shouldNot expired
 					if (daemon !in daemons)
@@ -514,7 +514,7 @@ private object KotlmataImpl : Kotlmata
 						daemons[daemon] = KotlmataMutableDaemon(
 								tag = daemon,
 								logLevel = if (logLevel == UNDEFINED) KotlmataImpl.logLevel else logLevel,
-								block = block
+								block = { tag, _ -> block(tag) }
 						)
 					}
 					else
@@ -783,7 +783,7 @@ private object KotlmataImpl : Kotlmata
 	
 	private sealed class Request
 	{
-		class Fork(val daemon: DAEMON, val logLevel: Int, val block: DaemonTemplate<DAEMON>) : Request()
+		class Fork(val daemon: DAEMON, val logLevel: Int, val block: ForkTemplate<DAEMON>) : Request()
 		class Modify(val daemon: DAEMON, val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request()
 		
 		class Run(val daemon: DAEMON, val payload: Any? = null) : Request()
