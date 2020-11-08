@@ -70,6 +70,11 @@ interface ErrorDSL : ActionDSL
 	val throwable: Throwable
 }
 
+interface TransitionDSL : ActionDSL
+{
+	val count: Int
+}
+
 interface PayloadDSL : ActionDSL
 {
 	val payload: Any?
@@ -93,6 +98,8 @@ typealias ExitError = ErrorDSL.(signal: SIGNAL) -> Unit
 
 typealias StateError = ErrorDSL.(signal: SIGNAL) -> Unit
 typealias MachineError = ErrorDSL.() -> Unit
+
+typealias TransitionCallback = TransitionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
 
 typealias DaemonCallback = PayloadDSL.() -> Unit
 typealias DaemonFallback = ErrorPayloadDSL.() -> Unit

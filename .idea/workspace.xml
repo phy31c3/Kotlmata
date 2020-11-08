@@ -34,9 +34,9 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="0.5.2">
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#129: onTransition 콜백 추가">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/internals.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/internals.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
@@ -103,7 +103,7 @@
       <recent name="D:\workspace\Kotlmata\src\test\kotlin" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.Tests.kotlmataTest">
+  <component name="RunManager" selected="JUnit.Tests.daemonTest">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method v="2">
@@ -200,10 +200,10 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.Tests.kotlmataTest" />
         <item itemvalue="JUnit.Tests.daemonTest" />
-        <item itemvalue="JUnit.Tests.commonTest" />
         <item itemvalue="JUnit.Tests.machineTest" />
+        <item itemvalue="JUnit.Tests.kotlmataTest" />
+        <item itemvalue="JUnit.Tests.commonTest" />
       </list>
     </recent_temporary>
   </component>
@@ -218,27 +218,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00140" summary="신호에도 payload를 실을 수 있게 하기 #91">
-      <created>1581959606711</created>
-      <option name="number" value="00140" />
-      <option name="presentableId" value="LOCAL-00140" />
-      <option name="project" value="LOCAL" />
-      <updated>1581959606711</updated>
-    </task>
-    <task id="LOCAL-00141" summary="#91: 머신, 데몬, Kotlmata 에도 payload 적용">
-      <created>1582035729414</created>
-      <option name="number" value="00141" />
-      <option name="presentableId" value="LOCAL-00141" />
-      <option name="project" value="LOCAL" />
-      <updated>1582035729414</updated>
-    </task>
-    <task id="LOCAL-00142" summary="#91: payload 테스트 추가">
-      <created>1582039561873</created>
-      <option name="number" value="00142" />
-      <option name="presentableId" value="LOCAL-00142" />
-      <option name="project" value="LOCAL" />
-      <updated>1582039561873</updated>
     </task>
     <task id="LOCAL-00143" summary="#91: defaultInput 위치 수정">
       <created>1582039932882</created>
@@ -562,7 +541,28 @@
       <option name="project" value="LOCAL" />
       <updated>1599333766301</updated>
     </task>
-    <option name="localTasksCounter" value="189" />
+    <task id="LOCAL-00189" summary="0.5.3">
+      <created>1600097132035</created>
+      <option name="number" value="00189" />
+      <option name="presentableId" value="LOCAL-00189" />
+      <option name="project" value="LOCAL" />
+      <updated>1600097132036</updated>
+    </task>
+    <task id="LOCAL-00190" summary="#129: onTransition 콜백 추가">
+      <created>1604827011158</created>
+      <option name="number" value="00190" />
+      <option name="presentableId" value="LOCAL-00190" />
+      <option name="project" value="LOCAL" />
+      <updated>1604827011158</updated>
+    </task>
+    <task id="LOCAL-00191" summary="#129: onTransition 콜백 추가">
+      <created>1604827067960</created>
+      <option name="number" value="00191" />
+      <option name="presentableId" value="LOCAL-00191" />
+      <option name="project" value="LOCAL" />
+      <updated>1604827067960</updated>
+    </task>
+    <option name="localTasksCounter" value="192" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -603,8 +603,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="머신, 데몬 등의 toString 구현 수정 #107" />
-    <MESSAGE value="상태 생성 로그 수정 #108" />
     <MESSAGE value="#108: 탭 어색한 부분 수정" />
     <MESSAGE value="#108: Kotlmata 생명주기 함수에도 payload 전달할 수 있게" />
     <MESSAGE value="#110: Initial -&gt; CONSTRUCTED" />
@@ -628,17 +626,27 @@
     <MESSAGE value="#126: Kotlmata fork 시 로그레벨 설정" />
     <MESSAGE value="#126: with -&gt; by" />
     <MESSAGE value="0.5.2" />
-    <option name="LAST_COMMIT_MESSAGE" value="0.5.2" />
+    <MESSAGE value="0.5.3" />
+    <MESSAGE value="#129: onTransition 콜백 추가" />
+    <option name="LAST_COMMIT_MESSAGE" value="#129: onTransition 콜백 추가" />
   </component>
   <component name="WindowStateProjectService">
     <state x="734" y="355" width="1092" height="815" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1599309089851">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="734" y="355" width="1092" height="815" key="#com.intellij.execution.impl.EditConfigurationsDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599309089851" />
+    <state x="1069" y="416" key="#com.intellij.ide.util.MemberChooser" timestamp="1604822054147">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="1069" y="416" key="#com.intellij.ide.util.MemberChooser/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604822054146" />
     <state x="1009" y="501" key="#com.intellij.ide.util.TreeClassChooserDialog" timestamp="1599309077084">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1009" y="501" key="#com.intellij.ide.util.TreeClassChooserDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599309077084" />
+    <state x="960" y="435" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1600355839463">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="960" y="435" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1600355839463" />
     <state x="756" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1599304019189">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -647,33 +655,37 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="528" y="26" width="1996" height="1368" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599309161708" />
-    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog" timestamp="1599986439418">
+    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog" timestamp="1604827480116">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599986439418" />
-    <state width="962" height="1272" key="GridCell.Tab.0.bottom" timestamp="1599986292248">
+    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604827480116" />
+    <state width="962" height="1079" key="GridCell.Tab.0.bottom" timestamp="1604826765804">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1272" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599986292248" />
-    <state width="962" height="1272" key="GridCell.Tab.0.center" timestamp="1599986292248">
+    <state width="962" height="1079" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604826765804" />
+    <state width="962" height="1079" key="GridCell.Tab.0.center" timestamp="1604826765804">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1272" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599986292248" />
-    <state width="962" height="1272" key="GridCell.Tab.0.left" timestamp="1599986292248">
+    <state width="962" height="1079" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604826765804" />
+    <state width="962" height="1079" key="GridCell.Tab.0.left" timestamp="1604826765804">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1272" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599986292248" />
-    <state width="962" height="1272" key="GridCell.Tab.0.right" timestamp="1599986292248">
+    <state width="962" height="1079" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604826765804" />
+    <state width="962" height="1079" key="GridCell.Tab.0.right" timestamp="1604826765804">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="962" height="1272" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599986292248" />
+    <state width="962" height="1079" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604826765804" />
+    <state x="957" y="401" key="RollbackChangesDialog" timestamp="1604826957450">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="957" y="401" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604826957450" />
     <state x="760" y="274" key="SettingsEditor" timestamp="1599333580435">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="760" y="274" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599333580435" />
-    <state x="872" y="419" key="Vcs.Push.Dialog.v2" timestamp="1599333770544">
+    <state x="872" y="419" key="Vcs.Push.Dialog.v2" timestamp="1604827012214">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="872" y="419" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599333770544" />
+    <state x="872" y="419" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604827012214" />
   </component>
 </project>
