@@ -388,17 +388,6 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		null
 	}
 	
-	override fun input(signal: SIGNAL, payload: Any?)
-	{
-		defaultInput(FunctionDSL.Sync(signal, null, payload))
-	}
-	
-	@Suppress("UNCHECKED_CAST")
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?)
-	{
-		defaultInput(FunctionDSL.Sync(signal, type as KClass<SIGNAL>, payload))
-	}
-	
 	private fun defaultInput(begin: FunctionDSL.Sync)
 	{
 		var next: FunctionDSL.Sync? = begin
@@ -411,6 +400,17 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				next = sync
 			}
 		}
+	}
+	
+	override fun input(signal: SIGNAL, payload: Any?)
+	{
+		defaultInput(FunctionDSL.Sync(signal, null, payload))
+	}
+	
+	@Suppress("UNCHECKED_CAST")
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?)
+	{
+		defaultInput(FunctionDSL.Sync(signal, type as KClass<SIGNAL>, payload))
 	}
 	
 	override fun input(signal: SIGNAL, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
