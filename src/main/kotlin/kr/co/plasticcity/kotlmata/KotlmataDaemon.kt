@@ -300,7 +300,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					logLevel.simple(tag, suffix) { DAEMON_PAUSE }
 					onPause.call(pauseR.payload)
 				}
-				
 				input signal Request.Run::class action { runR ->
 					sync?.also { syncR -> queue!!.offer(syncR) }
 					queue!! += stash
@@ -319,7 +318,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Input::class action keep
 				input signal Request.TypedInput::class action keep
 				input action { signal -> ignore(signal, state) }
-				
 				exit action {
 					sync = null
 					stash.clear()
@@ -327,7 +325,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			"Stopped" { state ->
 				var sync: Request.Sync? = null
-				
 				val cleanup: InputAction<Request> = { currentR ->
 					queue!!.removeIf { queueR ->
 						(queueR.isSignal && queueR.olderThan(currentR)).also {
@@ -344,7 +341,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					logLevel.simple(tag, suffix) { DAEMON_STOP }
 					onStop.call(stopR.payload)
 				}
-				
 				input signal Request.Run::class action { runR ->
 					cleanup(runR)
 					logLevel.simple(tag, suffix) { DAEMON_RESUME }
@@ -358,15 +354,12 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					sync = syncR
 				}
 				input action { signal -> ignore(signal, state) }
-				
 				exit action {
 					sync = null
 				}
 			}
-			"Terminated" {
-				entry via Request.Terminate::class action {
-					Thread.currentThread().interrupt()
-				}
+			"Terminated" via Request.Terminate::class action {
+				Thread.currentThread().interrupt()
 			}
 			
 			"Created" x Request.Run::class %= "Running"

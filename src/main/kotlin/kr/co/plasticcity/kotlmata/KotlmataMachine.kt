@@ -1167,7 +1167,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		init
 		{
-			init?.let { it(tag) } ?: modify?.let { it(tag) }
+			init?.also { it(tag) } ?: modify?.also { it(tag) }
 			expire()
 		}
 	}
