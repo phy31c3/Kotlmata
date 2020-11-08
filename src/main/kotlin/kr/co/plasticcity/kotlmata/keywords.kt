@@ -72,7 +72,7 @@ interface ErrorDSL : ActionDSL
 
 interface TransitionDSL : ActionDSL
 {
-	val transitionCount: Int
+	val count: Int
 }
 
 interface PayloadDSL : ActionDSL

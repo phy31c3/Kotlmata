@@ -19,7 +19,7 @@ internal class ErrorPayload(override val throwable: Throwable, override val payl
 internal class ErrorPayloadFunction(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadFunctionDSL
 internal class Transition : TransitionDSL
 {
-	override val transitionCount: Int = count++
+	override val count: Int = Transition.count++
 	
 	companion object
 	{

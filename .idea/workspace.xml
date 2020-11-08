@@ -34,10 +34,8 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="0.5.3">
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#129: onTransition 콜백 추가">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/internals.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/internals.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
@@ -220,20 +218,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00141" summary="#91: 머신, 데몬, Kotlmata 에도 payload 적용">
-      <created>1582035729414</created>
-      <option name="number" value="00141" />
-      <option name="presentableId" value="LOCAL-00141" />
-      <option name="project" value="LOCAL" />
-      <updated>1582035729414</updated>
-    </task>
-    <task id="LOCAL-00142" summary="#91: payload 테스트 추가">
-      <created>1582039561873</created>
-      <option name="number" value="00142" />
-      <option name="presentableId" value="LOCAL-00142" />
-      <option name="project" value="LOCAL" />
-      <updated>1582039561873</updated>
     </task>
     <task id="LOCAL-00143" summary="#91: defaultInput 위치 수정">
       <created>1582039932882</created>
@@ -564,7 +548,21 @@
       <option name="project" value="LOCAL" />
       <updated>1600097132036</updated>
     </task>
-    <option name="localTasksCounter" value="190" />
+    <task id="LOCAL-00190" summary="#129: onTransition 콜백 추가">
+      <created>1604827011158</created>
+      <option name="number" value="00190" />
+      <option name="presentableId" value="LOCAL-00190" />
+      <option name="project" value="LOCAL" />
+      <updated>1604827011158</updated>
+    </task>
+    <task id="LOCAL-00191" summary="#129: onTransition 콜백 추가">
+      <created>1604827067960</created>
+      <option name="number" value="00191" />
+      <option name="presentableId" value="LOCAL-00191" />
+      <option name="project" value="LOCAL" />
+      <updated>1604827067960</updated>
+    </task>
+    <option name="localTasksCounter" value="192" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -605,7 +603,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="상태 생성 로그 수정 #108" />
     <MESSAGE value="#108: 탭 어색한 부분 수정" />
     <MESSAGE value="#108: Kotlmata 생명주기 함수에도 payload 전달할 수 있게" />
     <MESSAGE value="#110: Initial -&gt; CONSTRUCTED" />
@@ -630,7 +627,8 @@
     <MESSAGE value="#126: with -&gt; by" />
     <MESSAGE value="0.5.2" />
     <MESSAGE value="0.5.3" />
-    <option name="LAST_COMMIT_MESSAGE" value="0.5.3" />
+    <MESSAGE value="#129: onTransition 콜백 추가" />
+    <option name="LAST_COMMIT_MESSAGE" value="#129: onTransition 콜백 추가" />
   </component>
   <component name="WindowStateProjectService">
     <state x="734" y="355" width="1092" height="815" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1599309089851">
@@ -657,10 +655,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="528" y="26" width="1996" height="1368" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599309161708" />
-    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog" timestamp="1604826972052">
+    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog" timestamp="1604827480116">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604826972052" />
+    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604827480116" />
     <state width="962" height="1079" key="GridCell.Tab.0.bottom" timestamp="1604826765804">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -685,9 +683,9 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="760" y="274" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599333580435" />
-    <state x="872" y="419" key="Vcs.Push.Dialog.v2" timestamp="1600097135096">
+    <state x="872" y="419" key="Vcs.Push.Dialog.v2" timestamp="1604827012214">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="872" y="419" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1600097135096" />
+    <state x="872" y="419" key="Vcs.Push.Dialog.v2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604827012214" />
   </component>
 </project>

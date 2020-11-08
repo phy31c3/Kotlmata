@@ -73,7 +73,7 @@ class Tests
 				println("$msg: on error")
 			}
 			on transition { from, signal, to ->
-				println("on transition : [$transitionCount] $from x $signal -> $to")
+				println("on transition : [$count] $from x $signal -> $to")
 			}
 			
 			block(machine)
