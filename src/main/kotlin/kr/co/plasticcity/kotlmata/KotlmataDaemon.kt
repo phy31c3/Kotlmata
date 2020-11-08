@@ -270,7 +270,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Modify::class action modifyMachine
 				input action { signal -> ignore(signal, state) }
 			}
-			
 			"Run" { state ->
 				input signal Request.Pause::class action {}
 				input signal Request.Stop::class action {}
@@ -289,7 +288,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				input action { request -> ignore(request, state) }
 			}
-			
 			"Pause" { state ->
 				var sync: Request.Sync? = null
 				val stash: MutableList<Request> = ArrayList()
@@ -327,7 +325,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					stash.clear()
 				}
 			}
-			
 			"Stop" { state ->
 				var sync: Request.Sync? = null
 				
@@ -366,7 +363,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					sync = null
 				}
 			}
-			
 			"Terminate" {
 				entry via Request.Terminate::class action {
 					Thread.currentThread().interrupt()

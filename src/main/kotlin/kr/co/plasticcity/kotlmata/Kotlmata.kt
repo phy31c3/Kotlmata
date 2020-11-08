@@ -168,20 +168,16 @@ private object KotlmataImpl : Kotlmata
 				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_START }
 			}
-			
 			on pause {
 				logLevel.simple { KOTLMATA_PAUSE }
 			}
-			
 			on stop {
 				logLevel.simple { KOTLMATA_STOP }
 			}
-			
 			on resume {
 				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_RESUME }
 			}
-			
 			on terminate {
 				logLevel.simple { KOTLMATA_RELEASE }
 				daemons.forEach { (_, daemon) ->

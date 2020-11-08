@@ -34,10 +34,10 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#129: transitionCount -&gt; count">
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#130: Fork 시 나머지 추가 설정 할 수 있도록하기">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Interface" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Interface" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -217,13 +217,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00144" summary="#92: Initializer -&gt; Init">
-      <created>1582044772906</created>
-      <option name="number" value="00144" />
-      <option name="presentableId" value="LOCAL-00144" />
-      <option name="project" value="LOCAL" />
-      <updated>1582044772906</updated>
     </task>
     <task id="LOCAL-00145" summary="#92: StateDefine.extends() 구현">
       <created>1582044907197</created>
@@ -561,7 +554,14 @@
       <option name="project" value="LOCAL" />
       <updated>1604830162087</updated>
     </task>
-    <option name="localTasksCounter" value="193" />
+    <task id="LOCAL-00193" summary="#130: Fork 시 나머지 추가 설정 할 수 있도록하기">
+      <created>1604831822926</created>
+      <option name="number" value="00193" />
+      <option name="presentableId" value="LOCAL-00193" />
+      <option name="project" value="LOCAL" />
+      <updated>1604831822926</updated>
+    </task>
+    <option name="localTasksCounter" value="194" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -602,7 +602,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#108: Kotlmata 생명주기 함수에도 payload 전달할 수 있게" />
     <MESSAGE value="#110: Initial -&gt; CONSTRUCTED" />
     <MESSAGE value="0.4.2" />
     <MESSAGE value="#113: Kotlmata fork 시 construct 네이밍이 어색해보임" />
@@ -627,7 +626,8 @@
     <MESSAGE value="0.5.3" />
     <MESSAGE value="#129: onTransition 콜백 추가" />
     <MESSAGE value="#129: transitionCount -&gt; count" />
-    <option name="LAST_COMMIT_MESSAGE" value="#129: transitionCount -&gt; count" />
+    <MESSAGE value="#130: Fork 시 나머지 추가 설정 할 수 있도록하기" />
+    <option name="LAST_COMMIT_MESSAGE" value="#130: Fork 시 나머지 추가 설정 할 수 있도록하기" />
   </component>
   <component name="WindowStateProjectService">
     <state x="734" y="355" width="1092" height="815" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1599309089851">
@@ -654,10 +654,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="528" y="26" width="1996" height="1368" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599309161708" />
-    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog" timestamp="1604831033968">
+    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog" timestamp="1604857803930">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604831033968" />
+    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604857803930" />
     <state width="962" height="1272" key="GridCell.Tab.0.bottom" timestamp="1604831349189">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
