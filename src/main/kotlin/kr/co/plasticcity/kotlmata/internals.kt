@@ -38,9 +38,9 @@ internal fun Any?.convertToSync() = when (this)
 
 internal object stay
 
-internal object CONSTRUCTED
+internal object CREATED
 {
-	override fun toString(): String = "CONSTRUCTED"
+	override fun toString(): String = "CREATED"
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing)

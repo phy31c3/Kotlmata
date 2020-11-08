@@ -256,7 +256,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		core = KotlmataMachine("$tag@core") {
-			"Constructed" { state ->
+			"Created" { state ->
 				val start: InputAction<Request.Control> = { controlR ->
 					logLevel.simple(tag, suffix) { DAEMON_START }
 					onStart.call(controlR.payload)
@@ -270,7 +270,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Modify::class action modifyMachine
 				input action { signal -> ignore(signal, state) }
 			}
-			"Run" { state ->
+			"Running" { state ->
 				input signal Request.Pause::class action {}
 				input signal Request.Stop::class action {}
 				input signal Request.Terminate::class action terminate
@@ -288,7 +288,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				input action { request -> ignore(request, state) }
 			}
-			"Pause" { state ->
+			"Paused" { state ->
 				var sync: Request.Sync? = null
 				val stash: MutableList<Request> = ArrayList()
 				val keep: InputAction<Request> = { request ->
@@ -325,7 +325,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					stash.clear()
 				}
 			}
-			"Stop" { state ->
+			"Stopped" { state ->
 				var sync: Request.Sync? = null
 				
 				val cleanup: InputAction<Request> = { currentR ->
@@ -363,38 +363,38 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					sync = null
 				}
 			}
-			"Terminate" {
+			"Terminated" {
 				entry via Request.Terminate::class action {
 					Thread.currentThread().interrupt()
 				}
 			}
 			
-			"Constructed" x Request.Run::class %= "Run"
-			"Constructed" x Request.Pause::class %= "Pause"
-			"Constructed" x Request.Stop::class %= "Stop"
+			"Created" x Request.Run::class %= "Running"
+			"Created" x Request.Pause::class %= "Paused"
+			"Created" x Request.Stop::class %= "Stopped"
 			
-			"Run" x Request.Pause::class %= "Pause"
-			"Run" x Request.Stop::class %= "Stop"
+			"Running" x Request.Pause::class %= "Paused"
+			"Running" x Request.Stop::class %= "Stopped"
 			
-			"Pause" x Request.Run::class %= "Run"
-			"Pause" x Request.Stop::class %= "Stop"
+			"Paused" x Request.Run::class %= "Running"
+			"Paused" x Request.Stop::class %= "Stopped"
 			
-			"Stop" x Request.Run::class %= "Run"
-			"Stop" x Request.Pause::class %= "Pause"
+			"Stopped" x Request.Run::class %= "Running"
+			"Stopped" x Request.Pause::class %= "Paused"
 			
-			any.except("Terminate") x Request.Terminate::class %= "Terminate"
+			any.except("Terminated") x Request.Terminate::class %= "Terminated"
 			
-			start at "Constructed"
+			start at "Created"
 		}
 		
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
 			logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
 			logLevel.normal(tag) { DAEMON_START_INIT }
 			machine = KotlmataMutableMachine.create(tag, logLevel, "Daemon[$tag]:$suffix") {
-				CONSTRUCTED { /* for creating state */ }
+				CREATED { /* for creating state */ }
 				val init = InitImpl(block, this)
-				CONSTRUCTED x any %= init.startAt
-				start at CONSTRUCTED
+				CREATED x any %= init.startAt
+				start at CREATED
 			}
 			logLevel.normal(tag) { DAEMON_END_INIT }
 			try
