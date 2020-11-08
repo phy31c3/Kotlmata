@@ -53,6 +53,9 @@ immutableState.exit()
 
 [Machine]————————————————————————————————————————————————————————————————————————————————
 KotlmataMachine("name") { machine ->
+	on error [action]
+	on transition [action]
+
 	"state0" {
 		entry action [action]
 		entry via "signal" action [action]
