@@ -255,21 +255,31 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		val terminate: InputAction<Request.Terminate> = { terminateR ->
-			onTerminate.call(terminateR.payload)
 			logLevel.simple(tag, suffix) { DAEMON_TERMINATE }
+			onTerminate.call(terminateR.payload)
 		}
 		
 		core = KotlmataMachine("$tag@core") {
+			"Nil" {
+				input signal "create" action {
+					logLevel.normal(tag) { DAEMON_START_CREATE }
+					machine = KotlmataMutableMachine.create(tag, logLevel, "Daemon[$tag]:$suffix") {
+						CREATED { /* for creating state */ }
+						val init = InitImpl(block, this)
+						CREATED x any %= init.startAt
+						start at CREATED
+					}
+					logLevel.normal(tag) { DAEMON_END_CREATE }
+					onCreate.call()
+				}
+			}
 			"Created" { state ->
 				val start: InputAction<Request.Control> = { controlR ->
 					logLevel.simple(tag, suffix) { DAEMON_START }
 					onStart.call(controlR.payload)
 					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", block = postSync)
 				}
-				entry action {
-					onCreate.call()
-					logLevel.simple(tag, suffix) { DAEMON_CREATE }
-				}
+				
 				input signal Request.Run::class action start
 				input signal Request.Pause::class action start
 				input signal Request.Stop::class action start
@@ -369,9 +379,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				Thread.currentThread().interrupt()
 			}
 			"Destroyed" action {
+				logLevel.normal(tag, suffix) { DAEMON_DESTROY }
 				onDestroy.call()
-				logLevel.simple(tag, suffix) { DAEMON_DESTROY }
 			}
+			
+			"Nil" x "create" %= "Created"
 			
 			"Created" x Request.Run::class %= "Running"
 			"Created" x Request.Pause::class %= "Paused"
@@ -390,19 +402,12 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			
 			"Terminated" x "destroy" %= "Destroyed"
 			
-			start at "Created"
+			start at "Nil"
 		}
 		
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
 			logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
-			logLevel.normal(tag) { DAEMON_START_INIT }
-			machine = KotlmataMutableMachine.create(tag, logLevel, "Daemon[$tag]:$suffix") {
-				CREATED { /* for creating state */ }
-				val init = InitImpl(block, this)
-				CREATED x any %= init.startAt
-				start at CREATED
-			}
-			logLevel.normal(tag) { DAEMON_END_INIT }
+			core.input("create")
 			try
 			{
 				while (true)

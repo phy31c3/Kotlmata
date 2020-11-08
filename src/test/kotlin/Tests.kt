@@ -194,15 +194,31 @@ class Tests
 			start at "state1"
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends template("템플릿에서 정의") { _, daemon ->
-			on start {
+		val daemon by KotlmataMutableDaemon.lazy("d1", 2) extends template("템플릿에서 정의") { _, daemon ->
+			on create {
+				println("--------------------- 데몬이 생성됨")
 				thread = Thread.currentThread()
+			}
+			on start {
+				println("--------------------- 데몬이 시작됨")
 				throw Exception("onStart 에서 예외 발생")
 			} catch {
 				println("onStart Fallback: $throwable")
 			}
+			on pause {
+				println("--------------------- 데몬이 정지됨")
+			}
+			on stop {
+				println("--------------------- 데몬이 중지됨")
+			}
+			on resume {
+				println("--------------------- 데몬이 재개됨")
+			}
 			on terminate {
-				println("데몬이 종료됨")
+				println("--------------------- 데몬이 종료됨")
+			}
+			on destroy {
+				println("--------------------- 데몬이 소멸됨")
 			}
 			
 			fun defaultExit(msg: String, block: StateTemplate<String>): StateTemplate<String> = { state ->
