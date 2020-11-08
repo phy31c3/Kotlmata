@@ -213,7 +213,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	@Volatile
 	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
 	
-	private fun LifecycleDef.call(payload: Any?)
+	private fun LifecycleDef.call(payload: Any? = null)
 	{
 		try
 		{
@@ -266,7 +266,10 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					onStart.call(controlR.payload)
 					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", block = postSync)
 				}
-				
+				entry action {
+					onCreate.call()
+					logLevel.simple(tag, suffix) { DAEMON_CREATE }
+				}
 				input signal Request.Run::class action start
 				input signal Request.Pause::class action start
 				input signal Request.Stop::class action start
@@ -365,6 +368,10 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"Terminated" via Request.Terminate::class action {
 				Thread.currentThread().interrupt()
 			}
+			"Destroyed" action {
+				onDestroy.call()
+				logLevel.simple(tag, suffix) { DAEMON_DESTROY }
+			}
 			
 			"Created" x Request.Run::class %= "Running"
 			"Created" x Request.Pause::class %= "Paused"
@@ -379,7 +386,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"Stopped" x Request.Run::class %= "Running"
 			"Stopped" x Request.Pause::class %= "Paused"
 			
-			any.except("Terminated") x Request.Terminate::class %= "Terminated"
+			any.except("Terminated", "Destroyed") x Request.Terminate::class %= "Terminated"
+			
+			"Terminated" x "destroy" %= "Destroyed"
 			
 			start at "Created"
 		}
@@ -413,6 +422,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				queue!!.clear()
 				queue = null
 			}
+			core.input("destroy")
 			logLevel.simple(tag, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
 		}
 	}
