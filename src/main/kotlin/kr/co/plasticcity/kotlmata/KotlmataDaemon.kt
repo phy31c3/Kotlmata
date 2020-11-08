@@ -571,6 +571,12 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				onError = block
 				init.on.error(block)
 			}
+			
+			override fun transition(block: TransitionCallback)
+			{
+				this@InitImpl shouldNot expired
+				init.on.transition(block)
+			}
 		}
 		
 		override val start = object : KotlmataMachine.Init.Start
