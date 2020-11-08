@@ -421,13 +421,13 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		tryCatchReturn {
-			if (current.tag !== CONSTRUCTED)
+			if (current.tag !== CREATED)
 			{
 				logLevel.normal(prefix, signal, payload, current.tag) { MACHINE_START_INPUT }
 			}
 			current.input(signal, payload)
 		}.also {
-			if (current.tag !== CONSTRUCTED)
+			if (current.tag !== CREATED)
 			{
 				logLevel.normal(prefix, signal, payload, current.tag) { MACHINE_END_INPUT }
 			}
@@ -1167,7 +1167,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		init
 		{
-			init?.let { it(tag) } ?: modify?.let { it(tag) }
+			init?.also { it(tag) } ?: modify?.also { it(tag) }
 			expire()
 		}
 	}
