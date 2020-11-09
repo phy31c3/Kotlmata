@@ -467,7 +467,22 @@ class Tests
 	{
 		var expire: Kotlmata.Post? = null
 		Kotlmata.start(2)
-		Kotlmata.fork("daemon", NO_LOG) by {
+		
+		Kotlmata fork "daemon" by {
+			"state1" {
+				input signal "interrupt" action {
+					Thread.currentThread().interrupt()
+				}
+			}
+			start at "state1"
+		}
+		
+		Kotlmata run "daemon"
+		Kotlmata input "interrupt" to "daemon"
+		
+		Thread.sleep(500)
+		
+		Kotlmata fork "daemon" by {
 			
 			on start {
 				println("데몬 on start: payload = $payload")

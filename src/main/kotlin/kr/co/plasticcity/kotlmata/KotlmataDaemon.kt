@@ -97,6 +97,7 @@ interface KotlmataDaemon<T : DAEMON>
 	}
 	
 	val tag: T
+	var isTerminated: Boolean
 	
 	fun run(payload: Any? = null)
 	fun pause(payload: Any? = null)
@@ -212,6 +213,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	@Volatile
 	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
+	
+	@Volatile
+	override var isTerminated: Boolean = false
 	
 	private fun LifecycleDef.call(payload: Any? = null)
 	{
@@ -376,6 +380,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 			"Terminated" via Request.Terminate::class action {
+				isTerminated = true
 				Thread.currentThread().interrupt()
 			}
 			"Destroyed" action {
