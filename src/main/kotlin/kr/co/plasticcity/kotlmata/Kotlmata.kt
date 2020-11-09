@@ -28,9 +28,9 @@ interface Kotlmata
 	fun stop(daemon: DAEMON, payload: Any? = null)
 	fun terminate(daemon: DAEMON, payload: Any? = null)
 	infix fun run(daemon: DAEMON) = run(daemon, payload = null)
-	infix fun pause(daemon: DAEMON) = run(daemon, payload = null)
-	infix fun stop(daemon: DAEMON) = run(daemon, payload = null)
-	infix fun terminate(daemon: DAEMON) = run(daemon, payload = null)
+	infix fun pause(daemon: DAEMON) = pause(daemon, payload = null)
+	infix fun stop(daemon: DAEMON) = stop(daemon, payload = null)
+	infix fun terminate(daemon: DAEMON) = terminate(daemon, payload = null)
 	
 	infix fun <T : SIGNAL> input(signal: T): Type<T>
 	

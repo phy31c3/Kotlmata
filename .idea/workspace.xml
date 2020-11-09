@@ -34,12 +34,9 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#132: 데몬 on create() 실행">
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#133: Kotlmata 풀에서 데몬 체크 시 유효성도 함께 체크">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -219,13 +216,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1531582917270</updated>
-    </task>
-    <task id="LOCAL-00152" summary="#92: 머신, 데몬 템플릿 인터페이스 구현(3)">
-      <created>1582133321594</created>
-      <option name="number" value="00152" />
-      <option name="presentableId" value="LOCAL-00152" />
-      <option name="project" value="LOCAL" />
-      <updated>1582133321594</updated>
     </task>
     <task id="LOCAL-00153" summary="#92: 머신, 데몬 템플릿 테스트 추가">
       <created>1582134735161</created>
@@ -563,7 +553,14 @@
       <option name="project" value="LOCAL" />
       <updated>1604867912309</updated>
     </task>
-    <option name="localTasksCounter" value="201" />
+    <task id="LOCAL-00201" summary="#133: Kotlmata 풀에서 데몬 체크 시 유효성도 함께 체크">
+      <created>1604937879428</created>
+      <option name="number" value="00201" />
+      <option name="presentableId" value="LOCAL-00201" />
+      <option name="project" value="LOCAL" />
+      <updated>1604937879428</updated>
+    </task>
+    <option name="localTasksCounter" value="202" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -604,7 +601,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="#117: STATE_NO_ENTRY 로그가 중복 출력 됨" />
     <MESSAGE value="코틀린 버전 업데이트 (1.3.72)" />
     <MESSAGE value="#120: xxDef -&gt; xxTemplate" />
     <MESSAGE value="#120: State 인터페이스 간소화" />
@@ -629,7 +625,8 @@
     <MESSAGE value="#131: 전역 데몬이 의도치 않게 종료되었을 경우의 처리" />
     <MESSAGE value="#132: defaultInput 함수 위치 수정" />
     <MESSAGE value="#132: 데몬 on create() 실행" />
-    <option name="LAST_COMMIT_MESSAGE" value="#132: 데몬 on create() 실행" />
+    <MESSAGE value="#133: Kotlmata 풀에서 데몬 체크 시 유효성도 함께 체크" />
+    <option name="LAST_COMMIT_MESSAGE" value="#133: Kotlmata 풀에서 데몬 체크 시 유효성도 함께 체크" />
   </component>
   <component name="WindowStateProjectService">
     <state x="734" y="355" width="1092" height="815" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1599309089851">
@@ -656,26 +653,26 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="528" y="26" width="1996" height="1368" key="CommitChangelistDialog2/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1599309161708" />
-    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog" timestamp="1604866639630">
+    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog" timestamp="1604939069940">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604866639630" />
-    <state width="932" height="1272" key="GridCell.Tab.0.bottom" timestamp="1604937495175">
+    <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604939069940" />
+    <state width="932" height="1272" key="GridCell.Tab.0.bottom" timestamp="1604939069022">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="932" height="1272" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604937495175" />
-    <state width="932" height="1272" key="GridCell.Tab.0.center" timestamp="1604937495175">
+    <state width="932" height="1272" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604939069022" />
+    <state width="932" height="1272" key="GridCell.Tab.0.center" timestamp="1604939069022">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="932" height="1272" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604937495175" />
-    <state width="932" height="1272" key="GridCell.Tab.0.left" timestamp="1604937495175">
+    <state width="932" height="1272" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604939069022" />
+    <state width="932" height="1272" key="GridCell.Tab.0.left" timestamp="1604939069022">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="932" height="1272" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604937495175" />
-    <state width="932" height="1272" key="GridCell.Tab.0.right" timestamp="1604937495175">
+    <state width="932" height="1272" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604939069022" />
+    <state width="932" height="1272" key="GridCell.Tab.0.right" timestamp="1604939069022">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="932" height="1272" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604937495175" />
+    <state width="932" height="1272" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604939069022" />
     <state width="2517" height="276" key="GridCell.Tab.1.bottom" timestamp="1604866264472">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -692,14 +689,18 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="2517" height="276" key="GridCell.Tab.1.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604866264472" />
-    <state x="957" y="401" key="RollbackChangesDialog" timestamp="1604863397700">
+    <state x="957" y="401" key="RollbackChangesDialog" timestamp="1604938994574">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="957" y="401" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604863397700" />
+    <state x="957" y="401" key="RollbackChangesDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604938994574" />
     <state x="760" y="274" key="SettingsEditor" timestamp="1604830730688">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="760" y="274" key="SettingsEditor/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604830730688" />
+    <state x="985" y="396" key="VCS.ChangeListViewerDialog" timestamp="1604939025983">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="985" y="396" key="VCS.ChangeListViewerDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604939025983" />
     <state x="872" y="419" key="Vcs.Push.Dialog.v2" timestamp="1604830164242">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
