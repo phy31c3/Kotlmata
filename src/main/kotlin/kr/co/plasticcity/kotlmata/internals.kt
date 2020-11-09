@@ -17,6 +17,15 @@ internal class Error(override val throwable: Throwable) : ErrorDSL
 internal class ErrorFunction(override val throwable: Throwable) : ErrorFunctionDSL
 internal class ErrorPayload(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadDSL
 internal class ErrorPayloadFunction(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadFunctionDSL
+internal class Transition : TransitionDSL
+{
+	override val count: Int = Transition.count++
+	
+	companion object
+	{
+		var count = 0
+	}
+}
 
 internal fun Any?.convertToSync() = when (this)
 {
@@ -29,9 +38,9 @@ internal fun Any?.convertToSync() = when (this)
 
 internal object stay
 
-internal object CONSTRUCTED
+internal object CREATED
 {
-	override fun toString(): String = "CONSTRUCTED"
+	override fun toString(): String = "CREATED"
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing)

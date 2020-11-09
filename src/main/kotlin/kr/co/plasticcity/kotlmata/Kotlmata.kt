@@ -19,7 +19,7 @@ interface Kotlmata
 	fun stop()
 	fun release()
 	
-	fun <T : DAEMON> fork(daemon: T, logLevel: Int = UNDEFINED): Fork<T>
+	fun <T : DAEMON> fork(daemon: T, logLevel: Int = UNDEFINED, threadName: String? = null, isDaemon: Boolean = false): Fork<T>
 	infix fun <T : DAEMON> fork(daemon: T): Fork<T> = fork(daemon, UNDEFINED)
 	infix fun <T : DAEMON> modify(daemon: T): Modify<T>
 	
@@ -118,7 +118,7 @@ interface Kotlmata
 		
 		interface Fork
 		{
-			fun <T : DAEMON> daemon(daemon: T, logLevel: Int = UNDEFINED): By<T>
+			fun <T : DAEMON> daemon(daemon: T, logLevel: Int = UNDEFINED, threadName: String? = null, isDaemon: Boolean = false): By<T>
 			infix fun <T : DAEMON> daemon(daemon: T): By<T> = daemon(daemon, UNDEFINED)
 			
 			interface By<T : DAEMON>
@@ -168,20 +168,16 @@ private object KotlmataImpl : Kotlmata
 				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_START }
 			}
-			
 			on pause {
 				logLevel.simple { KOTLMATA_PAUSE }
 			}
-			
 			on stop {
 				logLevel.simple { KOTLMATA_STOP }
 			}
-			
 			on resume {
 				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_RESUME }
 			}
-			
 			on terminate {
 				logLevel.simple { KOTLMATA_RELEASE }
 				daemons.forEach { (_, daemon) ->
@@ -198,6 +194,8 @@ private object KotlmataImpl : Kotlmata
 						daemons[forkR.daemon] = KotlmataMutableDaemon(
 								tag = forkR.daemon,
 								logLevel = if (forkR.logLevel == UNDEFINED) logLevel else forkR.logLevel,
+								threadName = forkR.threadName,
+								isDaemon = forkR.isDaemon,
 								block = { tag, _ -> forkR.block(this, tag) }
 						)
 					}
@@ -320,12 +318,12 @@ private object KotlmataImpl : Kotlmata
 		core.terminate()
 	}
 	
-	override fun <T : DAEMON> fork(daemon: T, logLevel: Int) = object : Kotlmata.Fork<T>
+	override fun <T : DAEMON> fork(daemon: T, logLevel: Int, threadName: String?, isDaemon: Boolean) = object : Kotlmata.Fork<T>
 	{
 		@Suppress("UNCHECKED_CAST")
 		override fun by(block: ForkTemplate<T>)
 		{
-			core.input(Request.Fork(daemon, logLevel, block as ForkTemplate<DAEMON>))
+			core.input(Request.Fork(daemon, logLevel, threadName, isDaemon, block as ForkTemplate<DAEMON>))
 		}
 	}
 	
@@ -503,7 +501,7 @@ private object KotlmataImpl : Kotlmata
 		
 		override val fork = object : Kotlmata.Post.Fork
 		{
-			override fun <T : DAEMON> daemon(daemon: T, logLevel: Int) = object : Kotlmata.Post.Fork.By<T>
+			override fun <T : DAEMON> daemon(daemon: T, logLevel: Int, threadName: String?, isDaemon: Boolean) = object : Kotlmata.Post.Fork.By<T>
 			{
 				override fun by(block: ForkTemplate<T>)
 				{
@@ -514,6 +512,8 @@ private object KotlmataImpl : Kotlmata
 						daemons[daemon] = KotlmataMutableDaemon(
 								tag = daemon,
 								logLevel = if (logLevel == UNDEFINED) KotlmataImpl.logLevel else logLevel,
+								threadName = threadName,
+								isDaemon = isDaemon,
 								block = { tag, _ -> block(tag) }
 						)
 					}
@@ -783,7 +783,7 @@ private object KotlmataImpl : Kotlmata
 	
 	private sealed class Request
 	{
-		class Fork(val daemon: DAEMON, val logLevel: Int, val block: ForkTemplate<DAEMON>) : Request()
+		class Fork(val daemon: DAEMON, val logLevel: Int, val threadName: String?, val isDaemon: Boolean, val block: ForkTemplate<DAEMON>) : Request()
 		class Modify(val daemon: DAEMON, val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request()
 		
 		class Run(val daemon: DAEMON, val payload: Any? = null) : Request()

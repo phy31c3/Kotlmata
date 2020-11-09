@@ -72,13 +72,16 @@ class Tests
 			on error {
 				println("$msg: on error")
 			}
+			on transition { from, signal, to ->
+				println("on transition : [$count] $from x $signal -> $to")
+			}
 			
 			block(machine)
 			
 			start at "state1"
 		}
 		
-		val machine by KotlmataMutableMachine.lazy("m1", 1) extends template("템플릿에서 정의") {
+		val machine by KotlmataMutableMachine.lazy("m1", 2) extends template("템플릿에서 정의") {
 			"state1" { state ->
 				entry function { println("$state: 기본 진입함수") }
 				input signal String::class function { s -> println("$state: String 타입 입력함수: $s") }
@@ -191,15 +194,31 @@ class Tests
 			start at "state1"
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends template("템플릿에서 정의") { _, daemon ->
-			on start {
+		val daemon by KotlmataMutableDaemon.lazy("d1", 2) extends template("템플릿에서 정의") { _, daemon ->
+			on create {
+				println("--------------------- 데몬이 생성됨")
 				thread = Thread.currentThread()
+			}
+			on start {
+				println("--------------------- 데몬이 시작됨")
 				throw Exception("onStart 에서 예외 발생")
 			} catch {
 				println("onStart Fallback: $throwable")
 			}
+			on pause {
+				println("--------------------- 데몬이 정지됨")
+			}
+			on stop {
+				println("--------------------- 데몬이 중지됨")
+			}
+			on resume {
+				println("--------------------- 데몬이 재개됨")
+			}
 			on terminate {
-				println("데몬이 종료됨")
+				println("--------------------- 데몬이 종료됨")
+			}
+			on destroy {
+				println("--------------------- 데몬이 소멸됨")
 			}
 			
 			fun defaultExit(msg: String, block: StateTemplate<String>): StateTemplate<String> = { state ->

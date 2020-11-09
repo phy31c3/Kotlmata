@@ -53,6 +53,9 @@ immutableState.exit()
 
 [Machine]————————————————————————————————————————————————————————————————————————————————
 KotlmataMachine("name") { machine ->
+	on error [action]
+	on transition [action]
+
 	"state0" {
 		entry action [action]
 		entry via "signal" action [action]
@@ -160,11 +163,13 @@ mutableMachine.input(object, Any::class) // <T : Any> input(signal: T, type: KCl
 
 [Daemon]————————————————————————————————————————————————————————————————————————————————
 KotlmataDaemon("name") { daemon ->
+	on create [action] // 데몬 생성 시
 	on start [action] // 최초 시작 시
 	on pause [action]
 	on stop [action]
 	on resume [action] // 일시정지 혹은 정지 상태에서 재개될 시
 	on terminate [action] // 완전 종료 시
+	on destroy [action] // 데몬의 쓰레드 종료 시
 
 	// Machine init 블럭과 동일
 

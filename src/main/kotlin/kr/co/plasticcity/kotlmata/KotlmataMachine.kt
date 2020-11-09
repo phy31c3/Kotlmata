@@ -58,6 +58,7 @@ interface KotlmataMachine<T : MACHINE>
 		interface On
 		{
 			infix fun error(block: MachineError)
+			infix fun transition(block: TransitionCallback)
 		}
 		
 		interface Start
@@ -363,6 +364,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	
+	private var onTransition: TransitionCallback? = null
 	private var onError: MachineError? = null
 	
 	private lateinit var current: KotlmataState<out STATE>
@@ -386,17 +388,6 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		null
 	}
 	
-	override fun input(signal: SIGNAL, payload: Any?)
-	{
-		defaultInput(FunctionDSL.Sync(signal, null, payload))
-	}
-	
-	@Suppress("UNCHECKED_CAST")
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?)
-	{
-		defaultInput(FunctionDSL.Sync(signal, type as KClass<SIGNAL>, payload))
-	}
-	
 	private fun defaultInput(begin: FunctionDSL.Sync)
 	{
 		var next: FunctionDSL.Sync? = begin
@@ -411,6 +402,17 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
+	override fun input(signal: SIGNAL, payload: Any?)
+	{
+		defaultInput(FunctionDSL.Sync(signal, null, payload))
+	}
+	
+	@Suppress("UNCHECKED_CAST")
+	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?)
+	{
+		defaultInput(FunctionDSL.Sync(signal, type as KClass<SIGNAL>, payload))
+	}
+	
 	override fun input(signal: SIGNAL, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.next(): STATE?
@@ -419,13 +421,13 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		tryCatchReturn {
-			if (current.tag !== CONSTRUCTED)
+			if (current.tag !== CREATED)
 			{
 				logLevel.normal(prefix, signal, payload, current.tag) { MACHINE_START_INPUT }
 			}
 			current.input(signal, payload)
 		}.also {
-			if (current.tag !== CONSTRUCTED)
+			if (current.tag !== CREATED)
 			{
 				logLevel.normal(prefix, signal, payload, current.tag) { MACHINE_END_INPUT }
 			}
@@ -454,9 +456,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					stateMap[it]
 				}
 			}
-		}?.let { next ->
+		}?.also { next ->
 			logLevel.simple(prefix, current.tag, signal, next.tag) { MACHINE_START_TRANSITION }
 			tryCatchReturn { current.exit(signal) }
+			onTransition?.invoke(Transition(), current.tag, signal, next.tag)
 			current = next
 			tryCatchReturn { current.entry(signal) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
@@ -500,9 +503,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					stateMap[it]
 				}
 			}
-		}?.let { next ->
+		}?.also { next ->
 			logLevel.simple(prefix, current.tag, "${type.simpleName}::class", next.tag) { MACHINE_START_TRANSITION }
 			tryCatchReturn { current.exit(signal) }
+			onTransition?.invoke(Transition(), current.tag, signal, next.tag)
 			current = next
 			tryCatchReturn { current.entry(signal, type) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
@@ -544,6 +548,12 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				this@ModifierImpl shouldNot expired
 				onError = block
+			}
+			
+			override fun transition(block: TransitionCallback)
+			{
+				this@ModifierImpl shouldNot expired
+				onTransition = block
 			}
 		}
 		
@@ -1157,7 +1167,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		init
 		{
-			init?.let { it(tag) } ?: modify?.let { it(tag) }
+			init?.also { it(tag) } ?: modify?.also { it(tag) }
 			expire()
 		}
 	}
