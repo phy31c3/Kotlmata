@@ -36,8 +36,10 @@
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="#132: 데몬 on create() 실행">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Kotlmata.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,7 +104,7 @@
       <recent name="D:\workspace\Kotlmata\src\test\kotlin" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.Tests.daemonTest">
+  <component name="RunManager" selected="JUnit.Tests.kotlmataTest">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method v="2">
@@ -199,9 +201,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.Tests.kotlmataTest" />
         <item itemvalue="JUnit.Tests.daemonTest" />
         <item itemvalue="JUnit.Tests.machineTest" />
-        <item itemvalue="JUnit.Tests.kotlmataTest" />
         <item itemvalue="JUnit.Tests.commonTest" />
       </list>
     </recent_temporary>
@@ -658,22 +660,22 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="92" y="92" width="2376" height="1216" key="DiffContextDialog/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604866639630" />
-    <state width="932" height="1272" key="GridCell.Tab.0.bottom" timestamp="1604888261110">
+    <state width="932" height="1272" key="GridCell.Tab.0.bottom" timestamp="1604937495175">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="932" height="1272" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604888261110" />
-    <state width="932" height="1272" key="GridCell.Tab.0.center" timestamp="1604888261109">
+    <state width="932" height="1272" key="GridCell.Tab.0.bottom/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604937495175" />
+    <state width="932" height="1272" key="GridCell.Tab.0.center" timestamp="1604937495175">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="932" height="1272" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604888261109" />
-    <state width="932" height="1272" key="GridCell.Tab.0.left" timestamp="1604888261109">
+    <state width="932" height="1272" key="GridCell.Tab.0.center/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604937495175" />
+    <state width="932" height="1272" key="GridCell.Tab.0.left" timestamp="1604937495175">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="932" height="1272" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604888261109" />
-    <state width="932" height="1272" key="GridCell.Tab.0.right" timestamp="1604888261109">
+    <state width="932" height="1272" key="GridCell.Tab.0.left/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604937495175" />
+    <state width="932" height="1272" key="GridCell.Tab.0.right" timestamp="1604937495175">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="932" height="1272" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604888261109" />
+    <state width="932" height="1272" key="GridCell.Tab.0.right/-1080.0.1080.1880/0.0.2560.1400@0.0.2560.1400" timestamp="1604937495175" />
     <state width="2517" height="276" key="GridCell.Tab.1.bottom" timestamp="1604866264472">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>

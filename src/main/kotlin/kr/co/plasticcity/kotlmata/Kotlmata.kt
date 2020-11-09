@@ -188,7 +188,7 @@ private object KotlmataImpl : Kotlmata
 			
 			"Core" {
 				input signal Request.Fork::class action { forkR ->
-					if (forkR.daemon !in daemons)
+					if (!forkR.daemon.isExistAndValid)
 					{
 						logLevel.detail(forkR, forkR.daemon) { KOTLMATA_COMMON }
 						daemons[forkR.daemon] = KotlmataMutableDaemon(
@@ -205,7 +205,7 @@ private object KotlmataImpl : Kotlmata
 					}
 				}
 				input signal Request.Modify::class action { modifyR ->
-					if (modifyR.daemon in daemons)
+					if (modifyR.daemon.isExistAndValid)
 					{
 						logLevel.detail(modifyR, modifyR.daemon) { KOTLMATA_COMMON }
 						daemons[modifyR.daemon]!! modify modifyR.block
@@ -216,7 +216,7 @@ private object KotlmataImpl : Kotlmata
 					}
 				}
 				input signal Request.Run::class action { runR ->
-					if (runR.daemon in daemons)
+					if (runR.daemon.isExistAndValid)
 					{
 						logLevel.detail(runR, runR.daemon) { KOTLMATA_COMMON }
 						daemons[runR.daemon]!!.run(runR.payload)
@@ -227,7 +227,7 @@ private object KotlmataImpl : Kotlmata
 					}
 				}
 				input signal Request.Pause::class action { pauseR ->
-					if (pauseR.daemon in daemons)
+					if (pauseR.daemon.isExistAndValid)
 					{
 						logLevel.detail(pauseR, pauseR.daemon) { KOTLMATA_COMMON }
 						daemons[pauseR.daemon]!!.pause(pauseR.payload)
@@ -238,7 +238,7 @@ private object KotlmataImpl : Kotlmata
 					}
 				}
 				input signal Request.Stop::class action { stopR ->
-					if (stopR.daemon in daemons)
+					if (stopR.daemon.isExistAndValid)
 					{
 						logLevel.detail(stopR, stopR.daemon) { KOTLMATA_COMMON }
 						daemons[stopR.daemon]!!.stop(stopR.payload)
@@ -249,7 +249,7 @@ private object KotlmataImpl : Kotlmata
 					}
 				}
 				input signal Request.Terminate::class action { terminateR ->
-					if (terminateR.daemon in daemons)
+					if (terminateR.daemon.isExistAndValid)
 					{
 						logLevel.detail(terminateR, terminateR.daemon) { KOTLMATA_COMMON }
 						daemons[terminateR.daemon]!!.terminate(terminateR.payload)
@@ -261,7 +261,7 @@ private object KotlmataImpl : Kotlmata
 					}
 				}
 				input signal Request.Input::class action { inputR ->
-					if (inputR.daemon in daemons)
+					if (inputR.daemon.isExistAndValid)
 					{
 						logLevel.detail("", inputR.signal, inputR.payload, inputR.priority, inputR.daemon) { KOTLMATA_INPUT }
 						daemons[inputR.daemon]!!.input(inputR.signal, inputR.payload, inputR.priority)
@@ -272,7 +272,7 @@ private object KotlmataImpl : Kotlmata
 					}
 				}
 				input signal Request.TypedInput::class action { typedR ->
-					if (typedR.daemon in daemons)
+					if (typedR.daemon.isExistAndValid)
 					{
 						logLevel.detail("", typedR.signal, "${typedR.type.simpleName}::class", typedR.payload, typedR.priority, typedR.daemon) { KOTLMATA_TYPED_INPUT }
 						daemons[typedR.daemon]!!.input(typedR.signal, typedR.type, typedR.payload, typedR.priority)
@@ -283,15 +283,17 @@ private object KotlmataImpl : Kotlmata
 					}
 				}
 				input signal Request.Post::class action { postR ->
-					logLevel.detail { KOTLMATA_START_POST }
+					logLevel.normal { KOTLMATA_START_POST }
 					PostImpl(postR.block)
-					logLevel.detail { KOTLMATA_END_POST }
+					logLevel.normal { KOTLMATA_END_POST }
 				}
 			}
 			
 			start at "Core"
 		}
 	}
+	
+	private val DAEMON.isExistAndValid: Boolean get() = !(daemons[this]?.isTerminated ?: true)
 	
 	override fun config(block: Kotlmata.Config.() -> Unit)
 	{
@@ -473,7 +475,7 @@ private object KotlmataImpl : Kotlmata
 					init
 					{
 						this@PostImpl shouldNot expired
-						if (daemon in daemons)
+						if (daemon.isExistAndValid)
 						{
 							block()
 							or = false
@@ -506,7 +508,7 @@ private object KotlmataImpl : Kotlmata
 				override fun by(block: ForkTemplate<T>)
 				{
 					this@PostImpl shouldNot expired
-					if (daemon !in daemons)
+					if (!daemon.isExistAndValid)
 					{
 						logLevel.detail("${tab}Fork", daemon) { KOTLMATA_COMMON }
 						daemons[daemon] = KotlmataMutableDaemon(
@@ -533,7 +535,7 @@ private object KotlmataImpl : Kotlmata
 				override fun by(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
 				{
 					this@PostImpl shouldNot expired
-					if (daemon in daemons)
+					if (daemon.isExistAndValid)
 					{
 						logLevel.detail("${tab}Modify", daemon) { KOTLMATA_COMMON }
 						daemons[daemon]!! modify block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit
@@ -556,7 +558,7 @@ private object KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON, payload: Any?)
 			{
 				this@PostImpl shouldNot expired
-				if (daemon in daemons)
+				if (daemon.isExistAndValid)
 				{
 					logLevel.detail("${tab}Run", daemon) { KOTLMATA_COMMON }
 					daemons[daemon]!!.run(payload)
@@ -578,7 +580,7 @@ private object KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON, payload: Any?)
 			{
 				this@PostImpl shouldNot expired
-				if (daemon in daemons)
+				if (daemon.isExistAndValid)
 				{
 					logLevel.detail("${tab}Pause", daemon) { KOTLMATA_COMMON }
 					daemons[daemon]!!.pause(payload)
@@ -600,7 +602,7 @@ private object KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON, payload: Any?)
 			{
 				this@PostImpl shouldNot expired
-				if (daemon in daemons)
+				if (daemon.isExistAndValid)
 				{
 					logLevel.detail("${tab}Stop", daemon) { KOTLMATA_COMMON }
 					daemons[daemon]!!.stop(payload)
@@ -622,7 +624,7 @@ private object KotlmataImpl : Kotlmata
 			override fun daemon(daemon: DAEMON, payload: Any?)
 			{
 				this@PostImpl shouldNot expired
-				if (daemon in daemons)
+				if (daemon.isExistAndValid)
 				{
 					logLevel.detail("${tab}Terminate", daemon) { KOTLMATA_COMMON }
 					daemons[daemon]!!.terminate(payload)
@@ -648,7 +650,7 @@ private object KotlmataImpl : Kotlmata
 							override fun to(daemon: DAEMON)
 							{
 								this@PostImpl shouldNot expired
-								if (daemon in daemons)
+								if (daemon.isExistAndValid)
 								{
 									logLevel.detail(tab, signal, "${type.simpleName}::class", payload, priority, daemon) { KOTLMATA_TYPED_INPUT }
 									daemons[daemon]!!.input(signal, type, payload, priority)
@@ -663,7 +665,7 @@ private object KotlmataImpl : Kotlmata
 						override fun to(daemon: DAEMON)
 						{
 							this@PostImpl shouldNot expired
-							if (daemon in daemons)
+							if (daemon.isExistAndValid)
 							{
 								logLevel.detail(tab, signal, "${type.simpleName}::class", payload, 0, daemon) { KOTLMATA_TYPED_INPUT }
 								daemons[daemon]!!.input(signal, type, payload, 0)
@@ -680,7 +682,7 @@ private object KotlmataImpl : Kotlmata
 						override fun to(daemon: DAEMON)
 						{
 							this@PostImpl shouldNot expired
-							if (daemon in daemons)
+							if (daemon.isExistAndValid)
 							{
 								logLevel.detail(tab, signal, "${type.simpleName}::class", null, priority, daemon) { KOTLMATA_TYPED_INPUT }
 								daemons[daemon]!!.input(signal, type, null, priority)
@@ -695,7 +697,7 @@ private object KotlmataImpl : Kotlmata
 					override fun to(daemon: DAEMON)
 					{
 						this@PostImpl shouldNot expired
-						if (daemon in daemons)
+						if (daemon.isExistAndValid)
 						{
 							logLevel.detail(tab, signal, "${type.simpleName}::class", null, 0, daemon) { KOTLMATA_TYPED_INPUT }
 							daemons[daemon]!!.input(signal, type, null, 0)
@@ -714,7 +716,7 @@ private object KotlmataImpl : Kotlmata
 						override fun to(daemon: DAEMON)
 						{
 							this@PostImpl shouldNot expired
-							if (daemon in daemons)
+							if (daemon.isExistAndValid)
 							{
 								logLevel.detail(tab, signal, payload, priority, daemon) { KOTLMATA_INPUT }
 								daemons[daemon]!!.input(signal, payload, priority)
@@ -729,7 +731,7 @@ private object KotlmataImpl : Kotlmata
 					override fun to(daemon: DAEMON)
 					{
 						this@PostImpl shouldNot expired
-						if (daemon in daemons)
+						if (daemon.isExistAndValid)
 						{
 							logLevel.detail(tab, signal, payload, 0, daemon) { KOTLMATA_INPUT }
 							daemons[daemon]!!.input(signal, payload, 0)
@@ -746,7 +748,7 @@ private object KotlmataImpl : Kotlmata
 					override fun to(daemon: DAEMON)
 					{
 						this@PostImpl shouldNot expired
-						if (daemon in daemons)
+						if (daemon.isExistAndValid)
 						{
 							logLevel.detail(tab, signal, null, priority, daemon) { KOTLMATA_INPUT }
 							daemons[daemon]!!.input(signal, null, priority)
@@ -761,7 +763,7 @@ private object KotlmataImpl : Kotlmata
 				override fun to(daemon: DAEMON)
 				{
 					this@PostImpl shouldNot expired
-					if (daemon in daemons)
+					if (daemon.isExistAndValid)
 					{
 						logLevel.detail(tab, signal, null, 0, daemon) { KOTLMATA_INPUT }
 						daemons[daemon]!!.input(signal, null, 0)

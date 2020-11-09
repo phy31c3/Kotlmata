@@ -15,9 +15,9 @@ internal class Logs
 		const val KOTLMATA_INPUT = "Kotlmata:%s Input signal {signal: %s, payload: %s, priority: %s} {daemon: %s}"
 		const val KOTLMATA_TYPED_INPUT = "Kotlmata:%s Input typed signal {signal: %s, type: %s, payload: %s, priority: %s} {daemon: %s}"
 		const val KOTLMATA_COMMON_IGNORED_EXISTS = "Kotlmata: %s is ignored: The daemon is already exists. {daemon: %s}"
-		const val KOTLMATA_COMMON_IGNORED_NONE = "Kotlmata: %s is ignored: The daemon is not exists. {daemon: %s}"
-		const val KOTLMATA_INPUT_IGNORED = "Kotlmata:%s Signal input is ignored: The daemon is not exists. {signal: %s, payload: %s, priority: %s} {daemon: %s}"
-		const val KOTLMATA_TYPED_INPUT_IGNORED = "Kotlmata:%s Typed signal input is ignored: The daemon is not exists. {signal: %s, type: %s, payload: %s, priority: %s} {daemon: %s}"
+		const val KOTLMATA_COMMON_IGNORED_NONE = "Kotlmata: %s is ignored: The daemon does not exist or invalid. {daemon: %s}"
+		const val KOTLMATA_INPUT_IGNORED = "Kotlmata:%s Signal input is ignored: The daemon does not exist or invalid. {signal: %s, payload: %s, priority: %s} {daemon: %s}"
+		const val KOTLMATA_TYPED_INPUT_IGNORED = "Kotlmata:%s Typed signal input is ignored: The daemon does not exist or invalid. {signal: %s, type: %s, payload: %s, priority: %s} {daemon: %s}"
 		const val KOTLMATA_START_POST = "Kotlmata: >> Post block"
 		const val KOTLMATA_END_POST = "Kotlmata: << Post block"
 		
