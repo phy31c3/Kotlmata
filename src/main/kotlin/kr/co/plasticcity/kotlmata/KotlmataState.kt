@@ -32,11 +32,6 @@ interface KotlmataState<T : STATE>
 		val error: Error
 		
 		infix fun SIGNAL.or(signal: SIGNAL): Signals
-		
-		interface Signals : MutableList<SIGNAL>
-		{
-			infix fun or(signal: SIGNAL): Signals
-		}
 	}
 	
 	interface Entry
@@ -45,7 +40,7 @@ interface KotlmataState<T : STATE>
 		infix fun function(action: EntryFunction<SIGNAL>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
-		infix fun via(signals: Init.Signals): Action<SIGNAL>
+		infix fun via(signals: Signals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
 		{
@@ -66,7 +61,7 @@ interface KotlmataState<T : STATE>
 		infix fun function(action: InputFunction<SIGNAL>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> signal(signal: T): Action<T>
-		infix fun signal(signals: Init.Signals): Action<SIGNAL>
+		infix fun signal(signals: Signals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
 		{
@@ -413,7 +408,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun via(signals: KotlmataState.Init.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
+			override fun via(signals: Signals) = object : KotlmataState.Entry.Action<SIGNAL>
 			{
 				override fun function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 				{
@@ -489,7 +484,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun signal(signals: KotlmataState.Init.Signals) = object : KotlmataState.Input.Action<SIGNAL>
+			override fun signal(signals: Signals) = object : KotlmataState.Input.Action<SIGNAL>
 			{
 				override fun function(action: InputFunction<SIGNAL>): KotlmataState.Input.Catch<SIGNAL>
 				{
@@ -625,9 +620,9 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		}
 		
-		override fun SIGNAL.or(signal: SIGNAL): KotlmataState.Init.Signals = object : KotlmataState.Init.Signals, MutableList<SIGNAL> by mutableListOf(this, signal)
+		override fun SIGNAL.or(signal: SIGNAL): Signals = object : Signals, MutableList<SIGNAL> by mutableListOf(this, signal)
 		{
-			override fun or(signal: SIGNAL): KotlmataState.Init.Signals
+			override fun or(signal: SIGNAL): Signals
 			{
 				this@ModifierImpl shouldNot expired
 				add(signal)
