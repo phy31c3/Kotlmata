@@ -1051,7 +1051,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		/*###################################################################################################################################
-		 * Signals transition rule
+		 * StatesOrSignals transition rule
 		 *###################################################################################################################################*/
 		override fun SIGNAL.or(stateOrSignal: SIGNAL): StatesOrSignals = object : StatesOrSignals, MutableList<SIGNAL> by mutableListOf(this, stateOrSignal)
 		{
@@ -1063,88 +1063,30 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun STATE.x(signals: StatesOrSignals) = object : RuleAssignable
+		private fun StatesOrSignals.toAnyOf() = object : AnyOf, List<STATE_OR_SIGNAL> by this
 		{
-			override fun remAssign(state: STATE)
-			{
-				this@ModifierImpl shouldNot expired
-				signals.forEach { signal ->
-					this@x x signal %= state
-				}
-			}
+			/* empty */
 		}
 		
-		override fun any.x(signals: StatesOrSignals) = object : RuleAssignable
-		{
-			override fun remAssign(state: STATE)
-			{
-				this@ModifierImpl shouldNot expired
-				signals.forEach { signal ->
-					this@x x signal %= state
-				}
-			}
-		}
+		override fun STATE.x(signals: StatesOrSignals) = this x signals.toAnyOf()
 		
-		override fun AnyOf.x(signals: StatesOrSignals) = object : RuleAssignable
-		{
-			override fun remAssign(state: STATE)
-			{
-				this@ModifierImpl shouldNot expired
-				forEach { from ->
-					from x signals %= state
-				}
-			}
-		}
+		override fun any.x(signals: StatesOrSignals) = this x signals.toAnyOf()
 		
-		override fun AnyExcept.x(signals: StatesOrSignals) = object : RuleAssignable
-		{
-			override fun remAssign(state: STATE)
-			{
-				this@ModifierImpl shouldNot expired
-				any x signals %= state
-				forEach { from ->
-					signals.forEach { signal ->
-						ruleMap.let {
-							it[from]
-						}?.let {
-							it[signal]
-						} ?: run {
-							from x signal %= stay
-						}
-					}
-				}
-			}
-		}
+		override fun AnyOf.x(signals: StatesOrSignals) = this x signals.toAnyOf()
 		
-		override fun StatesOrSignals.x(signal: SIGNAL): RuleAssignable
-		{
-			TODO("not implemented")
-		}
+		override fun AnyExcept.x(signals: StatesOrSignals) = this x signals.toAnyOf()
 		
-		override fun StatesOrSignals.x(signal: KClass<out SIGNAL>): RuleAssignable
-		{
-			TODO("not implemented")
-		}
+		override fun StatesOrSignals.x(signal: SIGNAL) = toAnyOf() x signal
 		
-		override fun StatesOrSignals.x(keyword: any): RuleAssignable
-		{
-			TODO("not implemented")
-		}
+		override fun StatesOrSignals.x(signal: KClass<out SIGNAL>) = toAnyOf() x signal
 		
-		override fun StatesOrSignals.x(anyExcept: AnyExcept): RuleAssignable
-		{
-			TODO("not implemented")
-		}
+		override fun StatesOrSignals.x(keyword: any) = toAnyOf() x keyword
 		
-		override fun StatesOrSignals.x(anyOf: AnyOf): RuleAssignable
-		{
-			TODO("not implemented")
-		}
+		override fun StatesOrSignals.x(anyExcept: AnyExcept) = toAnyOf() x anyExcept
 		
-		override fun StatesOrSignals.x(signals: StatesOrSignals): RuleAssignable
-		{
-			TODO("not implemented")
-		}
+		override fun StatesOrSignals.x(anyOf: AnyOf) = toAnyOf() x anyOf
+		
+		override fun StatesOrSignals.x(signals: StatesOrSignals) = toAnyOf() x signals.toAnyOf()
 		
 		/*###################################################################################################################################
 		 * Chaining transition rule
