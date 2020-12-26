@@ -50,9 +50,9 @@ object of
  */
 object self
 
-interface Signals : MutableList<SIGNAL>
+interface StatesOrSignals : MutableList<STATE_OR_SIGNAL>
 {
-	infix fun or(signal: SIGNAL): Signals
+	infix fun or(stateOrSignal: STATE_OR_SIGNAL): StatesOrSignals
 }
 
 @KotlmataMarker
