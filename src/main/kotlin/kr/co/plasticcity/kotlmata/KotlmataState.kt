@@ -9,15 +9,15 @@ interface KotlmataState<T : STATE>
 	companion object
 	{
 		operator fun <T : STATE> invoke(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: StateTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: StateTemplate<T>
 		): KotlmataState<T> = KotlmataStateImpl(tag, logLevel, block = block)
 		
 		fun <T : STATE> lazy(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: StateTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: StateTemplate<T>
 		) = lazy {
 			invoke(tag, logLevel, block)
 		}
@@ -112,24 +112,24 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 	companion object
 	{
 		operator fun <T : STATE> invoke(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: StateTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: StateTemplate<T>
 		): KotlmataMutableState<T> = KotlmataStateImpl(tag, logLevel, block = block)
 		
 		fun <T : STATE> lazy(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: StateTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: StateTemplate<T>
 		) = lazy {
 			invoke(tag, logLevel, block)
 		}
 		
 		internal fun <T : STATE> create(
-				tag: T,
-				logLevel: Int,
-				prefix: String,
-				block: StateTemplate<T>
+			tag: T,
+			logLevel: Int,
+			prefix: String,
+			block: StateTemplate<T>
 		): KotlmataMutableState<T> = KotlmataStateImpl(tag, logLevel, prefix, block)
 	}
 	
@@ -171,10 +171,10 @@ private class InputDef(val action: InputFunction<SIGNAL>, val catch: InputErrorF
 private class ExitDef(val action: ExitAction, val catch: ExitError? = null)
 
 private class KotlmataStateImpl<T : STATE>(
-		override val tag: T,
-		val logLevel: Int = NO_LOG,
-		val prefix: String = "State[$tag]:",
-		block: (StateTemplate<T>)
+	override val tag: T,
+	val logLevel: Int = NO_LOG,
+	val prefix: String = "State[$tag]:",
+	block: (StateTemplate<T>)
 ) : KotlmataMutableState<T>
 {
 	private var entry: EntryDef? = null
@@ -346,7 +346,7 @@ private class KotlmataStateImpl<T : STATE>(
 	}
 	
 	private inner class ModifierImpl(
-			block: KotlmataMutableState.Modifier.(T) -> Unit
+		block: KotlmataMutableState.Modifier.(T) -> Unit
 	) : KotlmataMutableState.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
 		private val entryMap: MutableMap<SIGNAL, EntryDef>

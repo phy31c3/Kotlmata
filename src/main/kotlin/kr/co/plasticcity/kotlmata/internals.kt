@@ -92,15 +92,15 @@ internal const val DETAIL = 3
 
 internal inline fun Int.simple(vararg args: Any?, log: Logs.Companion.() -> String)
 {
-	if (this >= SIMPLE) Log.d(args = *args, log = log)
+	if (this >= SIMPLE) Log.d(*args, log = log)
 }
 
 internal inline fun Int.normal(vararg args: Any?, log: Logs.Companion.() -> String)
 {
-	if (this >= NORMAL) Log.d(args = *args, log = log)
+	if (this >= NORMAL) Log.d(*args, log = log)
 }
 
 internal inline fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> String)
 {
-	if (this >= DETAIL) Log.d(args = *args, log = log)
+	if (this >= DETAIL) Log.d(*args, log = log)
 }

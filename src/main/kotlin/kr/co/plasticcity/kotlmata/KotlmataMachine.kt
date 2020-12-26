@@ -9,30 +9,30 @@ interface KotlmataMachine<T : MACHINE>
 	companion object
 	{
 		operator fun <T : MACHINE> invoke(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: MachineTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: MachineTemplate<T>
 		): KotlmataMachine<T> = KotlmataMachineImpl(tag, logLevel, block = block)
 		
 		operator fun <T : MACHINE> invoke(
-				tag: T,
-				logLevel: Int = NO_LOG
+			tag: T,
+			logLevel: Int = NO_LOG
 		) = object : ExtendsInvoke<T>
 		{
 			override fun extends(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: MachineTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: MachineTemplate<T>
 		) = lazy {
 			invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
-				tag: T,
-				logLevel: Int = NO_LOG
+			tag: T,
+			logLevel: Int = NO_LOG
 		) = object : ExtendsLazy<T>
 		{
 			override fun extends(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
@@ -201,30 +201,30 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 	companion object
 	{
 		operator fun <T : MACHINE> invoke(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: MachineTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: MachineTemplate<T>
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(tag, logLevel, block = block)
 		
 		operator fun <T : MACHINE> invoke(
-				tag: T,
-				logLevel: Int = NO_LOG
+			tag: T,
+			logLevel: Int = NO_LOG
 		) = object : ExtendsInvoke<T>
 		{
 			override fun extends(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: MachineTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: MachineTemplate<T>
 		) = lazy {
 			invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
-				tag: T,
-				logLevel: Int = NO_LOG
+			tag: T,
+			logLevel: Int = NO_LOG
 		) = object : ExtendsLazy<T>
 		{
 			override fun extends(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
@@ -241,10 +241,10 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		}
 		
 		internal fun <T : MACHINE> create(
-				tag: T,
-				logLevel: Int,
-				prefix: String,
-				block: MachineTemplate<T>
+			tag: T,
+			logLevel: Int,
+			prefix: String,
+			block: MachineTemplate<T>
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(tag, logLevel, prefix, block)
 	}
 	
@@ -355,10 +355,10 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 }
 
 private class KotlmataMachineImpl<T : MACHINE>(
-		override val tag: T,
-		val logLevel: Int = NO_LOG,
-		val prefix: String = "Machine[$tag]:",
-		block: MachineTemplate<T>
+	override val tag: T,
+	val logLevel: Int = NO_LOG,
+	val prefix: String = "Machine[$tag]:",
+	block: MachineTemplate<T>
 ) : KotlmataMutableMachine<T>
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
@@ -538,8 +538,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	}
 	
 	private inner class ModifierImpl(
-			init: (MachineTemplate<T>)? = null,
-			modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
+		init: (MachineTemplate<T>)? = null,
+		modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
 	) : KotlmataMachine.Init, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
 		override val on = object : KotlmataMachine.Init.On
