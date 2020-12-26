@@ -192,11 +192,11 @@ private object KotlmataImpl : Kotlmata
 					{
 						logLevel.detail(forkR, forkR.daemon) { KOTLMATA_COMMON }
 						daemons[forkR.daemon] = KotlmataMutableDaemon(
-								tag = forkR.daemon,
-								logLevel = if (forkR.logLevel == UNDEFINED) logLevel else forkR.logLevel,
-								threadName = forkR.threadName,
-								isDaemon = forkR.isDaemon,
-								block = { tag, _ -> forkR.block(this, tag) }
+							tag = forkR.daemon,
+							logLevel = if (forkR.logLevel == UNDEFINED) logLevel else forkR.logLevel,
+							threadName = forkR.threadName,
+							isDaemon = forkR.isDaemon,
+							block = { tag, _ -> forkR.block(this, tag) }
 						)
 					}
 					else
@@ -429,7 +429,7 @@ private object KotlmataImpl : Kotlmata
 	}
 	
 	private class ConfigImpl(
-			block: Kotlmata.Config.() -> Unit
+		block: Kotlmata.Config.() -> Unit
 	) : Kotlmata.Config, Expirable({ Log.e { EXPIRED_CONFIG } })
 	{
 		override val print = object : Kotlmata.Config.Print
@@ -461,7 +461,7 @@ private object KotlmataImpl : Kotlmata
 	}
 	
 	private class PostImpl(
-			block: Kotlmata.Post.() -> Unit
+		block: Kotlmata.Post.() -> Unit
 	) : Kotlmata.Post, Expirable({ Log.e { EXPIRED_POST } })
 	{
 		override val has = object : Kotlmata.Post.Has
@@ -512,11 +512,11 @@ private object KotlmataImpl : Kotlmata
 					{
 						logLevel.detail("${tab}Fork", daemon) { KOTLMATA_COMMON }
 						daemons[daemon] = KotlmataMutableDaemon(
-								tag = daemon,
-								logLevel = if (logLevel == UNDEFINED) KotlmataImpl.logLevel else logLevel,
-								threadName = threadName,
-								isDaemon = isDaemon,
-								block = { tag, _ -> block(tag) }
+							tag = daemon,
+							logLevel = if (logLevel == UNDEFINED) KotlmataImpl.logLevel else logLevel,
+							threadName = threadName,
+							isDaemon = isDaemon,
+							block = { tag, _ -> block(tag) }
 						)
 					}
 					else

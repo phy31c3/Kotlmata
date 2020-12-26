@@ -50,6 +50,11 @@ object of
  */
 object self
 
+interface Signals : MutableList<SIGNAL>
+{
+	infix fun or(signal: SIGNAL): Signals
+}
+
 @KotlmataMarker
 interface ActionDSL
 

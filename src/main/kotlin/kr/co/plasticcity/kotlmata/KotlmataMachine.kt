@@ -9,30 +9,30 @@ interface KotlmataMachine<T : MACHINE>
 	companion object
 	{
 		operator fun <T : MACHINE> invoke(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: MachineTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: MachineTemplate<T>
 		): KotlmataMachine<T> = KotlmataMachineImpl(tag, logLevel, block = block)
 		
 		operator fun <T : MACHINE> invoke(
-				tag: T,
-				logLevel: Int = NO_LOG
+			tag: T,
+			logLevel: Int = NO_LOG
 		) = object : ExtendsInvoke<T>
 		{
 			override fun extends(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: MachineTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: MachineTemplate<T>
 		) = lazy {
 			invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
-				tag: T,
-				logLevel: Int = NO_LOG
+			tag: T,
+			logLevel: Int = NO_LOG
 		) = object : ExtendsLazy<T>
 		{
 			override fun extends(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
@@ -78,7 +78,7 @@ interface KotlmataMachine<T : MACHINE>
 		infix fun <S : STATE> S.function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
-		infix fun <S : STATE> S.via(signals: KotlmataState.Init.Signals): KotlmataState.Entry.Action<SIGNAL>
+		infix fun <S : STATE> S.via(signals: Signals): KotlmataState.Entry.Action<SIGNAL>
 	}
 	
 	interface RuleDefine
@@ -126,11 +126,6 @@ interface KotlmataMachine<T : MACHINE>
 		
 		/* For Signals interface */
 		infix fun SIGNAL.or(signal: SIGNAL): Signals
-		
-		interface Signals : MutableList<SIGNAL>
-		{
-			infix fun or(signal: SIGNAL): Signals
-		}
 		
 		infix fun STATE.x(signals: Signals): RuleAssignable
 		infix fun any.x(signals: Signals): RuleAssignable
@@ -201,30 +196,30 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 	companion object
 	{
 		operator fun <T : MACHINE> invoke(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: MachineTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: MachineTemplate<T>
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(tag, logLevel, block = block)
 		
 		operator fun <T : MACHINE> invoke(
-				tag: T,
-				logLevel: Int = NO_LOG
+			tag: T,
+			logLevel: Int = NO_LOG
 		) = object : ExtendsInvoke<T>
 		{
 			override fun extends(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
-				tag: T,
-				logLevel: Int = NO_LOG,
-				block: MachineTemplate<T>
+			tag: T,
+			logLevel: Int = NO_LOG,
+			block: MachineTemplate<T>
 		) = lazy {
 			invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
-				tag: T,
-				logLevel: Int = NO_LOG
+			tag: T,
+			logLevel: Int = NO_LOG
 		) = object : ExtendsLazy<T>
 		{
 			override fun extends(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
@@ -241,10 +236,10 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		}
 		
 		internal fun <T : MACHINE> create(
-				tag: T,
-				logLevel: Int,
-				prefix: String,
-				block: MachineTemplate<T>
+			tag: T,
+			logLevel: Int,
+			prefix: String,
+			block: MachineTemplate<T>
 		): KotlmataMutableMachine<T> = KotlmataMachineImpl(tag, logLevel, prefix, block)
 	}
 	
@@ -355,10 +350,10 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 }
 
 private class KotlmataMachineImpl<T : MACHINE>(
-		override val tag: T,
-		val logLevel: Int = NO_LOG,
-		val prefix: String = "Machine[$tag]:",
-		block: MachineTemplate<T>
+	override val tag: T,
+	val logLevel: Int = NO_LOG,
+	val prefix: String = "Machine[$tag]:",
+	block: MachineTemplate<T>
 ) : KotlmataMutableMachine<T>
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
@@ -538,8 +533,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	}
 	
 	private inner class ModifierImpl(
-			init: (MachineTemplate<T>)? = null,
-			modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
+		init: (MachineTemplate<T>)? = null,
+		modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
 	) : KotlmataMachine.Init, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
 		override val on = object : KotlmataMachine.Init.On
@@ -857,7 +852,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE> S.via(signals: KotlmataState.Init.Signals) = object : KotlmataState.Entry.Action<SIGNAL>
+		override fun <S : STATE> S.via(signals: Signals) = object : KotlmataState.Entry.Action<SIGNAL>
 		{
 			override fun function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 			{
@@ -1049,9 +1044,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		/*###################################################################################################################################
 		 * Signals transition rule
 		 *###################################################################################################################################*/
-		override fun SIGNAL.or(signal: SIGNAL): KotlmataMachine.RuleDefine.Signals = object : KotlmataMachine.RuleDefine.Signals, MutableList<SIGNAL> by mutableListOf(this, signal)
+		override fun SIGNAL.or(signal: SIGNAL): Signals = object : Signals, MutableList<SIGNAL> by mutableListOf(this, signal)
 		{
-			override fun or(signal: SIGNAL): KotlmataMachine.RuleDefine.Signals
+			override fun or(signal: SIGNAL): Signals
 			{
 				this@ModifierImpl shouldNot expired
 				add(signal)
@@ -1059,7 +1054,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun STATE.x(signals: KotlmataMachine.RuleDefine.Signals) = object : KotlmataMachine.RuleAssignable
+		override fun STATE.x(signals: Signals) = object : KotlmataMachine.RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1070,7 +1065,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun any.x(signals: KotlmataMachine.RuleDefine.Signals) = object : KotlmataMachine.RuleAssignable
+		override fun any.x(signals: Signals) = object : KotlmataMachine.RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1081,7 +1076,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun KotlmataMachine.RuleDefine.AnyOf.x(signals: KotlmataMachine.RuleDefine.Signals) = object : KotlmataMachine.RuleAssignable
+		override fun KotlmataMachine.RuleDefine.AnyOf.x(signals: Signals) = object : KotlmataMachine.RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1092,7 +1087,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun KotlmataMachine.RuleDefine.AnyExcept.x(signals: KotlmataMachine.RuleDefine.Signals) = object : KotlmataMachine.RuleAssignable
+		override fun KotlmataMachine.RuleDefine.AnyExcept.x(signals: Signals) = object : KotlmataMachine.RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
