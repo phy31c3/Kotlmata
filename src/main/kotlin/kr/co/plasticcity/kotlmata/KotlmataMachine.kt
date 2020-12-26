@@ -1,7 +1,10 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "FunctionName")
 
 package kr.co.plasticcity.kotlmata
 
+import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleAssignable
+import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyExcept
+import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyOf
 import kotlin.reflect.KClass
 
 interface KotlmataMachine<T : MACHINE>
@@ -78,7 +81,7 @@ interface KotlmataMachine<T : MACHINE>
 		infix fun <S : STATE> S.function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
-		infix fun <S : STATE> S.via(signals: Signals): KotlmataState.Entry.Action<SIGNAL>
+		infix fun <S : STATE> S.via(signals: StatesOrSignals): KotlmataState.Entry.Action<SIGNAL>
 	}
 	
 	interface RuleDefine
@@ -124,13 +127,19 @@ interface KotlmataMachine<T : MACHINE>
 		infix fun AnyExcept.x(anyOf: AnyOf): RuleAssignable
 		infix fun AnyExcept.x(anyExcept: AnyExcept): RuleAssignable
 		
-		/* For Signals interface */
-		infix fun SIGNAL.or(signal: SIGNAL): Signals
+		/* For StatesOrSignals interface */
+		infix fun STATE_OR_SIGNAL.or(stateOrSignal: STATE_OR_SIGNAL): StatesOrSignals
 		
-		infix fun STATE.x(signals: Signals): RuleAssignable
-		infix fun any.x(signals: Signals): RuleAssignable
-		infix fun AnyOf.x(signals: Signals): RuleAssignable
-		infix fun AnyExcept.x(signals: Signals): RuleAssignable
+		infix fun STATE.x(signals: StatesOrSignals): RuleAssignable
+		infix fun any.x(signals: StatesOrSignals): RuleAssignable
+		infix fun AnyOf.x(signals: StatesOrSignals): RuleAssignable
+		infix fun AnyExcept.x(signals: StatesOrSignals): RuleAssignable
+		infix fun StatesOrSignals.x(signal: SIGNAL): RuleAssignable
+		infix fun StatesOrSignals.x(signal: KClass<out SIGNAL>): RuleAssignable
+		infix fun StatesOrSignals.x(keyword: any): RuleAssignable
+		infix fun StatesOrSignals.x(anyExcept: AnyExcept): RuleAssignable
+		infix fun StatesOrSignals.x(anyOf: AnyOf): RuleAssignable
+		infix fun StatesOrSignals.x(signals: StatesOrSignals): RuleAssignable
 		
 		/**
 		 * For chaining transition rule
@@ -852,7 +861,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE> S.via(signals: Signals) = object : KotlmataState.Entry.Action<SIGNAL>
+		override fun <S : STATE> S.via(signals: StatesOrSignals) = object : KotlmataState.Entry.Action<SIGNAL>
 		{
 			override fun function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 			{
@@ -902,45 +911,45 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		/*###################################################################################################################################
 		 * 'AnyXX' transition rules
 		 *###################################################################################################################################*/
-		override fun any.of(vararg args: STATE_OR_SIGNAL): KotlmataMachine.RuleDefine.AnyOf = object : KotlmataMachine.RuleDefine.AnyOf, List<STATE_OR_SIGNAL> by listOf(*args)
+		override fun any.of(vararg args: STATE_OR_SIGNAL): AnyOf = object : AnyOf, List<STATE_OR_SIGNAL> by listOf(*args)
 		{
 			/* empty */
 		}
 		
-		override fun any.except(vararg args: STATE_OR_SIGNAL): KotlmataMachine.RuleDefine.AnyExcept = object : KotlmataMachine.RuleDefine.AnyExcept, List<STATE_OR_SIGNAL> by listOf(*args)
+		override fun any.except(vararg args: STATE_OR_SIGNAL): AnyExcept = object : AnyExcept, List<STATE_OR_SIGNAL> by listOf(*args)
 		{
 			/* empty */
 		}
 		
-		override fun KotlmataMachine.RuleDefine.AnyOf.x(signal: SIGNAL) = ruleAnyOfSignal(this, signal)
+		override fun AnyOf.x(signal: SIGNAL) = anyOf_x_signal(this, signal)
 		
-		override fun KotlmataMachine.RuleDefine.AnyOf.x(signal: KClass<out SIGNAL>) = ruleAnyOfSignal(this, signal)
+		override fun AnyOf.x(signal: KClass<out SIGNAL>) = anyOf_x_signal(this, signal)
 		
-		override fun KotlmataMachine.RuleDefine.AnyOf.x(keyword: any) = ruleAnyOfSignal(this, keyword)
+		override fun AnyOf.x(keyword: any) = anyOf_x_signal(this, keyword)
 		
-		override fun KotlmataMachine.RuleDefine.AnyExcept.x(signal: SIGNAL) = ruleAnyExceptSignal(this, signal)
+		override fun AnyExcept.x(signal: SIGNAL) = anyExcept_x_signal(this, signal)
 		
-		override fun KotlmataMachine.RuleDefine.AnyExcept.x(signal: KClass<out SIGNAL>) = ruleAnyExceptSignal(this, signal)
+		override fun AnyExcept.x(signal: KClass<out SIGNAL>) = anyExcept_x_signal(this, signal)
 		
-		override fun KotlmataMachine.RuleDefine.AnyExcept.x(keyword: any) = ruleAnyExceptSignal(this, keyword)
+		override fun AnyExcept.x(keyword: any) = anyExcept_x_signal(this, keyword)
 		
-		override fun STATE.x(anyOf: KotlmataMachine.RuleDefine.AnyOf) = ruleStateAnyOf(this, anyOf)
+		override fun STATE.x(anyOf: AnyOf) = state_x_anyOf(this, anyOf)
 		
-		override fun any.x(anyOf: KotlmataMachine.RuleDefine.AnyOf) = ruleStateAnyOf(this, anyOf)
+		override fun any.x(anyOf: AnyOf) = state_x_anyOf(this, anyOf)
 		
-		override fun STATE.x(anyExcept: KotlmataMachine.RuleDefine.AnyExcept) = ruleStateAnyExcept(this, anyExcept)
+		override fun STATE.x(anyExcept: AnyExcept) = state_x_anyExcept(this, anyExcept)
 		
-		override fun any.x(anyExcept: KotlmataMachine.RuleDefine.AnyExcept) = ruleStateAnyExcept(this, anyExcept)
+		override fun any.x(anyExcept: AnyExcept) = state_x_anyExcept(this, anyExcept)
 		
-		override fun KotlmataMachine.RuleDefine.AnyOf.x(anyOf: KotlmataMachine.RuleDefine.AnyOf) = ruleAnyOfAnyOf(this, anyOf)
+		override fun AnyOf.x(anyOf: AnyOf) = anyOf_x_anyOf(this, anyOf)
 		
-		override fun KotlmataMachine.RuleDefine.AnyOf.x(anyExcept: KotlmataMachine.RuleDefine.AnyExcept) = ruleAnyOfAnyExcept(this, anyExcept)
+		override fun AnyOf.x(anyExcept: AnyExcept) = anyOf_x_anyExcept(this, anyExcept)
 		
-		override fun KotlmataMachine.RuleDefine.AnyExcept.x(anyOf: KotlmataMachine.RuleDefine.AnyOf) = ruleAnyExceptAnyOf(this, anyOf)
+		override fun AnyExcept.x(anyOf: AnyOf) = anyExcept_x_anyOf(this, anyOf)
 		
-		override fun KotlmataMachine.RuleDefine.AnyExcept.x(anyExcept: KotlmataMachine.RuleDefine.AnyExcept) = ruleAnyExceptAnyExcept(this, anyExcept)
+		override fun AnyExcept.x(anyExcept: AnyExcept) = anyExcept_x_anyExcept(this, anyExcept)
 		
-		private fun ruleAnyOfSignal(anyOf: KotlmataMachine.RuleDefine.AnyOf, signal: SIGNAL) = object : KotlmataMachine.RuleAssignable
+		private fun anyOf_x_signal(anyOf: AnyOf, signal: SIGNAL) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -951,7 +960,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun ruleAnyExceptSignal(anyExcept: KotlmataMachine.RuleDefine.AnyExcept, signal: SIGNAL) = object : KotlmataMachine.RuleAssignable
+		private fun anyExcept_x_signal(anyExcept: AnyExcept, signal: SIGNAL) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -969,7 +978,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun ruleStateAnyOf(from: STATE, anyOf: KotlmataMachine.RuleDefine.AnyOf) = object : KotlmataMachine.RuleAssignable
+		private fun state_x_anyOf(from: STATE, anyOf: AnyOf) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -980,7 +989,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun ruleStateAnyExcept(from: STATE, anyExcept: KotlmataMachine.RuleDefine.AnyExcept) = object : KotlmataMachine.RuleAssignable
+		private fun state_x_anyExcept(from: STATE, anyExcept: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -998,63 +1007,63 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun ruleAnyOfAnyOf(anyOfState: KotlmataMachine.RuleDefine.AnyOf, anyOfSignal: KotlmataMachine.RuleDefine.AnyOf) = object : KotlmataMachine.RuleAssignable
+		private fun anyOf_x_anyOf(anyOfState: AnyOf, anyOfSignal: AnyOf) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
 				this@ModifierImpl shouldNot expired
 				anyOfState.forEach { from ->
-					ruleStateAnyOf(from, anyOfSignal).remAssign(state)
+					from x anyOfSignal %= state
 				}
 			}
 		}
 		
-		private fun ruleAnyOfAnyExcept(anyOfState: KotlmataMachine.RuleDefine.AnyOf, anyExceptSignal: KotlmataMachine.RuleDefine.AnyExcept) = object : KotlmataMachine.RuleAssignable
+		private fun anyOf_x_anyExcept(anyOfState: AnyOf, anyExceptSignal: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
 				this@ModifierImpl shouldNot expired
 				anyOfState.forEach { from ->
-					ruleStateAnyExcept(from, anyExceptSignal).remAssign(state)
+					from x anyExceptSignal %= state
 				}
 			}
 		}
 		
-		private fun ruleAnyExceptAnyOf(anyExceptState: KotlmataMachine.RuleDefine.AnyExcept, anyOfSignal: KotlmataMachine.RuleDefine.AnyOf) = object : KotlmataMachine.RuleAssignable
+		private fun anyExcept_x_anyOf(anyExceptState: AnyExcept, anyOfSignal: AnyOf) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
 				this@ModifierImpl shouldNot expired
 				anyOfSignal.forEach { signal ->
-					ruleAnyExceptSignal(anyExceptState, signal).remAssign(state)
+					anyExceptState x signal %= state
 				}
 			}
 		}
 		
-		private fun ruleAnyExceptAnyExcept(anyExceptState: KotlmataMachine.RuleDefine.AnyExcept, anyExceptSignal: KotlmataMachine.RuleDefine.AnyExcept) = object : KotlmataMachine.RuleAssignable
+		private fun anyExcept_x_anyExcept(anyExceptState: AnyExcept, anyExceptSignal: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
 				this@ModifierImpl shouldNot expired
-				ruleAnyExceptSignal(anyExceptState, any)
-				ruleStateAnyExcept(any, anyExceptSignal)
+				anyExceptState x any %= state
+				any x anyExceptSignal %= state
 			}
 		}
 		
 		/*###################################################################################################################################
 		 * Signals transition rule
 		 *###################################################################################################################################*/
-		override fun SIGNAL.or(signal: SIGNAL): Signals = object : Signals, MutableList<SIGNAL> by mutableListOf(this, signal)
+		override fun SIGNAL.or(stateOrSignal: SIGNAL): StatesOrSignals = object : StatesOrSignals, MutableList<SIGNAL> by mutableListOf(this, stateOrSignal)
 		{
-			override fun or(signal: SIGNAL): Signals
+			override fun or(stateOrSignal: SIGNAL): StatesOrSignals
 			{
 				this@ModifierImpl shouldNot expired
-				add(signal)
+				add(stateOrSignal)
 				return this
 			}
 		}
 		
-		override fun STATE.x(signals: Signals) = object : KotlmataMachine.RuleAssignable
+		override fun STATE.x(signals: StatesOrSignals) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1065,7 +1074,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun any.x(signals: Signals) = object : KotlmataMachine.RuleAssignable
+		override fun any.x(signals: StatesOrSignals) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1076,7 +1085,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun KotlmataMachine.RuleDefine.AnyOf.x(signals: Signals) = object : KotlmataMachine.RuleAssignable
+		override fun AnyOf.x(signals: StatesOrSignals) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1087,7 +1096,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun KotlmataMachine.RuleDefine.AnyExcept.x(signals: Signals) = object : KotlmataMachine.RuleAssignable
+		override fun AnyExcept.x(signals: StatesOrSignals) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1105,6 +1114,36 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					}
 				}
 			}
+		}
+		
+		override fun StatesOrSignals.x(signal: SIGNAL): RuleAssignable
+		{
+			TODO("not implemented")
+		}
+		
+		override fun StatesOrSignals.x(signal: KClass<out SIGNAL>): RuleAssignable
+		{
+			TODO("not implemented")
+		}
+		
+		override fun StatesOrSignals.x(keyword: any): RuleAssignable
+		{
+			TODO("not implemented")
+		}
+		
+		override fun StatesOrSignals.x(anyExcept: AnyExcept): RuleAssignable
+		{
+			TODO("not implemented")
+		}
+		
+		override fun StatesOrSignals.x(anyOf: AnyOf): RuleAssignable
+		{
+			TODO("not implemented")
+		}
+		
+		override fun StatesOrSignals.x(signals: StatesOrSignals): RuleAssignable
+		{
+			TODO("not implemented")
 		}
 		
 		/*###################################################################################################################################
