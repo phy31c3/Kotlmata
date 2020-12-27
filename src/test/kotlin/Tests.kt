@@ -194,7 +194,7 @@ class Tests
 			start at "state1"
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 2) extends template("템플릿에서 정의") { _, daemon ->
+		val daemon by KotlmataMutableDaemon.lazy("d1", 2) by template("템플릿에서 정의") { _, daemon ->
 			on create {
 				println("--------------------- 데몬이 생성됨")
 				thread = Thread.currentThread()

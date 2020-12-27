@@ -32,9 +32,9 @@ interface KotlmataDaemon<T : DAEMON>
 			logLevel: Int = NO_LOG,
 			threadName: String? = null,
 			isDaemon: Boolean = false
-		) = object : ExtendsInvoke<T>
+		) = object : InvokeBy<T>
 		{
-			override fun extends(block: DaemonTemplate<T>) = invoke(tag, logLevel, threadName, isDaemon, block)
+			override fun by(block: DaemonTemplate<T>) = invoke(tag, logLevel, threadName, isDaemon, block)
 		}
 		
 		/**
@@ -58,19 +58,19 @@ interface KotlmataDaemon<T : DAEMON>
 			logLevel: Int = NO_LOG,
 			threadName: String? = null,
 			isDaemon: Boolean = false
-		) = object : ExtendsLazy<T>
+		) = object : LazyBy<T>
 		{
-			override fun extends(block: DaemonTemplate<T>) = lazy { invoke(tag, logLevel, threadName, isDaemon, block) }
+			override fun by(block: DaemonTemplate<T>) = lazy { invoke(tag, logLevel, threadName, isDaemon, block) }
 		}
 		
-		interface ExtendsInvoke<T : DAEMON>
+		interface InvokeBy<T : DAEMON>
 		{
-			infix fun extends(block: DaemonTemplate<T>): KotlmataDaemon<T>
+			infix fun by(block: DaemonTemplate<T>): KotlmataDaemon<T>
 		}
 		
-		interface ExtendsLazy<T : DAEMON>
+		interface LazyBy<T : DAEMON>
 		{
-			infix fun extends(block: DaemonTemplate<T>): Lazy<KotlmataDaemon<T>>
+			infix fun by(block: DaemonTemplate<T>): Lazy<KotlmataDaemon<T>>
 		}
 	}
 	
@@ -141,9 +141,9 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 			logLevel: Int = NO_LOG,
 			threadName: String? = null,
 			isDaemon: Boolean = false
-		) = object : ExtendsInvoke<T>
+		) = object : InvokeBy<T>
 		{
-			override fun extends(block: DaemonTemplate<T>) = invoke(tag, logLevel, threadName, isDaemon, block)
+			override fun by(block: DaemonTemplate<T>) = invoke(tag, logLevel, threadName, isDaemon, block)
 		}
 		
 		/**
@@ -169,19 +169,19 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 			logLevel: Int = NO_LOG,
 			threadName: String? = null,
 			isDaemon: Boolean = false
-		) = object : ExtendsLazy<T>
+		) = object : LazyBy<T>
 		{
-			override fun extends(block: DaemonTemplate<T>) = lazy { invoke(tag, logLevel, threadName, isDaemon, block) }
+			override fun by(block: DaemonTemplate<T>) = lazy { invoke(tag, logLevel, threadName, isDaemon, block) }
 		}
 		
-		interface ExtendsInvoke<T : DAEMON>
+		interface InvokeBy<T : DAEMON>
 		{
-			infix fun extends(block: DaemonTemplate<T>): KotlmataMutableDaemon<T>
+			infix fun by(block: DaemonTemplate<T>): KotlmataMutableDaemon<T>
 		}
 		
-		interface ExtendsLazy<T : DAEMON>
+		interface LazyBy<T : DAEMON>
 		{
-			infix fun extends(block: DaemonTemplate<T>): Lazy<KotlmataMutableDaemon<T>>
+			infix fun by(block: DaemonTemplate<T>): Lazy<KotlmataMutableDaemon<T>>
 		}
 	}
 	
