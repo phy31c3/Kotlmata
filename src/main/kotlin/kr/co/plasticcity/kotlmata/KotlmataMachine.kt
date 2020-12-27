@@ -22,9 +22,9 @@ interface KotlmataMachine<T : MACHINE>
 		operator fun <T : MACHINE> invoke(
 			tag: T,
 			logLevel: Int = NO_LOG
-		) = object : ExtendsInvoke<T>
+		) = object : InvokeBy<T>
 		{
-			override fun extends(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
+			override fun by(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
@@ -38,19 +38,19 @@ interface KotlmataMachine<T : MACHINE>
 		fun <T : MACHINE> lazy(
 			tag: T,
 			logLevel: Int = NO_LOG
-		) = object : ExtendsLazy<T>
+		) = object : LazyBy<T>
 		{
-			override fun extends(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
+			override fun by(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
 		}
 		
-		interface ExtendsInvoke<T : MACHINE>
+		interface InvokeBy<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<T>): KotlmataMachine<T>
+			infix fun by(block: MachineTemplate<T>): KotlmataMachine<T>
 		}
 		
-		interface ExtendsLazy<T : MACHINE>
+		interface LazyBy<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<T>): Lazy<KotlmataMachine<T>>
+			infix fun by(block: MachineTemplate<T>): Lazy<KotlmataMachine<T>>
 		}
 	}
 	
@@ -215,9 +215,9 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		operator fun <T : MACHINE> invoke(
 			tag: T,
 			logLevel: Int = NO_LOG
-		) = object : ExtendsInvoke<T>
+		) = object : InvokeBy<T>
 		{
-			override fun extends(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
+			override fun by(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
@@ -231,19 +231,19 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		fun <T : MACHINE> lazy(
 			tag: T,
 			logLevel: Int = NO_LOG
-		) = object : ExtendsLazy<T>
+		) = object : LazyBy<T>
 		{
-			override fun extends(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
+			override fun by(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
 		}
 		
-		interface ExtendsInvoke<T : MACHINE>
+		interface InvokeBy<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<T>): KotlmataMutableMachine<T>
+			infix fun by(block: MachineTemplate<T>): KotlmataMutableMachine<T>
 		}
 		
-		interface ExtendsLazy<T : MACHINE>
+		interface LazyBy<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<T>): Lazy<KotlmataMutableMachine<T>>
+			infix fun by(block: MachineTemplate<T>): Lazy<KotlmataMutableMachine<T>>
 		}
 		
 		internal fun <T : MACHINE> create(
