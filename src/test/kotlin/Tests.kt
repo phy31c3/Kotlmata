@@ -338,6 +338,18 @@ class Tests
 				}
 			}
 			
+			val template: StateTemplate<String> = {
+				entry via String::class function {
+					println("템플릿으로 extends 된 문구")
+				}
+			}
+			
+			"state9" extends template with {
+				exit action {
+					println("템플릿으로 extends 후 추가 정의된 문구")
+				}
+			}
+			
 			"chain1" { state ->
 				entry function { println("$state: 기본 진입함수") }
 			}
@@ -364,6 +376,7 @@ class Tests
 			"state6" x "goToState7" %= "state7"
 			"state7" x "goToState1" %= "state1"
 			("state1" or "state2") x ("d" or "e") %= "state8"
+			"state8" x "goToState9" %= "state9"
 			
 			start at "state1"
 		}
@@ -463,6 +476,11 @@ class Tests
 		Thread.sleep(100)
 		
 		daemon.input("d")
+		
+		Thread.sleep(100)
+		
+		daemon.input("goToState9")
+		daemon.input("a")
 		
 		Thread.sleep(500)
 		

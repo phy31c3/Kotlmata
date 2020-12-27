@@ -77,7 +77,12 @@ interface KotlmataMachine<T : MACHINE>
 	interface StateDefine
 	{
 		operator fun <S : STATE> S.invoke(block: StateTemplate<S>)
-		infix fun <S : STATE> S.extends(block: StateTemplate<S>) = invoke(block)
+		infix fun <S : STATE> S.extends(template: StateTemplate<S>): With<S>
+		
+		interface With<S : STATE>
+		{
+			infix fun with(block: StateTemplate<S>)
+		}
 		
 		infix fun <S : STATE> S.action(action: EntryAction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL> = function(action)
 		infix fun <S : STATE> S.function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
@@ -801,6 +806,24 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
+		}
+		
+		override fun <S : STATE> S.extends(template: StateTemplate<S>) = object : KotlmataMachine.StateDefine.With<S>
+		{
+			val state: KotlmataMutableState<S>
+			
+			init
+			{
+				this@ModifierImpl shouldNot expired
+				state = KotlmataMutableState.create(this@extends, logLevel, "$prefix$tab", template)
+				stateMap[this@extends] = state
+			}
+			
+			override fun with(block: StateTemplate<S>)
+			{
+				this@ModifierImpl shouldNot expired
+				state.modify(block)
+			}
 		}
 		
 		override fun <S : STATE> S.function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
