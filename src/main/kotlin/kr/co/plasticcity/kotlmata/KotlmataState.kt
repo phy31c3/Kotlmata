@@ -110,6 +110,7 @@ interface KotlmataState<T : STATE>
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null): Any?
 	
 	fun exit(signal: SIGNAL)
+	fun <T : SIGNAL> exit(signal: T, type: KClass<in T>)
 }
 
 interface KotlmataMutableState<T : STATE> : KotlmataState<T>
@@ -334,10 +335,49 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	override fun exit(signal: SIGNAL)
 	{
-		exit?.apply {
-			logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT }
-			run(signal)
-		} ?: if (tag !== CREATED) logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
+		val exitDef = exitMap?.let {
+			when
+			{
+				signal in it ->
+				{
+					logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT_OBJECT }
+					it[signal]
+				}
+				signal::class in it ->
+				{
+					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class", signal) { STATE_RUN_EXIT_CLASS }
+					it[signal::class]
+				}
+				else -> null
+			}
+		} ?: exit?.also {
+			logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT_DEFAULT }
+		} ?: null.also {
+			if (tag !== CREATED) logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
+		}
+		
+		exitDef?.run(signal)
+	}
+	
+	override fun <T : SIGNAL> exit(signal: T, type: KClass<in T>)
+	{
+		val exitDef = exitMap?.let {
+			when (type)
+			{
+				in it ->
+				{
+					logLevel.normal(prefix, tag, "${type.simpleName}::class", signal, "${type.simpleName}::class") { STATE_RUN_EXIT_CLASS_TYPED }
+					it[type]
+				}
+				else -> null
+			}
+		} ?: exit?.also {
+			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_RUN_EXIT_DEFAULT_TYPED }
+		} ?: null.also {
+			if (tag !== CREATED) logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_EXIT_TYPED }
+		}
+		
+		exitDef?.run(signal)
 	}
 	
 	override fun modify(block: Modifier.(T) -> Unit)
