@@ -81,7 +81,7 @@ class Tests
 			start at "state1"
 		}
 		
-		val machine by KotlmataMutableMachine.lazy("m1", 2) extends template("템플릿에서 정의") {
+		val machine by KotlmataMutableMachine.lazy("m1", 2) by template("템플릿에서 정의") {
 			"state1" { state ->
 				entry function { println("$state: 기본 진입함수") }
 				input signal String::class function { s -> println("$state: String 타입 입력함수: $s") }
@@ -194,7 +194,7 @@ class Tests
 			start at "state1"
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 2) extends template("템플릿에서 정의") { _, daemon ->
+		val daemon by KotlmataMutableDaemon.lazy("d1", 2) by template("템플릿에서 정의") { _, daemon ->
 			on create {
 				println("--------------------- 데몬이 생성됨")
 				thread = Thread.currentThread()
@@ -338,6 +338,18 @@ class Tests
 				}
 			}
 			
+			val template: StateTemplate<String> = {
+				entry via String::class function {
+					println("템플릿으로 extends 된 문구")
+				}
+			}
+			
+			"state9" extends template with {
+				exit action {
+					println("템플릿으로 extends 후 추가 정의된 문구")
+				}
+			}
+			
 			"chain1" { state ->
 				entry function { println("$state: 기본 진입함수") }
 			}
@@ -364,6 +376,7 @@ class Tests
 			"state6" x "goToState7" %= "state7"
 			"state7" x "goToState1" %= "state1"
 			("state1" or "state2") x ("d" or "e") %= "state8"
+			"state8" x "goToState9" %= "state9"
 			
 			start at "state1"
 		}
@@ -463,6 +476,11 @@ class Tests
 		Thread.sleep(100)
 		
 		daemon.input("d")
+		
+		Thread.sleep(100)
+		
+		daemon.input("goToState9")
+		daemon.input("a")
 		
 		Thread.sleep(500)
 		

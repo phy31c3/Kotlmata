@@ -5,6 +5,8 @@ package kr.co.plasticcity.kotlmata
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleAssignable
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyExcept
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyOf
+import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleLeft
+import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modifier.*
 import kotlin.reflect.KClass
 
 interface KotlmataMachine<T : MACHINE>
@@ -20,9 +22,9 @@ interface KotlmataMachine<T : MACHINE>
 		operator fun <T : MACHINE> invoke(
 			tag: T,
 			logLevel: Int = NO_LOG
-		) = object : ExtendsInvoke<T>
+		) = object : InvokeBy<T>
 		{
-			override fun extends(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
+			override fun by(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
@@ -36,19 +38,19 @@ interface KotlmataMachine<T : MACHINE>
 		fun <T : MACHINE> lazy(
 			tag: T,
 			logLevel: Int = NO_LOG
-		) = object : ExtendsLazy<T>
+		) = object : LazyBy<T>
 		{
-			override fun extends(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
+			override fun by(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
 		}
 		
-		interface ExtendsInvoke<T : MACHINE>
+		interface InvokeBy<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<T>): KotlmataMachine<T>
+			infix fun by(block: MachineTemplate<T>): KotlmataMachine<T>
 		}
 		
-		interface ExtendsLazy<T : MACHINE>
+		interface LazyBy<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<T>): Lazy<KotlmataMachine<T>>
+			infix fun by(block: MachineTemplate<T>): Lazy<KotlmataMachine<T>>
 		}
 	}
 	
@@ -75,7 +77,12 @@ interface KotlmataMachine<T : MACHINE>
 	interface StateDefine
 	{
 		operator fun <S : STATE> S.invoke(block: StateTemplate<S>)
-		infix fun <S : STATE> S.extends(block: StateTemplate<S>) = invoke(block)
+		infix fun <S : STATE> S.extends(template: StateTemplate<S>): With<S>
+		
+		interface With<S : STATE>
+		{
+			infix fun with(block: StateTemplate<S>)
+		}
 		
 		infix fun <S : STATE> S.action(action: EntryAction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL> = function(action)
 		infix fun <S : STATE> S.function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
@@ -213,9 +220,9 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		operator fun <T : MACHINE> invoke(
 			tag: T,
 			logLevel: Int = NO_LOG
-		) = object : ExtendsInvoke<T>
+		) = object : InvokeBy<T>
 		{
-			override fun extends(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
+			override fun by(block: MachineTemplate<T>) = invoke(tag, logLevel, block)
 		}
 		
 		fun <T : MACHINE> lazy(
@@ -229,19 +236,19 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		fun <T : MACHINE> lazy(
 			tag: T,
 			logLevel: Int = NO_LOG
-		) = object : ExtendsLazy<T>
+		) = object : LazyBy<T>
 		{
-			override fun extends(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
+			override fun by(block: MachineTemplate<T>) = lazy { invoke(tag, logLevel, block) }
 		}
 		
-		interface ExtendsInvoke<T : MACHINE>
+		interface InvokeBy<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<T>): KotlmataMutableMachine<T>
+			infix fun by(block: MachineTemplate<T>): KotlmataMutableMachine<T>
 		}
 		
-		interface ExtendsLazy<T : MACHINE>
+		interface LazyBy<T : MACHINE>
 		{
-			infix fun extends(block: MachineTemplate<T>): Lazy<KotlmataMutableMachine<T>>
+			infix fun by(block: MachineTemplate<T>): Lazy<KotlmataMutableMachine<T>>
 		}
 		
 		internal fun <T : MACHINE> create(
@@ -265,7 +272,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		interface Has
 		{
 			infix fun state(state: STATE): Then
-			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): Then
+			infix fun rule(ruleLeft: RuleLeft): Then
 			
 			interface Then
 			{
@@ -281,7 +288,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		interface Insert
 		{
 			infix fun <T : STATE> state(state: T): By<T>
-			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): RemAssign
+			infix fun rule(ruleLeft: RuleLeft): RemAssign
 			infix fun or(keyword: Replace): State
 			infix fun or(keyword: Update): Rule
 			
@@ -292,7 +299,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			
 			interface Rule
 			{
-				infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): RemAssign
+				infix fun rule(ruleLeft: RuleLeft): RemAssign
 			}
 			
 			interface By<T : STATE>
@@ -319,7 +326,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 		interface Update
 		{
 			infix fun <T : STATE> state(state: T): By<T>
-			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft): RemAssign
+			infix fun rule(ruleLeft: RuleLeft): RemAssign
 			
 			interface By<T : STATE>
 			{
@@ -342,7 +349,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 			infix fun state(state: STATE)
 			infix fun state(keyword: all)
 			
-			infix fun rule(ruleLeft: KotlmataMachine.RuleLeft)
+			infix fun rule(ruleLeft: RuleLeft)
 			infix fun rule(keyword: of): State
 			infix fun rule(keyword: all)
 			
@@ -582,9 +589,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				return this@KotlmataMachineImpl.current.tag
 			}
 		
-		override val has = object : KotlmataMutableMachine.Modifier.Has
+		override val has = object : Has
 		{
-			val stop = object : KotlmataMutableMachine.Modifier.Has.Or
+			val stop = object : Has.Or
 			{
 				override fun or(block: () -> Unit)
 				{
@@ -592,7 +599,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 			
-			val or = object : KotlmataMutableMachine.Modifier.Has.Or
+			val or = object : Has.Or
 			{
 				override fun or(block: () -> Unit)
 				{
@@ -600,9 +607,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 			
-			override fun state(state: STATE) = object : KotlmataMutableMachine.Modifier.Has.Then
+			override fun state(state: STATE) = object : Has.Then
 			{
-				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.Or
+				override fun then(block: () -> Unit): Has.Or
 				{
 					this@ModifierImpl shouldNot expired
 					return if (state in stateMap)
@@ -617,9 +624,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 			
-			override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Has.Then
+			override fun rule(ruleLeft: RuleLeft) = object : Has.Then
 			{
-				override fun then(block: () -> Unit): KotlmataMutableMachine.Modifier.Has.Or
+				override fun then(block: () -> Unit): Has.Or
 				{
 					this@ModifierImpl shouldNot expired
 					return ruleMap.let {
@@ -634,9 +641,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override val insert = object : KotlmataMutableMachine.Modifier.Insert
+		override val insert = object : Insert
 		{
-			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.By<T>
+			override fun <T : STATE> state(state: T) = object : Insert.By<T>
 			{
 				override fun by(block: StateTemplate<T>)
 				{
@@ -648,7 +655,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 			
-			override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Insert.RemAssign
+			override fun rule(ruleLeft: RuleLeft) = object : Insert.RemAssign
 			{
 				override fun remAssign(state: STATE)
 				{
@@ -663,9 +670,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 			
-			override fun or(keyword: KotlmataMutableMachine.Modifier.Replace) = object : KotlmataMutableMachine.Modifier.Insert.State
+			override fun or(keyword: Replace) = object : Insert.State
 			{
-				override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Insert.By<T>
+				override fun <T : STATE> state(state: T) = object : Insert.By<T>
 				{
 					override fun by(block: StateTemplate<T>)
 					{
@@ -675,9 +682,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 			
-			override fun or(keyword: KotlmataMutableMachine.Modifier.Update) = object : KotlmataMutableMachine.Modifier.Insert.Rule
+			override fun or(keyword: Update) = object : Insert.Rule
 			{
-				override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Insert.RemAssign
+				override fun rule(ruleLeft: RuleLeft) = object : Insert.RemAssign
 				{
 					override fun remAssign(state: STATE)
 					{
@@ -688,9 +695,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override val replace = object : KotlmataMutableMachine.Modifier.Replace
+		override val replace = object : Replace
 		{
-			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Replace.By<T>
+			override fun <T : STATE> state(state: T) = object : Replace.By<T>
 			{
 				override fun by(block: StateTemplate<T>)
 				{
@@ -703,11 +710,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override val update = object : KotlmataMutableMachine.Modifier.Update
+		override val update = object : Update
 		{
-			override fun <T : STATE> state(state: T) = object : KotlmataMutableMachine.Modifier.Update.By<T>
+			override fun <T : STATE> state(state: T) = object : Update.By<T>
 			{
-				val stop = object : KotlmataMutableMachine.Modifier.Update.Or<T>
+				val stop = object : Update.Or<T>
 				{
 					override fun or(block: StateTemplate<T>)
 					{
@@ -715,7 +722,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					}
 				}
 				
-				val or = object : KotlmataMutableMachine.Modifier.Update.Or<T>
+				val or = object : Update.Or<T>
 				{
 					override fun or(block: StateTemplate<T>)
 					{
@@ -724,7 +731,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				
 				@Suppress("UNCHECKED_CAST")
-				override fun by(block: KotlmataMutableState.Modifier.(T) -> Unit): KotlmataMutableMachine.Modifier.Update.Or<T>
+				override fun by(block: KotlmataMutableState.Modifier.(T) -> Unit): Update.Or<T>
 				{
 					this@ModifierImpl shouldNot expired
 					return if (state in stateMap)
@@ -739,7 +746,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 			
-			override fun rule(ruleLeft: KotlmataMachine.RuleLeft) = object : KotlmataMutableMachine.Modifier.Update.RemAssign
+			override fun rule(ruleLeft: RuleLeft) = object : Update.RemAssign
 			{
 				override fun remAssign(state: STATE)
 				{
@@ -755,7 +762,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override val delete = object : KotlmataMutableMachine.Modifier.Delete
+		override val delete = object : Delete
 		{
 			override fun state(state: STATE)
 			{
@@ -769,7 +776,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				stateMap.clear()
 			}
 			
-			override fun rule(ruleLeft: KotlmataMachine.RuleLeft)
+			override fun rule(ruleLeft: RuleLeft)
 			{
 				this@ModifierImpl shouldNot expired
 				ruleMap.let {
@@ -779,7 +786,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 			
-			override fun rule(keyword: of) = object : KotlmataMutableMachine.Modifier.Delete.State
+			override fun rule(keyword: of) = object : Delete.State
 			{
 				override fun state(state: STATE)
 				{
@@ -799,6 +806,24 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
+		}
+		
+		override fun <S : STATE> S.extends(template: StateTemplate<S>) = object : KotlmataMachine.StateDefine.With<S>
+		{
+			val state: KotlmataMutableState<S>
+			
+			init
+			{
+				this@ModifierImpl shouldNot expired
+				state = KotlmataMutableState.create(this@extends, logLevel, "$prefix$tab", template)
+				stateMap[this@extends] = state
+			}
+			
+			override fun with(block: StateTemplate<S>)
+			{
+				this@ModifierImpl shouldNot expired
+				state.modify(block)
+			}
 		}
 		
 		override fun <S : STATE> S.function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
@@ -894,7 +919,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
 		override fun any.x(keyword: any) = ruleLeft(this, keyword)
 		
-		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : KotlmataMachine.RuleLeft
+		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : RuleLeft
 		{
 			override val state: STATE = from
 			override val signal: SIGNAL = signal
