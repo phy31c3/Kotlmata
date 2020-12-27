@@ -13,7 +13,7 @@ internal object Action : ActionDSL
 internal object Function : FunctionDSL
 internal class Payload(override val payload: Any?) : PayloadDSL
 internal class PayloadFunction(override val payload: Any?) : PayloadFunctionDSL
-internal class Error(override val throwable: Throwable) : ErrorDSL
+internal class ErrorAction(override val throwable: Throwable) : ErrorActionDSL
 internal class ErrorFunction(override val throwable: Throwable) : ErrorFunctionDSL
 internal class ErrorPayload(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadDSL
 internal class ErrorPayloadFunction(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadFunctionDSL

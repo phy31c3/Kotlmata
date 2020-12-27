@@ -394,7 +394,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	catch (e: Throwable)
 	{
 		onError?.also { onError ->
-			Error(e).onError()
+			ErrorAction(e).onError()
 		} ?: throw e
 		null
 	}
