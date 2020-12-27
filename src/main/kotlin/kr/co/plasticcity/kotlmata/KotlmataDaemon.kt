@@ -230,7 +230,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			fallback?.also {
 				ErrorPayload(e, payload).it()
 			} ?: onError?.also {
-				Error(e).it()
+				ErrorAction(e).it()
 			} ?: throw e
 		}
 	}
