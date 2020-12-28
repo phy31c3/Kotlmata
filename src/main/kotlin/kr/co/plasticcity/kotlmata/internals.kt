@@ -110,13 +110,12 @@ internal class Predicates
 	private val set = LinkedHashSet<(Any) -> Boolean>()
 	
 	@Suppress("UNCHECKED_CAST")
-	fun <T> store(predicate: (T) -> Boolean): SIGNAL
+	fun <T> store(predicate: (T) -> Boolean)
 	{
 		set.add(predicate as (Any) -> Boolean)
-		return predicate
 	}
 	
-	fun test(signal: Any): SIGNAL? = set.lastOrNull { predicate ->
+	fun test(signal: Any): ((Any) -> Boolean)? = set.lastOrNull { predicate ->
 		try
 		{
 			predicate(signal)

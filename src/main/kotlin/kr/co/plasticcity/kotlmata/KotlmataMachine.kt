@@ -423,13 +423,6 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
-	private fun MutableMap<SIGNAL, STATE>.test(state: STATE, signal: SIGNAL): STATE?
-	{
-		return predicateMap[state]?.test(signal)?.let { predicate ->
-			this[predicate]
-		}
-	}
-	
 	override fun input(signal: SIGNAL, payload: Any?)
 	{
 		defaultInput(FunctionDSL.Sync(signal, null, payload))
@@ -443,9 +436,15 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	override fun input(signal: SIGNAL, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
 	{
-		fun MutableMap<SIGNAL, STATE>.next(left: STATE): STATE?
+		fun MutableMap<SIGNAL, STATE>.test(from: STATE, signal: SIGNAL): STATE?
 		{
-			return this[signal] ?: this[signal::class] ?: test(left, signal) ?: this[any]
+			return predicateMap[from]?.test(signal)?.let { predicate ->
+				this[predicate]
+			}
+		}
+		
+		fun next(from: STATE): STATE? = ruleMap[from]?.run {
+			return this[signal] ?: this[signal::class] ?: test(from, signal) ?: this[any]
 		}
 		
 		tryCatchReturn {
@@ -461,8 +460,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}.convertToSync()?.also { sync ->
 			block(sync)
-		} ?: ruleMap.let {
-			it[current.tag]?.next(current.tag) ?: it[any]?.next(any)
+		} ?: run {
+			next(current.tag) ?: next(any)
 		}?.let {
 			when (it)
 			{
@@ -1187,10 +1186,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		 *###################################################################################################################################*/
 		private fun <T : SIGNAL> store(state: STATE, predicate: (T) -> Boolean): SIGNAL
 		{
-			this@ModifierImpl shouldNot expired
-			return (predicateMap[state] ?: Predicates().also {
+			(predicateMap[state] ?: Predicates().also {
 				predicateMap[state] = it
 			}).store(predicate)
+			return predicate
 		}
 		
 		override fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean) = this x store(this, predicate)
@@ -1215,13 +1214,13 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				this@ModifierImpl shouldNot expired
 				any x store(any, predicate) %= state
 				this@x.forEach { from ->
-					val signal = store(from, predicate)
+					store(from, predicate)
 					ruleMap.let {
 						it[from]
 					}?.let {
-						it[signal]
+						it[predicate]
 					} ?: run {
-						from x signal %= stay
+						from x predicate %= stay
 					}
 				}
 			}
