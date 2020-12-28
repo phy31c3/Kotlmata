@@ -194,9 +194,9 @@ private class KotlmataStateImpl<T : STATE>(
 	private var exitMap: MutableMap<SIGNAL, ExitDef>? = null
 	private var error: StateError? = null
 	
-	private var entryPredicates = Predicates()
-	private var inputPredicates = Predicates()
-	private var exitPredicates = Predicates()
+	private var entryPredicates: Predicates? = null
+	private var inputPredicates: Predicates? = null
+	private var exitPredicates: Predicates? = null
 	
 	init
 	{
@@ -261,7 +261,10 @@ private class KotlmataStateImpl<T : STATE>(
 					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class", signal) { STATE_RUN_ENTRY_CLASS }
 					it[signal::class]
 				}
-				else -> null
+				else -> entryPredicates?.test(signal)?.let { predicate ->
+					logLevel.normal(prefix, tag, signal) { STATE_RUN_ENTRY_PREDICATE }
+					it[predicate]
+				}
 			}
 		} ?: entry?.also {
 			logLevel.normal(prefix, tag, signal) { STATE_RUN_ENTRY_DEFAULT }
@@ -308,7 +311,10 @@ private class KotlmataStateImpl<T : STATE>(
 					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class", signal) { STATE_RUN_INPUT_CLASS }
 					it[signal::class]
 				}
-				else -> null
+				else -> inputPredicates?.test(signal)?.let { predicate ->
+					logLevel.normal(prefix, tag, signal) { STATE_RUN_INPUT_PREDICATE }
+					it[predicate]
+				}
 			}
 		} ?: input?.also {
 			logLevel.normal(prefix, tag, signal) { STATE_RUN_INPUT_DEFAULT }
@@ -355,7 +361,10 @@ private class KotlmataStateImpl<T : STATE>(
 					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class", signal) { STATE_RUN_EXIT_CLASS }
 					it[signal::class]
 				}
-				else -> null
+				else -> exitPredicates?.test(signal)?.let { predicate ->
+					logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT_PREDICATE }
+					it[predicate]
+				}
 			}
 		} ?: exit?.also {
 			logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT_DEFAULT }
@@ -415,6 +424,21 @@ private class KotlmataStateImpl<T : STATE>(
 		private val exitMap: MutableMap<SIGNAL, ExitDef>
 			get() = this@KotlmataStateImpl.exitMap ?: HashMap<SIGNAL, ExitDef>().also {
 				this@KotlmataStateImpl.exitMap = it
+			}
+		
+		private val entryPredicates: Predicates
+			get() = this@KotlmataStateImpl.entryPredicates ?: Predicates().also {
+				this@KotlmataStateImpl.entryPredicates = it
+			}
+		
+		private val inputPredicates: Predicates
+			get() = this@KotlmataStateImpl.inputPredicates ?: Predicates().also {
+				this@KotlmataStateImpl.inputPredicates = it
+			}
+		
+		private val exitPredicates: Predicates
+			get() = this@KotlmataStateImpl.exitPredicates ?: Predicates().also {
+				this@KotlmataStateImpl.exitPredicates = it
 			}
 		
 		/*###################################################################################################################################
