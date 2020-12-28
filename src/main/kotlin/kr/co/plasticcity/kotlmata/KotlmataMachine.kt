@@ -7,6 +7,8 @@ import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyExcept
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyOf
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleLeft
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modifier.*
+import java.util.*
+import kotlin.collections.HashMap
 import kotlin.reflect.KClass
 
 interface KotlmataMachine<T : MACHINE>
@@ -171,6 +173,13 @@ interface KotlmataMachine<T : MACHINE>
 			infix fun via(signal: KClass<out SIGNAL>)
 			infix fun via(keyword: any)
 		}
+		
+		/* For Predicate rule */
+		infix fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean): RuleAssignable
+		infix fun <T : SIGNAL> any.x(predicate: (T) -> Boolean): RuleAssignable
+		infix fun <T : SIGNAL> AnyOf.x(predicate: (T) -> Boolean): RuleAssignable
+		infix fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean): RuleAssignable
+		infix fun <T : SIGNAL> StatesOrSignals.x(predicate: (T) -> Boolean): RuleAssignable
 	}
 	
 	interface RuleAssignable
@@ -374,6 +383,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
+	private val predicateMap: MutableMap<STATE, Predicates> = HashMap()
 	
 	private var onTransition: TransitionCallback? = null
 	private var onError: MachineError? = null
@@ -1165,6 +1175,53 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 			}
 		}
+		
+		/*###################################################################################################################################
+		 * Predicate transition rule
+		 *###################################################################################################################################*/
+		private fun <T : SIGNAL> store(state: STATE, predicate: (T) -> Boolean): SIGNAL
+		{
+			this@ModifierImpl shouldNot expired
+			return (predicateMap[state] ?: Predicates().also {
+				predicateMap[state] = it
+			}).store(predicate)
+		}
+		
+		override fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean) = this x store(this, predicate)
+		
+		override fun <T : SIGNAL> any.x(predicate: (T) -> Boolean) = this x store(this, predicate)
+		
+		override fun <T : SIGNAL> AnyOf.x(predicate: (T) -> Boolean) = object : RuleAssignable
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				this@x.forEach { from ->
+					from x store(this, predicate) %= state
+				}
+			}
+		}
+		
+		override fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean) = object : RuleAssignable
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				any x store(any, predicate) %= state
+				this@x.forEach { from ->
+					val signal = store(from, predicate)
+					ruleMap.let {
+						it[from]
+					}?.let {
+						it[signal]
+					} ?: run {
+						from x signal %= stay
+					}
+				}
+			}
+		}
+		
+		override fun <T : SIGNAL> StatesOrSignals.x(predicate: (T) -> Boolean) = this.toAnyOf() x predicate
 		
 		init
 		{

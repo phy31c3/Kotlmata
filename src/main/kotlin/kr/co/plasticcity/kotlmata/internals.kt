@@ -1,8 +1,5 @@
 package kr.co.plasticcity.kotlmata
 
-import java.util.*
-import kotlin.collections.ArrayList
-
 internal typealias STATE = Any
 internal typealias SIGNAL = Any
 internal typealias STATE_OR_SIGNAL = Any
@@ -110,14 +107,16 @@ internal inline fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> Stri
 
 internal class Predicates
 {
-	private val predicates = ArrayList<Pair<UUID, (Any) -> Boolean>>()
+	private val set = LinkedHashSet<(Any) -> Boolean>()
 	
 	@Suppress("UNCHECKED_CAST")
-	fun <T> store(predicate: (T) -> Boolean) = UUID.randomUUID().also { uuid ->
-		predicates.add(uuid to predicate as (Any) -> Boolean)
+	fun <T> store(predicate: (T) -> Boolean): SIGNAL
+	{
+		set.add(predicate as (Any) -> Boolean)
+		return predicate
 	}
 	
-	fun test(signal: Any) = predicates.find { (_, predicate) ->
+	fun test(signal: Any): SIGNAL? = set.lastOrNull { predicate ->
 		try
 		{
 			predicate(signal)
@@ -126,5 +125,5 @@ internal class Predicates
 		{
 			false
 		}
-	}?.first
+	}
 }
