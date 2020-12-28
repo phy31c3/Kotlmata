@@ -42,6 +42,7 @@ interface KotlmataState<T : STATE>
 		infix fun function(action: EntryFunction<SIGNAL>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
+		infix fun <T : SIGNAL> via(predicate: (T) -> Boolean): Action<T>
 		infix fun via(signals: StatesOrSignals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
@@ -63,6 +64,7 @@ interface KotlmataState<T : STATE>
 		infix fun function(action: InputFunction<SIGNAL>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> signal(signal: T): Action<T>
+		infix fun <T : SIGNAL> signal(predicate: (T) -> Boolean): Action<T>
 		infix fun signal(signals: StatesOrSignals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
@@ -83,6 +85,7 @@ interface KotlmataState<T : STATE>
 		infix fun action(action: ExitAction<SIGNAL>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
+		infix fun <T : SIGNAL> via(predicate: (T) -> Boolean): Action<T>
 		infix fun via(signals: StatesOrSignals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
@@ -190,6 +193,10 @@ private class KotlmataStateImpl<T : STATE>(
 	private var inputMap: MutableMap<SIGNAL, InputDef>? = null
 	private var exitMap: MutableMap<SIGNAL, ExitDef>? = null
 	private var error: StateError? = null
+	
+	private var entryPredicates = Predicates()
+	private var inputPredicates = Predicates()
+	private var exitPredicates = Predicates()
 	
 	init
 	{
@@ -464,6 +471,24 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
+			override fun <T : SIGNAL> via(predicate: (T) -> Boolean) = object : Entry.Action<T>
+			{
+				override fun function(action: EntryFunction<T>): Entry.Catch<T>
+				{
+					this@ModifierImpl shouldNot expired
+					entryPredicates.store(predicate)
+					entryMap[predicate] = EntryDef(action as EntryFunction<SIGNAL>)
+					return object : Entry.Catch<T>
+					{
+						override fun intercept(error: EntryErrorFunction<T>)
+						{
+							this@ModifierImpl shouldNot expired
+							entryMap[predicate] = EntryDef(action, error as EntryErrorFunction<SIGNAL>)
+						}
+					}
+				}
+			}
+			
 			override fun via(signals: StatesOrSignals) = object : Entry.Action<SIGNAL>
 			{
 				override fun function(action: EntryFunction<SIGNAL>): Entry.Catch<SIGNAL>
@@ -540,6 +565,24 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
+			override fun <T : SIGNAL> signal(predicate: (T) -> Boolean) = object : Input.Action<T>
+			{
+				override fun function(action: InputFunction<T>): Input.Catch<T>
+				{
+					this@ModifierImpl shouldNot expired
+					inputPredicates.store(predicate)
+					inputMap[predicate] = InputDef(action as InputFunction<SIGNAL>)
+					return object : Input.Catch<T>
+					{
+						override fun intercept(error: InputErrorFunction<T>)
+						{
+							this@ModifierImpl shouldNot expired
+							inputMap[predicate] = InputDef(action, error as InputErrorFunction<SIGNAL>)
+						}
+					}
+				}
+			}
+			
 			override fun signal(signals: StatesOrSignals) = object : Input.Action<SIGNAL>
 			{
 				override fun function(action: InputFunction<SIGNAL>): Input.Catch<SIGNAL>
@@ -611,6 +654,24 @@ private class KotlmataStateImpl<T : STATE>(
 						{
 							this@ModifierImpl shouldNot expired
 							exitMap[signal] = ExitDef(action, error as ExitErrorAction<SIGNAL>)
+						}
+					}
+				}
+			}
+			
+			override fun <T : SIGNAL> via(predicate: (T) -> Boolean) = object : Exit.Action<T>
+			{
+				override fun action(action: ExitAction<T>): Exit.Catch<T>
+				{
+					this@ModifierImpl shouldNot expired
+					exitPredicates.store(predicate)
+					exitMap[predicate] = ExitDef(action as ExitAction<SIGNAL>)
+					return object : Exit.Catch<T>
+					{
+						override fun catch(error: ExitErrorAction<T>)
+						{
+							this@ModifierImpl shouldNot expired
+							exitMap[predicate] = ExitDef(action, error as ExitErrorAction<SIGNAL>)
 						}
 					}
 				}
