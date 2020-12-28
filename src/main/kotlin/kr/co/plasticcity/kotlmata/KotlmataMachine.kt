@@ -423,6 +423,13 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 	}
 	
+	private fun MutableMap<SIGNAL, STATE>.test(state: STATE, signal: SIGNAL): STATE?
+	{
+		return predicateMap[state]?.test(signal)?.let { predicate ->
+			this[predicate]
+		}
+	}
+	
 	override fun input(signal: SIGNAL, payload: Any?)
 	{
 		defaultInput(FunctionDSL.Sync(signal, null, payload))
@@ -436,9 +443,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	override fun input(signal: SIGNAL, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
 	{
-		fun MutableMap<SIGNAL, STATE>.next(): STATE?
+		fun MutableMap<SIGNAL, STATE>.next(left: STATE): STATE?
 		{
-			return this[signal] ?: this[signal::class] ?: this[any]
+			return this[signal] ?: this[signal::class] ?: test(left, signal) ?: this[any]
 		}
 		
 		tryCatchReturn {
@@ -455,7 +462,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}.convertToSync()?.also { sync ->
 			block(sync)
 		} ?: ruleMap.let {
-			it[current.tag]?.next() ?: it[any]?.next()
+			it[current.tag]?.next(current.tag) ?: it[any]?.next(any)
 		}?.let {
 			when (it)
 			{
@@ -920,7 +927,6 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		/*###################################################################################################################################
 		 * Basic transition rules
 		 *###################################################################################################################################*/
-		
 		override fun STATE.x(signal: SIGNAL) = ruleLeft(this, signal)
 		override fun STATE.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
 		override fun STATE.x(keyword: any) = ruleLeft(this, keyword)
