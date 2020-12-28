@@ -239,9 +239,6 @@ class Tests
 				entry action {
 					println("$state: 기본 진입함수")
 				}
-				entry via { signal: String -> signal.startsWith("return") } function {
-					println("$state: Predicate 진입함수")
-				}
 				input signal String::class function { s ->
 					println("$state: String 타입 입력함수: $s")
 					null
@@ -386,6 +383,14 @@ class Tests
 					println("$state: $signal 통해 퇴장. 입력과 논리는 같으나 퇴장 신호는 여기에 걸림")
 				}
 			}
+			"state12" { state ->
+				entry via "a".."z" function { signal ->
+					println("$state: Predicate 진입함수. signal = $signal")
+				}
+				input signal 1..10 action { signal ->
+					println("$state: 1 <= $signal <= 10")
+				}
+			}
 			
 			"chain1" { state ->
 				entry function { println("$state: 기본 진입함수") }
@@ -416,7 +421,8 @@ class Tests
 			"state8" x "goToState9" %= "state9"
 			"state9" x "goToState10" %= "state10"
 			"state10" x "out" %= "state11"
-			"state11" x { signal: String -> signal.startsWith("return to") } %= "state1"
+			"state11" x { signal: String -> signal.startsWith("return to") } %= "state12"
+			"state12" x 11..12 %= "state1"
 			
 			start at "state1"
 		}
@@ -527,7 +533,11 @@ class Tests
 		Thread.sleep(100)
 		
 		daemon.input("return")
-		daemon.input("return to a")
+		daemon.input("return to")
+		daemon.input(0)
+		daemon.input(1)
+		daemon.input(10)
+		daemon.input(11)
 		
 		Thread.sleep(500)
 		
