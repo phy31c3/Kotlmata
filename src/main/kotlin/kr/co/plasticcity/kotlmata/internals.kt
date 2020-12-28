@@ -104,3 +104,30 @@ internal inline fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> Stri
 {
 	if (this >= DETAIL) Log.d(*args, log = log)
 }
+
+internal class Predicates
+{
+	private val set = LinkedHashSet<(Any) -> Boolean>()
+	
+	@Suppress("UNCHECKED_CAST")
+	fun <T> store(predicate: (T) -> Boolean)
+	{
+		set.add(predicate as (Any) -> Boolean)
+	}
+	
+	fun remove(predicate: Any)
+	{
+		set.remove(predicate)
+	}
+	
+	fun test(signal: Any): ((Any) -> Boolean)? = set.lastOrNull { predicate ->
+		try
+		{
+			predicate(signal)
+		}
+		catch (e: ClassCastException)
+		{
+			false
+		}
+	}
+}

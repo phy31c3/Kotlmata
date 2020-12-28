@@ -7,6 +7,8 @@ import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyExcept
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyOf
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleLeft
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modifier.*
+import java.util.*
+import kotlin.collections.HashMap
 import kotlin.reflect.KClass
 
 interface KotlmataMachine<T : MACHINE>
@@ -171,6 +173,13 @@ interface KotlmataMachine<T : MACHINE>
 			infix fun via(signal: KClass<out SIGNAL>)
 			infix fun via(keyword: any)
 		}
+		
+		/* For Predicate rule */
+		infix fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean): RuleAssignable
+		infix fun <T : SIGNAL> any.x(predicate: (T) -> Boolean): RuleAssignable
+		infix fun <T : SIGNAL> AnyOf.x(predicate: (T) -> Boolean): RuleAssignable
+		infix fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean): RuleAssignable
+		infix fun <T : SIGNAL> StatesOrSignals.x(predicate: (T) -> Boolean): RuleAssignable
 	}
 	
 	interface RuleAssignable
@@ -374,6 +383,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
+	private val predicateMap: MutableMap<STATE, Predicates> = HashMap()
 	
 	private var onTransition: TransitionCallback? = null
 	private var onError: MachineError? = null
@@ -426,9 +436,15 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	override fun input(signal: SIGNAL, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
 	{
-		fun MutableMap<SIGNAL, STATE>.next(): STATE?
+		fun MutableMap<SIGNAL, STATE>.test(from: STATE, signal: SIGNAL): STATE?
 		{
-			return this[signal] ?: this[signal::class] ?: this[any]
+			return predicateMap[from]?.test(signal)?.let { predicate ->
+				this[predicate]
+			}
+		}
+		
+		fun next(from: STATE): STATE? = ruleMap[from]?.run {
+			return this[signal] ?: this[signal::class] ?: test(from, signal) ?: this[any]
 		}
 		
 		tryCatchReturn {
@@ -444,8 +460,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}.convertToSync()?.also { sync ->
 			block(sync)
-		} ?: ruleMap.let {
-			it[current.tag]?.next() ?: it[any]?.next()
+		} ?: run {
+			next(current.tag) ?: next(any)
 		}?.let {
 			when (it)
 			{
@@ -792,6 +808,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					this@ModifierImpl shouldNot expired
 					ruleMap -= state
+					predicateMap -= state
 				}
 			}
 			
@@ -799,6 +816,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				this@ModifierImpl shouldNot expired
 				ruleMap.clear()
+				predicateMap.clear()
 			}
 		}
 		
@@ -910,7 +928,6 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		/*###################################################################################################################################
 		 * Basic transition rules
 		 *###################################################################################################################################*/
-		
 		override fun STATE.x(signal: SIGNAL) = ruleLeft(this, signal)
 		override fun STATE.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
 		override fun STATE.x(keyword: any) = ruleLeft(this, keyword)
@@ -1150,21 +1167,65 @@ private class KotlmataMachineImpl<T : MACHINE>(
 								done(keyword)
 							}
 							
-							private fun done(signal: Any)
-							{
-								(1 until states.size).forEach { i ->
-									val from = states[i - 1]
-									val to = states[i]
-									(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
-										ruleMap[from] = it
-									})[signal] = to
-								}
+							private fun done(signal: Any) = (1 until states.size).forEach { i ->
+								val from = states[i - 1]
+								val to = states[i]
+								(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
+									ruleMap[from] = it
+								})[signal] = to
 							}
 						}
 					}
 				}
 			}
 		}
+		
+		/*###################################################################################################################################
+		 * Predicate transition rule
+		 *###################################################################################################################################*/
+		private fun <T : SIGNAL> store(state: STATE, predicate: (T) -> Boolean): SIGNAL
+		{
+			(predicateMap[state] ?: Predicates().also {
+				predicateMap[state] = it
+			}).store(predicate)
+			return predicate
+		}
+		
+		override fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean) = this x store(this, predicate)
+		
+		override fun <T : SIGNAL> any.x(predicate: (T) -> Boolean) = this x store(this, predicate)
+		
+		override fun <T : SIGNAL> AnyOf.x(predicate: (T) -> Boolean) = object : RuleAssignable
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				this@x.forEach { from ->
+					from x store(this, predicate) %= state
+				}
+			}
+		}
+		
+		override fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean) = object : RuleAssignable
+		{
+			override fun remAssign(state: STATE)
+			{
+				this@ModifierImpl shouldNot expired
+				any x store(any, predicate) %= state
+				this@x.forEach { from ->
+					store(from, predicate)
+					ruleMap.let {
+						it[from]
+					}?.let {
+						it[predicate]
+					} ?: run {
+						from x predicate %= stay
+					}
+				}
+			}
+		}
+		
+		override fun <T : SIGNAL> StatesOrSignals.x(predicate: (T) -> Boolean) = this.toAnyOf() x predicate
 		
 		init
 		{

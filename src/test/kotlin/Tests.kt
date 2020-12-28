@@ -239,6 +239,9 @@ class Tests
 				entry action {
 					println("$state: 기본 진입함수")
 				}
+				entry via { signal: String -> signal.startsWith("return") } function {
+					println("$state: Predicate 진입함수")
+				}
 				input signal String::class function { s ->
 					println("$state: String 타입 입력함수: $s")
 					null
@@ -363,6 +366,26 @@ class Tests
 					println("$state: $signal 신호를 통한 퇴장함수")
 				}
 			}
+			"state11" { state ->
+				entry via String::class function {
+					println("$state: String::class 진입함수")
+				}
+				input signal { signal: String -> signal.startsWith("return") } action { signal ->
+					println("$state: $signal 통해 논리신호로 들어옴")
+				}
+				input signal { signal: String -> signal.startsWith("retu") } action { signal ->
+					println("$state: $signal 통해 논리신호로 들어옴")
+				}
+				input signal { signal: String -> signal.startsWith("retur") } action { signal ->
+					println("$state: $signal 통해 논리신호로 들어옴. 여러 비슷한 조건 중 마지막에 정의한 조건에 들어옴.")
+				}
+				exit action {
+					println("$state: 기본 퇴장함수")
+				}
+				exit via { signal: String -> signal.startsWith("return") } action { signal ->
+					println("$state: $signal 통해 퇴장. 입력과 논리는 같으나 퇴장 신호는 여기에 걸림")
+				}
+			}
 			
 			"chain1" { state ->
 				entry function { println("$state: 기본 진입함수") }
@@ -392,7 +415,8 @@ class Tests
 			("state1" or "state2") x ("d" or "e") %= "state8"
 			"state8" x "goToState9" %= "state9"
 			"state9" x "goToState10" %= "state10"
-			"state10" x "out" %= "state1"
+			"state10" x "out" %= "state11"
+			"state11" x { signal: String -> signal.startsWith("return to") } %= "state1"
 			
 			start at "state1"
 		}
@@ -499,6 +523,11 @@ class Tests
 		daemon.input("goToState10")
 		daemon.input("string")
 		daemon.input("out")
+		
+		Thread.sleep(100)
+		
+		daemon.input("return")
+		daemon.input("return to a")
 		
 		Thread.sleep(500)
 		
