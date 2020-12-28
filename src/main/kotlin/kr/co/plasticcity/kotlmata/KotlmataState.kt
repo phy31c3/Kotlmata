@@ -43,6 +43,7 @@ interface KotlmataState<T : STATE>
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
 		infix fun <T : SIGNAL> via(predicate: (T) -> Boolean): Action<T>
+		infix fun <T> via(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = via { t: T -> range.contains(t) }
 		infix fun via(signals: StatesOrSignals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
@@ -65,6 +66,7 @@ interface KotlmataState<T : STATE>
 		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> signal(signal: T): Action<T>
 		infix fun <T : SIGNAL> signal(predicate: (T) -> Boolean): Action<T>
+		infix fun <T> signal(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = signal { t: T -> range.contains(t) }
 		infix fun signal(signals: StatesOrSignals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
@@ -86,6 +88,7 @@ interface KotlmataState<T : STATE>
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
 		infix fun <T : SIGNAL> via(predicate: (T) -> Boolean): Action<T>
+		infix fun <T> via(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = via { t: T -> range.contains(t) }
 		infix fun via(signals: StatesOrSignals): Action<SIGNAL>
 		
 		interface Action<T : SIGNAL>
