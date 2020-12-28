@@ -1,5 +1,8 @@
 package kr.co.plasticcity.kotlmata
 
+import java.util.*
+import kotlin.collections.ArrayList
+
 internal typealias STATE = Any
 internal typealias SIGNAL = Any
 internal typealias STATE_OR_SIGNAL = Any
@@ -103,4 +106,25 @@ internal inline fun Int.normal(vararg args: Any?, log: Logs.Companion.() -> Stri
 internal inline fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> String)
 {
 	if (this >= DETAIL) Log.d(*args, log = log)
+}
+
+internal class Predicates
+{
+	private val predicates = ArrayList<Pair<UUID, (Any) -> Boolean>>()
+	
+	@Suppress("UNCHECKED_CAST")
+	fun <T> store(predicate: (T) -> Boolean) = UUID.randomUUID().also { uuid ->
+		predicates.add(uuid to predicate as (Any) -> Boolean)
+	}
+	
+	fun test(signal: Any) = predicates.find { (_, predicate) ->
+		try
+		{
+			predicate(signal)
+		}
+		catch (e: ClassCastException)
+		{
+			false
+		}
+	}?.first
 }
