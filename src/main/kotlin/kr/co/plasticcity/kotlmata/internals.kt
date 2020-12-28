@@ -115,6 +115,11 @@ internal class Predicates
 		set.add(predicate as (Any) -> Boolean)
 	}
 	
+	fun remove(predicate: Any)
+	{
+		set.remove(predicate)
+	}
+	
 	fun test(signal: Any): ((Any) -> Boolean)? = set.lastOrNull { predicate ->
 		try
 		{

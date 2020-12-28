@@ -159,6 +159,7 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 		{
 			infix fun <T : SIGNAL> via(signal: KClass<T>)
 			infix fun <T : SIGNAL> via(signal: T)
+			infix fun <T : SIGNAL> via(predicate: (T) -> Boolean)
 			infix fun via(keyword: all)
 		}
 		
@@ -166,6 +167,7 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 		{
 			infix fun <T : SIGNAL> signal(signal: KClass<T>)
 			infix fun <T : SIGNAL> signal(signal: T)
+			infix fun <T : SIGNAL> signal(predicate: (T) -> Boolean)
 			infix fun signal(keyword: all)
 		}
 	}
@@ -759,11 +761,20 @@ private class KotlmataStateImpl<T : STATE>(
 					entryMap.remove(signal)
 				}
 				
+				override fun <T : SIGNAL> via(predicate: (T) -> Boolean)
+				{
+					this@ModifierImpl shouldNot expired
+					this@KotlmataStateImpl.entry = stash
+					entryMap.remove(predicate)
+					entryPredicates.remove(predicate)
+				}
+				
 				override fun via(keyword: all)
 				{
 					this@ModifierImpl shouldNot expired
 					this@KotlmataStateImpl.entry = stash
 					this@KotlmataStateImpl.entryMap = null
+					this@KotlmataStateImpl.entryPredicates = null
 				}
 			}
 			
@@ -792,11 +803,20 @@ private class KotlmataStateImpl<T : STATE>(
 					inputMap.remove(signal)
 				}
 				
+				override fun <T : SIGNAL> signal(predicate: (T) -> Boolean)
+				{
+					this@ModifierImpl shouldNot expired
+					this@KotlmataStateImpl.input = stash
+					inputMap.remove(predicate)
+					inputPredicates.remove(predicate)
+				}
+				
 				override fun signal(keyword: all)
 				{
 					this@ModifierImpl shouldNot expired
 					this@KotlmataStateImpl.input = stash
 					this@KotlmataStateImpl.inputMap = null
+					this@KotlmataStateImpl.inputPredicates = null
 				}
 			}
 			
@@ -825,11 +845,20 @@ private class KotlmataStateImpl<T : STATE>(
 					exitMap.remove(signal)
 				}
 				
+				override fun <T : SIGNAL> via(predicate: (T) -> Boolean)
+				{
+					this@ModifierImpl shouldNot expired
+					this@KotlmataStateImpl.exit = stash
+					exitMap.remove(predicate)
+					exitPredicates.remove(predicate)
+				}
+				
 				override fun via(keyword: all)
 				{
 					this@ModifierImpl shouldNot expired
 					this@KotlmataStateImpl.exit = stash
 					this@KotlmataStateImpl.exitMap = null
+					this@KotlmataStateImpl.exitPredicates = null
 				}
 			}
 			
@@ -842,6 +871,9 @@ private class KotlmataStateImpl<T : STATE>(
 				this@KotlmataStateImpl.entryMap = null
 				this@KotlmataStateImpl.inputMap = null
 				this@KotlmataStateImpl.exitMap = null
+				this@KotlmataStateImpl.entryPredicates = null
+				this@KotlmataStateImpl.inputPredicates = null
+				this@KotlmataStateImpl.exitPredicates = null
 			}
 		}
 		

@@ -808,6 +808,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					this@ModifierImpl shouldNot expired
 					ruleMap -= state
+					predicateMap -= state
 				}
 			}
 			
@@ -815,6 +816,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				this@ModifierImpl shouldNot expired
 				ruleMap.clear()
+				predicateMap.clear()
 			}
 		}
 		
@@ -1165,15 +1167,12 @@ private class KotlmataMachineImpl<T : MACHINE>(
 								done(keyword)
 							}
 							
-							private fun done(signal: Any)
-							{
-								(1 until states.size).forEach { i ->
-									val from = states[i - 1]
-									val to = states[i]
-									(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
-										ruleMap[from] = it
-									})[signal] = to
-								}
+							private fun done(signal: Any) = (1 until states.size).forEach { i ->
+								val from = states[i - 1]
+								val to = states[i]
+								(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
+									ruleMap[from] = it
+								})[signal] = to
 							}
 						}
 					}
