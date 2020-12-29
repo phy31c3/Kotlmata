@@ -161,6 +161,8 @@ private object KotlmataImpl : Kotlmata
 	private val daemons: MutableMap<DAEMON, KotlmataMutableDaemon<out DAEMON>> = HashMap()
 	private val core: KotlmataDaemon<String>
 	
+	private val DAEMON.isExistAndValid: Boolean get() = !(daemons[this]?.isTerminated?.also { if (it) daemons -= this } ?: true)
+	
 	init
 	{
 		core = KotlmataDaemon("Kotlmata@core") { _, _ ->
@@ -292,8 +294,6 @@ private object KotlmataImpl : Kotlmata
 			start at "Core"
 		}
 	}
-	
-	private val DAEMON.isExistAndValid: Boolean get() = !(daemons[this]?.isTerminated ?: true)
 	
 	override fun config(block: Kotlmata.Config.() -> Unit)
 	{

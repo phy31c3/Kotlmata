@@ -212,10 +212,10 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	private var onError: MachineError? = null
 	
 	@Volatile
-	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
+	override var isTerminated: Boolean = false
 	
 	@Volatile
-	override var isTerminated: Boolean = false
+	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
 	
 	private fun LifecycleDef.call(payload: Any? = null)
 	{
