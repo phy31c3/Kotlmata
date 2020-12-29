@@ -385,7 +385,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			"Destroyed" action {
 				logLevel.normal(tag, suffix) { DAEMON_DESTROY }
-				onDestroy.call()
+				try
+				{
+					onDestroy.call()
+				}
+				finally
+				{
+					queue = null
+				}
 			}
 			
 			"Nil" x "create" %= "Created"
@@ -411,10 +418,10 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
-			logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
-			core.input("create")
 			try
 			{
+				logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
+				core.input("create")
 				while (true)
 				{
 					val request = queue!!.take()
@@ -429,11 +436,18 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			catch (e: InterruptedException)
 			{
 				core.input(Request.Terminate(null))
-				queue!!.clear()
-				queue = null
 			}
-			core.input("destroy")
-			logLevel.simple(tag, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
+			catch (e: Throwable)
+			{
+				onError?.also {
+					ErrorAction(e).it()
+				} ?: throw e
+			}
+			finally
+			{
+				core.input("destroy")
+				logLevel.simple(tag, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
+			}
 		}
 	}
 	
