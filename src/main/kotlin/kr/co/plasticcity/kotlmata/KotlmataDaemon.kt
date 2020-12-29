@@ -200,15 +200,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	block: DaemonTemplate<T>
 ) : KotlmataMutableDaemon<T>
 {
-	private val core: KotlmataMachine<String>
-	
-	private var onCreate: LifecycleDef = LifecycleDef()
-	private var onStart: LifecycleDef = LifecycleDef()
-	private var onPause: LifecycleDef = LifecycleDef()
-	private var onStop: LifecycleDef = LifecycleDef()
-	private var onResume: LifecycleDef = LifecycleDef()
-	private var onTerminate: LifecycleDef = LifecycleDef()
-	private var onDestroy: LifecycleDef = LifecycleDef()
+	private var onCreate: LifecycleDef? = null
+	private var onStart: LifecycleDef? = null
+	private var onPause: LifecycleDef? = null
+	private var onStop: LifecycleDef? = null
+	private var onResume: LifecycleDef? = null
+	private var onTerminate: LifecycleDef? = null
+	private var onDestroy: LifecycleDef? = null
 	private var onError: MachineError? = null
 	
 	@Volatile
@@ -260,12 +258,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		val terminate: InputAction<Request.Terminate> = { terminateR ->
 			logLevel.simple(tag, suffix) { DAEMON_TERMINATE }
-			onTerminate.call(terminateR.payload)
+			onTerminate?.call(terminateR.payload)
 		}
 		
-		core = KotlmataMachine("$tag@core") {
-			"Nil" {
-				input signal "create" action {
+		val core = KotlmataMachine("$tag@core") {
+			"Nil" { /* nothing */ }
+			"Created" { state ->
+				entry action {
+					logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
 					logLevel.normal(tag) { DAEMON_START_CREATE }
 					machine = KotlmataMutableMachine.create(tag, logLevel, "Daemon[$tag]:$suffix") {
 						CREATED { /* for creating state */ }
@@ -274,13 +274,12 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 						start at CREATED
 					}
 					logLevel.normal(tag) { DAEMON_END_CREATE }
-					onCreate.call()
+					onCreate?.call()
 				}
-			}
-			"Created" { state ->
+				
 				val start: InputAction<Request.Control> = { controlR ->
 					logLevel.simple(tag, suffix) { DAEMON_START }
-					onStart.call(controlR.payload)
+					onStart?.call(controlR.payload)
 					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", block = postSync)
 				}
 				
@@ -319,13 +318,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				
 				entry via Request.Pause::class action { pauseR ->
 					logLevel.simple(tag, suffix) { DAEMON_PAUSE }
-					onPause.call(pauseR.payload)
+					onPause?.call(pauseR.payload)
 				}
 				input signal Request.Run::class action { runR ->
 					sync?.also { syncR -> queue!!.offer(syncR) }
 					queue!! += stash
 					logLevel.simple(tag, suffix) { DAEMON_RESUME }
-					onResume.call(runR.payload)
+					onResume?.call(runR.payload)
 				}
 				input signal Request.Stop::class action {
 					sync?.also { syncR -> queue!!.offer(syncR) }
@@ -360,12 +359,12 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				
 				entry via Request.Stop::class action { stopR ->
 					logLevel.simple(tag, suffix) { DAEMON_STOP }
-					onStop.call(stopR.payload)
+					onStop?.call(stopR.payload)
 				}
 				input signal Request.Run::class action { runR ->
 					cleanup(runR)
 					logLevel.simple(tag, suffix) { DAEMON_RESUME }
-					onResume.call(runR.payload)
+					onResume?.call(runR.payload)
 				}
 				input signal Request.Pause::class action cleanup
 				input signal Request.Terminate::class action terminate
@@ -387,11 +386,20 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				logLevel.normal(tag, suffix) { DAEMON_DESTROY }
 				try
 				{
-					onDestroy.call()
+					onDestroy?.call()
 				}
 				finally
 				{
+					onCreate = null
+					onStart = null
+					onPause = null
+					onStop = null
+					onResume = null
+					onTerminate = null
+					onDestroy = null
+					onError = null
 					queue = null
+					logLevel.simple(tag, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
 				}
 			}
 			
@@ -420,7 +428,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
 			try
 			{
-				logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
 				core.input("create")
 				while (true)
 				{
@@ -446,7 +453,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			finally
 			{
 				core.input("destroy")
-				logLevel.simple(tag, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
 			}
 		}
 	}
