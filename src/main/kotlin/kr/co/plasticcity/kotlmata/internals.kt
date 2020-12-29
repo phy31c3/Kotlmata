@@ -36,8 +36,6 @@ internal fun Any?.convertToSync() = when (this)
 	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
 }
 
-internal object stay
-
 internal object CREATED
 {
 	override fun toString(): String = "CREATED"

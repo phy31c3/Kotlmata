@@ -3,6 +3,39 @@ package kr.co.plasticcity.kotlmata
 import kotlin.reflect.KClass
 
 /**
+ * In Machine:
+ * ```
+ * "state1" x any %= "state2"
+ * any x "signal" %= "state2"
+ * any x any %= "state2"
+ * any.of("state1", "state2") x "signal" %= "state3"
+ * any.of("state1", "state2") x any.of("signal1", "signal2") %= "state3"
+ * any.except("state1") x "signal" %= "state2"
+ * "state1" x any.of("signal1", "signal2") %= "state2"
+ * "state1" x any.except("signal1", "signal2") %= "state2"
+ * ```
+ */
+object any
+
+/**
+ * In Machine:
+ * ```
+ * "state" x "signal" %= stay
+ * any x "signal" %= stay
+ * ```
+ */
+object stay
+
+/**
+ * In Machine:
+ * ```
+ * "state" x "signal" %= self
+ * any x "signal" %= self
+ * ```
+ */
+object self
+
+/**
  * In State:
  * ```
  * delete action all
@@ -21,34 +54,10 @@ object all
 /**
  * In Machine:
  * ```
- * "state1" x any %= "state2"
- * any x "signal" %= "state2"
- * any x any %= "state2"
- * any.of("state1", "state2") x "signal" %= "state3"
- * any.of("state1", "state2") x any.of("signal1", "signal2") %= "state3"
- * any.except("state1") x "signal" %= "state2"
- * "state1" x any.of("signal1", "signal2") %= "state2"
- * "state1" x any.except("signal1", "signal2") %= "state2"
- * ```
- */
-object any
-
-/**
- * In Machine:
- * ```
  * delete rule of state "state1"
  * ```
  */
 object of
-
-/**
- * In Machine:
- * ```
- * "state" x "signal" %= self
- * any x "signal" %= self
- * ```
- */
-object self
 
 interface StatesOrSignals : MutableList<STATE_OR_SIGNAL>
 {
