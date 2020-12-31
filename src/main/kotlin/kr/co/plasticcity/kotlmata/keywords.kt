@@ -59,9 +59,11 @@ object all
  */
 object of
 
-interface StatesOrSignals : MutableList<STATE_OR_SIGNAL>
+interface StatesOrSignals<T : STATE_OR_SIGNAL> : MutableList<STATE_OR_SIGNAL>
+interface StatesOrSignalsDefinable
 {
-	infix fun or(stateOrSignal: STATE_OR_SIGNAL): StatesOrSignals
+	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: T2): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
 }
 
 @KotlmataMarker

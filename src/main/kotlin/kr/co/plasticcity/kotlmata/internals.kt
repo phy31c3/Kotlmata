@@ -78,6 +78,14 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	{
 		expire = true
 	}
+	
+	internal fun shouldNotExpired()
+	{
+		if (expire)
+		{
+			block()
+		}
+	}
 }
 
 internal const val tab: String = "   "
@@ -128,4 +136,19 @@ internal class Predicates
 			false
 		}
 	}
+}
+
+internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: T1, rhs: T2): StatesOrSignals<R>
+{
+	shouldNotExpired()
+	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	{ /* empty */ }
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: StatesOrSignals<T1>, rhs: T2): StatesOrSignals<R>
+{
+	shouldNotExpired()
+	lhs.add(rhs)
+	return lhs as StatesOrSignals<R>
 }
