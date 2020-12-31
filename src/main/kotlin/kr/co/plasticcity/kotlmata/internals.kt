@@ -1,13 +1,15 @@
 package kr.co.plasticcity.kotlmata
 
+import java.util.concurrent.atomic.AtomicInteger
+
+@DslMarker
+internal annotation class KotlmataMarker
+
 internal typealias STATE = Any
 internal typealias SIGNAL = Any
 internal typealias STATE_OR_SIGNAL = Any
 internal typealias MACHINE = Any
 internal typealias DAEMON = MACHINE
-
-@DslMarker
-internal annotation class KotlmataMarker
 
 internal object Action : ActionDSL
 internal object Function : FunctionDSL
@@ -19,21 +21,12 @@ internal class ErrorPayload(override val throwable: Throwable, override val payl
 internal class ErrorPayloadFunction(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadFunctionDSL
 internal class Transition : TransitionDSL
 {
-	override val count: Int = Transition.count++
+	override val count: Int = Transition.count.getAndIncrement()
 	
 	companion object
 	{
-		var count = 0
+		val count = AtomicInteger(0)
 	}
-}
-
-internal fun Any?.convertToSync() = when (this)
-{
-	null -> null
-	is Unit -> null
-	is Nothing -> null
-	is FunctionDSL.Sync -> this
-	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
 }
 
 internal object CREATED
@@ -88,29 +81,6 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	}
 }
 
-internal const val tab: String = "   "
-
-internal const val UNDEFINED = -1
-internal const val NO_LOG = 0
-internal const val SIMPLE = 1
-internal const val NORMAL = 2
-internal const val DETAIL = 3
-
-internal inline fun Int.simple(vararg args: Any?, log: Logs.Companion.() -> String)
-{
-	if (this >= SIMPLE) Log.d(*args, log = log)
-}
-
-internal inline fun Int.normal(vararg args: Any?, log: Logs.Companion.() -> String)
-{
-	if (this >= NORMAL) Log.d(*args, log = log)
-}
-
-internal inline fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> String)
-{
-	if (this >= DETAIL) Log.d(*args, log = log)
-}
-
 internal class Predicates
 {
 	private val set = LinkedHashSet<(Any) -> Boolean>()
@@ -138,6 +108,15 @@ internal class Predicates
 	}
 }
 
+internal fun Any?.convertToSync() = when (this)
+{
+	null -> null
+	is Unit -> null
+	is Nothing -> null
+	is FunctionDSL.Sync -> this
+	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
+}
+
 internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: T1, rhs: T2): StatesOrSignals<R>
 {
 	shouldNotExpired()
@@ -151,4 +130,27 @@ internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: StatesOrSig
 	shouldNotExpired()
 	lhs.add(rhs)
 	return lhs as StatesOrSignals<R>
+}
+
+internal const val tab: String = "   "
+
+internal const val UNDEFINED = -1
+internal const val NO_LOG = 0
+internal const val SIMPLE = 1
+internal const val NORMAL = 2
+internal const val DETAIL = 3
+
+internal inline fun Int.simple(vararg args: Any?, log: Logs.Companion.() -> String)
+{
+	if (this >= SIMPLE) Log.d(*args, log = log)
+}
+
+internal inline fun Int.normal(vararg args: Any?, log: Logs.Companion.() -> String)
+{
+	if (this >= NORMAL) Log.d(*args, log = log)
+}
+
+internal inline fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> String)
+{
+	if (this >= DETAIL) Log.d(*args, log = log)
 }

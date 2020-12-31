@@ -86,7 +86,7 @@ interface KotlmataDaemon<T : DAEMON>
 			infix fun pause(block: DaemonCallback): Catch
 			infix fun stop(block: DaemonCallback): Catch
 			infix fun resume(block: DaemonCallback): Catch
-			infix fun terminate(block: DaemonCallback): Catch
+			infix fun finish(block: DaemonCallback): Catch
 			infix fun destroy(block: DaemonCallback): Catch
 		}
 		
@@ -205,7 +205,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	private var onPause: LifecycleDef? = null
 	private var onStop: LifecycleDef? = null
 	private var onResume: LifecycleDef? = null
-	private var onTerminate: LifecycleDef? = null
+	private var onFinish: LifecycleDef? = null
 	private var onDestroy: LifecycleDef? = null
 	private var onError: MachineError? = null
 	
@@ -256,16 +256,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 		}
 		
-		val terminate: InputAction<Request.Terminate> = { terminateR ->
-			logLevel.simple(tag, suffix) { DAEMON_TERMINATE }
-			onTerminate?.call(terminateR.payload)
-		}
-		
 		val core = KotlmataMachine("$tag@core") {
-			"Nil" { /* nothing */ }
-			"Created" { state ->
-				entry action {
-					logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
+			"Nil" {
+				input signal "create" action {
 					logLevel.normal(tag) { DAEMON_START_CREATE }
 					machine = KotlmataMutableMachine.create(tag, logLevel, "Daemon[$tag]:$suffix") {
 						CREATED { /* for creating state */ }
@@ -274,9 +267,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 						start at CREATED
 					}
 					logLevel.normal(tag) { DAEMON_END_CREATE }
-					onCreate?.call()
 				}
-				
+			}
+			"Created" { state ->
 				val start: InputAction<Request.Control> = { controlR ->
 					logLevel.simple(tag, suffix) { DAEMON_START }
 					onStart?.call(controlR.payload)
@@ -293,7 +286,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"Running" { state ->
 				input signal Request.Pause::class action {}
 				input signal Request.Stop::class action {}
-				input signal Request.Terminate::class action terminate
+				input signal Request.Terminate::class action { terminateR ->
+					onFinish?.call(terminateR.payload)
+				}
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
 					syncR.type?.also { type ->
@@ -329,7 +324,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Stop::class action {
 					sync?.also { syncR -> queue!!.offer(syncR) }
 				}
-				input signal Request.Terminate::class action terminate
+				input signal Request.Terminate::class action { terminateR ->
+					onFinish?.call(terminateR.payload)
+				}
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
 					logLevel.normal(tag, syncR) { DAEMON_STORE_REQUEST }
@@ -367,7 +364,9 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					onResume?.call(runR.payload)
 				}
 				input signal Request.Pause::class action cleanup
-				input signal Request.Terminate::class action terminate
+				input signal Request.Terminate::class action { terminateR ->
+					onFinish?.call(terminateR.payload)
+				}
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
 					logLevel.normal(tag, syncR) { DAEMON_STORE_REQUEST }
@@ -378,14 +377,18 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					sync = null
 				}
 			}
-			"Terminated" via Request.Terminate::class action {
+			"Terminated" via Request.Terminate::class action { terminateR ->
+				logLevel.simple(tag, suffix) { DAEMON_TERMINATE }
 				isTerminated = true
-				Thread.currentThread().interrupt()
+				if (terminateR.shouldInterrupt)
+				{
+					Thread.currentThread().interrupt()
+				}
 			}
 			"Destroyed" action {
-				logLevel.normal(tag, suffix) { DAEMON_DESTROY }
 				try
 				{
+					logLevel.normal(tag, suffix) { DAEMON_DESTROY }
 					onDestroy?.call()
 				}
 				finally
@@ -395,7 +398,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					onPause = null
 					onStop = null
 					onResume = null
-					onTerminate = null
+					onFinish = null
 					onDestroy = null
 					onError = null
 					queue = null
@@ -428,6 +431,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
 			try
 			{
+				logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
+				onCreate?.call()
 				core.input("create")
 				while (true)
 				{
@@ -442,10 +447,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			catch (e: InterruptedException)
 			{
-				core.input(Request.Terminate(null))
+				core.input(Request.Terminate(null, false))
 			}
 			catch (e: Throwable)
 			{
+				core.input(Request.Terminate(null, false))
 				onError?.also {
 					ErrorAction(e).it()
 				} ?: throw e
@@ -598,16 +604,16 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 			
-			override fun terminate(block: DaemonCallback): KotlmataDaemon.Init.Catch
+			override fun finish(block: DaemonCallback): KotlmataDaemon.Init.Catch
 			{
 				this@InitImpl shouldNot expired
-				onTerminate = LifecycleDef(callback = block)
+				onFinish = LifecycleDef(callback = block)
 				return object : KotlmataDaemon.Init.Catch
 				{
 					override fun catch(error: DaemonFallback)
 					{
 						this@InitImpl shouldNot expired
-						onTerminate = LifecycleDef(callback = block, fallback = error)
+						onFinish = LifecycleDef(callback = block, fallback = error)
 					}
 				}
 			}
@@ -630,13 +636,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			{
 				this@InitImpl shouldNot expired
 				onError = block
-				init.on.error(block)
+				init.on error block
 			}
 			
 			override fun transition(block: TransitionCallback)
 			{
 				this@InitImpl shouldNot expired
-				init.on.transition(block)
+				init.on transition block
 			}
 		}
 		
@@ -669,7 +675,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		class Run(payload: Any?) : Control(payload)
 		class Pause(payload: Any?) : Control(payload)
 		class Stop(payload: Any?) : Control(payload)
-		class Terminate(payload: Any?) : Control(payload)
+		class Terminate(payload: Any?, val shouldInterrupt: Boolean = true) : Control(payload)
 		
 		class Modify(val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request(MODIFY)
 		
