@@ -34,6 +34,32 @@ internal object CREATED
 	override fun toString(): String = "CREATED"
 }
 
+internal const val tab: String = "   "
+
+internal fun Any?.convertToSync() = when (this)
+{
+	null -> null
+	is Unit -> null
+	is Nothing -> null
+	is FunctionDSL.Sync -> this
+	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
+}
+
+internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: T1, rhs: T2): StatesOrSignals<R>
+{
+	shouldNotExpired()
+	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	{ /* empty */ }
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: StatesOrSignals<T1>, rhs: T2): StatesOrSignals<R>
+{
+	shouldNotExpired()
+	lhs.add(rhs)
+	return lhs as StatesOrSignals<R>
+}
+
 internal open class Expirable internal constructor(private val block: () -> Nothing)
 {
 	@Volatile
@@ -106,51 +132,4 @@ internal class Predicates
 			false
 		}
 	}
-}
-
-internal fun Any?.convertToSync() = when (this)
-{
-	null -> null
-	is Unit -> null
-	is Nothing -> null
-	is FunctionDSL.Sync -> this
-	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
-}
-
-internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: T1, rhs: T2): StatesOrSignals<R>
-{
-	shouldNotExpired()
-	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
-	{ /* empty */ }
-}
-
-@Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: StatesOrSignals<T1>, rhs: T2): StatesOrSignals<R>
-{
-	shouldNotExpired()
-	lhs.add(rhs)
-	return lhs as StatesOrSignals<R>
-}
-
-internal const val tab: String = "   "
-
-internal const val UNDEFINED = -1
-internal const val NO_LOG = 0
-internal const val SIMPLE = 1
-internal const val NORMAL = 2
-internal const val DETAIL = 3
-
-internal inline fun Int.simple(vararg args: Any?, log: Logs.Companion.() -> String)
-{
-	if (this >= SIMPLE) Log.d(*args, log = log)
-}
-
-internal inline fun Int.normal(vararg args: Any?, log: Logs.Companion.() -> String)
-{
-	if (this >= NORMAL) Log.d(*args, log = log)
-}
-
-internal inline fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> String)
-{
-	if (this >= DETAIL) Log.d(*args, log = log)
 }

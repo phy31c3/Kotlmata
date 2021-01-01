@@ -3,6 +3,9 @@
 package kr.co.plasticcity.kotlmata
 
 import kr.co.plasticcity.kotlmata.KotlmataDaemonImpl.Request.*
+import kr.co.plasticcity.kotlmata.Log.detail
+import kr.co.plasticcity.kotlmata.Log.normal
+import kr.co.plasticcity.kotlmata.Log.simple
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicLong

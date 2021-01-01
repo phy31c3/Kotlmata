@@ -7,6 +7,8 @@ import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyExcept
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyOf
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleLeft
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modifier.*
+import kr.co.plasticcity.kotlmata.Log.normal
+import kr.co.plasticcity.kotlmata.Log.simple
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.reflect.KClass

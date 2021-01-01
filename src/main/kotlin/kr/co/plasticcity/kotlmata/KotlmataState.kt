@@ -4,6 +4,7 @@ package kr.co.plasticcity.kotlmata
 
 import kr.co.plasticcity.kotlmata.KotlmataMutableState.*
 import kr.co.plasticcity.kotlmata.KotlmataState.*
+import kr.co.plasticcity.kotlmata.Log.normal
 import kotlin.reflect.KClass
 
 interface KotlmataState<T : STATE>
