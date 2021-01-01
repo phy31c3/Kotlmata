@@ -244,17 +244,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			machine modify modifyR.block
 		}
 		
+		val ignore: (STATE, Request) -> Unit = { state, request ->
+			logLevel.normal(tag, state, request) { DAEMON_IGNORE_REQUEST }
+		}
+		
 		val postSync: (FunctionDSL.Sync) -> Unit = {
 			val syncR = Sync(it.signal, it.type, it.payload)
 			logLevel.detail(tag, syncR) { DAEMON_PUT_REQUEST }
 			queue!!.offer(syncR)
-		}
-		
-		val ignore: (SIGNAL, STATE) -> Unit = { signal, state ->
-			if (signal is Request)
-			{
-				logLevel.normal(tag, state, signal) { DAEMON_IGNORE_REQUEST }
-			}
 		}
 		
 		val core = KotlmataMachine("$tag@core") {
@@ -288,18 +285,16 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Run::class action start
 				input signal Pause::class action start
 				input signal Stop::class action start
-				input signal Terminate::class action {}
 				input signal Modify::class action modifyMachine
-				input action { signal -> ignore(signal, state) }
+				input signal Sync::class action { ignore(state, it) }
+				input signal Input::class action { ignore(state, it) }
+				input signal TypedInput::class action { ignore(state, it) }
 			}
 			"Running" { state ->
-				input signal Pause::class action {}
-				input signal Stop::class action {}
+				input signal Run::class action { ignore(state, it) }
 				input signal Terminate::class action { terminateR ->
 					onFinish?.call(terminateR.payload)
-				} catch {
-					/* ignore */
-				}
+				} catch { /* ignore */ }
 				input signal Modify::class action modifyMachine
 				input signal Sync::class action { syncR ->
 					syncR.type?.also { type ->
@@ -312,7 +307,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal TypedInput::class action { typedR ->
 					machine.input(typedR.signal, typedR.type, typedR.payload, block = postSync)
 				}
-				input action { request -> ignore(request, state) }
 			}
 			"Paused" { state ->
 				var sync: Sync? = null
@@ -326,20 +320,20 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					logLevel.simple(tag, suffix) { DAEMON_PAUSE }
 					onPause?.call(pauseR.payload)
 				}
+				
 				input signal Run::class action { runR ->
 					sync?.also { syncR -> queue!!.offer(syncR) }
 					queue!! += stash
 					logLevel.simple(tag, suffix) { DAEMON_RESUME }
 					onResume?.call(runR.payload)
 				}
+				input signal Pause::class action { ignore(state, it) }
 				input signal Stop::class action {
 					sync?.also { syncR -> queue!!.offer(syncR) }
 				}
 				input signal Terminate::class action { terminateR ->
 					onFinish?.call(terminateR.payload)
-				} catch {
-					/* ignore */
-				}
+				} catch { /* ignore */ }
 				input signal Modify::class action modifyMachine
 				input signal Sync::class action { syncR ->
 					logLevel.normal(tag, syncR) { DAEMON_STORE_REQUEST }
@@ -347,7 +341,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				input signal Input::class action keep
 				input signal TypedInput::class action keep
-				input action { signal -> ignore(signal, state) }
+				
 				exit action {
 					sync = null
 					stash.clear()
@@ -371,33 +365,37 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					logLevel.simple(tag, suffix) { DAEMON_STOP }
 					onStop?.call(stopR.payload)
 				}
+				
 				input signal Run::class action { runR ->
 					cleanup(runR)
 					logLevel.simple(tag, suffix) { DAEMON_RESUME }
 					onResume?.call(runR.payload)
 				}
 				input signal Pause::class action cleanup
+				input signal Stop::class action { ignore(state, it) }
 				input signal Terminate::class action { terminateR ->
 					onFinish?.call(terminateR.payload)
-				} catch {
-					/* ignore */
-				}
+				} catch { /* ignore */ }
 				input signal Modify::class action modifyMachine
 				input signal Sync::class action { syncR ->
 					logLevel.normal(tag, syncR) { DAEMON_STORE_REQUEST }
 					sync = syncR
 				}
-				input action { signal -> ignore(signal, state) }
+				input signal Input::class action { ignore(state, it) }
+				input signal TypedInput::class action { ignore(state, it) }
+				
 				exit action {
 					sync = null
 				}
 			}
-			"Terminated" via Terminate::class action { terminateR ->
-				logLevel.simple(tag, suffix) { DAEMON_TERMINATE }
-				isTerminated = true
-				if (terminateR.shouldInterrupt)
-				{
-					Thread.currentThread().interrupt()
+			"Terminated" {
+				entry via Terminate::class action { terminateR ->
+					logLevel.simple(tag, suffix) { DAEMON_TERMINATE }
+					isTerminated = true
+					if (terminateR.shouldInterrupt)
+					{
+						Thread.currentThread().interrupt()
+					}
 				}
 			}
 			"Destroyed" action {
