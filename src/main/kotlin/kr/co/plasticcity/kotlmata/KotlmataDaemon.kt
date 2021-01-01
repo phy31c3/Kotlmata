@@ -296,6 +296,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Stop::class action {}
 				input signal Request.Terminate::class action { terminateR ->
 					onFinish?.call(terminateR.payload)
+				} catch {
+					/* ignore */
 				}
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
@@ -334,6 +336,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				input signal Request.Terminate::class action { terminateR ->
 					onFinish?.call(terminateR.payload)
+				} catch {
+					/* ignore */
 				}
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
@@ -374,6 +378,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Request.Pause::class action cleanup
 				input signal Request.Terminate::class action { terminateR ->
 					onFinish?.call(terminateR.payload)
+				} catch {
+					/* ignore */
 				}
 				input signal Request.Modify::class action modifyMachine
 				input signal Request.Sync::class action { syncR ->
