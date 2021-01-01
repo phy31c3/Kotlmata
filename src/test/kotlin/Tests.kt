@@ -214,7 +214,7 @@ class Tests
 			on resume {
 				println("--------------------- 데몬이 재개됨")
 			}
-			on terminate {
+			on finish {
 				println("--------------------- 데몬이 종료됨")
 			}
 			on destroy {

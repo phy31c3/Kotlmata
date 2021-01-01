@@ -180,7 +180,7 @@ private object KotlmataImpl : Kotlmata
 				(payload as? Int)?.also { logLevel = it }
 				logLevel.simple { KOTLMATA_RESUME }
 			}
-			on terminate {
+			on destroy {
 				logLevel.simple { KOTLMATA_RELEASE }
 				daemons.forEach { (_, daemon) ->
 					daemon.terminate()
