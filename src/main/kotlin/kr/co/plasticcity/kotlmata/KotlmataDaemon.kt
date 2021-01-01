@@ -236,25 +236,26 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	init
 	{
-		lateinit var machine: KotlmataMutableMachine<T>
-		
-		val suffix = if (logLevel > SIMPLE) tab else ""
-		
-		val modifyMachine: InputAction<Modify> = { modifyR ->
-			machine modify modifyR.block
-		}
-		
-		val ignore: (STATE, Request) -> Unit = { state, request ->
-			logLevel.normal(tag, state, request) { DAEMON_IGNORE_REQUEST }
-		}
-		
-		val postSync: (FunctionDSL.Sync) -> Unit = {
-			val syncR = Sync(it.signal, it.type, it.payload)
-			logLevel.detail(tag, syncR) { DAEMON_PUT_REQUEST }
-			queue!!.offer(syncR)
-		}
-		
 		val core = KotlmataMachine("$tag@core") {
+			lateinit var machine: KotlmataMutableMachine<T>
+			
+			val logLevel = logLevel
+			val suffix = if (logLevel > SIMPLE) tab else ""
+			
+			val modifyMachine: InputAction<Modify> = { modifyR ->
+				machine modify modifyR.block
+			}
+			
+			val ignore: (STATE, Request) -> Unit = { state, request ->
+				logLevel.normal(tag, state, request) { DAEMON_IGNORE_REQUEST }
+			}
+			
+			val postSync: (FunctionDSL.Sync) -> Unit = {
+				val syncR = Sync(it.signal, it.type, it.payload)
+				logLevel.detail(tag, syncR) { DAEMON_PUT_REQUEST }
+				queue!!.offer(syncR)
+			}
+			
 			"Nil" {
 				input signal "create" action {
 					try
@@ -442,17 +443,22 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		}
 		
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
+			val queue = queue!!
+			val logLevel = logLevel
+			val tag = tag
+			
 			try
 			{
 				core.input("create")
 				while (true)
 				{
-					val request = queue!!.take()
-					logLevel.normal(tag, queue!!.size, request) { DAEMON_START_REQUEST }
-					measureTimeMillis {
-						core.input(request)
-					}.also { time ->
-						logLevel.normal(tag, time, request) { DAEMON_END_REQUEST }
+					queue.take().also { request ->
+						logLevel.normal(tag, queue.size, request) { DAEMON_START_REQUEST }
+						measureTimeMillis {
+							core.input(request)
+						}.also { time ->
+							logLevel.normal(tag, time, request) { DAEMON_END_REQUEST }
+						}
 					}
 				}
 			}
