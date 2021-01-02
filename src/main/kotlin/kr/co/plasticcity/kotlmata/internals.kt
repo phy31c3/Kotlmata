@@ -1,34 +1,22 @@
 package kr.co.plasticcity.kotlmata
 
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
 @DslMarker
 internal annotation class KotlmataMarker
 
-internal typealias STATE = Any
-internal typealias SIGNAL = Any
-internal typealias STATE_OR_SIGNAL = Any
-internal typealias MACHINE = Any
-internal typealias DAEMON = MACHINE
+internal typealias `STATE or SIGNAL` = Any
 
-internal object Action : ActionDSL
-internal object Function : FunctionDSL
-internal class Payload(override val payload: Any?) : PayloadDSL
-internal class PayloadFunction(override val payload: Any?) : PayloadFunctionDSL
-internal class ErrorAction(override val throwable: Throwable) : ErrorActionDSL
-internal class ErrorFunction(override val throwable: Throwable) : ErrorFunctionDSL
-internal class ErrorPayload(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadDSL
-internal class ErrorPayloadFunction(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadFunctionDSL
-internal class Transition : TransitionDSL
-{
-	override val count: Int = Transition.count.getAndIncrement()
-	
-	companion object
-	{
-		val count = AtomicInteger(0)
-	}
-}
+internal object ActionReceiver : ActionDSL
+internal object FunctionReceiver : FunctionDSL
+internal class ErrorActionReceiver(override val throwable: Throwable) : ErrorActionDSL
+internal class ErrorFunctionReceiver(override val throwable: Throwable) : ErrorFunctionDSL
+internal class PayloadActionReceiver(override val payload: Any?) : PayloadActionDSL
+internal class PayloadFunctionReceiver(override val payload: Any?) : PayloadFunctionDSL
+internal class PayloadErrorActionReceiver(override val throwable: Throwable, override val payload: Any?) : PayloadErrorActionDSL
+internal class PayloadErrorFunctionReceiver(override val throwable: Throwable, override val payload: Any?) : PayloadErrorFunctionDSL
+internal class TransitionActionReceiver(override val count: Long) : TransitionActionDSL
+internal class TransitionErrorActionReceiver(override val throwable: Throwable, override val count: Long) : TransitionErrorActionDSL
 
 internal object CREATED
 {
@@ -46,28 +34,28 @@ internal fun Any?.convertToSync() = when (this)
 	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
 }
 
-internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: T1, rhs: T2): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: T1, rhs: T2): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
 	{ /* empty */ }
 }
 
-internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: T1, rhs: KClass<T2>): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: T1, rhs: KClass<T2>): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
 	{ /* empty */ }
 }
 
-internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: KClass<T1>, rhs: T2): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: KClass<T1>, rhs: T2): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
 	{ /* empty */ }
 }
 
-internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: KClass<T1>, rhs: KClass<T2>): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: KClass<T1>, rhs: KClass<T2>): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
@@ -75,7 +63,7 @@ internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: KClass<T1>,
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: StatesOrSignals<T1>, rhs: T2): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: StatesOrSignals<T1>, rhs: T2): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	lhs.add(rhs)
@@ -83,7 +71,7 @@ internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: StatesOrSig
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: StatesOrSignals<T1>, rhs: KClass<T2>): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: StatesOrSignals<T1>, rhs: KClass<T2>): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	lhs.add(rhs)

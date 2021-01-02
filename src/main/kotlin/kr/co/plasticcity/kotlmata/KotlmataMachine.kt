@@ -66,8 +66,13 @@ interface KotlmataMachine<T : MACHINE>
 		
 		interface On
 		{
-			infix fun error(block: MachineError)
-			infix fun transition(block: TransitionCallback)
+			infix fun transition(block: TransitionCallback): Catch
+			infix fun error(block: MachineErrorCallback)
+		}
+		
+		interface Catch
+		{
+			infix fun catch(error: TransitionFallback)
 		}
 		
 		interface Start
@@ -89,7 +94,7 @@ interface KotlmataMachine<T : MACHINE>
 		}
 		
 		infix fun <S : STATE> S.action(action: EntryAction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL> = function(action)
-		infix fun <S : STATE> S.function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
+		infix fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signals: StatesOrSignals<T>): KotlmataState.Entry.Action<T>
@@ -111,11 +116,11 @@ interface KotlmataMachine<T : MACHINE>
 		
 		/* For 'AnyXX' interface */
 		
-		interface AnyOf : List<STATE_OR_SIGNAL>
-		interface AnyExcept : List<STATE_OR_SIGNAL>
+		interface AnyOf : List<`STATE or SIGNAL`>
+		interface AnyExcept : List<`STATE or SIGNAL`>
 		
-		fun any.of(vararg args: STATE_OR_SIGNAL): AnyOf
-		fun any.except(vararg args: STATE_OR_SIGNAL): AnyExcept
+		fun any.of(vararg args: `STATE or SIGNAL`): AnyOf
+		fun any.except(vararg args: `STATE or SIGNAL`): AnyExcept
 		
 		/* any.xxx(...) x "signal" %= "to" */
 		
@@ -382,6 +387,8 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 	infix fun modify(block: Modifier.(machine: T) -> Unit)
 }
 
+private class TransitionDef(val callback: TransitionCallback? = null, val fallback: TransitionFallback? = null)
+
 private class KotlmataMachineImpl<T : MACHINE>(
 	override val tag: T,
 	val logLevel: Int = NO_LOG,
@@ -393,8 +400,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
 	private val predicateMap: MutableMap<STATE, Predicates> = HashMap()
 	
-	private var onTransition: TransitionCallback? = null
-	private var onError: MachineError? = null
+	private var onTransition: TransitionDef? = null
+	private var onError: MachineErrorCallback? = null
+	
+	private var transitionCount: Long = 0
 	
 	private lateinit var current: KotlmataState<out STATE>
 	
@@ -412,9 +421,28 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	catch (e: Throwable)
 	{
 		onError?.also { onError ->
-			ErrorAction(e).onError()
+			ErrorActionReceiver(e).onError()
 		} ?: throw e
 		null
+	}
+	
+	private fun TransitionDef.call(from: STATE, signal: SIGNAL, to: STATE)
+	{
+		val transitionCount = transitionCount++
+		try
+		{
+			callback?.also { callback ->
+				TransitionActionReceiver(transitionCount).callback(from, signal, to)
+			}
+		}
+		catch (e: Throwable)
+		{
+			fallback?.also { fallback ->
+				TransitionErrorActionReceiver(e, transitionCount).fallback(from, signal, to)
+			} ?: onError?.also { onError ->
+				ErrorActionReceiver(e).onError()
+			} ?: throw e
+		}
 	}
 	
 	private fun defaultInput(begin: FunctionDSL.Sync)
@@ -488,7 +516,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}?.also { nextState ->
 			logLevel.simple(prefix, currentTag, signal, nextState.tag) { MACHINE_START_TRANSITION }
 			tryCatchReturn { currentState.exit(signal) }
-			onTransition?.invoke(Transition(), currentTag, signal, nextState.tag)
+			onTransition?.call(currentTag, signal, nextState.tag)
 			current = nextState
 			tryCatchReturn { nextState.entry(signal) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
@@ -529,7 +557,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}?.also { nextState ->
 			logLevel.simple(prefix, currentTag, "${type.simpleName}::class", nextState.tag) { MACHINE_START_TRANSITION }
 			tryCatchReturn { currentState.exit(signal, type) }
-			onTransition?.invoke(Transition(), currentTag, signal, nextState.tag)
+			onTransition?.call(currentTag, signal, nextState.tag)
 			current = nextState
 			tryCatchReturn { nextState.entry(signal, type) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
@@ -567,16 +595,24 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	{
 		override val on = object : KotlmataMachine.Init.On
 		{
-			override fun error(block: MachineError)
+			override fun transition(block: TransitionCallback): KotlmataMachine.Init.Catch
+			{
+				this@ModifierImpl shouldNot expired
+				onTransition = TransitionDef(callback = block)
+				return object : KotlmataMachine.Init.Catch
+				{
+					override fun catch(error: TransitionFallback)
+					{
+						this@ModifierImpl shouldNot expired
+						onTransition = TransitionDef(callback = block, fallback = error)
+					}
+				}
+			}
+			
+			override fun error(block: MachineErrorCallback)
 			{
 				this@ModifierImpl shouldNot expired
 				onError = block
-			}
-			
-			override fun transition(block: TransitionCallback)
-			{
-				this@ModifierImpl shouldNot expired
-				onTransition = block
 			}
 		}
 		
@@ -840,11 +876,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE> S.function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
+		override fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab") {
-				entry function action
+				entry function function
 			}
 			return object : KotlmataState.Entry.Catch<SIGNAL>
 			{
@@ -852,7 +888,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[this@function]?.modify {
-						entry function action intercept error
+						entry function function intercept error
 					}
 				}
 			}
@@ -860,11 +896,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun function(action: EntryFunction<T>): KotlmataState.Entry.Catch<T>
+			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
-					entry via signal function action
+					entry via signal function function
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
@@ -872,7 +908,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal function action intercept error
+							entry via signal function function intercept error
 						}
 					}
 				}
@@ -881,11 +917,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE, T : SIGNAL> S.via(signal: T) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun function(action: EntryFunction<T>): KotlmataState.Entry.Catch<T>
+			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
-					entry via signal function action
+					entry via signal function function
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
@@ -893,7 +929,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal function action intercept error
+							entry via signal function function intercept error
 						}
 					}
 				}
@@ -902,11 +938,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE, T : SIGNAL> S.via(signals: StatesOrSignals<T>) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun function(action: EntryFunction<T>): KotlmataState.Entry.Catch<T>
+			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
-					entry via signals function action
+					entry via signals function function
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
@@ -914,7 +950,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signals function action intercept error
+							entry via signals function function intercept error
 						}
 					}
 				}
@@ -923,11 +959,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE, T : SIGNAL> S.via(predicate: (T) -> Boolean) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun function(action: EntryFunction<T>): KotlmataState.Entry.Catch<T>
+			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
-					entry via predicate function action
+					entry via predicate function function
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
@@ -935,7 +971,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via predicate function action intercept error
+							entry via predicate function function intercept error
 						}
 					}
 				}
@@ -970,12 +1006,12 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		/*###################################################################################################################################
 		 * 'AnyXX' transition rules
 		 *###################################################################################################################################*/
-		override fun any.of(vararg args: STATE_OR_SIGNAL): AnyOf = object : AnyOf, List<STATE_OR_SIGNAL> by listOf(*args)
+		override fun any.of(vararg args: `STATE or SIGNAL`): AnyOf = object : AnyOf, List<`STATE or SIGNAL`> by listOf(*args)
 		{
 			/* empty */
 		}
 		
-		override fun any.except(vararg args: STATE_OR_SIGNAL): AnyExcept = object : AnyExcept, List<STATE_OR_SIGNAL> by listOf(*args)
+		override fun any.except(vararg args: `STATE or SIGNAL`): AnyExcept = object : AnyExcept, List<`STATE or SIGNAL`> by listOf(*args)
 		{
 			/* empty */
 		}
@@ -1112,14 +1148,14 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		/*###################################################################################################################################
 		 * StatesOrSignals transition rule
 		 *###################################################################################################################################*/
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: T2) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> KClass<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> KClass<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: T2) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
 		
-		private fun StatesOrSignals<*>.toAnyOf() = object : AnyOf, List<STATE_OR_SIGNAL> by this
+		private fun StatesOrSignals<*>.toAnyOf() = object : AnyOf, List<`STATE or SIGNAL`> by this
 		{
 			/* empty */
 		}

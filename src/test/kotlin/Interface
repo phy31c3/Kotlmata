@@ -22,6 +22,8 @@ KotlmataState("name") { state ->
 	input signal KClass<String> action [action]
 
 	exit action [action]
+
+	on error [action]
 }
 
 val immutableState = KotlmataState() // 불가
