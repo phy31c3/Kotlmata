@@ -116,11 +116,11 @@ interface KotlmataMachine<T : MACHINE>
 		
 		/* For 'AnyXX' interface */
 		
-		interface AnyOf : List<STATE_OR_SIGNAL>
-		interface AnyExcept : List<STATE_OR_SIGNAL>
+		interface AnyOf : List<`STATE or SIGNAL`>
+		interface AnyExcept : List<`STATE or SIGNAL`>
 		
-		fun any.of(vararg args: STATE_OR_SIGNAL): AnyOf
-		fun any.except(vararg args: STATE_OR_SIGNAL): AnyExcept
+		fun any.of(vararg args: `STATE or SIGNAL`): AnyOf
+		fun any.except(vararg args: `STATE or SIGNAL`): AnyExcept
 		
 		/* any.xxx(...) x "signal" %= "to" */
 		
@@ -1003,12 +1003,12 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		/*###################################################################################################################################
 		 * 'AnyXX' transition rules
 		 *###################################################################################################################################*/
-		override fun any.of(vararg args: STATE_OR_SIGNAL): AnyOf = object : AnyOf, List<STATE_OR_SIGNAL> by listOf(*args)
+		override fun any.of(vararg args: `STATE or SIGNAL`): AnyOf = object : AnyOf, List<`STATE or SIGNAL`> by listOf(*args)
 		{
 			/* empty */
 		}
 		
-		override fun any.except(vararg args: STATE_OR_SIGNAL): AnyExcept = object : AnyExcept, List<STATE_OR_SIGNAL> by listOf(*args)
+		override fun any.except(vararg args: `STATE or SIGNAL`): AnyExcept = object : AnyExcept, List<`STATE or SIGNAL`> by listOf(*args)
 		{
 			/* empty */
 		}
@@ -1145,14 +1145,14 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		/*###################################################################################################################################
 		 * StatesOrSignals transition rule
 		 *###################################################################################################################################*/
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: T2) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> KClass<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> KClass<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: T2) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
 		
-		private fun StatesOrSignals<*>.toAnyOf() = object : AnyOf, List<STATE_OR_SIGNAL> by this
+		private fun StatesOrSignals<*>.toAnyOf() = object : AnyOf, List<`STATE or SIGNAL`> by this
 		{
 			/* empty */
 		}

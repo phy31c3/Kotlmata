@@ -3,6 +3,26 @@ package kr.co.plasticcity.kotlmata
 import kotlin.reflect.KClass
 
 /**
+ * Supertype of KotlmataState tag
+ */
+typealias STATE = Any
+
+/**
+ * Supertype of Kotlmata signal
+ */
+typealias SIGNAL = Any
+
+/**
+ * Supertype of KotlmataMachine tag
+ */
+typealias MACHINE = Any
+
+/**
+ * Supertype of KotlmataDaemon tag
+ */
+typealias DAEMON = Any
+
+/**
  * In Machine:
  * ```
  * "state1" x any %= "state2"
@@ -59,15 +79,15 @@ object all
  */
 object of
 
-interface StatesOrSignals<T : STATE_OR_SIGNAL> : MutableList<STATE_OR_SIGNAL>
+interface StatesOrSignals<T : `STATE or SIGNAL`> : MutableList<`STATE or SIGNAL`>
 interface StatesOrSignalsDefinable
 {
-	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: T2): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> KClass<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> KClass<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: T2): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
 }
 
 @KotlmataMarker
