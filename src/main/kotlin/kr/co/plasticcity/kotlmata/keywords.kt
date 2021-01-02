@@ -117,7 +117,7 @@ interface PayloadHolder
 
 interface TransitionHolder
 {
-	val count: Int
+	val count: Long
 }
 
 interface ErrorActionDSL : ErrorHolder, ActionDSL

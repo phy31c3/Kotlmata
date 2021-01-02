@@ -1,6 +1,5 @@
 package kr.co.plasticcity.kotlmata
 
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
 @DslMarker
@@ -16,18 +15,8 @@ internal class PayloadActionReceiver(override val payload: Any?) : PayloadAction
 internal class PayloadFunctionReceiver(override val payload: Any?) : PayloadFunctionDSL
 internal class PayloadErrorActionReceiver(override val throwable: Throwable, override val payload: Any?) : PayloadErrorActionDSL
 internal class PayloadErrorFunctionReceiver(override val throwable: Throwable, override val payload: Any?) : PayloadErrorFunctionDSL
-internal class TransitionActionReceiver : TransitionActionDSL, TransitionHolder by TransitionHolderImpl()
-internal class TransitionErrorActionReceiver(override val throwable: Throwable) : TransitionErrorActionDSL, TransitionHolder by TransitionHolderImpl()
-
-private class TransitionHolderImpl : TransitionHolder
-{
-	override val count: Int = counter.getAndIncrement()
-	
-	private companion object
-	{
-		val counter = AtomicInteger(0)
-	}
-}
+internal class TransitionActionReceiver(override val count: Long) : TransitionActionDSL
+internal class TransitionErrorActionReceiver(override val throwable: Throwable, override val count: Long) : TransitionErrorActionDSL
 
 internal object CREATED
 {

@@ -403,6 +403,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private var onTransition: TransitionDef? = null
 	private var onError: MachineErrorCallback? = null
 	
+	private var transitionCount: Long = 0
+	
 	private lateinit var current: KotlmataState<out STATE>
 	
 	init
@@ -426,16 +428,17 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	private fun TransitionDef.call(from: STATE, signal: SIGNAL, to: STATE)
 	{
+		val transitionCount = transitionCount++
 		try
 		{
 			callback?.also { callback ->
-				TransitionActionReceiver().callback(from, signal, to)
+				TransitionActionReceiver(transitionCount).callback(from, signal, to)
 			}
 		}
 		catch (e: Throwable)
 		{
 			fallback?.also { fallback ->
-				TransitionErrorActionReceiver(e).fallback(from, signal, to)
+				TransitionErrorActionReceiver(e, transitionCount).fallback(from, signal, to)
 			} ?: onError?.also { onError ->
 				ErrorActionReceiver(e).onError()
 			} ?: throw e
