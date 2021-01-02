@@ -883,7 +883,11 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 		
 		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: T2) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> KClass<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> KClass<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
 		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
 		
 		init
 		{

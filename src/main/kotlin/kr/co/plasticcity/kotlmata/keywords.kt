@@ -63,7 +63,11 @@ interface StatesOrSignals<T : STATE_OR_SIGNAL> : MutableList<STATE_OR_SIGNAL>
 interface StatesOrSignalsDefinable
 {
 	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: T2): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> T1.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> KClass<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> KClass<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
 	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
 }
 
 @KotlmataMarker

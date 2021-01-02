@@ -1,6 +1,7 @@
 package kr.co.plasticcity.kotlmata
 
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.reflect.KClass
 
 @DslMarker
 internal annotation class KotlmataMarker
@@ -52,8 +53,37 @@ internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: T1, rhs: T2
 	{ /* empty */ }
 }
 
+internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: T1, rhs: KClass<T2>): StatesOrSignals<R>
+{
+	shouldNotExpired()
+	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	{ /* empty */ }
+}
+
+internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: KClass<T1>, rhs: T2): StatesOrSignals<R>
+{
+	shouldNotExpired()
+	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	{ /* empty */ }
+}
+
+internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: KClass<T1>, rhs: KClass<T2>): StatesOrSignals<R>
+{
+	shouldNotExpired()
+	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	{ /* empty */ }
+}
+
 @Suppress("UNCHECKED_CAST")
 internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: StatesOrSignals<T1>, rhs: T2): StatesOrSignals<R>
+{
+	shouldNotExpired()
+	lhs.add(rhs)
+	return lhs as StatesOrSignals<R>
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun <T1 : R, T2 : R, R : STATE_OR_SIGNAL> Expirable.or(lhs: StatesOrSignals<T1>, rhs: KClass<T2>): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	lhs.add(rhs)
