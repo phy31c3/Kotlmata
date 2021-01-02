@@ -186,7 +186,16 @@ class Tests
 		
 		fun template(msg: String, block: DaemonTemplate<String>): DaemonTemplate<String> = { tag, daemon ->
 			on error {
-				println("$msg: on error")
+				println("$msg: $throwable")
+			}
+			
+			on transition { from, _, _ ->
+				if (from == "state1")
+				{
+					throw Exception("on transition 에러 발생!!")
+				}
+			} catch { _, _, _ ->
+				println("${throwable}: on transition catch 에서 해결")
 			}
 			
 			block(tag, daemon)
