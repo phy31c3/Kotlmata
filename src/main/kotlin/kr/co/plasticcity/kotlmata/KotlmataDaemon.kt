@@ -223,16 +223,16 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	{
 		try
 		{
-			callback?.also {
-				Payload(payload).it()
+			callback?.also { callback ->
+				PayloadActionReceiver(payload).callback()
 			}
 		}
 		catch (e: Throwable)
 		{
-			fallback?.also {
-				ErrorPayload(e, payload).it()
-			} ?: onError?.also {
-				ErrorAction(e).it()
+			fallback?.also { fallback ->
+				PayloadErrorActionReceiver(e, payload).fallback()
+			} ?: onError?.also { onError ->
+				ErrorActionReceiver(e).onError()
 			} ?: throw e
 		}
 	}
@@ -472,8 +472,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			catch (e: Throwable)
 			{
 				core.input(Terminate(null, false))
-				onError?.also {
-					ErrorAction(e).it()
+				onError?.also { onError ->
+					ErrorActionReceiver(e).onError()
 				} ?: throw e
 			}
 			finally

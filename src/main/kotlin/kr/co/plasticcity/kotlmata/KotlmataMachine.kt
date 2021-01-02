@@ -94,7 +94,7 @@ interface KotlmataMachine<T : MACHINE>
 		}
 		
 		infix fun <S : STATE> S.action(action: EntryAction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL> = function(action)
-		infix fun <S : STATE> S.function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
+		infix fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signals: StatesOrSignals<T>): KotlmataState.Entry.Action<T>
@@ -419,7 +419,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	catch (e: Throwable)
 	{
 		onError?.also { onError ->
-			ErrorAction(e).onError()
+			ErrorActionReceiver(e).onError()
 		} ?: throw e
 		null
 	}
@@ -428,16 +428,16 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	{
 		try
 		{
-			callback?.also {
-				Transition().it(from, signal, to)
+			callback?.also { callback ->
+				TransitionActionReceiver().callback(from, signal, to)
 			}
 		}
 		catch (e: Throwable)
 		{
-			fallback?.also {
-				ErrorTransition(e).it(from, signal, to)
-			} ?: onError?.also {
-				ErrorAction(e).it()
+			fallback?.also { fallback ->
+				TransitionErrorActionReceiver(e).fallback(from, signal, to)
+			} ?: onError?.also { onError ->
+				ErrorActionReceiver(e).onError()
 			} ?: throw e
 		}
 	}
@@ -873,11 +873,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override fun <S : STATE> S.function(action: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
+		override fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 		{
 			this@ModifierImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab") {
-				entry function action
+				entry function function
 			}
 			return object : KotlmataState.Entry.Catch<SIGNAL>
 			{
@@ -885,7 +885,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[this@function]?.modify {
-						entry function action intercept error
+						entry function function intercept error
 					}
 				}
 			}
@@ -893,11 +893,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun function(action: EntryFunction<T>): KotlmataState.Entry.Catch<T>
+			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
-					entry via signal function action
+					entry via signal function function
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
@@ -905,7 +905,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal function action intercept error
+							entry via signal function function intercept error
 						}
 					}
 				}
@@ -914,11 +914,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE, T : SIGNAL> S.via(signal: T) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun function(action: EntryFunction<T>): KotlmataState.Entry.Catch<T>
+			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
-					entry via signal function action
+					entry via signal function function
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
@@ -926,7 +926,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal function action intercept error
+							entry via signal function function intercept error
 						}
 					}
 				}
@@ -935,11 +935,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE, T : SIGNAL> S.via(signals: StatesOrSignals<T>) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun function(action: EntryFunction<T>): KotlmataState.Entry.Catch<T>
+			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
-					entry via signals function action
+					entry via signals function function
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
@@ -947,7 +947,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signals function action intercept error
+							entry via signals function function intercept error
 						}
 					}
 				}
@@ -956,11 +956,11 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		override fun <S : STATE, T : SIGNAL> S.via(predicate: (T) -> Boolean) = object : KotlmataState.Entry.Action<T>
 		{
-			override fun function(action: EntryFunction<T>): KotlmataState.Entry.Catch<T>
+			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
 				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
-					entry via predicate function action
+					entry via predicate function function
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
@@ -968,7 +968,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via predicate function action intercept error
+							entry via predicate function function intercept error
 						}
 					}
 				}

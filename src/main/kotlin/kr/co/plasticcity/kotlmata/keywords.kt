@@ -105,49 +105,52 @@ interface FunctionDSL : ActionDSL
 	infix fun TypedSync.with(payload: Any?) = Sync(signal, type, payload)
 }
 
-interface ErrorActionDSL : ActionDSL
+interface ErrorHolder
 {
 	val throwable: Throwable
 }
 
-interface TransitionDSL : ActionDSL
-{
-	val count: Int
-}
-
-interface PayloadDSL : ActionDSL
+interface PayloadHolder
 {
 	val payload: Any?
 }
 
-interface PayloadFunctionDSL : PayloadDSL, FunctionDSL
+interface TransitionHolder
+{
+	val count: Int
+}
+
+interface ErrorActionDSL : ErrorHolder, ActionDSL
 interface ErrorFunctionDSL : ErrorActionDSL, FunctionDSL
-interface ErrorPayloadDSL : ErrorActionDSL, PayloadDSL
-interface ErrorPayloadFunctionDSL : ErrorPayloadDSL, FunctionDSL
-interface ErrorTransitionDSL : ErrorActionDSL, TransitionDSL
+interface PayloadActionDSL : PayloadHolder, ActionDSL
+interface PayloadFunctionDSL : PayloadActionDSL, FunctionDSL
+interface PayloadErrorActionDSL : PayloadActionDSL, ErrorActionDSL
+interface PayloadErrorFunctionDSL : PayloadErrorActionDSL, PayloadFunctionDSL, ErrorFunctionDSL
+interface TransitionActionDSL : TransitionHolder, ActionDSL
+interface TransitionErrorActionDSL : TransitionActionDSL, ErrorActionDSL
 
 typealias EntryAction<T> = ActionDSL.(signal: T) -> Unit
 typealias EntryFunction<T> = FunctionDSL.(signal: T) -> Any?
 typealias EntryErrorAction<T> = ErrorActionDSL.(signal: T) -> Unit
 typealias EntryErrorFunction<T> = ErrorFunctionDSL.(signal: T) -> Any?
 
-typealias InputAction<T> = PayloadDSL.(signal: T) -> Unit
+typealias InputAction<T> = PayloadActionDSL.(signal: T) -> Unit
 typealias InputFunction<T> = PayloadFunctionDSL.(signal: T) -> Any?
-typealias InputErrorAction<T> = ErrorPayloadDSL.(signal: T) -> Unit
-typealias InputErrorFunction<T> = ErrorPayloadFunctionDSL.(signal: T) -> Any?
+typealias InputErrorAction<T> = PayloadErrorActionDSL.(signal: T) -> Unit
+typealias InputErrorFunction<T> = PayloadErrorFunctionDSL.(signal: T) -> Any?
 
 typealias ExitAction<T> = ActionDSL.(signal: T) -> Unit
 typealias ExitErrorAction<T> = ErrorActionDSL.(signal: T) -> Unit
 
 typealias StateErrorCallback = ErrorActionDSL.(signal: SIGNAL) -> Unit
 
-typealias TransitionCallback = TransitionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
-typealias TransitionFallback = ErrorTransitionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
+typealias TransitionCallback = TransitionActionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
+typealias TransitionFallback = TransitionErrorActionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
 
 typealias MachineErrorCallback = ErrorActionDSL.() -> Unit
 
-typealias DaemonCallback = PayloadDSL.() -> Unit
-typealias DaemonFallback = ErrorPayloadDSL.() -> Unit
+typealias DaemonCallback = PayloadActionDSL.() -> Unit
+typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 
 typealias StateTemplate<T> = KotlmataState.Init.(tag: T) -> Unit
 typealias MachineTemplate<T> = KotlmataMachine.Init.(tag: T) -> KotlmataMachine.Init.End

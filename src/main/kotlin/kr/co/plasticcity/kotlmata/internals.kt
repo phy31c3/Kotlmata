@@ -8,22 +8,24 @@ internal annotation class KotlmataMarker
 
 internal typealias `STATE or SIGNAL` = Any
 
-internal object Action : ActionDSL
-internal object Function : FunctionDSL
-internal class Payload(override val payload: Any?) : PayloadDSL
-internal class PayloadFunction(override val payload: Any?) : PayloadFunctionDSL
-internal class ErrorAction(override val throwable: Throwable) : ErrorActionDSL
-internal class ErrorFunction(override val throwable: Throwable) : ErrorFunctionDSL
-internal class ErrorPayload(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadDSL
-internal class ErrorPayloadFunction(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadFunctionDSL
-internal class ErrorTransition(override val throwable: Throwable) : ErrorTransitionDSL, TransitionDSL by Transition()
-internal class Transition : TransitionDSL
+internal object ActionReceiver : ActionDSL
+internal object FunctionReceiver : FunctionDSL
+internal class ErrorActionReceiver(override val throwable: Throwable) : ErrorActionDSL
+internal class ErrorFunctionReceiver(override val throwable: Throwable) : ErrorFunctionDSL
+internal class PayloadActionReceiver(override val payload: Any?) : PayloadActionDSL
+internal class PayloadFunctionReceiver(override val payload: Any?) : PayloadFunctionDSL
+internal class PayloadErrorActionReceiver(override val throwable: Throwable, override val payload: Any?) : PayloadErrorActionDSL
+internal class PayloadErrorFunctionReceiver(override val throwable: Throwable, override val payload: Any?) : PayloadErrorFunctionDSL
+internal class TransitionActionReceiver : TransitionActionDSL, TransitionHolder by TransitionHolderImpl()
+internal class TransitionErrorActionReceiver(override val throwable: Throwable) : TransitionErrorActionDSL, TransitionHolder by TransitionHolderImpl()
+
+private class TransitionHolderImpl : TransitionHolder
 {
-	override val count: Int = Transition.count.getAndIncrement()
+	override val count: Int = counter.getAndIncrement()
 	
-	companion object
+	private companion object
 	{
-		val count = AtomicInteger(0)
+		val counter = AtomicInteger(0)
 	}
 }
 
