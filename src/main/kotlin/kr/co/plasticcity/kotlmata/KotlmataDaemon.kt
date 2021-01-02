@@ -659,10 +659,17 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				init.on error block
 			}
 			
-			override fun transition(block: TransitionCallback)
+			override fun transition(block: TransitionCallback): KotlmataMachine.Init.Catch
 			{
 				this@InitImpl shouldNot expired
 				init.on transition block
+				return object : KotlmataMachine.Init.Catch
+				{
+					override fun catch(error: TransitionFallback)
+					{
+						init.on transition block catch error
+					}
+				}
 			}
 		}
 		

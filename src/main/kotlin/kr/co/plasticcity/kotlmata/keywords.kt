@@ -104,6 +104,7 @@ interface PayloadFunctionDSL : PayloadDSL, FunctionDSL
 interface ErrorFunctionDSL : ErrorActionDSL, FunctionDSL
 interface ErrorPayloadDSL : ErrorActionDSL, PayloadDSL
 interface ErrorPayloadFunctionDSL : ErrorPayloadDSL, FunctionDSL
+interface ErrorTransitionDSL : ErrorActionDSL, TransitionDSL
 
 typealias EntryAction<T> = ActionDSL.(signal: T) -> Unit
 typealias EntryFunction<T> = FunctionDSL.(signal: T) -> Any?
@@ -122,6 +123,7 @@ typealias StateError = ErrorActionDSL.(signal: SIGNAL) -> Unit
 typealias MachineError = ErrorActionDSL.() -> Unit
 
 typealias TransitionCallback = TransitionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
+typealias TransitionFallback = ErrorTransitionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
 
 typealias DaemonCallback = PayloadDSL.() -> Unit
 typealias DaemonFallback = ErrorPayloadDSL.() -> Unit

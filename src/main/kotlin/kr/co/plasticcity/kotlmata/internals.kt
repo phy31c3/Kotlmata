@@ -20,6 +20,7 @@ internal class ErrorAction(override val throwable: Throwable) : ErrorActionDSL
 internal class ErrorFunction(override val throwable: Throwable) : ErrorFunctionDSL
 internal class ErrorPayload(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadDSL
 internal class ErrorPayloadFunction(override val throwable: Throwable, override val payload: Any?) : ErrorPayloadFunctionDSL
+internal class ErrorTransition(override val throwable: Throwable) : ErrorTransitionDSL, TransitionDSL by Transition()
 internal class Transition : TransitionDSL
 {
 	override val count: Int = Transition.count.getAndIncrement()
