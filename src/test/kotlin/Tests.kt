@@ -230,7 +230,7 @@ class Tests
 				println("--------------------- 데몬이 소멸됨")
 			}
 			
-			val defaultExit: StateTemplate<String> = {
+			val defaultExit: StateTemplate<CharSequence> = {
 				exit action {
 					println("템플릿으로 정의된 퇴장함수 호출됨")
 				}
