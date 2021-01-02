@@ -91,33 +91,48 @@ internal class Logs
 	}
 }
 
+internal const val UNDEFINED = -1
+internal const val NO_LOG = 0
+internal const val SIMPLE = 1
+internal const val NORMAL = 2
+internal const val DETAIL = 3
+
 internal object Log
 {
-	private val none: (String) -> Unit = {}
+	@Volatile
+	var debug: ((String) -> Unit)? = null
 	
-	var debug: (String) -> Unit = none
-	var warn: (String) -> Unit = none
+	@Volatile
+	var warn: ((String) -> Unit)? = null
+	
+	@Volatile
 	var error: (String) -> Unit = ::error
 	
-	inline fun d(vararg args: Any?, log: Logs.Companion.() -> String)
+	fun Int.simple(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (debug != none)
-		{
-			debug(Logs.log().format(*args))
-		}
+		if (this >= SIMPLE) debug?.invoke(Logs.log().format(*args))
 	}
 	
-	inline fun w(vararg args: Any?, log: Logs.Companion.() -> String)
+	fun Int.normal(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (warn != none)
-		{
-			warn(Logs.log().format(*args))
-		}
+		if (this >= NORMAL) debug?.invoke(Logs.log().format(*args))
 	}
 	
-	inline fun e(vararg args: Any?, log: Logs.Companion.() -> String): Nothing
+	fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		error(Logs.log().format(*args))
-		throw IllegalStateException(Logs.log().format(*args))
+		if (this >= DETAIL) debug?.invoke(Logs.log().format(*args))
+	}
+	
+	fun w(vararg args: Any?, log: Logs.Companion.() -> String)
+	{
+		warn?.invoke(Logs.log().format(*args))
+	}
+	
+	fun e(vararg args: Any?, log: Logs.Companion.() -> String): Nothing
+	{
+		Logs.log().format(*args).also { formatted ->
+			error(formatted)
+			throw IllegalStateException(formatted)
+		}
 	}
 }

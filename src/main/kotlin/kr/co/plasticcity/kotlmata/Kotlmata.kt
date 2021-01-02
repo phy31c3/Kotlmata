@@ -2,6 +2,9 @@
 
 package kr.co.plasticcity.kotlmata
 
+import kr.co.plasticcity.kotlmata.Log.detail
+import kr.co.plasticcity.kotlmata.Log.normal
+import kr.co.plasticcity.kotlmata.Log.simple
 import kotlin.reflect.KClass
 
 interface Kotlmata
