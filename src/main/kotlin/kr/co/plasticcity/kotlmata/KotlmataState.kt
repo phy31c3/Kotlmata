@@ -32,7 +32,12 @@ interface KotlmataState<T : STATE>
 		val entry: Entry
 		val input: Input
 		val exit: Exit
-		val error: Error
+		val on: On
+		
+		interface On
+		{
+			infix fun error(block: StateErrorCallback)
+		}
 	}
 	
 	interface Entry
@@ -99,11 +104,6 @@ interface KotlmataState<T : STATE>
 		{
 			infix fun catch(error: ExitErrorAction<T>)
 		}
-	}
-	
-	interface Error
-	{
-		infix fun action(error: StateErrorCallback)
 	}
 	
 	val tag: T
@@ -196,7 +196,7 @@ private class KotlmataStateImpl<T : STATE>(
 	private var entryMap: MutableMap<SIGNAL, EntryDef>? = null
 	private var inputMap: MutableMap<SIGNAL, InputDef>? = null
 	private var exitMap: MutableMap<SIGNAL, ExitDef>? = null
-	private var error: StateErrorCallback? = null
+	private var onError: StateErrorCallback? = null
 	
 	private var entryPredicates: Predicates? = null
 	private var inputPredicates: Predicates? = null
@@ -219,7 +219,7 @@ private class KotlmataStateImpl<T : STATE>(
 	{
 		catch?.let {
 			ErrorFunction(e).it(signal) ?: Unit
-		} ?: error?.let {
+		} ?: onError?.let {
 			ErrorAction(e).it(signal)
 		} ?: throw e
 	}
@@ -232,7 +232,7 @@ private class KotlmataStateImpl<T : STATE>(
 	{
 		catch?.let {
 			ErrorPayloadFunction(e, payload).it(signal) ?: Unit
-		} ?: error?.let {
+		} ?: onError?.let {
 			ErrorAction(e).it(signal)
 		} ?: throw e
 	}
@@ -245,7 +245,7 @@ private class KotlmataStateImpl<T : STATE>(
 	{
 		catch?.let {
 			ErrorAction(e).it(signal)
-		} ?: error?.let {
+		} ?: onError?.let {
 			ErrorAction(e).it(signal)
 		} ?: throw e
 	}
@@ -730,12 +730,12 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		}
 		
-		override val error = object : Error
+		override val on = object : Init.On
 		{
-			override fun action(error: StateErrorCallback)
+			override fun error(block: StateErrorCallback)
 			{
 				this@ModifierImpl shouldNot expired
-				this@KotlmataStateImpl.error = error
+				this@KotlmataStateImpl.onError = block
 			}
 		}
 		

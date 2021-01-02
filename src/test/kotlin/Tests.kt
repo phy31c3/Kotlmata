@@ -230,11 +230,10 @@ class Tests
 				println("--------------------- 데몬이 소멸됨")
 			}
 			
-			fun defaultExit(msg: String, block: StateTemplate<String>): StateTemplate<String> = { state ->
+			val defaultExit: StateTemplate<String> = {
 				exit action {
-					println(msg)
+					println("템플릿으로 정의된 퇴장함수 호출됨")
 				}
-				block(state)
 			}
 			
 			val defaultEnter: (String, StateTemplate<String>) -> StateTemplate<String> = fun(msg: String, block: StateTemplate<String>): StateTemplate<String> = { state ->
@@ -244,7 +243,7 @@ class Tests
 				block(state)
 			}
 			
-			"state1" extends defaultExit("템플릿으로 정의된 퇴장함수 호출됨") { state ->
+			"state1" extends defaultExit with { state ->
 				entry action {
 					println("$state: 기본 진입함수")
 				}
@@ -295,7 +294,7 @@ class Tests
 				input signal "error" function {
 					throw Exception("에러2 발생")
 				}
-				error action { throwable ->
+				on error {
 					println("상태 Fallback")
 					println(throwable)
 				}
