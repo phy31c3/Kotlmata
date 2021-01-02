@@ -86,7 +86,7 @@ interface KotlmataMachine<T : MACHINE>
 	interface StateDefine
 	{
 		operator fun <S : STATE> S.invoke(block: StateTemplate<S>)
-		infix fun <S : STATE> S.extends(template: StateTemplate<S>): With<S>
+		infix fun <S : T, T : STATE> S.extends(template: StateTemplate<T>): With<S>
 		
 		interface With<S : STATE>
 		{
@@ -858,7 +858,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
 		}
 		
-		override fun <S : STATE> S.extends(template: StateTemplate<S>) = object : KotlmataMachine.StateDefine.With<S>
+		override fun <S : T, T : STATE> S.extends(template: StateTemplate<T>) = object : KotlmataMachine.StateDefine.With<S>
 		{
 			val state: KotlmataMutableState<S>
 			
