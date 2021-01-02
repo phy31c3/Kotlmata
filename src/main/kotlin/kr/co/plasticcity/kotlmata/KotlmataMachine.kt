@@ -66,8 +66,8 @@ interface KotlmataMachine<T : MACHINE>
 		
 		interface On
 		{
-			infix fun error(block: MachineError)
 			infix fun transition(block: TransitionCallback): Catch
+			infix fun error(block: MachineErrorCallback)
 		}
 		
 		interface Catch
@@ -401,7 +401,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private val predicateMap: MutableMap<STATE, Predicates> = HashMap()
 	
 	private var onTransition: TransitionDef? = null
-	private var onError: MachineError? = null
+	private var onError: MachineErrorCallback? = null
 	
 	private lateinit var current: KotlmataState<out STATE>
 	
@@ -592,12 +592,6 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	{
 		override val on = object : KotlmataMachine.Init.On
 		{
-			override fun error(block: MachineError)
-			{
-				this@ModifierImpl shouldNot expired
-				onError = block
-			}
-			
 			override fun transition(block: TransitionCallback): KotlmataMachine.Init.Catch
 			{
 				this@ModifierImpl shouldNot expired
@@ -610,6 +604,12 @@ private class KotlmataMachineImpl<T : MACHINE>(
 						onTransition = TransitionDef(callback = block, fallback = error)
 					}
 				}
+			}
+			
+			override fun error(block: MachineErrorCallback)
+			{
+				this@ModifierImpl shouldNot expired
+				onError = block
 			}
 		}
 		

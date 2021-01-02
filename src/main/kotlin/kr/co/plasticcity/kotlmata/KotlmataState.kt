@@ -103,7 +103,7 @@ interface KotlmataState<T : STATE>
 	
 	interface Error
 	{
-		infix fun action(error: StateError)
+		infix fun action(error: StateErrorCallback)
 	}
 	
 	val tag: T
@@ -196,7 +196,7 @@ private class KotlmataStateImpl<T : STATE>(
 	private var entryMap: MutableMap<SIGNAL, EntryDef>? = null
 	private var inputMap: MutableMap<SIGNAL, InputDef>? = null
 	private var exitMap: MutableMap<SIGNAL, ExitDef>? = null
-	private var error: StateError? = null
+	private var error: StateErrorCallback? = null
 	
 	private var entryPredicates: Predicates? = null
 	private var inputPredicates: Predicates? = null
@@ -732,7 +732,7 @@ private class KotlmataStateImpl<T : STATE>(
 		
 		override val error = object : Error
 		{
-			override fun action(error: StateError)
+			override fun action(error: StateErrorCallback)
 			{
 				this@ModifierImpl shouldNot expired
 				this@KotlmataStateImpl.error = error

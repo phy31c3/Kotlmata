@@ -211,7 +211,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	private var onResume: LifecycleDef? = null
 	private var onFinish: LifecycleDef? = null
 	private var onDestroy: LifecycleDef? = null
-	private var onError: MachineError? = null
+	private var onError: MachineErrorCallback? = null
 	
 	@Volatile
 	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
@@ -652,13 +652,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 			
-			override fun error(block: MachineError)
-			{
-				this@InitImpl shouldNot expired
-				onError = block
-				init.on error block
-			}
-			
 			override fun transition(block: TransitionCallback): KotlmataMachine.Init.Catch
 			{
 				this@InitImpl shouldNot expired
@@ -670,6 +663,13 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 						init.on transition block catch error
 					}
 				}
+			}
+			
+			override fun error(block: MachineErrorCallback)
+			{
+				this@InitImpl shouldNot expired
+				onError = block
+				init.on error block
 			}
 		}
 		
