@@ -2,10 +2,9 @@
 
 package kr.co.plasticcity.kotlmata
 
-import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleAssignable
-import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyExcept
-import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.AnyOf
-import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleLeft
+import kr.co.plasticcity.kotlmata.KotlmataMachine.*
+import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.*
+import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modifier
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modifier.*
 import kr.co.plasticcity.kotlmata.Log.normal
 import kr.co.plasticcity.kotlmata.Log.simple
@@ -66,13 +65,18 @@ interface KotlmataMachine<T : MACHINE>
 		
 		interface On
 		{
-			infix fun transition(block: TransitionCallback): Catch
+			infix fun transition(callback: TransitionCallback): Catch
 			infix fun error(block: MachineErrorCallback)
 		}
 		
-		interface Catch
+		interface Catch : Finally
 		{
-			infix fun catch(error: TransitionFallback)
+			infix fun catch(fallback: TransitionFallback): Finally
+		}
+		
+		interface Finally
+		{
+			infix fun finally(finally: TransitionCallback)
 		}
 		
 		interface Start
@@ -167,18 +171,18 @@ interface KotlmataMachine<T : MACHINE>
 		interface Chain
 		{
 			infix fun from(state: STATE): To
-		}
-		
-		interface To
-		{
-			infix fun to(state: STATE): Via
-		}
-		
-		interface Via : To
-		{
-			infix fun via(signal: SIGNAL)
-			infix fun via(signal: KClass<out SIGNAL>)
-			infix fun via(keyword: any)
+			
+			interface To
+			{
+				infix fun to(state: STATE): Via
+			}
+			
+			interface Via : To
+			{
+				infix fun via(signal: SIGNAL)
+				infix fun via(signal: KClass<out SIGNAL>)
+				infix fun via(keyword: any)
+			}
 		}
 		
 		/* For Predicate rule */
@@ -282,7 +286,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 	}
 	
 	@KotlmataMarker
-	interface Modifier : KotlmataMachine.StateDefine, KotlmataMachine.RuleDefine
+	interface Modifier : StateDefine, RuleDefine
 	{
 		val current: STATE
 		val has: Has
@@ -387,7 +391,7 @@ interface KotlmataMutableMachine<T : MACHINE> : KotlmataMachine<T>
 	infix fun modify(block: Modifier.(machine: T) -> Unit)
 }
 
-private class TransitionDef(val callback: TransitionCallback? = null, val fallback: TransitionFallback? = null)
+private class TransitionDef(val callback: TransitionCallback, val fallback: TransitionFallback? = null, val finally: TransitionCallback? = null)
 
 private class KotlmataMachineImpl<T : MACHINE>(
 	override val tag: T,
@@ -431,7 +435,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		val transitionCount = transitionCount++
 		try
 		{
-			callback?.also { callback ->
+			callback.also { callback ->
 				TransitionActionReceiver(transitionCount).callback(from, signal, to)
 			}
 		}
@@ -442,6 +446,12 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			} ?: onError?.also { onError ->
 				ErrorActionReceiver(e).onError()
 			} ?: throw e
+		}
+		finally
+		{
+			finally?.also {
+				TransitionActionReceiver(transitionCount).callback(from, signal, to)
+			}
 		}
 	}
 	
@@ -576,7 +586,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
 	}
 	
-	override fun modify(block: KotlmataMutableMachine.Modifier.(T) -> Unit)
+	override fun modify(block: Modifier.(T) -> Unit)
 	{
 		logLevel.normal(prefix, current.tag) { MACHINE_START_MODIFY }
 		ModifierImpl(modify = block)
@@ -590,21 +600,35 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	private inner class ModifierImpl(
 		init: (MachineTemplate<T>)? = null,
-		modify: (KotlmataMutableMachine.Modifier.(T) -> Unit)? = null
-	) : KotlmataMachine.Init, KotlmataMutableMachine.Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
+		modify: (Modifier.(T) -> Unit)? = null
+	) : Init, Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
-		override val on = object : KotlmataMachine.Init.On
+		override val on = object : Init.On
 		{
-			override fun transition(block: TransitionCallback): KotlmataMachine.Init.Catch
+			override fun transition(callback: TransitionCallback): Init.Catch
 			{
 				this@ModifierImpl shouldNot expired
-				onTransition = TransitionDef(callback = block)
-				return object : KotlmataMachine.Init.Catch
+				onTransition = TransitionDef(callback)
+				return object : Init.Catch
 				{
-					override fun catch(error: TransitionFallback)
+					override fun catch(fallback: TransitionFallback): Init.Finally
 					{
 						this@ModifierImpl shouldNot expired
-						onTransition = TransitionDef(callback = block, fallback = error)
+						onTransition = TransitionDef(callback, fallback)
+						return object : Init.Finally
+						{
+							override fun finally(finally: TransitionCallback)
+							{
+								this@ModifierImpl shouldNot expired
+								onTransition = TransitionDef(callback, fallback, finally)
+							}
+						}
+					}
+					
+					override fun finally(finally: TransitionCallback)
+					{
+						this@ModifierImpl shouldNot expired
+						onTransition = TransitionDef(callback, null, finally)
 					}
 				}
 			}
@@ -616,9 +640,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		override val start = object : KotlmataMachine.Init.Start
+		override val start = object : Init.Start
 		{
-			override fun at(state: STATE): KotlmataMachine.Init.End
+			override fun at(state: STATE): Init.End
 			{
 				this@ModifierImpl shouldNot expired
 				
@@ -626,7 +650,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 					this@KotlmataMachineImpl.current = it
 				} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_START_STATE }
 				
-				return KotlmataMachine.Init.End()
+				return Init.End()
 			}
 		}
 		
@@ -858,7 +882,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
 		}
 		
-		override fun <S : T, T : STATE> S.extends(template: StateTemplate<T>) = object : KotlmataMachine.StateDefine.With<S>
+		override fun <S : T, T : STATE> S.extends(template: StateTemplate<T>) = object : StateDefine.With<S>
 		{
 			val state: KotlmataMutableState<S>
 			
@@ -1271,21 +1295,21 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		/*###################################################################################################################################
 		 * Chaining transition rule
 		 *###################################################################################################################################*/
-		override val chain = object : KotlmataMachine.RuleDefine.Chain
+		override val chain = object : Chain
 		{
 			val states: MutableList<STATE> = mutableListOf()
 			
-			override fun from(state: STATE): KotlmataMachine.RuleDefine.To
+			override fun from(state: STATE): Chain.To
 			{
 				this@ModifierImpl shouldNot expired
 				states.add(state)
-				return object : KotlmataMachine.RuleDefine.To
+				return object : Chain.To
 				{
-					override fun to(state: STATE): KotlmataMachine.RuleDefine.Via
+					override fun to(state: STATE): Chain.Via
 					{
 						this@ModifierImpl shouldNot expired
 						states.add(state)
-						return object : KotlmataMachine.RuleDefine.Via, KotlmataMachine.RuleDefine.To by this
+						return object : Chain.Via, Chain.To by this
 						{
 							override fun via(signal: SIGNAL)
 							{

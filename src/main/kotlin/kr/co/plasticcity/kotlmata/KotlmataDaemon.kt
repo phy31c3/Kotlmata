@@ -652,15 +652,30 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 			}
 			
-			override fun transition(block: TransitionCallback): KotlmataMachine.Init.Catch
+			override fun transition(callback: TransitionCallback): KotlmataMachine.Init.Catch
 			{
 				this@InitImpl shouldNot expired
-				init.on transition block
+				init.on transition callback
 				return object : KotlmataMachine.Init.Catch
 				{
-					override fun catch(error: TransitionFallback)
+					override fun catch(fallback: TransitionFallback): KotlmataMachine.Init.Finally
 					{
-						init.on transition block catch error
+						this@InitImpl shouldNot expired
+						init.on transition callback catch fallback
+						return object : KotlmataMachine.Init.Finally
+						{
+							override fun finally(finally: TransitionCallback)
+							{
+								this@InitImpl shouldNot expired
+								init.on transition callback catch fallback finally finally
+							}
+						}
+					}
+					
+					override fun finally(finally: TransitionCallback)
+					{
+						this@InitImpl shouldNot expired
+						init.on transition callback finally finally
 					}
 				}
 			}
