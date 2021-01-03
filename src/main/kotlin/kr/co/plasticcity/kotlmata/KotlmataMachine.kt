@@ -1,5 +1,3 @@
-@file:Suppress("unused", "FunctionName")
-
 package kr.co.plasticcity.kotlmata
 
 import kr.co.plasticcity.kotlmata.KotlmataMachine.*
@@ -1128,35 +1126,23 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			/* empty */
 		}
 		
-		override fun AnyOf.x(signal: SIGNAL) = anyOf_x_signal(this, signal)
+		override fun AnyOf.x(signal: SIGNAL) = `anyOf x signal`(this, signal)
+		override fun AnyOf.x(signal: KClass<out SIGNAL>) = `anyOf x signal`(this, signal)
+		override fun AnyOf.x(keyword: any) = `anyOf x signal`(this, keyword)
+		override fun AnyExcept.x(signal: SIGNAL) = `anyExcept x signal`(this, signal)
+		override fun AnyExcept.x(signal: KClass<out SIGNAL>) = `anyExcept x signal`(this, signal)
+		override fun AnyExcept.x(keyword: any) = `anyExcept x signal`(this, keyword)
+		override fun STATE.x(anyOf: AnyOf) = `state x anyOf`(this, anyOf)
+		override fun any.x(anyOf: AnyOf) = `state x anyOf`(this, anyOf)
+		override fun STATE.x(anyExcept: AnyExcept) = `state x anyExcept`(this, anyExcept)
+		override fun any.x(anyExcept: AnyExcept) = `state x anyExcept`(this, anyExcept)
+		override fun AnyOf.x(anyOf: AnyOf) = `anyOf x anyOf`(this, anyOf)
+		override fun AnyOf.x(anyExcept: AnyExcept) = `anyOf x anyExcept`(this, anyExcept)
+		override fun AnyExcept.x(anyOf: AnyOf) = `anyExcept x anyOf`(this, anyOf)
+		override fun AnyExcept.x(anyExcept: AnyExcept) = `anyExcept x anyExcept`(this, anyExcept)
 		
-		override fun AnyOf.x(signal: KClass<out SIGNAL>) = anyOf_x_signal(this, signal)
-		
-		override fun AnyOf.x(keyword: any) = anyOf_x_signal(this, keyword)
-		
-		override fun AnyExcept.x(signal: SIGNAL) = anyExcept_x_signal(this, signal)
-		
-		override fun AnyExcept.x(signal: KClass<out SIGNAL>) = anyExcept_x_signal(this, signal)
-		
-		override fun AnyExcept.x(keyword: any) = anyExcept_x_signal(this, keyword)
-		
-		override fun STATE.x(anyOf: AnyOf) = state_x_anyOf(this, anyOf)
-		
-		override fun any.x(anyOf: AnyOf) = state_x_anyOf(this, anyOf)
-		
-		override fun STATE.x(anyExcept: AnyExcept) = state_x_anyExcept(this, anyExcept)
-		
-		override fun any.x(anyExcept: AnyExcept) = state_x_anyExcept(this, anyExcept)
-		
-		override fun AnyOf.x(anyOf: AnyOf) = anyOf_x_anyOf(this, anyOf)
-		
-		override fun AnyOf.x(anyExcept: AnyExcept) = anyOf_x_anyExcept(this, anyExcept)
-		
-		override fun AnyExcept.x(anyOf: AnyOf) = anyExcept_x_anyOf(this, anyOf)
-		
-		override fun AnyExcept.x(anyExcept: AnyExcept) = anyExcept_x_anyExcept(this, anyExcept)
-		
-		private fun anyOf_x_signal(anyOf: AnyOf, signal: SIGNAL) = object : RuleAssignable
+		@Suppress("FunctionName")
+		private fun `anyOf x signal`(anyOf: AnyOf, signal: SIGNAL) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1167,7 +1153,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun anyExcept_x_signal(anyExcept: AnyExcept, signal: SIGNAL) = object : RuleAssignable
+		@Suppress("FunctionName")
+		private fun `anyExcept x signal`(anyExcept: AnyExcept, signal: SIGNAL) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1185,7 +1172,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun state_x_anyOf(from: STATE, anyOf: AnyOf) = object : RuleAssignable
+		@Suppress("FunctionName")
+		private fun `state x anyOf`(from: STATE, anyOf: AnyOf) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1196,7 +1184,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun state_x_anyExcept(from: STATE, anyExcept: AnyExcept) = object : RuleAssignable
+		@Suppress("FunctionName")
+		private fun `state x anyExcept`(from: STATE, anyExcept: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1214,7 +1203,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun anyOf_x_anyOf(anyOfState: AnyOf, anyOfSignal: AnyOf) = object : RuleAssignable
+		@Suppress("FunctionName")
+		private fun `anyOf x anyOf`(anyOfState: AnyOf, anyOfSignal: AnyOf) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1225,7 +1215,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun anyOf_x_anyExcept(anyOfState: AnyOf, anyExceptSignal: AnyExcept) = object : RuleAssignable
+		@Suppress("FunctionName")
+		private fun `anyOf x anyExcept`(anyOfState: AnyOf, anyExceptSignal: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1236,7 +1227,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun anyExcept_x_anyOf(anyExceptState: AnyExcept, anyOfSignal: AnyOf) = object : RuleAssignable
+		@Suppress("FunctionName")
+		private fun `anyExcept x anyOf`(anyExceptState: AnyExcept, anyOfSignal: AnyOf) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{
@@ -1247,7 +1239,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}
 		
-		private fun anyExcept_x_anyExcept(anyExceptState: AnyExcept, anyExceptSignal: AnyExcept) = object : RuleAssignable
+		@Suppress("FunctionName")
+		private fun `anyExcept x anyExcept`(anyExceptState: AnyExcept, anyExceptSignal: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(state: STATE)
 			{

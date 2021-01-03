@@ -1,7 +1,6 @@
-@file:Suppress("unused")
-
 package kr.co.plasticcity.kotlmata
 
+import kr.co.plasticcity.kotlmata.KotlmataDaemon.Init
 import kr.co.plasticcity.kotlmata.KotlmataDaemonImpl.Request.*
 import kr.co.plasticcity.kotlmata.Log.detail
 import kr.co.plasticcity.kotlmata.Log.normal
@@ -85,18 +84,23 @@ interface KotlmataDaemon<T : DAEMON>
 		
 		interface On : KotlmataMachine.Init.On
 		{
-			infix fun create(block: DaemonCallback): Catch
-			infix fun start(block: DaemonCallback): Catch
-			infix fun pause(block: DaemonCallback): Catch
-			infix fun stop(block: DaemonCallback): Catch
-			infix fun resume(block: DaemonCallback): Catch
-			infix fun finish(block: DaemonCallback): Catch
-			infix fun destroy(block: DaemonCallback): Catch
+			infix fun create(callback: DaemonCallback): Catch
+			infix fun start(callback: DaemonCallback): Catch
+			infix fun pause(callback: DaemonCallback): Catch
+			infix fun stop(callback: DaemonCallback): Catch
+			infix fun resume(callback: DaemonCallback): Catch
+			infix fun finish(callback: DaemonCallback): Catch
+			infix fun destroy(callback: DaemonCallback): Catch
 		}
 		
-		interface Catch
+		interface Catch : Finally
 		{
-			infix fun catch(error: DaemonFallback)
+			infix fun catch(fallback: DaemonFallback): Finally
+		}
+		
+		interface Finally
+		{
+			infix fun finally(finally: DaemonCallback)
 		}
 	}
 	
@@ -194,7 +198,7 @@ interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
 	infix fun modify(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
 }
 
-private class LifecycleDef(val callback: DaemonCallback? = null, val fallback: DaemonFallback? = null)
+private class LifecycleDef(val callback: DaemonCallback, val fallback: DaemonFallback? = null, val finally: DaemonCallback? = null)
 
 private class KotlmataDaemonImpl<T : DAEMON>(
 	override val tag: T,
@@ -223,7 +227,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	{
 		try
 		{
-			callback?.also { callback ->
+			callback.also { callback ->
 				PayloadActionReceiver(payload).callback()
 			}
 		}
@@ -234,6 +238,12 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			} ?: onError?.also { onError ->
 				ErrorActionReceiver(e).onError()
 			} ?: throw e
+		}
+		finally
+		{
+			finally?.also { finally ->
+				PayloadActionReceiver(payload).finally()
+			}
 		}
 	}
 	
@@ -548,109 +558,47 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	private inner class InitImpl(
 		block: DaemonTemplate<T>,
 		init: KotlmataMachine.Init
-	) : KotlmataDaemon.Init, KotlmataMachine.Init by init, Expirable({ Log.e("Daemon[$tag]:") { EXPIRED_MODIFIER } })
+	) : Init, KotlmataMachine.Init by init, Expirable({ Log.e("Daemon[$tag]:") { EXPIRED_MODIFIER } })
 	{
 		lateinit var startAt: STATE
 		
-		override val on = object : KotlmataDaemon.Init.On
+		override val on = object : Init.On
 		{
-			override fun create(block: DaemonCallback): KotlmataDaemon.Init.Catch
+			private fun setLifecycleDef(callback: DaemonCallback, set: (LifecycleDef) -> Unit): Init.Catch
 			{
 				this@InitImpl shouldNot expired
-				onCreate = LifecycleDef(callback = block)
-				return object : KotlmataDaemon.Init.Catch
+				set(LifecycleDef(callback))
+				return object : Init.Catch
 				{
-					override fun catch(error: DaemonFallback)
+					override fun catch(fallback: DaemonFallback): Init.Finally
 					{
 						this@InitImpl shouldNot expired
-						onCreate = LifecycleDef(callback = block, fallback = error)
+						set(LifecycleDef(callback, fallback))
+						return object : Init.Finally
+						{
+							override fun finally(finally: DaemonCallback)
+							{
+								this@InitImpl shouldNot expired
+								set(LifecycleDef(callback, fallback, finally))
+							}
+						}
+					}
+					
+					override fun finally(finally: DaemonCallback)
+					{
+						this@InitImpl shouldNot expired
+						set(LifecycleDef(callback, null, finally))
 					}
 				}
 			}
 			
-			override fun start(block: DaemonCallback): KotlmataDaemon.Init.Catch
-			{
-				this@InitImpl shouldNot expired
-				onStart = LifecycleDef(callback = block)
-				return object : KotlmataDaemon.Init.Catch
-				{
-					override fun catch(error: DaemonFallback)
-					{
-						this@InitImpl shouldNot expired
-						onStart = LifecycleDef(callback = block, fallback = error)
-					}
-				}
-			}
-			
-			override fun pause(block: DaemonCallback): KotlmataDaemon.Init.Catch
-			{
-				this@InitImpl shouldNot expired
-				onPause = LifecycleDef(callback = block)
-				return object : KotlmataDaemon.Init.Catch
-				{
-					override fun catch(error: DaemonFallback)
-					{
-						this@InitImpl shouldNot expired
-						onPause = LifecycleDef(callback = block, fallback = error)
-					}
-				}
-			}
-			
-			override fun stop(block: DaemonCallback): KotlmataDaemon.Init.Catch
-			{
-				this@InitImpl shouldNot expired
-				onStop = LifecycleDef(callback = block)
-				return object : KotlmataDaemon.Init.Catch
-				{
-					override fun catch(error: DaemonFallback)
-					{
-						this@InitImpl shouldNot expired
-						onStop = LifecycleDef(callback = block, fallback = error)
-					}
-				}
-			}
-			
-			override fun resume(block: DaemonCallback): KotlmataDaemon.Init.Catch
-			{
-				this@InitImpl shouldNot expired
-				onResume = LifecycleDef(callback = block)
-				return object : KotlmataDaemon.Init.Catch
-				{
-					override fun catch(error: DaemonFallback)
-					{
-						this@InitImpl shouldNot expired
-						onResume = LifecycleDef(callback = block, fallback = error)
-					}
-				}
-			}
-			
-			override fun finish(block: DaemonCallback): KotlmataDaemon.Init.Catch
-			{
-				this@InitImpl shouldNot expired
-				onFinish = LifecycleDef(callback = block)
-				return object : KotlmataDaemon.Init.Catch
-				{
-					override fun catch(error: DaemonFallback)
-					{
-						this@InitImpl shouldNot expired
-						onFinish = LifecycleDef(callback = block, fallback = error)
-					}
-				}
-			}
-			
-			override fun destroy(block: DaemonCallback): KotlmataDaemon.Init.Catch
-			{
-				this@InitImpl shouldNot expired
-				onDestroy = LifecycleDef(callback = block)
-				return object : KotlmataDaemon.Init.Catch
-				{
-					override fun catch(error: DaemonFallback)
-					{
-						this@InitImpl shouldNot expired
-						onDestroy = LifecycleDef(callback = block, fallback = error)
-					}
-				}
-			}
+			override fun create(callback: DaemonCallback) = setLifecycleDef(callback) { onCreate = it }
+			override fun start(callback: DaemonCallback) = setLifecycleDef(callback) { onStart = it }
+			override fun pause(callback: DaemonCallback) = setLifecycleDef(callback) { onPause = it }
+			override fun stop(callback: DaemonCallback) = setLifecycleDef(callback) { onStop = it }
+			override fun resume(callback: DaemonCallback) = setLifecycleDef(callback) { onResume = it }
+			override fun finish(callback: DaemonCallback) = setLifecycleDef(callback) { onFinish = it }
+			override fun destroy(callback: DaemonCallback) = setLifecycleDef(callback) { onDestroy = it }
 			
 			override fun transition(callback: TransitionCallback): KotlmataMachine.Init.Catch
 			{
