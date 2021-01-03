@@ -884,11 +884,27 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 			return object : KotlmataState.Entry.Catch<SIGNAL>
 			{
-				override fun intercept(error: EntryErrorFunction<SIGNAL>)
+				override fun intercept(intercept: EntryErrorFunction<SIGNAL>): KotlmataState.Entry.Finally<SIGNAL>
 				{
 					this@ModifierImpl shouldNot expired
 					stateMap[this@function]?.modify {
-						entry function function intercept error
+						entry function function intercept intercept
+					}
+					return object : KotlmataState.Entry.Finally<SIGNAL>
+					{
+						override fun finally(finally: EntryAction<SIGNAL>)
+						{
+							stateMap[this@function]?.modify {
+								entry function function intercept intercept finally finally
+							}
+						}
+					}
+				}
+				
+				override fun finally(finally: EntryAction<SIGNAL>)
+				{
+					stateMap[this@function]?.modify {
+						entry function function finally finally
 					}
 				}
 			}
@@ -904,11 +920,29 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
-					override fun intercept(error: EntryErrorFunction<T>)
+					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal function function intercept error
+							entry via signal function function intercept intercept
+						}
+						return object : KotlmataState.Entry.Finally<T>
+						{
+							override fun finally(finally: EntryAction<T>)
+							{
+								this@ModifierImpl shouldNot expired
+								stateMap[this@via]?.modify {
+									entry via signal function function intercept intercept finally finally
+								}
+							}
+						}
+					}
+					
+					override fun finally(finally: EntryAction<T>)
+					{
+						this@ModifierImpl shouldNot expired
+						stateMap[this@via]?.modify {
+							entry via signal function function finally finally
 						}
 					}
 				}
@@ -925,11 +959,29 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
-					override fun intercept(error: EntryErrorFunction<T>)
+					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signal function function intercept error
+							entry via signal function function intercept intercept
+						}
+						return object : KotlmataState.Entry.Finally<T>
+						{
+							override fun finally(finally: EntryAction<T>)
+							{
+								this@ModifierImpl shouldNot expired
+								stateMap[this@via]?.modify {
+									entry via signal function function intercept intercept finally finally
+								}
+							}
+						}
+					}
+					
+					override fun finally(finally: EntryAction<T>)
+					{
+						this@ModifierImpl shouldNot expired
+						stateMap[this@via]?.modify {
+							entry via signal function function finally finally
 						}
 					}
 				}
@@ -946,11 +998,29 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
-					override fun intercept(error: EntryErrorFunction<T>)
+					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via signals function function intercept error
+							entry via signals function function intercept intercept
+						}
+						return object : KotlmataState.Entry.Finally<T>
+						{
+							override fun finally(finally: EntryAction<T>)
+							{
+								this@ModifierImpl shouldNot expired
+								stateMap[this@via]?.modify {
+									entry via signals function function intercept intercept finally finally
+								}
+							}
+						}
+					}
+					
+					override fun finally(finally: EntryAction<T>)
+					{
+						this@ModifierImpl shouldNot expired
+						stateMap[this@via]?.modify {
+							entry via signals function function finally finally
 						}
 					}
 				}
@@ -967,11 +1037,29 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
-					override fun intercept(error: EntryErrorFunction<T>)
+					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
 						this@ModifierImpl shouldNot expired
 						stateMap[this@via]?.modify {
-							entry via predicate function function intercept error
+							entry via predicate function function intercept intercept
+						}
+						return object : KotlmataState.Entry.Finally<T>
+						{
+							override fun finally(finally: EntryAction<T>)
+							{
+								this@ModifierImpl shouldNot expired
+								stateMap[this@via]?.modify {
+									entry via predicate function function intercept intercept finally finally
+								}
+							}
+						}
+					}
+					
+					override fun finally(finally: EntryAction<T>)
+					{
+						this@ModifierImpl shouldNot expired
+						stateMap[this@via]?.modify {
+							entry via predicate function function finally finally
 						}
 					}
 				}
