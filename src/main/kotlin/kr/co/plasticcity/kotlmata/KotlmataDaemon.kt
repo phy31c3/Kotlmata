@@ -271,22 +271,17 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			
 			"Nil" {
 				input signal "create" action {
-					try
-					{
-						logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
-						logLevel.normal(tag) { DAEMON_START_CREATE }
-						machine = KotlmataMutableMachine.create(tag, logLevel, "Daemon[$tag]:$suffix") {
-							CREATED { /* for creating state */ }
-							val init = InitImpl(block, this)
-							CREATED x any %= init.startAt
-							start at CREATED
-						}
-						logLevel.normal(tag) { DAEMON_END_CREATE }
+					logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
+					logLevel.normal(tag) { DAEMON_START_CREATE }
+					machine = KotlmataMutableMachine.create(tag, logLevel, "Daemon[$tag]:$suffix") {
+						CREATED { /* for creating state */ }
+						val init = InitImpl(block, this)
+						CREATED x any %= init.startAt
+						start at CREATED
 					}
-					finally
-					{
-						onCreate?.call()
-					}
+					logLevel.normal(tag) { DAEMON_END_CREATE }
+				} finally {
+					onCreate?.call()
 				}
 			}
 			"Created" { state ->
