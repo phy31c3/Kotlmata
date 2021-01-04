@@ -492,23 +492,23 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		val currentState = current
-		val currentTag = currentState.tag
+		val from = currentState.tag
 		
 		tryCatchReturn {
-			if (currentTag !== CREATED)
+			if (from !== CREATED)
 			{
-				logLevel.normal(prefix, signal, payload, currentTag) { MACHINE_START_INPUT }
+				logLevel.normal(prefix, signal, payload, from) { MACHINE_START_INPUT }
 			}
 			currentState.input(signal, payload)
 		}.also {
-			if (currentTag !== CREATED)
+			if (from !== CREATED)
 			{
-				logLevel.normal(prefix, signal, payload, currentTag) { MACHINE_END_INPUT }
+				logLevel.normal(prefix, signal, payload, from) { MACHINE_END_INPUT }
 			}
 		}.convertToSync()?.also { sync ->
 			block(sync)
 		} ?: run {
-			next(currentTag) ?: next(any)
+			next(from) ?: next(any)
 		}?.let { nextTag ->
 			when (nextTag)
 			{
@@ -517,16 +517,17 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				in stateMap -> stateMap[nextTag]
 				else ->
 				{
-					Log.w(prefix.trimEnd(), currentTag, signal, nextTag) { TRANSITION_FAILED }
+					Log.w(prefix.trimEnd(), from, signal, nextTag) { TRANSITION_FAILED }
 					null
 				}
 			}
 		}?.also { nextState ->
-			logLevel.simple(prefix, currentTag, signal, nextState.tag) { MACHINE_START_TRANSITION }
-			tryCatchReturn { currentState.exit(signal, nextState.tag) }
-			onTransition?.call(currentTag, signal, nextState.tag)
+			val to = nextState.tag
+			logLevel.simple(prefix, from, signal, to) { MACHINE_START_TRANSITION }
+			tryCatchReturn { currentState.exit(signal, to) }
+			onTransition?.call(from, signal, to)
 			current = nextState
-			tryCatchReturn { nextState.entry(currentTag, signal) }.convertToSync()?.also(block)
+			tryCatchReturn { nextState.entry(from, signal) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
@@ -539,17 +540,17 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		}
 		
 		val currentState = current
-		val currentTag = currentState.tag
+		val from = currentState.tag
 		
 		tryCatchReturn {
-			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, currentTag) { MACHINE_START_TYPED_INPUT }
+			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, from) { MACHINE_START_TYPED_INPUT }
 			currentState.input(signal, type, payload)
 		}.also {
-			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, currentTag) { MACHINE_END_TYPED_INPUT }
+			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, from) { MACHINE_END_TYPED_INPUT }
 		}.convertToSync()?.also { sync ->
 			block(sync)
 		} ?: ruleMap.let {
-			it[currentTag]?.next() ?: it[any]?.next()
+			it[from]?.next() ?: it[any]?.next()
 		}?.let { nextTag ->
 			when (nextTag)
 			{
@@ -558,16 +559,17 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				in stateMap -> stateMap[nextTag]
 				else ->
 				{
-					Log.w(prefix.trimEnd(), currentTag, "${type.simpleName}::class", nextTag) { TRANSITION_FAILED }
+					Log.w(prefix.trimEnd(), from, "${type.simpleName}::class", nextTag) { TRANSITION_FAILED }
 					null
 				}
 			}
 		}?.also { nextState ->
-			logLevel.simple(prefix, currentTag, "${type.simpleName}::class", nextState.tag) { MACHINE_START_TRANSITION }
-			tryCatchReturn { currentState.exit(signal, type, nextState.tag) }
-			onTransition?.call(currentTag, signal, nextState.tag)
+			val to = nextState.tag
+			logLevel.simple(prefix, from, "${type.simpleName}::class", to) { MACHINE_START_TRANSITION }
+			tryCatchReturn { currentState.exit(signal, type, to) }
+			onTransition?.call(from, signal, to)
 			current = nextState
-			tryCatchReturn { nextState.entry(currentState, signal, type) }.convertToSync()?.also(block)
+			tryCatchReturn { nextState.entry(from, signal, type) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
