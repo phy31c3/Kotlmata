@@ -90,6 +90,31 @@ interface StatesOrSignalsDefinable
 	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
 }
 
+interface ErrorHolder
+{
+	val throwable: Throwable
+}
+
+interface EntryHolder
+{
+	val previousState: STATE
+}
+
+interface ExitHolder
+{
+	val nextState: STATE
+}
+
+interface PayloadHolder
+{
+	val payload: Any?
+}
+
+interface TransitionHolder
+{
+	val transitionCount: Long
+}
+
 @KotlmataMarker
 interface ActionDSL
 
@@ -105,42 +130,41 @@ interface FunctionDSL : ActionDSL
 	infix fun TypedSync.with(payload: Any?) = Sync(signal, type, payload)
 }
 
-interface ErrorHolder
-{
-	val throwable: Throwable
-}
-
-interface PayloadHolder
-{
-	val payload: Any?
-}
-
-interface TransitionHolder
-{
-	val count: Long
-}
-
 interface ErrorActionDSL : ErrorHolder, ActionDSL
 interface ErrorFunctionDSL : ErrorActionDSL, FunctionDSL
+
+interface EntryActionDSL : EntryHolder, ActionDSL
+interface EntryFunctionDSL : EntryActionDSL, FunctionDSL
+interface EntryErrorActionDSL : EntryActionDSL, ErrorActionDSL
+interface EntryErrorFunctionDSL : EntryErrorActionDSL, EntryFunctionDSL, ErrorFunctionDSL
+
+interface ExitActionDSL : ExitHolder, ActionDSL
+interface ExitErrorActionDSL : ExitActionDSL, ErrorActionDSL
+
 interface PayloadActionDSL : PayloadHolder, ActionDSL
 interface PayloadFunctionDSL : PayloadActionDSL, FunctionDSL
 interface PayloadErrorActionDSL : PayloadActionDSL, ErrorActionDSL
 interface PayloadErrorFunctionDSL : PayloadErrorActionDSL, PayloadFunctionDSL, ErrorFunctionDSL
+
 interface TransitionActionDSL : TransitionHolder, ActionDSL
 interface TransitionErrorActionDSL : TransitionActionDSL, ErrorActionDSL
 
-typealias EntryAction<T> = ActionDSL.(signal: T) -> Unit
-typealias EntryFunction<T> = FunctionDSL.(signal: T) -> Any?
-typealias EntryErrorAction<T> = ErrorActionDSL.(signal: T) -> Unit
-typealias EntryErrorFunction<T> = ErrorFunctionDSL.(signal: T) -> Any?
+/*###################################################################################################################################
+ * typealias for action & template
+ *###################################################################################################################################*/
+
+typealias EntryAction<T> = EntryActionDSL.(signal: T) -> Unit
+typealias EntryFunction<T> = EntryFunctionDSL.(signal: T) -> Any?
+typealias EntryErrorAction<T> = EntryErrorActionDSL.(signal: T) -> Unit
+typealias EntryErrorFunction<T> = EntryErrorFunctionDSL.(signal: T) -> Any?
 
 typealias InputAction<T> = PayloadActionDSL.(signal: T) -> Unit
 typealias InputFunction<T> = PayloadFunctionDSL.(signal: T) -> Any?
 typealias InputErrorAction<T> = PayloadErrorActionDSL.(signal: T) -> Unit
 typealias InputErrorFunction<T> = PayloadErrorFunctionDSL.(signal: T) -> Any?
 
-typealias ExitAction<T> = ActionDSL.(signal: T) -> Unit
-typealias ExitErrorAction<T> = ErrorActionDSL.(signal: T) -> Unit
+typealias ExitAction<T> = ExitActionDSL.(signal: T) -> Unit
+typealias ExitErrorAction<T> = ExitErrorActionDSL.(signal: T) -> Unit
 
 typealias StateErrorCallback = ErrorActionDSL.(signal: SIGNAL) -> Unit
 

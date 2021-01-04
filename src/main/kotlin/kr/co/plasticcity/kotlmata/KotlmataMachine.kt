@@ -405,7 +405,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	private var onTransition: TransitionDef? = null
 	private var onError: MachineErrorCallback? = null
 	
-	private var transitionCount: Long = 0
+	private var transitionCounter: Long = 0
 	
 	private lateinit var current: KotlmataState<out STATE>
 	
@@ -430,7 +430,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	private fun TransitionDef.call(from: STATE, signal: SIGNAL, to: STATE)
 	{
-		val transitionCount = transitionCount++
+		val transitionCount = transitionCounter++
 		try
 		{
 			callback.also { callback ->
@@ -440,7 +440,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		catch (e: Throwable)
 		{
 			fallback?.also { fallback ->
-				TransitionErrorActionReceiver(e, transitionCount).fallback(from, signal, to)
+				TransitionErrorActionReceiver(transitionCount, e).fallback(from, signal, to)
 			} ?: onError?.also { onError ->
 				ErrorActionReceiver(e).onError()
 			} ?: throw e
@@ -523,10 +523,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}?.also { nextState ->
 			logLevel.simple(prefix, currentTag, signal, nextState.tag) { MACHINE_START_TRANSITION }
-			tryCatchReturn { currentState.exit(signal) }
+			tryCatchReturn { currentState.exit(signal, nextState.tag) }
 			onTransition?.call(currentTag, signal, nextState.tag)
 			current = nextState
-			tryCatchReturn { nextState.entry(signal) }.convertToSync()?.also(block)
+			tryCatchReturn { nextState.entry(currentTag, signal) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}

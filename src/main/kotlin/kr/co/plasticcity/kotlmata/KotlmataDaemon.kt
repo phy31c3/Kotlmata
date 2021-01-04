@@ -234,7 +234,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		catch (e: Throwable)
 		{
 			fallback?.also { fallback ->
-				PayloadErrorActionReceiver(e, payload).fallback()
+				PayloadErrorActionReceiver(payload, e).fallback()
 			} ?: onError?.also { onError ->
 				ErrorActionReceiver(e).onError()
 			} ?: throw e
