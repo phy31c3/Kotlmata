@@ -188,6 +188,9 @@ class Tests
 			on error {
 				println("$msg: $throwable")
 			}
+			on fatal {
+				println("치명적인 에러: $throwable")
+			}
 			
 			on transition { from, _, _ ->
 				if (from == "state1")
