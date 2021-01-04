@@ -234,7 +234,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		catch (e: Throwable)
 		{
 			fallback?.also { fallback ->
-				PayloadErrorActionReceiver(e, payload).fallback()
+				PayloadErrorActionReceiver(payload, e).fallback()
 			} ?: onError?.also { onError ->
 				ErrorActionReceiver(e).onError()
 			} ?: throw e
@@ -270,8 +270,16 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			
 			"Nil" {
-				input signal "create" action {
-					logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
+				/* nothing */
+			}
+			"Created" { state ->
+				val onStart: InputAction<Control> = { controlR ->
+					logLevel.simple(tag, suffix) { DAEMON_START }
+					onStart?.call(controlR.payload)
+					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", block = postSync)
+				}
+				
+				entry action {
 					logLevel.normal(tag) { DAEMON_START_CREATE }
 					machine = KotlmataMutableMachine.create(tag, logLevel, "Daemon[$tag]:$suffix") {
 						CREATED { /* for creating state */ }
@@ -283,27 +291,26 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				} finally {
 					onCreate?.call()
 				}
-			}
-			"Created" { state ->
-				val start: InputAction<Control> = { controlR ->
-					logLevel.simple(tag, suffix) { DAEMON_START }
-					onStart?.call(controlR.payload)
-					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", block = postSync)
-				}
-				
-				input signal Run::class action start
-				input signal Pause::class action start
-				input signal Stop::class action start
+				input signal Run::class action onStart
+				input signal Pause::class action onStart
+				input signal Stop::class action onStart
 				input signal Modify::class action modifyMachine
 				input signal Sync::class action { ignore(state, it) }
 				input signal Input::class action { ignore(state, it) }
 				input signal TypedInput::class action { ignore(state, it) }
 			}
 			"Running" { state ->
+				entry via Run::class action { runR ->
+					when (previousState)
+					{
+						"Paused", "Stopped" ->
+						{
+							logLevel.simple(tag, suffix) { DAEMON_RESUME }
+							onResume?.call(runR.payload)
+						}
+					}
+				}
 				input signal Run::class action { ignore(state, it) }
-				input signal Terminate::class action { terminateR ->
-					onFinish?.call(terminateR.payload)
-				} catch { /* ignore */ }
 				input signal Modify::class action modifyMachine
 				input signal Sync::class action { syncR ->
 					syncR.type?.also { type ->
@@ -329,20 +336,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					logLevel.simple(tag, suffix) { DAEMON_PAUSE }
 					onPause?.call(pauseR.payload)
 				}
-				
-				input signal Run::class action { runR ->
+				input signal Run::class action {
 					sync?.also { syncR -> queue!!.offer(syncR) }
 					queue!! += stash
-					logLevel.simple(tag, suffix) { DAEMON_RESUME }
-					onResume?.call(runR.payload)
 				}
 				input signal Pause::class action { ignore(state, it) }
 				input signal Stop::class action {
 					sync?.also { syncR -> queue!!.offer(syncR) }
 				}
-				input signal Terminate::class action { terminateR ->
-					onFinish?.call(terminateR.payload)
-				} catch { /* ignore */ }
 				input signal Modify::class action modifyMachine
 				input signal Sync::class action { syncR ->
 					logLevel.normal(tag, syncR) { DAEMON_STORE_REQUEST }
@@ -350,7 +351,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				input signal Input::class action keep
 				input signal TypedInput::class action keep
-				
 				exit action {
 					sync = null
 					stash.clear()
@@ -374,17 +374,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					logLevel.simple(tag, suffix) { DAEMON_STOP }
 					onStop?.call(stopR.payload)
 				}
-				
 				input signal Run::class action { runR ->
 					cleanup(runR)
-					logLevel.simple(tag, suffix) { DAEMON_RESUME }
-					onResume?.call(runR.payload)
 				}
 				input signal Pause::class action cleanup
 				input signal Stop::class action { ignore(state, it) }
-				input signal Terminate::class action { terminateR ->
-					onFinish?.call(terminateR.payload)
-				} catch { /* ignore */ }
 				input signal Modify::class action modifyMachine
 				input signal Sync::class action { syncR ->
 					logLevel.normal(tag, syncR) { DAEMON_STORE_REQUEST }
@@ -392,7 +386,6 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				input signal Input::class action { ignore(state, it) }
 				input signal TypedInput::class action { ignore(state, it) }
-				
 				exit action {
 					sync = null
 				}
@@ -400,6 +393,14 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"Terminated" {
 				entry via Terminate::class action { terminateR ->
 					logLevel.simple(tag, suffix) { DAEMON_TERMINATE }
+					when (previousState)
+					{
+						"Running", "Paused", "Stopped" ->
+						{
+							onFinish?.call(terminateR.payload)
+						}
+					}
+				} finally { terminateR ->
 					isTerminated = true
 					if (terminateR.shouldInterrupt)
 					{
@@ -407,14 +408,11 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					}
 				}
 			}
-			"Destroyed" action {
-				try
-				{
+			"Destroyed" {
+				entry action {
 					logLevel.normal(tag, suffix) { DAEMON_DESTROY }
 					onDestroy?.call()
-				}
-				finally
-				{
+				} finally {
 					onCreate = null
 					onStart = null
 					onPause = null
@@ -443,7 +441,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			"Stopped" x Run::class %= "Running"
 			"Stopped" x Pause::class %= "Paused"
 			
-			any.except("Terminated", "Destroyed") x Terminate::class %= "Terminated"
+			any.except("Nil", "Terminated", "Destroyed") x Terminate::class %= "Terminated"
 			
 			"Terminated" x "destroy" %= "Destroyed"
 			
@@ -457,6 +455,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			
 			try
 			{
+				logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
 				core.input("create")
 				while (true)
 				{

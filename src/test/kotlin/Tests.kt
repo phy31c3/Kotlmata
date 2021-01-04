@@ -41,24 +41,24 @@ class Tests
 			exit action { println("퇴장함수") }
 		}
 		
-		state.entry(Any())
-		state.entry("signal")
-		state.entry("a")
-		state.entry("b")?.let { signal ->
+		state.entry("", Any())
+		state.entry("", "signal")
+		state.entry("", "a")
+		state.entry("", "b")?.let { signal ->
 			state.input(signal)
 		}
 		state.input("basic")
 		state.input("basic", Any::class)
-		state.exit("basic")
+		state.exit("basic", "")
 		
 		state {
 			delete action input signal "next"
 		}
 		
-		state.entry("b")?.let { signal ->
+		state.entry("", "b")?.let { signal ->
 			state.input(signal)
 		}
-		state.entry("a")?.let { signal ->
+		state.entry("", "a")?.let { signal ->
 			state.input(signal)
 		}
 		
@@ -73,7 +73,7 @@ class Tests
 				println("$msg: on error")
 			}
 			on transition { from, signal, to ->
-				println("on transition : [$count] $from x $signal -> $to")
+				println("on transition : [$transitionCount] $from x $signal -> $to")
 			}
 			
 			block(machine)

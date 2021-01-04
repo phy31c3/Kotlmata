@@ -121,14 +121,14 @@ interface KotlmataState<T : STATE>
 	
 	val tag: T
 	
-	fun entry(signal: SIGNAL): Any?
-	fun <T : SIGNAL> entry(signal: T, type: KClass<in T>): Any?
+	fun entry(from: STATE, signal: SIGNAL): Any?
+	fun <T : SIGNAL> entry(from: STATE, signal: T, type: KClass<in T>): Any?
 	
 	fun input(signal: SIGNAL, payload: Any? = null): Any?
 	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null): Any?
 	
-	fun exit(signal: SIGNAL)
-	fun <T : SIGNAL> exit(signal: T, type: KClass<in T>)
+	fun exit(signal: SIGNAL, to: STATE)
+	fun <T : SIGNAL> exit(signal: T, type: KClass<in T>, to: STATE)
 }
 
 interface KotlmataMutableState<T : STATE> : KotlmataState<T>
@@ -224,14 +224,14 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	private fun EntryDef.run(signal: SIGNAL): Any? = try
+	private fun EntryDef.run(from: STATE, signal: SIGNAL): Any? = try
 	{
-		FunctionReceiver.function(signal)
+		EntryFunctionReceiver(from).function(signal)
 	}
 	catch (e: Throwable)
 	{
 		intercept?.let { intercept ->
-			ErrorFunctionReceiver(e).intercept(signal) ?: Unit
+			EntryErrorFunctionReceiver(from, e).intercept(signal) ?: Unit
 		} ?: onError?.let { onError ->
 			ErrorActionReceiver(e).onError(signal)
 		} ?: throw e
@@ -239,7 +239,7 @@ private class KotlmataStateImpl<T : STATE>(
 	finally
 	{
 		finally?.let { finally ->
-			ActionReceiver.finally(signal)
+			EntryActionReceiver(from).finally(signal)
 		}
 	}
 	
@@ -250,7 +250,7 @@ private class KotlmataStateImpl<T : STATE>(
 	catch (e: Throwable)
 	{
 		intercept?.let { intercept ->
-			PayloadErrorFunctionReceiver(e, payload).intercept(signal) ?: Unit
+			PayloadErrorFunctionReceiver(payload, e).intercept(signal) ?: Unit
 		} ?: onError?.let { onError ->
 			ErrorActionReceiver(e).onError(signal)
 		} ?: throw e
@@ -262,14 +262,14 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	private fun ExitDef.run(signal: SIGNAL) = try
+	private fun ExitDef.run(signal: SIGNAL, to: STATE) = try
 	{
-		ActionReceiver.action(signal)
+		ExitActionReceiver(to).action(signal)
 	}
 	catch (e: Throwable)
 	{
 		catch?.let { catch ->
-			ErrorActionReceiver(e).catch(signal)
+			ExitErrorActionReceiver(to, e).catch(signal)
 		} ?: onError?.let { onError ->
 			ErrorActionReceiver(e).onError(signal)
 		} ?: throw e
@@ -277,11 +277,11 @@ private class KotlmataStateImpl<T : STATE>(
 	finally
 	{
 		finally?.let { finally ->
-			ActionReceiver.finally(signal)
+			ExitActionReceiver(to).finally(signal)
 		}
 	}
 	
-	override fun entry(signal: SIGNAL): Any?
+	override fun entry(from: STATE, signal: SIGNAL): Any?
 	{
 		val entryDef = entryMap?.let {
 			when
@@ -307,10 +307,10 @@ private class KotlmataStateImpl<T : STATE>(
 			logLevel.normal(prefix, tag, signal) { STATE_NO_ENTRY }
 		}
 		
-		return entryDef?.run(signal)
+		return entryDef?.run(from, signal)
 	}
 	
-	override fun <T : SIGNAL> entry(signal: T, type: KClass<in T>): Any?
+	override fun <T : SIGNAL> entry(from: STATE, signal: T, type: KClass<in T>): Any?
 	{
 		val entryDef = entryMap?.let {
 			when (type)
@@ -328,7 +328,7 @@ private class KotlmataStateImpl<T : STATE>(
 			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_ENTRY_TYPED }
 		}
 		
-		return entryDef?.run(signal)
+		return entryDef?.run(from, signal)
 	}
 	
 	override fun input(signal: SIGNAL, payload: Any?): Any?
@@ -381,7 +381,7 @@ private class KotlmataStateImpl<T : STATE>(
 		return inputDef?.run(signal, payload)
 	}
 	
-	override fun exit(signal: SIGNAL)
+	override fun exit(signal: SIGNAL, to: STATE)
 	{
 		val exitDef = exitMap?.let {
 			when
@@ -407,10 +407,10 @@ private class KotlmataStateImpl<T : STATE>(
 			if (tag !== CREATED) logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
 		}
 		
-		exitDef?.run(signal)
+		exitDef?.run(signal, to)
 	}
 	
-	override fun <T : SIGNAL> exit(signal: T, type: KClass<in T>)
+	override fun <T : SIGNAL> exit(signal: T, type: KClass<in T>, to: STATE)
 	{
 		val exitDef = exitMap?.let {
 			when (type)
@@ -428,7 +428,7 @@ private class KotlmataStateImpl<T : STATE>(
 			if (tag !== CREATED) logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_EXIT_TYPED }
 		}
 		
-		exitDef?.run(signal)
+		exitDef?.run(signal, to)
 	}
 	
 	override fun modify(block: Modifier.(T) -> Unit)
