@@ -142,14 +142,37 @@ internal class Predicates
 		set.remove(predicate)
 	}
 	
-	fun test(signal: Any): ((Any) -> Boolean)? = set.lastOrNull { predicate ->
-		try
-		{
-			predicate(signal)
+	fun test(signal: Any): ((Any) -> Boolean)?
+	{
+		return set.reversed().firstOrNull { predicate ->
+			try
+			{
+				predicate(signal)
+			}
+			catch (e: ClassCastException)
+			{
+				false
+			}
 		}
-		catch (e: ClassCastException)
-		{
-			false
+	}
+}
+
+internal class Mutable2DMap<K1, K2, V>(private val map: MutableMap<K1, MutableMap<K2, V>> = HashMap()) : MutableMap<K1, MutableMap<K2, V>> by map
+{
+	operator fun get(key1: K1, key2: K2): V?
+	{
+		return map[key1]?.let { map2 ->
+			map2[key2]
+		}
+	}
+	
+	operator fun set(key1: K1, key2: K2, value: V)
+	{
+		map[key1]?.also { map2 ->
+			map2[key2] = value
+		} ?: HashMap<K2, V>().also { map2 ->
+			map[key1] = map2
+			map2[key2] = value
 		}
 	}
 }
