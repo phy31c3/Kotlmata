@@ -177,7 +177,12 @@ interface KotlmataMachine<T : MACHINE>
 			{
 				infix fun via(signal: SIGNAL)
 				infix fun via(signal: KClass<out SIGNAL>)
+				infix fun via(signals: StatesOrSignals<*>)
 				infix fun via(any: any)
+				infix fun via(anyOf: AnyOf)
+				infix fun via(anyExcept: AnyExcept)
+				infix fun <T : SIGNAL> via(predicate: (T) -> Boolean)
+				infix fun <T> via(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this via { t: T -> range.contains(t) }
 			}
 		}
 	}
@@ -1112,6 +1117,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		
 		private fun <T : SIGNAL> store(from: STATE, predicate: (T) -> Boolean): SIGNAL
 		{
+			this@ModifierImpl shouldNot expired
 			(predicateMap[from] ?: Predicates().also { predicates ->
 				predicateMap[from] = predicates
 			}).store(predicate)
@@ -1297,47 +1303,65 @@ private class KotlmataMachineImpl<T : MACHINE>(
 		 * Chaining transition rule
 		 *###################################################################################################################################*/
 		
-		override val chain = object : Chain
+		override val chain: Chain = object : Chain
 		{
-			val states: MutableList<STATE> = mutableListOf()
-			
 			override fun from(state: STATE): Chain.To
 			{
 				this@ModifierImpl shouldNot expired
+				val states: MutableList<STATE> = mutableListOf()
 				states.add(state)
-				return object : Chain.To
+				return object : Chain.To, Chain.Via
 				{
 					override fun to(state: STATE): Chain.Via
 					{
 						this@ModifierImpl shouldNot expired
 						states.add(state)
-						return object : Chain.Via, Chain.To by this
+						return this
+					}
+					
+					override fun via(signal: SIGNAL)
+					{
+						this@ModifierImpl shouldNot expired
+						loop { from, to -> from x signal %= to }
+					}
+					
+					override fun via(signal: KClass<out SIGNAL>)
+					{
+						this@ModifierImpl shouldNot expired
+						loop { from, to -> from x signal %= to }
+					}
+					
+					override fun via(signals: StatesOrSignals<*>) = via(signals.toAnyOf())
+					
+					override fun via(any: any)
+					{
+						this@ModifierImpl shouldNot expired
+						loop { from, to -> from x any %= to }
+					}
+					
+					override fun via(anyOf: AnyOf)
+					{
+						this@ModifierImpl shouldNot expired
+						loop { from, to -> from x anyOf %= to }
+					}
+					
+					override fun via(anyExcept: AnyExcept)
+					{
+						this@ModifierImpl shouldNot expired
+						loop { from, to -> from x anyExcept %= to }
+					}
+					
+					override fun <T : SIGNAL> via(predicate: (T) -> Boolean)
+					{
+						this@ModifierImpl shouldNot expired
+						loop { from, to -> from x predicate %= to }
+					}
+					
+					private fun loop(block: (from: STATE, to: STATE) -> Unit)
+					{
+						for (i in 0 until states.lastIndex)
 						{
-							override fun via(signal: SIGNAL)
-							{
-								this@ModifierImpl shouldNot expired
-								done(signal)
-							}
-							
-							override fun via(signal: KClass<out SIGNAL>)
-							{
-								this@ModifierImpl shouldNot expired
-								done(signal)
-							}
-							
-							override fun via(any: any)
-							{
-								this@ModifierImpl shouldNot expired
-								done(any)
-							}
-							
-							private fun done(signal: Any) = (1 until states.size).forEach { i ->
-								val from = states[i - 1]
-								val to = states[i]
-								(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
-									ruleMap[from] = it
-								})[signal] = to
-							}
+							block(states[i], states[i + 1])
 						}
 					}
 				}
