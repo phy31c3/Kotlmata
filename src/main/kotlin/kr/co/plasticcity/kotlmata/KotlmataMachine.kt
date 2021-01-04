@@ -564,10 +564,10 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			}
 		}?.also { nextState ->
 			logLevel.simple(prefix, currentTag, "${type.simpleName}::class", nextState.tag) { MACHINE_START_TRANSITION }
-			tryCatchReturn { currentState.exit(signal, type) }
+			tryCatchReturn { currentState.exit(signal, type, nextState.tag) }
 			onTransition?.call(currentTag, signal, nextState.tag)
 			current = nextState
-			tryCatchReturn { nextState.entry(signal, type) }.convertToSync()?.also(block)
+			tryCatchReturn { nextState.entry(currentState, signal, type) }.convertToSync()?.also(block)
 			logLevel.normal(prefix) { MACHINE_END_TRANSITION }
 		}
 	}
