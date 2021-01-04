@@ -390,8 +390,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 ) : KotlmataMutableMachine<T>
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
-	private val ruleMap: MutableMap<STATE, MutableMap<SIGNAL, STATE>> = HashMap()
-	private val predicateMap: MutableMap<STATE, Predicates> = HashMap()
+	private val ruleMap: Mutable2DMap<STATE, SIGNAL, STATE> = Mutable2DMap()
+	private val predicatesMap: MutableMap<STATE, Predicates> = HashMap()
 	
 	private var onTransition: TransitionDef? = null
 	private var onError: MachineErrorCallback? = null
@@ -473,13 +473,13 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	{
 		fun MutableMap<SIGNAL, STATE>.test(from: STATE, signal: SIGNAL): STATE?
 		{
-			return predicateMap[from]?.test(signal)?.let { predicate ->
+			return predicatesMap[from]?.test(signal)?.let { predicate ->
 				this[predicate]
 			}
 		}
 		
-		fun next(from: STATE): STATE? = ruleMap[from]?.run {
-			return this[signal] ?: this[signal::class] ?: test(from, signal) ?: this[any]
+		fun next(from: STATE): STATE? = ruleMap[from]?.let { map2 ->
+			return map2[signal] ?: map2[signal::class] ?: map2.test(from, signal) ?: map2[any]
 		}
 		
 		val currentState = current
@@ -525,9 +525,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 	
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
 	{
-		fun MutableMap<SIGNAL, STATE>.next(): STATE?
-		{
-			return this[type] ?: this[any]
+		fun next(from: STATE): STATE? = ruleMap[from]?.let { map2 ->
+			return map2[type] ?: map2[any]
 		}
 		
 		val currentState = current
@@ -540,8 +539,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, from) { MACHINE_END_TYPED_INPUT }
 		}.convertToSync()?.also { sync ->
 			block(sync)
-		} ?: ruleMap.let {
-			it[from]?.next() ?: it[any]?.next()
+		} ?: run {
+			next(from) ?: next(any)
 		}?.let { nextTag ->
 			when (nextTag)
 			{
@@ -692,11 +691,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				override fun then(block: () -> Unit): Has.Or
 				{
 					this@ModifierImpl shouldNot expired
-					return ruleMap.let {
-						it[ruleLeft.from]
-					}?.let {
-						it[ruleLeft.signal]
-					}?.let {
+					return ruleMap[ruleLeft.from, ruleLeft.signal]?.run {
 						block()
 						stop
 					} ?: or
@@ -723,11 +718,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				override fun remAssign(state: STATE)
 				{
 					this@ModifierImpl shouldNot expired
-					ruleMap.let {
-						it[ruleLeft.from]
-					}?.let {
-						it[ruleLeft.signal]
-					} ?: let {
+					ruleMap[ruleLeft.from, ruleLeft.signal] ?: run {
 						ruleLeft %= state
 					}
 				}
@@ -814,11 +805,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				override fun remAssign(state: STATE)
 				{
 					this@ModifierImpl shouldNot expired
-					ruleMap.let {
-						it[ruleLeft.from]
-					}?.let {
-						it[ruleLeft.signal]
-					}?.let {
+					ruleMap[ruleLeft.from, ruleLeft.signal]?.run {
 						ruleLeft %= state
 					}
 				}
@@ -842,10 +829,8 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			override fun rule(ruleLeft: RuleLeft)
 			{
 				this@ModifierImpl shouldNot expired
-				ruleMap.let {
-					it[ruleLeft.from]
-				}?.let {
-					it -= ruleLeft.signal
+				ruleMap[ruleLeft.from]?.let { map2 ->
+					map2 -= ruleLeft.signal
 				}
 			}
 			
@@ -855,7 +840,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				{
 					this@ModifierImpl shouldNot expired
 					ruleMap -= state
-					predicateMap -= state
+					predicatesMap -= state
 				}
 			}
 			
@@ -863,7 +848,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				this@ModifierImpl shouldNot expired
 				ruleMap.clear()
-				predicateMap.clear()
+				predicatesMap.clear()
 			}
 		}
 		
@@ -1109,18 +1094,19 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			override fun remAssign(to: STATE)
 			{
 				this@ModifierImpl shouldNot expired
-				(ruleMap[from] ?: HashMap<SIGNAL, STATE>().also {
-					ruleMap[from] = it
-				})[signal] = to
+				ruleMap[from, signal] = to
 			}
 		}
 		
 		private fun <T : SIGNAL> store(from: STATE, predicate: (T) -> Boolean): SIGNAL
 		{
 			this@ModifierImpl shouldNot expired
-			(predicateMap[from] ?: Predicates().also { predicates ->
-				predicateMap[from] = predicates
-			}).store(predicate)
+			predicatesMap[from]?.also { predicates ->
+				predicates.store(predicate)
+			} ?: Predicates().also { predicates ->
+				predicates.store(predicate)
+				predicatesMap[from] = predicates
+			}
 			return predicate
 		}
 		
@@ -1144,11 +1130,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				this@ModifierImpl shouldNot expired
 				from x any %= to
 				anyExceptSignal.forEach { signal ->
-					ruleMap.let {
-						it[from]
-					}?.let {
-						it[signal]
-					} ?: run {
+					ruleMap[from, signal] ?: run {
 						from x signal %= stay
 					}
 				}
@@ -1199,11 +1181,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 				this@ModifierImpl shouldNot expired
 				any x signal %= to
 				anyExceptFrom.forEach { from ->
-					ruleMap.let {
-						it[from]
-					}?.let {
-						it[signal]
-					} ?: run {
+					ruleMap[from, signal] ?: run {
 						from x signal %= stay
 					}
 				}
@@ -1269,7 +1247,7 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			{
 				this@ModifierImpl shouldNot expired
 				this@x.forEach { from ->
-					from x store(from, predicate) %= to
+					from x predicate %= to
 				}
 			}
 		}
@@ -1285,14 +1263,9 @@ private class KotlmataMachineImpl<T : MACHINE>(
 			override fun remAssign(to: STATE)
 			{
 				this@ModifierImpl shouldNot expired
-				any x store(any, predicate) %= to
+				any x predicate %= to
 				this@x.forEach { from ->
-					store(from, predicate)
-					ruleMap.let {
-						it[from]
-					}?.let {
-						it[predicate]
-					} ?: run {
+					ruleMap[from, predicate] ?: run {
 						from x predicate %= stay
 					}
 				}
