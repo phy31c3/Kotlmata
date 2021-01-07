@@ -9,7 +9,7 @@ class Tests
 	@Before
 	fun init()
 	{
-		Kotlmata.config {
+		KotlmataConfig {
 			print debug ::println
 			print warn ::println
 			print error ::error
@@ -559,118 +559,6 @@ class Tests
 		System.gc()
 		println("과연 GC 되었을까: ${shouldGC?.get()}")
 		expire?.entry?.function {}
-	}
-	
-	@Test
-	fun kotlmataTest()
-	{
-		var expire: Kotlmata.Post? = null
-		Kotlmata.start(2)
-		
-		Kotlmata fork "daemon" by {
-			"state1" {
-				input signal "interrupt" action {
-					Thread.currentThread().interrupt()
-				}
-			}
-			start at "state1"
-		}
-		
-		Kotlmata run "daemon"
-		Kotlmata input "interrupt" to "daemon"
-		
-		Thread.sleep(500)
-		
-		Kotlmata fork "daemon" by {
-			
-			on start {
-				println("데몬 on start: payload = $payload")
-			}
-			
-			"state1" { state ->
-				entry function { println("데몬이 시작됨") }
-				input signal String::class function { s -> println("$state: String 타입 입력함수: $s") }
-				input signal "goToState2" function { println("state2로 이동") }
-				input signal "payload" function { signal ->
-					println("signal: $signal, payload: $payload")
-				}
-				exit action { println("$state: 퇴장함수") }
-			}
-			
-			"state2" { state ->
-				entry function { println("$state: 기본 진입함수") }
-				entry via "goToState2" function {
-					println("null 리턴할거임")
-					null
-				}
-				input signal Integer::class function { s -> println("$state: Number 타입 입력함수: $s") }
-				input signal String::class function { s -> println("$state: String 타입 입력함수: $s") }
-				input signal 5 function { println("state3로 이동") }
-				exit action { println("$state: 퇴장함수") }
-			}
-			
-			"state3" { state ->
-				entry function {
-					println("$state: 기본 진입함수")
-					"sync input"
-				}
-				input signal String::class function { s -> println("$state: String 타입 입력함수: $s") }
-				exit action { println("$state: 퇴장함수") }
-			}
-			
-			"state1" x "goToState2" %= "state2"
-			"state2" x 5 %= "state3"
-			"state3" x "goToState1" %= "state1"
-			"state3" x "goToState1" %= "state1"
-			
-			start at "state1"
-		}
-		
-		Kotlmata input "무시해라1" to "daemon"
-		Kotlmata input "무시해라2" to "daemon"
-		Kotlmata modify "daemon" by {
-			println("현재 상태: $current")
-		}
-		
-		Thread.sleep(100)
-		
-		Kotlmata.run("daemon", "payload")
-		Kotlmata input "goToState2" to "daemon"
-		Kotlmata input "한타임 쉬고" to "daemon"
-		Kotlmata input "우선순위 5" priority 5 to "daemon"
-		Kotlmata input "우선순위 4" priority 4 to "daemon"
-		Kotlmata input "우선순위 3" priority 3 to "daemon"
-		Kotlmata input "우선순위 2" priority 2 to "daemon"
-		Kotlmata input "우선순위 1" priority 1 to "daemon"
-		
-		Thread.sleep(100)
-		
-		Kotlmata {
-			expire = this
-			has daemon "daemon" then {
-				modify daemon "daemon" by {
-					update state "state2" by { state ->
-						input signal Integer::class function { s -> println("$state: Post 에서 수정된 Number 타입 입력함수: $s") }
-						exit action { println("$state: Post 에서 수정된 퇴장함수") }
-					}
-				}
-			}
-			
-			input signal 3 to "daemon"
-		}
-		Kotlmata input 5 to "daemon"
-		Kotlmata input "goToState1" to "daemon"
-		Kotlmata input "payload" with "this is a payload" to "daemon"
-		
-		Thread.sleep(100)
-		
-		Kotlmata input "stop 보다 더 빨리 실행될까?" to "daemon"
-		Kotlmata.stop()
-		Kotlmata.release()
-		
-		Thread.sleep(100)
-		
-		expire?.has?.daemon("")?.then {}
 	}
 	
 	@Test
