@@ -68,7 +68,7 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		fun template(msg: String, block: MachineTemplate<String>): MachineTemplate<String> = { machine ->
+		fun template(msg: String, block: MachineTemplate): MachineTemplate = { machine ->
 			on error {
 				println("$msg: on error")
 			}
@@ -184,7 +184,7 @@ class Tests
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
 		
-		fun template(msg: String, block: DaemonTemplate<String>): DaemonTemplate<String> = { tag, daemon ->
+		fun template(msg: String, block: DaemonTemplate): DaemonTemplate = { daemon ->
 			on error {
 				println("$msg: $throwable")
 			}
@@ -201,12 +201,12 @@ class Tests
 				println("${throwable}: on transition catch 에서 해결")
 			}
 			
-			block(tag, daemon)
+			block(daemon)
 			
 			start at "state1"
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 2) by template("템플릿에서 정의") { _, daemon ->
+		val daemon by KotlmataMutableDaemon.lazy("d1", 2) by template("템플릿에서 정의") { daemon ->
 			on create {
 				println("--------------------- 데몬이 생성됨")
 				thread = Thread.currentThread()
