@@ -140,7 +140,7 @@ interface TransitionActionDSL : TransitionHolder, ActionDSL
 interface TransitionErrorActionDSL : TransitionActionDSL, ErrorActionDSL
 
 /*###################################################################################################################################
- * typealias for action & template
+ * typealias for action
  *###################################################################################################################################*/
 
 typealias EntryAction<T> = EntryActionDSL.(signal: T) -> Unit
@@ -166,6 +166,14 @@ typealias MachineErrorCallback = ErrorActionDSL.() -> Unit
 typealias DaemonCallback = PayloadActionDSL.() -> Unit
 typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 
+/*###################################################################################################################################
+ * typealias for template
+ *###################################################################################################################################*/
+
 typealias StateTemplate<T> = KotlmataState.Init.(state: T) -> Unit
+
+typealias MachineBase = KotlmataMachine.Base.(machine: KotlmataMachine) -> Unit
 typealias MachineTemplate = KotlmataMachine.Init.(machine: KotlmataMachine) -> KotlmataMachine.Init.End
+
+typealias DaemonBase = KotlmataDaemon.Base.(daemon: KotlmataDaemon) -> Unit
 typealias DaemonTemplate = KotlmataDaemon.Init.(daemon: KotlmataDaemon) -> KotlmataMachine.Init.End

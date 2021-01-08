@@ -56,10 +56,9 @@ interface KotlmataMachine
 	}
 	
 	@KotlmataMarker
-	interface Init : StateDefine, RuleDefine
+	interface Base : StateDefine, RuleDefine
 	{
 		val on: On
-		val start: Start
 		
 		interface On
 		{
@@ -76,6 +75,11 @@ interface KotlmataMachine
 		{
 			infix fun finally(finally: TransitionCallback)
 		}
+	}
+	
+	interface Init : Base
+	{
+		val start: Start
 		
 		interface Start
 		{
@@ -592,19 +596,19 @@ private class KotlmataMachineImpl(
 		modify: (Modifier.() -> Unit)? = null
 	) : Init, Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
-		override val on = object : Init.On
+		override val on = object : Base.On
 		{
-			override fun transition(callback: TransitionCallback): Init.Catch
+			override fun transition(callback: TransitionCallback): Base.Catch
 			{
 				this@ModifierImpl shouldNot expired
 				onTransition = TransitionDef(callback)
-				return object : Init.Catch
+				return object : Base.Catch
 				{
-					override fun catch(fallback: TransitionFallback): Init.Finally
+					override fun catch(fallback: TransitionFallback): Base.Finally
 					{
 						this@ModifierImpl shouldNot expired
 						onTransition = TransitionDef(callback, fallback)
-						return object : Init.Finally
+						return object : Base.Finally
 						{
 							override fun finally(finally: TransitionCallback)
 							{
