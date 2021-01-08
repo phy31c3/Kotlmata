@@ -7,23 +7,6 @@ import kotlin.reflect.KClass
 
 interface KotlmataState<T : STATE>
 {
-	companion object
-	{
-		operator fun <T : STATE> invoke(
-			tag: T,
-			logLevel: Int = NO_LOG,
-			block: StateTemplate<T>
-		): KotlmataState<T> = KotlmataStateImpl(tag, logLevel, block = block)
-		
-		fun <T : STATE> lazy(
-			tag: T,
-			logLevel: Int = NO_LOG,
-			block: StateTemplate<T>
-		) = lazy {
-			invoke(tag, logLevel, block)
-		}
-	}
-	
 	@KotlmataMarker
 	interface Init : StatesOrSignalsDefinable
 	{
@@ -135,21 +118,7 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 {
 	companion object
 	{
-		operator fun <T : STATE> invoke(
-			tag: T,
-			logLevel: Int = NO_LOG,
-			block: StateTemplate<T>
-		): KotlmataMutableState<T> = KotlmataStateImpl(tag, logLevel, block = block)
-		
-		fun <T : STATE> lazy(
-			tag: T,
-			logLevel: Int = NO_LOG,
-			block: StateTemplate<T>
-		) = lazy {
-			invoke(tag, logLevel, block)
-		}
-		
-		internal fun <T : STATE> create(
+		internal operator fun <T : STATE> invoke(
 			tag: T,
 			logLevel: Int,
 			prefix: String,
@@ -188,7 +157,6 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 	}
 	
 	operator fun invoke(block: Modifier.(state: T) -> Unit) = modify(block)
-	
 	infix fun modify(block: Modifier.(state: T) -> Unit)
 }
 

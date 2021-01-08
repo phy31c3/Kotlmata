@@ -166,6 +166,6 @@ typealias MachineErrorCallback = ErrorActionDSL.() -> Unit
 typealias DaemonCallback = PayloadActionDSL.() -> Unit
 typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 
-typealias StateTemplate<T> = KotlmataState.Init.(tag: T) -> Unit
+typealias StateTemplate<T> = KotlmataState.Init.(state: T) -> Unit
 typealias MachineTemplate = KotlmataMachine.Init.(machine: KotlmataMachine) -> KotlmataMachine.Init.End
 typealias DaemonTemplate = KotlmataDaemon.Init.(daemon: KotlmataDaemon) -> KotlmataMachine.Init.End

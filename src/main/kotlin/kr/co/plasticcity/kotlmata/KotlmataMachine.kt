@@ -854,7 +854,7 @@ private class KotlmataMachineImpl(
 		override fun <S : STATE> S.invoke(block: StateTemplate<S>)
 		{
 			this@ModifierImpl shouldNot expired
-			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab", block)
+			stateMap[this] = KotlmataMutableState(this, logLevel, "$prefix$tab", block)
 		}
 		
 		override fun <S : T, T : STATE> S.extends(template: StateTemplate<T>) = object : StateDefine.With<S>
@@ -864,7 +864,7 @@ private class KotlmataMachineImpl(
 			init
 			{
 				this@ModifierImpl shouldNot expired
-				state = KotlmataMutableState.create(this@extends, logLevel, "$prefix$tab", template)
+				state = KotlmataMutableState(this@extends, logLevel, "$prefix$tab", template)
 				stateMap[this@extends] = state
 			}
 			
@@ -878,22 +878,23 @@ private class KotlmataMachineImpl(
 		override fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 		{
 			this@ModifierImpl shouldNot expired
-			stateMap[this] = KotlmataMutableState.create(this, logLevel, "$prefix$tab") {
+			val state = KotlmataMutableState(this, logLevel, "$prefix$tab") {
 				entry function function
 			}
+			stateMap[this] = state
 			return object : KotlmataState.Entry.Catch<SIGNAL>
 			{
 				override fun intercept(intercept: EntryErrorFunction<SIGNAL>): KotlmataState.Entry.Finally<SIGNAL>
 				{
 					this@ModifierImpl shouldNot expired
-					stateMap[this@function]?.modify {
+					state {
 						entry function function intercept intercept
 					}
 					return object : KotlmataState.Entry.Finally<SIGNAL>
 					{
 						override fun finally(finally: EntryAction<SIGNAL>)
 						{
-							stateMap[this@function]?.modify {
+							state {
 								entry function function intercept intercept finally finally
 							}
 						}
@@ -902,7 +903,7 @@ private class KotlmataMachineImpl(
 				
 				override fun finally(finally: EntryAction<SIGNAL>)
 				{
-					stateMap[this@function]?.modify {
+					state {
 						entry function function finally finally
 					}
 				}
@@ -914,15 +915,16 @@ private class KotlmataMachineImpl(
 			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
-				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
+				val state = KotlmataMutableState(this@via, logLevel, "$prefix$tab") {
 					entry via signal function function
 				}
+				stateMap[this@via] = state
 				return object : KotlmataState.Entry.Catch<T>
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
 						this@ModifierImpl shouldNot expired
-						stateMap[this@via]?.modify {
+						state {
 							entry via signal function function intercept intercept
 						}
 						return object : KotlmataState.Entry.Finally<T>
@@ -930,7 +932,7 @@ private class KotlmataMachineImpl(
 							override fun finally(finally: EntryAction<T>)
 							{
 								this@ModifierImpl shouldNot expired
-								stateMap[this@via]?.modify {
+								state {
 									entry via signal function function intercept intercept finally finally
 								}
 							}
@@ -940,7 +942,7 @@ private class KotlmataMachineImpl(
 					override fun finally(finally: EntryAction<T>)
 					{
 						this@ModifierImpl shouldNot expired
-						stateMap[this@via]?.modify {
+						state {
 							entry via signal function function finally finally
 						}
 					}
@@ -953,15 +955,16 @@ private class KotlmataMachineImpl(
 			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
-				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
+				val state = KotlmataMutableState(this@via, logLevel, "$prefix$tab") {
 					entry via signal function function
 				}
+				stateMap[this@via] = state
 				return object : KotlmataState.Entry.Catch<T>
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
 						this@ModifierImpl shouldNot expired
-						stateMap[this@via]?.modify {
+						state {
 							entry via signal function function intercept intercept
 						}
 						return object : KotlmataState.Entry.Finally<T>
@@ -969,7 +972,7 @@ private class KotlmataMachineImpl(
 							override fun finally(finally: EntryAction<T>)
 							{
 								this@ModifierImpl shouldNot expired
-								stateMap[this@via]?.modify {
+								state {
 									entry via signal function function intercept intercept finally finally
 								}
 							}
@@ -979,7 +982,7 @@ private class KotlmataMachineImpl(
 					override fun finally(finally: EntryAction<T>)
 					{
 						this@ModifierImpl shouldNot expired
-						stateMap[this@via]?.modify {
+						state {
 							entry via signal function function finally finally
 						}
 					}
@@ -992,15 +995,16 @@ private class KotlmataMachineImpl(
 			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
-				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
+				val state = KotlmataMutableState(this@via, logLevel, "$prefix$tab") {
 					entry via signals function function
 				}
+				stateMap[this@via] = state
 				return object : KotlmataState.Entry.Catch<T>
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
 						this@ModifierImpl shouldNot expired
-						stateMap[this@via]?.modify {
+						state {
 							entry via signals function function intercept intercept
 						}
 						return object : KotlmataState.Entry.Finally<T>
@@ -1008,7 +1012,7 @@ private class KotlmataMachineImpl(
 							override fun finally(finally: EntryAction<T>)
 							{
 								this@ModifierImpl shouldNot expired
-								stateMap[this@via]?.modify {
+								state {
 									entry via signals function function intercept intercept finally finally
 								}
 							}
@@ -1018,7 +1022,7 @@ private class KotlmataMachineImpl(
 					override fun finally(finally: EntryAction<T>)
 					{
 						this@ModifierImpl shouldNot expired
-						stateMap[this@via]?.modify {
+						state {
 							entry via signals function function finally finally
 						}
 					}
@@ -1031,15 +1035,16 @@ private class KotlmataMachineImpl(
 			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
 				this@ModifierImpl shouldNot expired
-				stateMap[this@via] = KotlmataMutableState.create(this@via, logLevel, "$prefix$tab") {
+				val state = KotlmataMutableState(this@via, logLevel, "$prefix$tab") {
 					entry via predicate function function
 				}
+				stateMap[this@via] = state
 				return object : KotlmataState.Entry.Catch<T>
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
 						this@ModifierImpl shouldNot expired
-						stateMap[this@via]?.modify {
+						state {
 							entry via predicate function function intercept intercept
 						}
 						return object : KotlmataState.Entry.Finally<T>
@@ -1047,7 +1052,7 @@ private class KotlmataMachineImpl(
 							override fun finally(finally: EntryAction<T>)
 							{
 								this@ModifierImpl shouldNot expired
-								stateMap[this@via]?.modify {
+								state {
 									entry via predicate function function intercept intercept finally finally
 								}
 							}
@@ -1057,7 +1062,7 @@ private class KotlmataMachineImpl(
 					override fun finally(finally: EntryAction<T>)
 					{
 						this@ModifierImpl shouldNot expired
-						stateMap[this@via]?.modify {
+						state {
 							entry via predicate function function finally finally
 						}
 					}

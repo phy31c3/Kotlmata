@@ -20,7 +20,7 @@ class Tests
 	fun stateTest()
 	{
 		var expired: KotlmataState.Init? = null
-		val state by KotlmataMutableState.lazy("s1") {
+		val state = KotlmataMutableState("s1", 3, "") {
 			expired = this
 			val lambda1: EntryAction<SIGNAL> = {
 				println("기본 진입함수")
