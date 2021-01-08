@@ -7,7 +7,21 @@ object method [object {}]
 
 remove clear delete drop erase
 
-[State]————————————————————————————————————————————————————————————————————————————————
+[KotlmataConfig]————————————————————————————————————————————————————————————————————————————————
+KotlmataConfig {
+	print debug { log ->
+		// 로그 출력
+	}
+	print warn { log ->
+		// 로그 출력
+	}
+	print error { log ->
+		// 로그 출력
+	}
+}
+
+
+[KotlmataState]————————————————————————————————————————————————————————————————————————————————
 KotlmataState("name") { state ->
 	entry action { signal ->
 		[action]
@@ -53,7 +67,7 @@ immutableState.input("signal")
 immutableState.input("signal", String::class)
 immutableState.exit()
 
-[Machine]————————————————————————————————————————————————————————————————————————————————
+[KotlmataMachine]————————————————————————————————————————————————————————————————————————————————
 KotlmataMachine("name") { machine ->
 	on error [action]
 	on transition [action]
@@ -163,7 +177,7 @@ mutableMachine { machine ->
 mutableMachine.input("signal")
 mutableMachine.input(object, Any::class) // <T : Any> input(signal: T, type: KClass<in T>)
 
-[Daemon]————————————————————————————————————————————————————————————————————————————————
+[KotlmataDaemon]————————————————————————————————————————————————————————————————————————————————
 KotlmataDaemon("name") { daemon ->
 	on create [action] // 데몬 생성 시
 	on start [action] // 최초 시작 시
@@ -196,109 +210,3 @@ mutableDaemon.input("signal")
 mutableDaemon.input("signal")
 mutableDaemon.input(object, Any::class)
 mutableDaemon.input(object, Any::class)
-
-[Kotlmata]————————————————————————————————————————————————————————————————————————————————
-Kotlmata.config {
-	print debug { log ->
-		// 로그 출력
-	}
-	print error { log ->
-		// 로그 출력
-	}
-	print error { log ->
-		// 로그 출력
-	}
-}
-
-Kotlmata.start(logLevel = 2)
-Kotlmata.stop()
-
-Kotlmata fork "daemon" by { // Daemon init 블럭과 동일 (존재하면 무시)
-	on start [action]
-	on terminate [action]
-
-	"state1" {
-		entry action [action]
-		entry via "signal" action [action]
-		input signal "signal" action [action]
-		exit action [action]
-	}
-
-	"state0" x "signal" %= "state1"
-
-	start at "state0"
-}
-
-Kotlmata modify "daemon" by { // Daemon modify 블럭과 동일 (존재하지 않으면 무시)
-	update state "state1" by {
-		input signal "signal" action [action]
-	} or insert state "state1" by {
-		entry action [action]
-		entry via "signal" action [action]
-		input signal "signal" action [action]
-		exit action [action]
-	}
-}
-
-Kotlmata run "daemon"
-Kotlmata pause "daemon"
-Kotlmata stop "daemon"
-Kotlmata terminate "daemon"
-
-Kotlmata input "signal" to "daemon"
-Kotlmata input "signal" `as` KClass<String> to "daemon"
-
-Kotlmata { // Kotlmata post 와 동일
-	has daemon "daemon" then {
-		modify daemon "daemon" by {
-			update state "state1" by {
-				input signal "signal" action [action]
-			} or insert state "state1" by {
-				entry action [action]
-				entry via "signal" action [action]
-				input signal "signal" action [action]
-				exit action [action]
-			}
-		}
-	} or {
-		fork daemon "daemon" by {
-			on start [action]
-			on terminate [action]
-
-			"state1" {
-				entry action [action]
-				entry via "signal" action [action]
-				input signal "signal" action [action]
-				exit action [action]
-			}
-
-			"state0" x "signal" %= "state1"
-
-			start at "state0"
-		}
-	} finally {
-		fork daemon "daemon" by {
-			on start [action]
-			on terminate [action]
-
-			"state1" {
-				entry action [action]
-				entry via "signal" action [action]
-				input signal "signal" action [action]
-				exit action [action]
-			}
-
-			"state0" x "signal" %= "state1"
-
-			start at "state0"
-		}
-	}
-
-	run daemon "daemon"
-	pause daemon "daemon"
-
-	input signal "signal" to "daemon"
-	input signal "signal" priority 1 to "daemon"
-	input signal "signal" `as` String::class to "daemon"
-	input signal "signal" `as` String::class with "payload" priority 2 to "daemon"
-}

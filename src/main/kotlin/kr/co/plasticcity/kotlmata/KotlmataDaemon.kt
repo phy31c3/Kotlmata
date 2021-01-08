@@ -12,68 +12,68 @@ import kotlin.concurrent.thread
 import kotlin.reflect.KClass
 import kotlin.system.measureTimeMillis
 
-interface KotlmataDaemon<T : DAEMON>
+interface KotlmataDaemon
 {
 	companion object
 	{
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
-		operator fun <T : DAEMON> invoke(
-			tag: T,
+		operator fun invoke(
+			name: String,
 			logLevel: Int = NO_LOG,
-			threadName: String? = null,
+			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false,
-			block: DaemonTemplate<T>
-		): KotlmataDaemon<T> = KotlmataDaemonImpl(tag, logLevel, threadName ?: "thread-KotlmataDaemon[$tag]", isDaemon, block)
+			block: DaemonTemplate
+		): KotlmataDaemon = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
 		
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
-		operator fun <T : DAEMON> invoke(
-			tag: T,
+		operator fun invoke(
+			name: String,
 			logLevel: Int = NO_LOG,
-			threadName: String? = null,
+			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false
-		) = object : InvokeBy<T>
+		) = object : InvokeBy
 		{
-			override fun by(block: DaemonTemplate<T>) = invoke(tag, logLevel, threadName, isDaemon, block)
+			override fun by(block: DaemonTemplate) = invoke(name, logLevel, threadName, isDaemon, block)
 		}
 		
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
-		fun <T : DAEMON> lazy(
-			tag: T,
+		fun lazy(
+			name: String,
 			logLevel: Int = NO_LOG,
-			threadName: String? = null,
+			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false,
-			block: DaemonTemplate<T>
+			block: DaemonTemplate
 		) = lazy {
-			invoke(tag, logLevel, threadName, isDaemon, block)
+			invoke(name, logLevel, threadName, isDaemon, block)
 		}
 		
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
-		fun <T : DAEMON> lazy(
-			tag: T,
+		fun lazy(
+			name: String,
 			logLevel: Int = NO_LOG,
-			threadName: String? = null,
+			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false
-		) = object : LazyBy<T>
+		) = object : LazyBy
 		{
-			override fun by(block: DaemonTemplate<T>) = lazy { invoke(tag, logLevel, threadName, isDaemon, block) }
+			override fun by(block: DaemonTemplate) = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
 		}
 		
-		interface InvokeBy<T : DAEMON>
+		interface InvokeBy
 		{
-			infix fun by(block: DaemonTemplate<T>): KotlmataDaemon<T>
+			infix fun by(block: DaemonTemplate): KotlmataDaemon
 		}
 		
-		interface LazyBy<T : DAEMON>
+		interface LazyBy
 		{
-			infix fun by(block: DaemonTemplate<T>): Lazy<KotlmataDaemon<T>>
+			infix fun by(block: DaemonTemplate): Lazy<KotlmataDaemon>
 		}
 	}
 	
@@ -105,7 +105,7 @@ interface KotlmataDaemon<T : DAEMON>
 		}
 	}
 	
-	val tag: T
+	val name: String
 	var isTerminated: Boolean
 	
 	fun run(payload: Any? = null)
@@ -127,87 +127,86 @@ interface KotlmataDaemon<T : DAEMON>
 	fun input(signal: KClass<out Any>, payload: Any? = null, priority: Int = 0)
 }
 
-interface KotlmataMutableDaemon<T : DAEMON> : KotlmataDaemon<T>
+interface KotlmataMutableDaemon : KotlmataDaemon
 {
 	companion object
 	{
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
-		operator fun <T : DAEMON> invoke(
-			tag: T,
+		operator fun invoke(
+			name: String,
 			logLevel: Int = NO_LOG,
-			threadName: String? = null,
+			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false,
-			block: DaemonTemplate<T>
-		): KotlmataMutableDaemon<T> = KotlmataDaemonImpl(tag, logLevel, threadName ?: "thread-KotlmataDaemon[$tag]", isDaemon, block)
+			block: DaemonTemplate
+		): KotlmataMutableDaemon = KotlmataDaemonImpl(name, logLevel, threadName, isDaemon, block)
 		
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
-		operator fun <T : DAEMON> invoke(
-			tag: T,
+		operator fun invoke(
+			name: String,
 			logLevel: Int = NO_LOG,
-			threadName: String? = null,
+			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false
-		) = object : InvokeBy<T>
+		) = object : InvokeBy
 		{
-			override fun by(block: DaemonTemplate<T>) = invoke(tag, logLevel, threadName, isDaemon, block)
+			override fun by(block: DaemonTemplate) = invoke(name, logLevel, threadName, isDaemon, block)
 		}
 		
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
 		@Suppress("unused")
-		fun <T : DAEMON> lazy(
-			tag: T,
+		fun lazy(
+			name: String,
 			logLevel: Int = NO_LOG,
-			threadName: String? = null,
+			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false,
-			block: DaemonTemplate<T>
+			block: DaemonTemplate
 		) = lazy {
-			invoke(tag, logLevel, threadName, isDaemon, block)
+			invoke(name, logLevel, threadName, isDaemon, block)
 		}
 		
 		/**
 		 * @param logLevel **0**: no log, **1**: simple, **2**: normal, **3**: detail (default value is **0**)
 		 */
 		@Suppress("unused")
-		fun <T : DAEMON> lazy(
-			tag: T,
+		fun lazy(
+			name: String,
 			logLevel: Int = NO_LOG,
-			threadName: String? = null,
+			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false
-		) = object : LazyBy<T>
+		) = object : LazyBy
 		{
-			override fun by(block: DaemonTemplate<T>) = lazy { invoke(tag, logLevel, threadName, isDaemon, block) }
+			override fun by(block: DaemonTemplate) = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
 		}
 		
-		interface InvokeBy<T : DAEMON>
+		interface InvokeBy
 		{
-			infix fun by(block: DaemonTemplate<T>): KotlmataMutableDaemon<T>
+			infix fun by(block: DaemonTemplate): KotlmataMutableDaemon
 		}
 		
-		interface LazyBy<T : DAEMON>
+		interface LazyBy
 		{
-			infix fun by(block: DaemonTemplate<T>): Lazy<KotlmataMutableDaemon<T>>
+			infix fun by(block: DaemonTemplate): Lazy<KotlmataMutableDaemon>
 		}
 	}
 	
-	operator fun invoke(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit) = modify(block)
-	
-	infix fun modify(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
+	operator fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit) = modify(block)
+	infix fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
 }
 
 private class LifecycleDef(val callback: DaemonCallback, val fallback: DaemonFallback? = null, val finally: DaemonCallback? = null)
 
-private class KotlmataDaemonImpl<T : DAEMON>(
-	override val tag: T,
-	val logLevel: Int = NO_LOG,
-	threadName: String = "thread-KotlmataDaemon[$tag]",
+private class KotlmataDaemonImpl(
+	override val name: String,
+	val logLevel: Int,
+	threadName: String,
 	isDaemon: Boolean = false,
-	block: DaemonTemplate<T>
-) : KotlmataMutableDaemon<T>
+	block: DaemonTemplate
+) : KotlmataMutableDaemon
 {
 	private var onCreate: LifecycleDef? = null
 	private var onStart: LifecycleDef? = null
@@ -251,8 +250,8 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	
 	init
 	{
-		val core = KotlmataMachine("$tag@core") {
-			lateinit var machine: KotlmataMutableMachine<T>
+		val core = KotlmataMachine("$name@core") {
+			lateinit var machine: KotlmataMutableMachine
 			
 			val logLevel = logLevel
 			val suffix = if (logLevel > SIMPLE) tab else ""
@@ -262,12 +261,12 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			
 			val ignore: (STATE, Request) -> Unit = { state, request ->
-				logLevel.normal(tag, state, request) { DAEMON_IGNORE_REQUEST }
+				logLevel.normal(name, state, request) { DAEMON_IGNORE_REQUEST }
 			}
 			
 			val postSync: (FunctionDSL.Sync) -> Unit = {
 				val syncR = Sync(it.signal, it.type, it.payload)
-				logLevel.detail(tag, syncR) { DAEMON_PUT_REQUEST }
+				logLevel.detail(name, syncR) { DAEMON_PUT_REQUEST }
 				queue!!.offer(syncR)
 			}
 			
@@ -276,20 +275,20 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			"Created" { state ->
 				val onStart: InputAction<Control> = { controlR ->
-					logLevel.simple(tag, suffix) { DAEMON_START }
+					logLevel.simple(name, suffix) { DAEMON_START }
 					onStart?.call(controlR.payload)
 					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", block = postSync)
 				}
 				
 				entry action {
-					logLevel.normal(tag) { DAEMON_START_CREATE }
-					machine = KotlmataMutableMachine.create(tag, logLevel, "Daemon[$tag]:$suffix") {
+					logLevel.normal(name) { DAEMON_START_CREATE }
+					machine = KotlmataMutableMachine.create(name, logLevel, "Daemon[$name]:$suffix") {
 						CREATED { /* for creating state */ }
 						val init = InitImpl(block, this)
 						CREATED x any %= init.startAt
 						start at CREATED
 					}
-					logLevel.normal(tag) { DAEMON_END_CREATE }
+					logLevel.normal(name) { DAEMON_END_CREATE }
 				} finally {
 					onCreate?.call()
 				}
@@ -307,7 +306,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					{
 						"Paused", "Stopped" ->
 						{
-							logLevel.simple(tag, suffix) { DAEMON_RESUME }
+							logLevel.simple(name, suffix) { DAEMON_RESUME }
 							onResume?.call(runR.payload)
 						}
 					}
@@ -330,12 +329,12 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				var sync: Sync? = null
 				val stash: MutableList<Request> = ArrayList()
 				val keep: InputAction<Request> = { request ->
-					logLevel.normal(tag, request) { DAEMON_KEEP_REQUEST }
+					logLevel.normal(name, request) { DAEMON_KEEP_REQUEST }
 					stash += request
 				}
 				
 				entry via Pause::class action { pauseR ->
-					logLevel.simple(tag, suffix) { DAEMON_PAUSE }
+					logLevel.simple(name, suffix) { DAEMON_PAUSE }
 					onPause?.call(pauseR.payload)
 				}
 				input signal Run::class action {
@@ -348,7 +347,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				input signal Modify::class action modifyMachine
 				input signal Sync::class action { syncR ->
-					logLevel.normal(tag, syncR) { DAEMON_STORE_REQUEST }
+					logLevel.normal(name, syncR) { DAEMON_STORE_REQUEST }
 					sync = syncR
 				}
 				input signal Input::class action keep
@@ -365,7 +364,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 						(queueR.isSignal && queueR.olderThan(currentR)).also {
 							if (it)
 							{
-								logLevel.detail(tag, queueR) { DAEMON_REMOVE_REQUEST }
+								logLevel.detail(name, queueR) { DAEMON_REMOVE_REQUEST }
 							}
 						}
 					}
@@ -373,7 +372,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				}
 				
 				entry via Stop::class action { stopR ->
-					logLevel.simple(tag, suffix) { DAEMON_STOP }
+					logLevel.simple(name, suffix) { DAEMON_STOP }
 					onStop?.call(stopR.payload)
 				}
 				input signal Run::class action { runR ->
@@ -383,7 +382,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 				input signal Stop::class action { ignore(state, it) }
 				input signal Modify::class action modifyMachine
 				input signal Sync::class action { syncR ->
-					logLevel.normal(tag, syncR) { DAEMON_STORE_REQUEST }
+					logLevel.normal(name, syncR) { DAEMON_STORE_REQUEST }
 					sync = syncR
 				}
 				input signal Input::class action { ignore(state, it) }
@@ -394,7 +393,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			"Terminated" {
 				entry via Terminate::class action { terminateR ->
-					logLevel.simple(tag, suffix) { DAEMON_TERMINATE }
+					logLevel.simple(name, suffix) { DAEMON_TERMINATE }
 					when (previousState)
 					{
 						"Running", "Paused", "Stopped" ->
@@ -412,7 +411,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 			}
 			"Destroyed" {
 				entry action {
-					logLevel.normal(tag, suffix) { DAEMON_DESTROY }
+					logLevel.normal(name, suffix) { DAEMON_DESTROY }
 					onDestroy?.call()
 				} finally {
 					onCreate = null
@@ -424,7 +423,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 					onDestroy = null
 					onError = null
 					queue = null
-					logLevel.simple(tag, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
+					logLevel.simple(name, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
 				}
 			}
 			
@@ -453,20 +452,20 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		thread(name = threadName, isDaemon = isDaemon, start = true) {
 			val queue = queue!!
 			val logLevel = logLevel
-			val tag = tag
+			val name = name
 			
 			try
 			{
-				logLevel.simple(tag, threadName, isDaemon) { DAEMON_START_THREAD }
+				logLevel.simple(name, threadName, isDaemon) { DAEMON_START_THREAD }
 				core.input("create")
 				while (true)
 				{
 					queue.take().also { request ->
-						logLevel.normal(tag, queue.size, request) { DAEMON_START_REQUEST }
+						logLevel.normal(name, queue.size, request) { DAEMON_START_REQUEST }
 						measureTimeMillis {
 							core.input(request)
 						}.also { time ->
-							logLevel.normal(tag, time, request) { DAEMON_END_REQUEST }
+							logLevel.normal(name, time, request) { DAEMON_END_REQUEST }
 						}
 					}
 				}
@@ -498,35 +497,35 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	override fun run(payload: Any?)
 	{
 		val runR = Run(payload)
-		logLevel.detail(tag, runR) { DAEMON_PUT_REQUEST }
+		logLevel.detail(name, runR) { DAEMON_PUT_REQUEST }
 		queue?.offer(runR)
 	}
 	
 	override fun pause(payload: Any?)
 	{
 		val pauseR = Pause(payload)
-		logLevel.detail(tag, pauseR) { DAEMON_PUT_REQUEST }
+		logLevel.detail(name, pauseR) { DAEMON_PUT_REQUEST }
 		queue?.offer(pauseR)
 	}
 	
 	override fun stop(payload: Any?)
 	{
 		val stopR = Stop(payload)
-		logLevel.detail(tag, stopR) { DAEMON_PUT_REQUEST }
+		logLevel.detail(name, stopR) { DAEMON_PUT_REQUEST }
 		queue?.offer(stopR)
 	}
 	
 	override fun terminate(payload: Any?)
 	{
 		val terminateR = Terminate(payload)
-		logLevel.detail(tag, terminateR) { DAEMON_PUT_REQUEST }
+		logLevel.detail(name, terminateR) { DAEMON_PUT_REQUEST }
 		queue?.offer(terminateR)
 	}
 	
 	override fun input(signal: SIGNAL, payload: Any?, priority: Int)
 	{
 		val inputR = Input(signal, payload, priority)
-		logLevel.detail(tag, inputR) { DAEMON_PUT_REQUEST }
+		logLevel.detail(name, inputR) { DAEMON_PUT_REQUEST }
 		queue?.offer(inputR)
 	}
 	
@@ -534,7 +533,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, priority: Int)
 	{
 		val typedR = TypedInput(signal, type as KClass<SIGNAL>, payload, priority)
-		logLevel.detail(tag, typedR) { DAEMON_PUT_REQUEST }
+		logLevel.detail(name, typedR) { DAEMON_PUT_REQUEST }
 		queue?.offer(typedR)
 	}
 	
@@ -545,22 +544,22 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun modify(block: KotlmataMutableMachine.Modifier.(daemon: T) -> Unit)
+	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
 	{
-		val modifyR = Modify(block as KotlmataMutableMachine.Modifier.(DAEMON) -> Unit)
-		logLevel.detail(tag, modifyR) { DAEMON_PUT_REQUEST }
+		val modifyR = Modify(block)
+		logLevel.detail(name, modifyR) { DAEMON_PUT_REQUEST }
 		queue?.offer(modifyR)
 	}
 	
 	override fun toString(): String
 	{
-		return "KotlmataDaemon[$tag]{${hashCode().toString(16)}}"
+		return "KotlmataDaemon[$name]{${hashCode().toString(16)}}"
 	}
 	
 	private inner class InitImpl(
-		block: DaemonTemplate<T>,
+		block: DaemonTemplate,
 		init: KotlmataMachine.Init
-	) : Init, KotlmataMachine.Init by init, Expirable({ Log.e("Daemon[$tag]:") { EXPIRED_MODIFIER } })
+	) : Init, KotlmataMachine.Init by init, Expirable({ Log.e("Daemon[$name]:") { EXPIRED_MODIFIER } })
 	{
 		lateinit var startAt: STATE
 		
@@ -660,7 +659,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		
 		init
 		{
-			block(tag, this@KotlmataDaemonImpl)
+			block(this@KotlmataDaemonImpl)
 			expire()
 		}
 	}
@@ -675,7 +674,7 @@ private class KotlmataDaemonImpl<T : DAEMON>(
 		class Stop(payload: Any?) : Control(payload)
 		class Terminate(payload: Any?, val shouldInterrupt: Boolean = true) : Control(payload)
 		
-		class Modify(val block: KotlmataMutableMachine.Modifier.(DAEMON) -> Unit) : Request(MODIFY)
+		class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Request(MODIFY)
 		
 		class Sync(val signal: SIGNAL, val type: KClass<SIGNAL>?, val payload: Any?) : Request(SYNC, "signal: $signal, type: ${type?.let { "${it.simpleName}::class, payload: $payload" } ?: "null"}")
 		

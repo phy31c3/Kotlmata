@@ -13,16 +13,6 @@ typealias STATE = Any
 typealias SIGNAL = Any
 
 /**
- * Supertype of KotlmataMachine tag
- */
-typealias MACHINE = Any
-
-/**
- * Supertype of KotlmataDaemon tag
- */
-typealias DAEMON = Any
-
-/**
  * In Machine:
  * ```
  * "state1" x any %= "state2"
@@ -176,7 +166,6 @@ typealias MachineErrorCallback = ErrorActionDSL.() -> Unit
 typealias DaemonCallback = PayloadActionDSL.() -> Unit
 typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 
-typealias StateTemplate<T> = KotlmataState.Init.(tag: T) -> Unit
-typealias MachineTemplate<T> = KotlmataMachine.Init.(tag: T) -> KotlmataMachine.Init.End
-typealias DaemonTemplate<T> = KotlmataDaemon.Init.(tag: T, daemon: KotlmataDaemon<T>) -> KotlmataMachine.Init.End
-typealias ForkTemplate<T> = KotlmataDaemon.Init.(tag: T) -> KotlmataMachine.Init.End
+typealias StateTemplate<T> = KotlmataState.Init.(state: T) -> Unit
+typealias MachineTemplate = KotlmataMachine.Init.(machine: KotlmataMachine) -> KotlmataMachine.Init.End
+typealias DaemonTemplate = KotlmataDaemon.Init.(daemon: KotlmataDaemon) -> KotlmataMachine.Init.End
