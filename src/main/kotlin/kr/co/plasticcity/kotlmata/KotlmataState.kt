@@ -126,7 +126,7 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 		): KotlmataMutableState<T> = KotlmataStateImpl(tag, logLevel, prefix, block)
 	}
 	
-	interface Modify : Init
+	interface Update : Init
 	{
 		val delete: Delete
 	}
@@ -155,8 +155,8 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 		}
 	}
 	
-	operator fun invoke(block: Modify.(state: T) -> Unit) = modify(block)
-	infix fun modify(block: Modify.(state: T) -> Unit)
+	operator fun invoke(block: Update.(state: T) -> Unit) = update(block)
+	infix fun update(block: Update.(state: T) -> Unit)
 }
 
 private class EntryDef(val function: EntryFunction<SIGNAL>, val intercept: EntryErrorFunction<SIGNAL>? = null, val finally: EntryAction<SIGNAL>? = null)
@@ -184,7 +184,7 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	init
 	{
-		ModifyImpl(block)
+		UpdateImpl(block)
 		if (tag !== `Initial state for KotlmataDaemon`)
 		{
 			logLevel.normal(prefix, tag) { STATE_CREATED }
@@ -398,9 +398,9 @@ private class KotlmataStateImpl<T : STATE>(
 		exitDef?.run(signal, to)
 	}
 	
-	override fun modify(block: Modify.(T) -> Unit)
+	override fun update(block: Update.(T) -> Unit)
 	{
-		ModifyImpl(block)
+		UpdateImpl(block)
 		logLevel.normal(prefix, tag) { STATE_UPDATED }
 	}
 	
@@ -409,9 +409,9 @@ private class KotlmataStateImpl<T : STATE>(
 		return "KotlmataState[$tag]{${hashCode().toString(16)}}"
 	}
 	
-	private inner class ModifyImpl(
-		block: Modify.(T) -> Unit
-	) : Modify, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
+	private inner class UpdateImpl(
+		block: Update.(T) -> Unit
+	) : Update, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
 	{
 		private val entryMap: MutableMap<SIGNAL, EntryDef>
 			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, EntryDef>().also {
@@ -451,19 +451,19 @@ private class KotlmataStateImpl<T : STATE>(
 		{
 			override fun function(function: EntryFunction<SIGNAL>): Entry.Catch<SIGNAL>
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				this@KotlmataStateImpl.entry = EntryDef(function)
 				return object : Entry.Catch<SIGNAL>
 				{
 					override fun intercept(intercept: EntryErrorFunction<SIGNAL>): Entry.Finally<SIGNAL>
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						this@KotlmataStateImpl.entry = EntryDef(function, intercept)
 						return object : Entry.Finally<SIGNAL>
 						{
 							override fun finally(finally: EntryAction<SIGNAL>)
 							{
-								this@ModifyImpl shouldNot expired
+								this@UpdateImpl shouldNot expired
 								this@KotlmataStateImpl.entry = EntryDef(function, intercept, finally)
 							}
 						}
@@ -471,7 +471,7 @@ private class KotlmataStateImpl<T : STATE>(
 					
 					override fun finally(finally: EntryAction<SIGNAL>)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						this@KotlmataStateImpl.entry = EntryDef(function, null, finally)
 					}
 				}
@@ -481,19 +481,19 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun function(function: EntryFunction<T>): Entry.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					entryMap[signal] = EntryDef(function as EntryFunction<SIGNAL>)
 					return object : Entry.Catch<T>
 					{
 						override fun intercept(intercept: EntryErrorFunction<T>): Entry.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							entryMap[signal] = EntryDef(function, intercept as EntryErrorFunction<SIGNAL>)
 							return object : Entry.Finally<T>
 							{
 								override fun finally(finally: EntryAction<T>)
 								{
-									this@ModifyImpl shouldNot expired
+									this@UpdateImpl shouldNot expired
 									entryMap[signal] = EntryDef(function, intercept, finally as EntryAction<SIGNAL>)
 								}
 							}
@@ -501,7 +501,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: EntryAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							entryMap[signal] = EntryDef(function, null, finally as EntryAction<SIGNAL>)
 						}
 					}
@@ -512,19 +512,19 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun function(function: EntryFunction<T>): Entry.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					entryMap[signal] = EntryDef(function as EntryFunction<SIGNAL>)
 					return object : Entry.Catch<T>
 					{
 						override fun intercept(intercept: EntryErrorFunction<T>): Entry.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							entryMap[signal] = EntryDef(function, intercept as EntryErrorFunction<SIGNAL>)
 							return object : Entry.Finally<T>
 							{
 								override fun finally(finally: EntryAction<T>)
 								{
-									this@ModifyImpl shouldNot expired
+									this@UpdateImpl shouldNot expired
 									entryMap[signal] = EntryDef(function, intercept, finally as EntryAction<SIGNAL>)
 								}
 							}
@@ -532,7 +532,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: EntryAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							entryMap[signal] = EntryDef(function, null, finally as EntryAction<SIGNAL>)
 						}
 					}
@@ -543,7 +543,7 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun function(function: EntryFunction<T>): Entry.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					function as EntryFunction<SIGNAL>
 					signals.forEach {
 						entryMap[it] = EntryDef(function)
@@ -552,7 +552,7 @@ private class KotlmataStateImpl<T : STATE>(
 					{
 						override fun intercept(intercept: EntryErrorFunction<T>): Entry.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							intercept as EntryErrorFunction<SIGNAL>
 							signals.forEach {
 								entryMap[it] = EntryDef(function, intercept)
@@ -570,7 +570,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: EntryAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							signals.forEach {
 								entryMap[it] = EntryDef(function, null, finally as EntryAction<SIGNAL>)
 							}
@@ -583,14 +583,14 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun function(function: EntryFunction<T>): Entry.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					entryPredicates.store(predicate)
 					entryMap[predicate] = EntryDef(function as EntryFunction<SIGNAL>)
 					return object : Entry.Catch<T>
 					{
 						override fun intercept(intercept: EntryErrorFunction<T>): Entry.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							entryMap[predicate] = EntryDef(function, intercept as EntryErrorFunction<SIGNAL>)
 							return object : Entry.Finally<T>
 							{
@@ -603,7 +603,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: EntryAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							entryMap[predicate] = EntryDef(function, null, finally as EntryAction<SIGNAL>)
 						}
 					}
@@ -619,19 +619,19 @@ private class KotlmataStateImpl<T : STATE>(
 		{
 			override fun function(function: InputFunction<SIGNAL>): Input.Catch<SIGNAL>
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				this@KotlmataStateImpl.input = InputDef(function)
 				return object : Input.Catch<SIGNAL>
 				{
 					override fun intercept(intercept: InputErrorFunction<SIGNAL>): Input.Finally<SIGNAL>
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						this@KotlmataStateImpl.input = InputDef(function, intercept)
 						return object : Input.Finally<SIGNAL>
 						{
 							override fun finally(finally: InputAction<SIGNAL>)
 							{
-								this@ModifyImpl shouldNot expired
+								this@UpdateImpl shouldNot expired
 								this@KotlmataStateImpl.input = InputDef(function, intercept, finally)
 							}
 						}
@@ -639,7 +639,7 @@ private class KotlmataStateImpl<T : STATE>(
 					
 					override fun finally(finally: InputAction<SIGNAL>)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						this@KotlmataStateImpl.input = InputDef(function, null, finally)
 					}
 				}
@@ -649,19 +649,19 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun function(function: InputFunction<T>): Input.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					inputMap[signal] = InputDef(function as InputFunction<SIGNAL>)
 					return object : Input.Catch<T>
 					{
 						override fun intercept(intercept: InputErrorFunction<T>): Input.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							inputMap[signal] = InputDef(function, intercept as InputErrorFunction<SIGNAL>)
 							return object : Input.Finally<T>
 							{
 								override fun finally(finally: InputAction<T>)
 								{
-									this@ModifyImpl shouldNot expired
+									this@UpdateImpl shouldNot expired
 									inputMap[signal] = InputDef(function, intercept, finally as InputAction<SIGNAL>)
 								}
 							}
@@ -669,7 +669,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: InputAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							inputMap[signal] = InputDef(function, null, finally as InputAction<SIGNAL>)
 						}
 					}
@@ -680,19 +680,19 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun function(function: InputFunction<T>): Input.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					inputMap[signal] = InputDef(function as InputFunction<SIGNAL>)
 					return object : Input.Catch<T>
 					{
 						override fun intercept(intercept: InputErrorFunction<T>): Input.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							inputMap[signal] = InputDef(function, intercept as InputErrorFunction<SIGNAL>)
 							return object : Input.Finally<T>
 							{
 								override fun finally(finally: InputAction<T>)
 								{
-									this@ModifyImpl shouldNot expired
+									this@UpdateImpl shouldNot expired
 									inputMap[signal] = InputDef(function, intercept, finally as InputAction<SIGNAL>)
 								}
 							}
@@ -700,7 +700,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: InputAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							inputMap[signal] = InputDef(function, null, finally as InputAction<SIGNAL>)
 						}
 					}
@@ -711,7 +711,7 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun function(function: InputFunction<T>): Input.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					function as InputFunction<SIGNAL>
 					signals.forEach {
 						inputMap[it] = InputDef(function)
@@ -720,7 +720,7 @@ private class KotlmataStateImpl<T : STATE>(
 					{
 						override fun intercept(intercept: InputErrorFunction<T>): Input.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							intercept as InputErrorFunction<SIGNAL>
 							signals.forEach {
 								inputMap[it] = InputDef(function, intercept)
@@ -729,7 +729,7 @@ private class KotlmataStateImpl<T : STATE>(
 							{
 								override fun finally(finally: InputAction<T>)
 								{
-									this@ModifyImpl shouldNot expired
+									this@UpdateImpl shouldNot expired
 									signals.forEach {
 										inputMap[it] = InputDef(function, intercept, finally as InputAction<SIGNAL>)
 									}
@@ -739,7 +739,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: InputAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							signals.forEach {
 								inputMap[it] = InputDef(function, null, finally as InputAction<SIGNAL>)
 							}
@@ -752,20 +752,20 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun function(function: InputFunction<T>): Input.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					inputPredicates.store(predicate)
 					inputMap[predicate] = InputDef(function as InputFunction<SIGNAL>)
 					return object : Input.Catch<T>
 					{
 						override fun intercept(intercept: InputErrorFunction<T>): Input.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							inputMap[predicate] = InputDef(function, intercept as InputErrorFunction<SIGNAL>)
 							return object : Input.Finally<T>
 							{
 								override fun finally(finally: InputAction<T>)
 								{
-									this@ModifyImpl shouldNot expired
+									this@UpdateImpl shouldNot expired
 									inputMap[predicate] = InputDef(function, intercept, finally as InputAction<SIGNAL>)
 								}
 							}
@@ -773,7 +773,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: InputAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							inputMap[predicate] = InputDef(function, null, finally as InputAction<SIGNAL>)
 						}
 					}
@@ -789,19 +789,19 @@ private class KotlmataStateImpl<T : STATE>(
 		{
 			override fun action(action: ExitAction<SIGNAL>): Exit.Catch<SIGNAL>
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				this@KotlmataStateImpl.exit = ExitDef(action)
 				return object : Exit.Catch<SIGNAL>
 				{
 					override fun catch(catch: ExitErrorAction<SIGNAL>): Exit.Finally<SIGNAL>
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						this@KotlmataStateImpl.exit = ExitDef(action, catch)
 						return object : Exit.Finally<SIGNAL>
 						{
 							override fun finally(finally: ExitAction<SIGNAL>)
 							{
-								this@ModifyImpl shouldNot expired
+								this@UpdateImpl shouldNot expired
 								this@KotlmataStateImpl.exit = ExitDef(action, catch, finally)
 							}
 						}
@@ -809,7 +809,7 @@ private class KotlmataStateImpl<T : STATE>(
 					
 					override fun finally(finally: ExitAction<SIGNAL>)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						this@KotlmataStateImpl.exit = ExitDef(action, null, finally)
 					}
 				}
@@ -819,19 +819,19 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun action(action: ExitAction<T>): Exit.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					exitMap[signal] = ExitDef(action as ExitAction<SIGNAL>)
 					return object : Exit.Catch<T>
 					{
 						override fun catch(catch: ExitErrorAction<T>): Exit.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							exitMap[signal] = ExitDef(action, catch as ExitErrorAction<SIGNAL>)
 							return object : Exit.Finally<T>
 							{
 								override fun finally(finally: ExitAction<T>)
 								{
-									this@ModifyImpl shouldNot expired
+									this@UpdateImpl shouldNot expired
 									exitMap[signal] = ExitDef(action, catch, finally as ExitAction<SIGNAL>)
 								}
 							}
@@ -839,7 +839,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: ExitAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							exitMap[signal] = ExitDef(action, null, finally as ExitAction<SIGNAL>)
 						}
 					}
@@ -850,19 +850,19 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun action(action: ExitAction<T>): Exit.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					exitMap[signal] = ExitDef(action as ExitAction<SIGNAL>)
 					return object : Exit.Catch<T>
 					{
 						override fun catch(catch: ExitErrorAction<T>): Exit.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							exitMap[signal] = ExitDef(action, catch as ExitErrorAction<SIGNAL>)
 							return object : Exit.Finally<T>
 							{
 								override fun finally(finally: ExitAction<T>)
 								{
-									this@ModifyImpl shouldNot expired
+									this@UpdateImpl shouldNot expired
 									exitMap[signal] = ExitDef(action, catch, finally as ExitAction<SIGNAL>)
 								}
 							}
@@ -870,7 +870,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: ExitAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							exitMap[signal] = ExitDef(action, null, finally as ExitAction<SIGNAL>)
 						}
 					}
@@ -881,7 +881,7 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun action(action: ExitAction<T>): Exit.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					action as ExitAction<SIGNAL>
 					signals.forEach {
 						exitMap[it] = ExitDef(action)
@@ -890,7 +890,7 @@ private class KotlmataStateImpl<T : STATE>(
 					{
 						override fun catch(catch: ExitErrorAction<T>): Exit.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							catch as ExitErrorAction<SIGNAL>
 							signals.forEach {
 								exitMap[it] = ExitDef(action, catch)
@@ -899,7 +899,7 @@ private class KotlmataStateImpl<T : STATE>(
 							{
 								override fun finally(finally: ExitAction<T>)
 								{
-									this@ModifyImpl shouldNot expired
+									this@UpdateImpl shouldNot expired
 									signals.forEach {
 										exitMap[it] = ExitDef(action, catch, finally as ExitAction<SIGNAL>)
 									}
@@ -909,7 +909,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: ExitAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							signals.forEach {
 								exitMap[it] = ExitDef(action, null, finally as ExitAction<SIGNAL>)
 							}
@@ -922,20 +922,20 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				override fun action(action: ExitAction<T>): Exit.Catch<T>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					exitPredicates.store(predicate)
 					exitMap[predicate] = ExitDef(action as ExitAction<SIGNAL>)
 					return object : Exit.Catch<T>
 					{
 						override fun catch(catch: ExitErrorAction<T>): Exit.Finally<T>
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							exitMap[predicate] = ExitDef(action, catch as ExitErrorAction<SIGNAL>)
 							return object : Exit.Finally<T>
 							{
 								override fun finally(finally: ExitAction<T>)
 								{
-									this@ModifyImpl shouldNot expired
+									this@UpdateImpl shouldNot expired
 									exitMap[predicate] = ExitDef(action, catch, finally as ExitAction<SIGNAL>)
 								}
 							}
@@ -943,7 +943,7 @@ private class KotlmataStateImpl<T : STATE>(
 						
 						override fun finally(finally: ExitAction<T>)
 						{
-							this@ModifyImpl shouldNot expired
+							this@UpdateImpl shouldNot expired
 							exitMap[predicate] = ExitDef(action, null, finally as ExitAction<SIGNAL>)
 						}
 					}
@@ -955,7 +955,7 @@ private class KotlmataStateImpl<T : STATE>(
 		{
 			override fun error(block: StateErrorCallback)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				this@KotlmataStateImpl.onError = block
 			}
 		}
@@ -968,28 +968,28 @@ private class KotlmataStateImpl<T : STATE>(
 				
 				init
 				{
-					this@ModifyImpl not expired then {
+					this@UpdateImpl not expired then {
 						this@KotlmataStateImpl.entry = null
 					}
 				}
 				
 				override fun <T : SIGNAL> via(signal: KClass<T>)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.entry = stash
 					entryMap.remove(signal)
 				}
 				
 				override fun <T : SIGNAL> via(signal: T)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.entry = stash
 					entryMap.remove(signal)
 				}
 				
 				override fun <T : SIGNAL> via(predicate: (T) -> Boolean)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.entry = stash
 					entryMap.remove(predicate)
 					entryPredicates.remove(predicate)
@@ -997,7 +997,7 @@ private class KotlmataStateImpl<T : STATE>(
 				
 				override fun via(keyword: all)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.entry = stash
 					this@KotlmataStateImpl.entryMap = null
 					this@KotlmataStateImpl.entryPredicates = null
@@ -1010,28 +1010,28 @@ private class KotlmataStateImpl<T : STATE>(
 				
 				init
 				{
-					this@ModifyImpl not expired then {
+					this@UpdateImpl not expired then {
 						this@KotlmataStateImpl.input = null
 					}
 				}
 				
 				override fun <T : SIGNAL> signal(signal: KClass<T>)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.input = stash
 					inputMap.remove(signal)
 				}
 				
 				override fun <T : SIGNAL> signal(signal: T)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.input = stash
 					inputMap.remove(signal)
 				}
 				
 				override fun <T : SIGNAL> signal(predicate: (T) -> Boolean)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.input = stash
 					inputMap.remove(predicate)
 					inputPredicates.remove(predicate)
@@ -1039,7 +1039,7 @@ private class KotlmataStateImpl<T : STATE>(
 				
 				override fun signal(keyword: all)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.input = stash
 					this@KotlmataStateImpl.inputMap = null
 					this@KotlmataStateImpl.inputPredicates = null
@@ -1052,28 +1052,28 @@ private class KotlmataStateImpl<T : STATE>(
 				
 				init
 				{
-					this@ModifyImpl not expired then {
+					this@UpdateImpl not expired then {
 						this@KotlmataStateImpl.exit = null
 					}
 				}
 				
 				override fun <T : SIGNAL> via(signal: KClass<T>)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.exit = stash
 					exitMap.remove(signal)
 				}
 				
 				override fun <T : SIGNAL> via(signal: T)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.exit = stash
 					exitMap.remove(signal)
 				}
 				
 				override fun <T : SIGNAL> via(predicate: (T) -> Boolean)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.exit = stash
 					exitMap.remove(predicate)
 					exitPredicates.remove(predicate)
@@ -1081,7 +1081,7 @@ private class KotlmataStateImpl<T : STATE>(
 				
 				override fun via(keyword: all)
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.exit = stash
 					this@KotlmataStateImpl.exitMap = null
 					this@KotlmataStateImpl.exitPredicates = null
@@ -1090,7 +1090,7 @@ private class KotlmataStateImpl<T : STATE>(
 			
 			override fun action(keyword: all)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				this@KotlmataStateImpl.entry = null
 				this@KotlmataStateImpl.input = null
 				this@KotlmataStateImpl.exit = null

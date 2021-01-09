@@ -4,8 +4,8 @@ import kr.co.plasticcity.kotlmata.KotlmataMachine.*
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.*
-import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modify
-import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modify.*
+import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update
+import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.*
 import kr.co.plasticcity.kotlmata.Log.normal
 import kr.co.plasticcity.kotlmata.Log.simple
 import java.util.*
@@ -305,7 +305,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 	}
 	
 	@KotlmataMarker
-	interface Modify : StateDefine, RuleDefine
+	interface Update : StateDefine, RuleDefine
 	{
 		val currentState: STATE
 		val has: Has
@@ -327,8 +327,8 @@ interface KotlmataMutableMachine : KotlmataMachine
 		}
 	}
 	
-	operator fun invoke(block: Modify.() -> Unit) = modify(block)
-	infix fun modify(block: Modify.() -> Unit)
+	operator fun invoke(block: Update.() -> Unit) = update(block)
+	infix fun update(block: Update.() -> Unit)
 }
 
 private class TransitionDef(val callback: TransitionCallback, val fallback: TransitionFallback? = null, val finally: TransitionCallback? = null)
@@ -354,7 +354,7 @@ private class KotlmataMachineImpl(
 	init
 	{
 		logLevel.normal(prefix) { MACHINE_START_BUILD }
-		ModifyImpl(init = block)
+		UpdateImpl(init = block)
 		logLevel.normal(prefix) { MACHINE_END_BUILD }
 	}
 	
@@ -530,11 +530,11 @@ private class KotlmataMachineImpl(
 		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
 	}
 	
-	override fun modify(block: Modify.() -> Unit)
+	override fun update(block: Update.() -> Unit)
 	{
-		logLevel.normal(prefix, current.tag) { MACHINE_START_MODIFY }
-		ModifyImpl(modify = block)
-		logLevel.normal(prefix, current.tag) { MACHINE_END_MODIFY }
+		logLevel.normal(prefix, current.tag) { MACHINE_START_UPDATE }
+		UpdateImpl(update = block)
+		logLevel.normal(prefix, current.tag) { MACHINE_END_UPDATE }
 	}
 	
 	override fun toString(): String
@@ -542,28 +542,28 @@ private class KotlmataMachineImpl(
 		return "KotlmataMachine[$name]{${hashCode().toString(16)}}"
 	}
 	
-	private inner class ModifyImpl(
+	private inner class UpdateImpl(
 		init: (MachineTemplate)? = null,
-		modify: (Modify.() -> Unit)? = null
-	) : Init, Modify, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
+		update: (Update.() -> Unit)? = null
+	) : Init, Update, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
 	{
 		override val on = object : Base.On
 		{
 			override fun transition(callback: TransitionCallback): Base.Catch
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				onTransition = TransitionDef(callback)
 				return object : Base.Catch
 				{
 					override fun catch(fallback: TransitionFallback): Base.Finally
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						onTransition = TransitionDef(callback, fallback)
 						return object : Base.Finally
 						{
 							override fun finally(finally: TransitionCallback)
 							{
-								this@ModifyImpl shouldNot expired
+								this@UpdateImpl shouldNot expired
 								onTransition = TransitionDef(callback, fallback, finally)
 							}
 						}
@@ -571,7 +571,7 @@ private class KotlmataMachineImpl(
 					
 					override fun finally(finally: TransitionCallback)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						onTransition = TransitionDef(callback, null, finally)
 					}
 				}
@@ -579,7 +579,7 @@ private class KotlmataMachineImpl(
 			
 			override fun error(block: MachineErrorCallback)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				onError = block
 			}
 		}
@@ -588,7 +588,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun at(state: STATE): Init.End
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				
 				stateMap[state]?.also {
 					this@KotlmataMachineImpl.current = it
@@ -600,7 +600,7 @@ private class KotlmataMachineImpl(
 		
 		override fun <S : STATE> S.invoke(block: StateTemplate<S>)
 		{
-			this@ModifyImpl shouldNot expired
+			this@UpdateImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this, logLevel, "$prefix$tab", block)
 		}
 		
@@ -610,21 +610,21 @@ private class KotlmataMachineImpl(
 			
 			init
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				state = KotlmataMutableState(this@extends, logLevel, "$prefix$tab", template)
 				stateMap[this@extends] = state
 			}
 			
 			override fun with(block: StateTemplate<S>)
 			{
-				this@ModifyImpl shouldNot expired
-				state.modify(block)
+				this@UpdateImpl shouldNot expired
+				state.update(block)
 			}
 		}
 		
 		override fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 		{
-			this@ModifyImpl shouldNot expired
+			this@UpdateImpl shouldNot expired
 			val state = KotlmataMutableState(this, logLevel, "$prefix$tab") {
 				entry function function
 			}
@@ -633,7 +633,7 @@ private class KotlmataMachineImpl(
 			{
 				override fun intercept(intercept: EntryErrorFunction<SIGNAL>): KotlmataState.Entry.Finally<SIGNAL>
 				{
-					this@ModifyImpl shouldNot expired
+					this@UpdateImpl shouldNot expired
 					state {
 						entry function function intercept intercept
 					}
@@ -661,7 +661,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				val state = KotlmataMutableState(this@via, logLevel, "$prefix$tab") {
 					entry via signal function function
 				}
@@ -670,7 +670,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						state {
 							entry via signal function function intercept intercept
 						}
@@ -678,7 +678,7 @@ private class KotlmataMachineImpl(
 						{
 							override fun finally(finally: EntryAction<T>)
 							{
-								this@ModifyImpl shouldNot expired
+								this@UpdateImpl shouldNot expired
 								state {
 									entry via signal function function intercept intercept finally finally
 								}
@@ -688,7 +688,7 @@ private class KotlmataMachineImpl(
 					
 					override fun finally(finally: EntryAction<T>)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						state {
 							entry via signal function function finally finally
 						}
@@ -701,7 +701,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				val state = KotlmataMutableState(this@via, logLevel, "$prefix$tab") {
 					entry via signal function function
 				}
@@ -710,7 +710,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						state {
 							entry via signal function function intercept intercept
 						}
@@ -718,7 +718,7 @@ private class KotlmataMachineImpl(
 						{
 							override fun finally(finally: EntryAction<T>)
 							{
-								this@ModifyImpl shouldNot expired
+								this@UpdateImpl shouldNot expired
 								state {
 									entry via signal function function intercept intercept finally finally
 								}
@@ -728,7 +728,7 @@ private class KotlmataMachineImpl(
 					
 					override fun finally(finally: EntryAction<T>)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						state {
 							entry via signal function function finally finally
 						}
@@ -741,7 +741,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				val state = KotlmataMutableState(this@via, logLevel, "$prefix$tab") {
 					entry via signals function function
 				}
@@ -750,7 +750,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						state {
 							entry via signals function function intercept intercept
 						}
@@ -758,7 +758,7 @@ private class KotlmataMachineImpl(
 						{
 							override fun finally(finally: EntryAction<T>)
 							{
-								this@ModifyImpl shouldNot expired
+								this@UpdateImpl shouldNot expired
 								state {
 									entry via signals function function intercept intercept finally finally
 								}
@@ -768,7 +768,7 @@ private class KotlmataMachineImpl(
 					
 					override fun finally(finally: EntryAction<T>)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						state {
 							entry via signals function function finally finally
 						}
@@ -781,7 +781,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				val state = KotlmataMutableState(this@via, logLevel, "$prefix$tab") {
 					entry via predicate function function
 				}
@@ -790,7 +790,7 @@ private class KotlmataMachineImpl(
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						state {
 							entry via predicate function function intercept intercept
 						}
@@ -798,7 +798,7 @@ private class KotlmataMachineImpl(
 						{
 							override fun finally(finally: EntryAction<T>)
 							{
-								this@ModifyImpl shouldNot expired
+								this@UpdateImpl shouldNot expired
 								state {
 									entry via predicate function function intercept intercept finally finally
 								}
@@ -808,7 +808,7 @@ private class KotlmataMachineImpl(
 					
 					override fun finally(finally: EntryAction<T>)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						state {
 							entry via predicate function function finally finally
 						}
@@ -844,14 +844,14 @@ private class KotlmataMachineImpl(
 			
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				ruleMap[from, signal] = to
 			}
 		}
 		
 		private fun <T : SIGNAL> store(from: STATE, predicate: (T) -> Boolean): SIGNAL
 		{
-			this@ModifyImpl shouldNot expired
+			this@UpdateImpl shouldNot expired
 			predicatesMap[from]?.also { predicates ->
 				predicates.store(predicate)
 			} ?: Predicates().also { predicates ->
@@ -866,7 +866,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				anyOfSignal.forEach { signal ->
 					from x signal %= to
 				}
@@ -878,7 +878,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				from x any %= to
 				anyExceptSignal.forEach { signal ->
 					ruleMap[from, signal] ?: run {
@@ -893,7 +893,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				anyOfFrom.forEach { from ->
 					from x signal %= to
 				}
@@ -905,7 +905,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				anyOfFrom.forEach { from ->
 					from x anyOfSignal %= to
 				}
@@ -917,7 +917,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				anyOfFrom.forEach { from ->
 					from x anyExceptSignal %= to
 				}
@@ -929,7 +929,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				any x signal %= to
 				anyExceptFrom.forEach { from ->
 					ruleMap[from, signal] ?: run {
@@ -944,7 +944,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				anyOfSignal.forEach { signal ->
 					anyExceptFrom x signal %= to
 				}
@@ -956,7 +956,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				anyExceptFrom x any %= to
 				any x anyExceptSignal %= to
 			}
@@ -996,7 +996,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				this@x.forEach { from ->
 					from x predicate %= to
 				}
@@ -1013,7 +1013,7 @@ private class KotlmataMachineImpl(
 		{
 			override fun remAssign(to: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				any x predicate %= to
 				this@x.forEach { from ->
 					ruleMap[from, predicate] ?: run {
@@ -1031,27 +1031,27 @@ private class KotlmataMachineImpl(
 		{
 			override fun from(state: STATE): Chain.To
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				val states: MutableList<STATE> = mutableListOf()
 				states.add(state)
 				return object : Chain.To, Chain.Via
 				{
 					override fun to(state: STATE): Chain.Via
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						states.add(state)
 						return this
 					}
 					
 					override fun via(signal: SIGNAL)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						loop { from, to -> from x signal %= to }
 					}
 					
 					override fun via(signal: KClass<out SIGNAL>)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						loop { from, to -> from x signal %= to }
 					}
 					
@@ -1059,25 +1059,25 @@ private class KotlmataMachineImpl(
 					
 					override fun via(any: any)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						loop { from, to -> from x any %= to }
 					}
 					
 					override fun via(anyOf: AnyOf)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						loop { from, to -> from x anyOf %= to }
 					}
 					
 					override fun via(anyExcept: AnyExcept)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						loop { from, to -> from x anyExcept %= to }
 					}
 					
 					override fun <T : SIGNAL> via(predicate: (T) -> Boolean)
 					{
-						this@ModifyImpl shouldNot expired
+						this@UpdateImpl shouldNot expired
 						loop { from, to -> from x predicate %= to }
 					}
 					
@@ -1093,13 +1093,13 @@ private class KotlmataMachineImpl(
 		}
 		
 		/*###################################################################################################################################
-		 * Modify
+		 * Update
 		 *###################################################################################################################################*/
 		
 		override val currentState: STATE
 			get()
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				return this@KotlmataMachineImpl.current.tag
 			}
 		
@@ -1113,19 +1113,19 @@ private class KotlmataMachineImpl(
 		{
 			override fun state(from: STATE)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				stateMap -= from
 			}
 			
 			override fun state(all: all)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				stateMap.clear()
 			}
 			
 			override fun rule(ruleLeft: RuleLeft)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				ruleMap[ruleLeft.from]?.let { map2 ->
 					map2 -= ruleLeft.signal
 				}
@@ -1134,7 +1134,7 @@ private class KotlmataMachineImpl(
 			
 			override fun rule(all: all)
 			{
-				this@ModifyImpl shouldNot expired
+				this@UpdateImpl shouldNot expired
 				ruleMap.clear()
 				predicatesMap.clear()
 			}
@@ -1142,7 +1142,7 @@ private class KotlmataMachineImpl(
 		
 		init
 		{
-			init?.also { it(this@KotlmataMachineImpl) } ?: modify?.also { it() }
+			init?.also { it(this@KotlmataMachineImpl) } ?: update?.also { it() }
 			expire()
 		}
 	}

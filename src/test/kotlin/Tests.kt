@@ -170,20 +170,20 @@ class Tests
 		machine.input("some string")
 		machine.input("goToState2")
 		
-		var modify: KotlmataMutableMachine.Modify? = null
+		var update: KotlmataMutableMachine.Update? = null
 		machine {
 			println("현재 상태: $currentState")
-			modify = this
+			update = this
 		}
 		
-		println("현재 상태를 외부에서 확인: ${modify?.currentState}")
+		println("현재 상태를 외부에서 확인: ${update?.currentState}")
 	}
 	
 	@Test
 	fun daemonTest()
 	{
 		var shouldGC: WeakReference<KotlmataState.Init>? = null
-		var expire: KotlmataMutableState.Modify? = null
+		var expire: KotlmataMutableState.Update? = null
 		var thread: Thread? = null
 		
 		val base: DaemonBase = {

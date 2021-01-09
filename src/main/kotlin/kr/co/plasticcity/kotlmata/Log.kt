@@ -5,22 +5,6 @@ internal class Logs
 	companion object
 	{
 		/*########################## DEBUG ##########################*/
-		/* Kotlmata */
-		const val KOTLMATA_START = "Kotlmata: START"
-		const val KOTLMATA_PAUSE = "Kotlmata: PAUSE"
-		const val KOTLMATA_STOP = "Kotlmata: STOP"
-		const val KOTLMATA_RESUME = "Kotlmata: RESUME"
-		const val KOTLMATA_RELEASE = "Kotlmata: RELEASE"
-		const val KOTLMATA_COMMON = "Kotlmata: %s {daemon: %s}"
-		const val KOTLMATA_INPUT = "Kotlmata:%s Input signal {signal: %s, payload: %s, priority: %s} {daemon: %s}"
-		const val KOTLMATA_TYPED_INPUT = "Kotlmata:%s Input typed signal {signal: %s, type: %s, payload: %s, priority: %s} {daemon: %s}"
-		const val KOTLMATA_COMMON_IGNORED_EXISTS = "Kotlmata: %s is ignored: The daemon is already exists. {daemon: %s}"
-		const val KOTLMATA_COMMON_IGNORED_NONE = "Kotlmata: %s is ignored: The daemon does not exist or invalid. {daemon: %s}"
-		const val KOTLMATA_INPUT_IGNORED = "Kotlmata:%s Signal input is ignored: The daemon does not exist or invalid. {signal: %s, payload: %s, priority: %s} {daemon: %s}"
-		const val KOTLMATA_TYPED_INPUT_IGNORED = "Kotlmata:%s Typed signal input is ignored: The daemon does not exist or invalid. {signal: %s, type: %s, payload: %s, priority: %s} {daemon: %s}"
-		const val KOTLMATA_START_POST = "Kotlmata: >> Post block"
-		const val KOTLMATA_END_POST = "Kotlmata: << Post block"
-		
 		/* Daemon */
 		const val DAEMON_START_THREAD = "Daemon[%s]: Daemon thread is started. (name = %s, isDaemon = %s)"
 		const val DAEMON_TERMINATE_THREAD = "Daemon[%s]: Daemon thread terminate. (name = %s, isDaemon = %s)"
@@ -43,8 +27,8 @@ internal class Logs
 		/* Machine */
 		const val MACHINE_START_BUILD = "%s >> Build machine"
 		const val MACHINE_END_BUILD = "%s << Build machine"
-		const val MACHINE_START_MODIFY = "%s >> Modify {current_state: %s}"
-		const val MACHINE_END_MODIFY = "%s << Modify {current_state: %s}"
+		const val MACHINE_START_UPDATE = "%s >> Update {current_state: %s}"
+		const val MACHINE_END_UPDATE = "%s << Update {current_state: %s}"
 		const val MACHINE_START_INPUT = "%s >> Input signal {signal: %s, payload: %s} {current_state: %s}"
 		const val MACHINE_END_INPUT = "%s << Input signal {signal: %s, payload: %s} {current_state: %s}"
 		const val MACHINE_START_TYPED_INPUT = "%s >> Input typed signal {signal: %s, type: %s, payload: %s} {current_state: %s}"
@@ -84,14 +68,11 @@ internal class Logs
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. [%s] x (%s) -> [%s]"
 		
 		/*########################## ERROR ##########################*/
-		const val EXPIRED_CONFIG = "Kotlmata: Use of expired 'Config' object: The object is only available inside the config block."
-		const val EXPIRED_POST = "Kotlmata: Use of expired 'Post' object: The object is only available inside the post block."
-		const val EXPIRED_MODIFIER = "%s Use of expired object: The object is only available inside the 'init' or 'modify' block."
+		const val EXPIRED_OBJECT = "%s Use of expired object: The object is only available inside the 'init' or 'update' block."
 		const val UNDEFINED_START_STATE = "%s The start state '%s' is undefined."
 	}
 }
 
-internal const val UNDEFINED = -1
 internal const val NO_LOG = 0
 internal const val SIMPLE = 1
 internal const val NORMAL = 2

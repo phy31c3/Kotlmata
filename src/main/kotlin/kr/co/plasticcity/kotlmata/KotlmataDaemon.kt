@@ -212,8 +212,8 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 		}
 	}
 	
-	operator fun invoke(block: KotlmataMutableMachine.Modify.() -> Unit) = modify(block)
-	infix fun modify(block: KotlmataMutableMachine.Modify.() -> Unit)
+	operator fun invoke(block: KotlmataMutableMachine.Update.() -> Unit) = update(block)
+	infix fun update(block: KotlmataMutableMachine.Update.() -> Unit)
 }
 
 private class LifecycleDef(val callback: DaemonCallback, val fallback: DaemonFallback? = null, val finally: DaemonCallback? = null)
@@ -274,8 +274,8 @@ private class KotlmataDaemonImpl(
 			val logLevel = logLevel
 			val suffix = if (logLevel > SIMPLE) tab else ""
 			
-			val modifyMachine: InputAction<Modify> = { modifyR ->
-				machine modify modifyR.block
+			val update: InputAction<Update> = { updateR ->
+				machine update updateR.block
 			}
 			
 			val ignore: (STATE, Request) -> Unit = { state, request ->
@@ -313,7 +313,7 @@ private class KotlmataDaemonImpl(
 				input signal Run::class action onStart
 				input signal Pause::class action onStart
 				input signal Stop::class action onStart
-				input signal Modify::class action modifyMachine
+				input signal Update::class action update
 				input signal Sync::class action { ignore(state, it) }
 				input signal Input::class action { ignore(state, it) }
 				input signal TypedInput::class action { ignore(state, it) }
@@ -330,7 +330,7 @@ private class KotlmataDaemonImpl(
 					}
 				}
 				input signal Run::class action { ignore(state, it) }
-				input signal Modify::class action modifyMachine
+				input signal Update::class action update
 				input signal Sync::class action { syncR ->
 					syncR.type?.also { type ->
 						machine.input(syncR.signal, type, syncR.payload, block = postSync)
@@ -363,7 +363,7 @@ private class KotlmataDaemonImpl(
 				input signal Stop::class action {
 					sync?.also { syncR -> queue!!.offer(syncR) }
 				}
-				input signal Modify::class action modifyMachine
+				input signal Update::class action update
 				input signal Sync::class action { syncR ->
 					logLevel.normal(name, syncR) { DAEMON_STORE_REQUEST }
 					sync = syncR
@@ -398,7 +398,7 @@ private class KotlmataDaemonImpl(
 				}
 				input signal Pause::class action cleanup
 				input signal Stop::class action { ignore(state, it) }
-				input signal Modify::class action modifyMachine
+				input signal Update::class action update
 				input signal Sync::class action { syncR ->
 					logLevel.normal(name, syncR) { DAEMON_STORE_REQUEST }
 					sync = syncR
@@ -562,11 +562,11 @@ private class KotlmataDaemonImpl(
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun modify(block: KotlmataMutableMachine.Modify.() -> Unit)
+	override fun update(block: KotlmataMutableMachine.Update.() -> Unit)
 	{
-		val modifyR = Modify(block)
-		logLevel.detail(name, modifyR) { DAEMON_PUT_REQUEST }
-		queue?.offer(modifyR)
+		val updateR = Update(block)
+		logLevel.detail(name, updateR) { DAEMON_PUT_REQUEST }
+		queue?.offer(updateR)
 	}
 	
 	override fun toString(): String
@@ -577,7 +577,7 @@ private class KotlmataDaemonImpl(
 	private inner class InitImpl(
 		block: DaemonTemplate,
 		init: KotlmataMachine.Init
-	) : Init, KotlmataMachine.Init by init, Expirable({ Log.e("Daemon[$name]:") { EXPIRED_MODIFIER } })
+	) : Init, KotlmataMachine.Init by init, Expirable({ Log.e("Daemon[$name]:") { EXPIRED_OBJECT } })
 	{
 		lateinit var startAt: STATE
 		
@@ -692,7 +692,7 @@ private class KotlmataDaemonImpl(
 		class Stop(payload: Any?) : Control(payload)
 		class Terminate(payload: Any?, val shouldInterrupt: Boolean = true) : Control(payload)
 		
-		class Modify(val block: KotlmataMutableMachine.Modify.() -> Unit) : Request(MODIFY)
+		class Update(val block: KotlmataMutableMachine.Update.() -> Unit) : Request(UPDATE)
 		
 		class Sync(val signal: SIGNAL, val type: KClass<SIGNAL>?, val payload: Any?) : Request(SYNC, "signal: $signal, type: ${type?.let { "${it.simpleName}::class, payload: $payload" } ?: "null"}")
 		
@@ -702,7 +702,7 @@ private class KotlmataDaemonImpl(
 		companion object
 		{
 			private const val DAEMON_CONTROL = -3
-			private const val MODIFY = -2
+			private const val UPDATE = -2
 			private const val SYNC = -1
 			private const val SIGNAL = 0
 			
