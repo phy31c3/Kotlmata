@@ -20,6 +20,7 @@ class Tests
 	fun stateTest()
 	{
 		var expired: KotlmataState.Init? = null
+		val predicate = { s: Int -> s < 10 }
 		val state = KotlmataMutableState("s1", 3, "") {
 			expired = this
 			val lambda1: EntryAction<SIGNAL> = {
@@ -38,6 +39,7 @@ class Tests
 			input function { println("기본 입력함수") }
 			input signal Any::class function { s -> println("Any 타입 입력함수: $s") }
 			input signal "next" function { println("진입함수에서 흘러들어옴") }
+			input signal predicate action { s -> println("술어형 신호: $s") }
 			exit action { println("퇴장함수") }
 		}
 		
@@ -50,10 +52,12 @@ class Tests
 		state.input("basic")
 		state.input("basic", Any::class)
 		state.exit("basic", "")
+		state.input(5)
 		
 		state {
-			delete action input signal "next"
+			delete action input signal predicate
 		}
+		state.input(5)
 		
 		state.entry("", "b")?.let { signal ->
 			state.input(signal)
@@ -184,7 +188,7 @@ class Tests
 		var expire: KotlmataMutableState.Modify? = null
 		var thread: Thread? = null
 		
-		val base : DaemonBase = {
+		val base: DaemonBase = {
 			on error {
 				println("템플릿에서 정의: $throwable")
 			}
