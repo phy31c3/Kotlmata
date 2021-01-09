@@ -20,6 +20,7 @@ class Tests
 	fun stateTest()
 	{
 		var expired: KotlmataState.Init? = null
+		val predicate = { s: Int -> s < 10 }
 		val state = KotlmataMutableState("s1", 3, "") {
 			expired = this
 			val lambda1: EntryAction<SIGNAL> = {
@@ -38,6 +39,7 @@ class Tests
 			input function { println("기본 입력함수") }
 			input signal Any::class function { s -> println("Any 타입 입력함수: $s") }
 			input signal "next" function { println("진입함수에서 흘러들어옴") }
+			input signal predicate action { s -> println("술어형 신호: $s") }
 			exit action { println("퇴장함수") }
 		}
 		
@@ -50,10 +52,12 @@ class Tests
 		state.input("basic")
 		state.input("basic", Any::class)
 		state.exit("basic", "")
+		state.input(5)
 		
 		state {
-			delete action input signal "next"
+			delete action input signal predicate
 		}
+		state.input(5)
 		
 		state.entry("", "b")?.let { signal ->
 			state.input(signal)
@@ -146,45 +150,43 @@ class Tests
 		println("-----------------------------------")
 		
 		machine {
-			has state "state1" then {
+			if (has state "State1")
+			{
 				println("state1 있음")
-			} or {
+			}
+			else
+			{
 				println("state1 없음")
 			}
 			
-			update state "state1" by { state ->
+			"state1" update { state ->
 				input signal String::class function { s -> println("$state: 수정된 String 타입 입력함수: $s") }
-				delete action exit
+				delete action entry via { s: Int -> s < 10 }
 			}
 			
-			insert state "state2" by { state ->
-				entry function { println("삽입된 $state") }
-			}
-			
-			insert rule ("state1" x "goToState2") %= "state3"
-			insert rule ("state1" x "goToState3") %= "state3"
+			"state1" x "goToState3" %= "state3"
 		}
 		
 		machine.input("some string")
 		machine.input("goToState2")
 		
-		var modifier: KotlmataMutableMachine.Modifier? = null
+		var update: KotlmataMutableMachine.Update? = null
 		machine {
-			println("현재 상태: $current")
-			modifier = this
+			println("현재 상태: $currentState")
+			update = this
 		}
 		
-		println("현재 상태를 외부에서 확인: ${modifier?.current}")
+		println("현재 상태를 외부에서 확인: ${update?.currentState}")
 	}
 	
 	@Test
 	fun daemonTest()
 	{
 		var shouldGC: WeakReference<KotlmataState.Init>? = null
-		var expire: KotlmataMutableState.Modifier? = null
+		var expire: KotlmataMutableState.Update? = null
 		var thread: Thread? = null
 		
-		val base : DaemonBase = {
+		val base: DaemonBase = {
 			on error {
 				println("템플릿에서 정의: $throwable")
 			}
@@ -471,7 +473,7 @@ class Tests
 		daemon {
 			"state1" x "goToState3" %= "state3"
 			
-			update state "state3" by { state ->
+			"state3" update { state ->
 				expire = this
 				entry function {
 					println("$state: 수정된 기본 진입함수")

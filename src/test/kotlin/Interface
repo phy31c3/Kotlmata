@@ -198,7 +198,7 @@ val mutableDaemon by KotlmataMutableDaemon.lazy("name") {
 }
 
 mutableDaemon {
-	// Machine modify 블럭과 동일
+	// Machine update 블럭과 동일
 }
 
 mutableDaemon.run()
