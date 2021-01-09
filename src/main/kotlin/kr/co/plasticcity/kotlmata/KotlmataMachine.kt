@@ -307,7 +307,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 	@KotlmataMarker
 	interface Modifier : StateDefine, RuleDefine
 	{
-		val current: STATE
+		val currentState: STATE
 		val has: Has
 		val insert: Insert
 		val replace: Replace
@@ -676,7 +676,7 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override val current: STATE
+		override val currentState: STATE
 			get()
 			{
 				this@ModifierImpl shouldNot expired

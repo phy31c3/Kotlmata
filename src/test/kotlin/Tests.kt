@@ -170,11 +170,11 @@ class Tests
 		
 		var modifier: KotlmataMutableMachine.Modifier? = null
 		machine {
-			println("현재 상태: $current")
+			println("현재 상태: $currentState")
 			modifier = this
 		}
 		
-		println("현재 상태를 외부에서 확인: ${modifier?.current}")
+		println("현재 상태를 외부에서 확인: ${modifier?.currentState}")
 	}
 	
 	@Test
