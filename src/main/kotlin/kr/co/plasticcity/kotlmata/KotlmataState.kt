@@ -126,7 +126,6 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 		): KotlmataMutableState<T> = KotlmataStateImpl(tag, logLevel, prefix, block)
 	}
 	
-	@KotlmataMarker
 	interface Modify : Init
 	{
 		val delete: Delete

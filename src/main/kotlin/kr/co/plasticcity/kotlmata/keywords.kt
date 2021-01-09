@@ -69,14 +69,6 @@ object self
  */
 object all
 
-/**
- * In Machine:
- * ```
- * delete rule of state "state1"
- * ```
- */
-object of
-
 interface StatesOrSignals<T : `STATE or SIGNAL`> : MutableList<`STATE or SIGNAL`>
 interface StatesOrSignalsDefinable
 {

@@ -141,8 +141,8 @@ interface KotlmataMachine
 		infix fun STATE.x(any: any): RuleLeft
 		infix fun STATE.x(anyOf: AnyOf): RuleAssignable
 		infix fun STATE.x(anyExcept: AnyExcept): RuleAssignable
-		infix fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean): RuleAssignable
-		infix fun <T> STATE.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
+		infix fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean): RuleLeft
+		infix fun <T> STATE.x(range: ClosedRange<T>): RuleAssignable where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
 		
 		infix fun StatesOrSignals<*>.x(signal: SIGNAL): RuleAssignable
 		infix fun StatesOrSignals<*>.x(signal: KClass<out SIGNAL>): RuleAssignable
@@ -159,8 +159,8 @@ interface KotlmataMachine
 		infix fun any.x(any: any): RuleLeft
 		infix fun any.x(anyOf: AnyOf): RuleAssignable
 		infix fun any.x(anyExcept: AnyExcept): RuleAssignable
-		infix fun <T : SIGNAL> any.x(predicate: (T) -> Boolean): RuleAssignable
-		infix fun <T> any.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
+		infix fun <T : SIGNAL> any.x(predicate: (T) -> Boolean): RuleLeft
+		infix fun <T> any.x(range: ClosedRange<T>): RuleAssignable where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
 		
 		infix fun AnyOf.x(signal: SIGNAL): RuleAssignable
 		infix fun AnyOf.x(signal: KClass<out SIGNAL>): RuleAssignable
@@ -309,99 +309,21 @@ interface KotlmataMutableMachine : KotlmataMachine
 	{
 		val currentState: STATE
 		val has: Has
-		val insert: Insert
-		val replace: Replace
-		val update: Update
 		val delete: Delete
 		
 		interface Has
 		{
-			infix fun state(state: STATE): Then
-			infix fun rule(ruleLeft: RuleLeft): Then
-			
-			interface Then
-			{
-				infix fun then(block: () -> Unit): Or
-			}
-			
-			interface Or
-			{
-				infix fun or(block: () -> Unit)
-			}
-		}
-		
-		interface Insert
-		{
-			infix fun <T : STATE> state(state: T): By<T>
-			infix fun rule(ruleLeft: RuleLeft): RemAssign
-			infix fun or(keyword: Replace): State
-			infix fun or(keyword: Update): Rule
-			
-			interface State
-			{
-				infix fun <T : STATE> state(state: T): By<T>
-			}
-			
-			interface Rule
-			{
-				infix fun rule(ruleLeft: RuleLeft): RemAssign
-			}
-			
-			interface By<T : STATE>
-			{
-				infix fun by(block: StateTemplate<T>)
-			}
-			
-			interface RemAssign
-			{
-				operator fun remAssign(state: STATE)
-			}
-		}
-		
-		interface Replace
-		{
-			infix fun <T : STATE> state(state: T): By<T>
-			
-			interface By<T : STATE>
-			{
-				infix fun by(block: StateTemplate<T>)
-			}
-		}
-		
-		interface Update
-		{
-			infix fun <T : STATE> state(state: T): By<T>
-			infix fun rule(ruleLeft: RuleLeft): RemAssign
-			
-			interface By<T : STATE>
-			{
-				infix fun by(block: KotlmataMutableState.Modify.(state: T) -> Unit): Or<T>
-			}
-			
-			interface Or<T : STATE>
-			{
-				infix fun or(block: StateTemplate<T>)
-			}
-			
-			interface RemAssign
-			{
-				operator fun remAssign(state: STATE)
-			}
+			infix fun state(state: STATE): Boolean
+			infix fun rule(ruleLeft: RuleLeft): Boolean
 		}
 		
 		interface Delete
 		{
-			infix fun state(state: STATE)
-			infix fun state(keyword: all)
+			infix fun state(from: STATE)
+			infix fun state(all: all)
 			
 			infix fun rule(ruleLeft: RuleLeft)
-			infix fun rule(keyword: of): State
-			infix fun rule(keyword: all)
-			
-			interface State
-			{
-				infix fun state(state: STATE)
-			}
+			infix fun rule(all: all)
 		}
 	}
 	
@@ -1183,174 +1105,19 @@ private class KotlmataMachineImpl(
 		
 		override val has = object : Has
 		{
-			val stop = object : Has.Or
-			{
-				override fun or(block: () -> Unit)
-				{
-					/* do nothing */
-				}
-			}
-			
-			val or = object : Has.Or
-			{
-				override fun or(block: () -> Unit)
-				{
-					block()
-				}
-			}
-			
-			override fun state(state: STATE) = object : Has.Then
-			{
-				override fun then(block: () -> Unit): Has.Or
-				{
-					this@ModifyImpl shouldNot expired
-					return if (state in stateMap)
-					{
-						block()
-						stop
-					}
-					else
-					{
-						or
-					}
-				}
-			}
-			
-			override fun rule(ruleLeft: RuleLeft) = object : Has.Then
-			{
-				override fun then(block: () -> Unit): Has.Or
-				{
-					this@ModifyImpl shouldNot expired
-					return ruleMap[ruleLeft.from, ruleLeft.signal]?.run {
-						block()
-						stop
-					} ?: or
-				}
-			}
-		}
-		
-		override val insert = object : Insert
-		{
-			override fun <T : STATE> state(state: T) = object : Insert.By<T>
-			{
-				override fun by(block: StateTemplate<T>)
-				{
-					this@ModifyImpl shouldNot expired
-					if (state !in stateMap)
-					{
-						state.invoke(block)
-					}
-				}
-			}
-			
-			override fun rule(ruleLeft: RuleLeft) = object : Insert.RemAssign
-			{
-				override fun remAssign(state: STATE)
-				{
-					this@ModifyImpl shouldNot expired
-					ruleMap[ruleLeft.from, ruleLeft.signal] ?: run {
-						ruleLeft %= state
-					}
-				}
-			}
-			
-			override fun or(keyword: Replace) = object : Insert.State
-			{
-				override fun <T : STATE> state(state: T) = object : Insert.By<T>
-				{
-					override fun by(block: StateTemplate<T>)
-					{
-						this@ModifyImpl shouldNot expired
-						state.invoke(block)
-					}
-				}
-			}
-			
-			override fun or(keyword: Update) = object : Insert.Rule
-			{
-				override fun rule(ruleLeft: RuleLeft) = object : Insert.RemAssign
-				{
-					override fun remAssign(state: STATE)
-					{
-						this@ModifyImpl shouldNot expired
-						ruleLeft %= state
-					}
-				}
-			}
-		}
-		
-		override val replace = object : Replace
-		{
-			override fun <T : STATE> state(state: T) = object : Replace.By<T>
-			{
-				override fun by(block: StateTemplate<T>)
-				{
-					this@ModifyImpl shouldNot expired
-					if (state in stateMap)
-					{
-						state.invoke(block)
-					}
-				}
-			}
-		}
-		
-		override val update = object : Update
-		{
-			override fun <T : STATE> state(state: T) = object : Update.By<T>
-			{
-				val stop = object : Update.Or<T>
-				{
-					override fun or(block: StateTemplate<T>)
-					{
-						/* do nothing */
-					}
-				}
-				
-				val or = object : Update.Or<T>
-				{
-					override fun or(block: StateTemplate<T>)
-					{
-						state.invoke(block)
-					}
-				}
-				
-				@Suppress("UNCHECKED_CAST")
-				override fun by(block: KotlmataMutableState.Modify.(T) -> Unit): Update.Or<T>
-				{
-					this@ModifyImpl shouldNot expired
-					return if (state in stateMap)
-					{
-						stateMap[state]!!.modify(block as KotlmataMutableState.Modify.(STATE) -> Unit)
-						stop
-					}
-					else
-					{
-						or
-					}
-				}
-			}
-			
-			override fun rule(ruleLeft: RuleLeft) = object : Update.RemAssign
-			{
-				override fun remAssign(state: STATE)
-				{
-					this@ModifyImpl shouldNot expired
-					ruleMap[ruleLeft.from, ruleLeft.signal]?.run {
-						ruleLeft %= state
-					}
-				}
-			}
+			override fun state(state: STATE) = state in stateMap
+			override fun rule(ruleLeft: RuleLeft) = ruleMap[ruleLeft.from, ruleLeft.signal] != null
 		}
 		
 		override val delete = object : Delete
 		{
-			override fun state(state: STATE)
+			override fun state(from: STATE)
 			{
 				this@ModifyImpl shouldNot expired
-				stateMap -= state
+				stateMap -= from
 			}
 			
-			override fun state(keyword: all)
+			override fun state(all: all)
 			{
 				this@ModifyImpl shouldNot expired
 				stateMap.clear()
@@ -1362,19 +1129,10 @@ private class KotlmataMachineImpl(
 				ruleMap[ruleLeft.from]?.let { map2 ->
 					map2 -= ruleLeft.signal
 				}
+				predicatesMap[ruleLeft.from]?.remove(ruleLeft.signal)
 			}
 			
-			override fun rule(keyword: of) = object : Delete.State
-			{
-				override fun state(state: STATE)
-				{
-					this@ModifyImpl shouldNot expired
-					ruleMap -= state
-					predicatesMap -= state
-				}
-			}
-			
-			override fun rule(keyword: all)
+			override fun rule(all: all)
 			{
 				this@ModifyImpl shouldNot expired
 				ruleMap.clear()

@@ -150,23 +150,21 @@ class Tests
 		println("-----------------------------------")
 		
 		machine {
-			has state "state1" then {
+			if (has state "State1")
+			{
 				println("state1 있음")
-			} or {
+			}
+			else
+			{
 				println("state1 없음")
 			}
+
+//			update state "state1" by { state ->
+//				input signal String::class function { s -> println("$state: 수정된 String 타입 입력함수: $s") }
+//				delete action entry via { s: Int -> s < 10 }
+//			}
 			
-			update state "state1" by { state ->
-				input signal String::class function { s -> println("$state: 수정된 String 타입 입력함수: $s") }
-				delete action entry via { s: Int -> s < 10 }
-			}
-			
-			insert state "state2" by { state ->
-				entry function { println("삽입된 $state") }
-			}
-			
-			insert rule ("state1" x "goToState2") %= "state3"
-			insert rule ("state1" x "goToState3") %= "state3"
+			"state1" x "goToState3" %= "state3"
 		}
 		
 		machine.input("some string")
@@ -474,14 +472,14 @@ class Tests
 		daemon.run()
 		daemon {
 			"state1" x "goToState3" %= "state3"
-			
-			update state "state3" by { state ->
-				expire = this
-				entry function {
-					println("$state: 수정된 기본 진입함수")
-					"수정된 entry sync"
-				}
-			}
+
+//			update state "state3" by { state ->
+//				expire = this
+//				entry function {
+//					println("$state: 수정된 기본 진입함수")
+//					"수정된 entry sync"
+//				}
+//			}
 		}
 		daemon.input("goToState3")
 		daemon.input("이거 출력되어야 하는데..")
