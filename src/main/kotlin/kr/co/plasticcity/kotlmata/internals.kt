@@ -20,9 +20,10 @@ internal class PayloadErrorFunctionReceiver(override val payload: Any?, override
 internal class TransitionActionReceiver(override val transitionCount: Long) : TransitionActionDSL
 internal class TransitionErrorActionReceiver(override val transitionCount: Long, override val throwable: Throwable) : TransitionErrorActionDSL
 
-internal object CREATED
+@Suppress("ClassName")
+internal object `Initial state for KotlmataDaemon`
 {
-	override fun toString(): String = "CREATED"
+	override fun toString(): String = this::class.simpleName ?: ""
 }
 
 internal const val tab: String = "   "

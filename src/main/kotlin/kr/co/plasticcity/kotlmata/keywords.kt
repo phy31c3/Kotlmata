@@ -28,6 +28,14 @@ typealias SIGNAL = Any
 object any
 
 /**
+ * In State:
+ * ```
+ * input signal String::class function { signal ->
+ *     if (signal == "A") stay // do not transition
+ *     else Unit // transition if rule exists
+ * }
+ * ```
+ *
  * In Machine:
  * ```
  * "state" x "signal" %= stay
