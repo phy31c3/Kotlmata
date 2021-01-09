@@ -1,6 +1,8 @@
 package kr.co.plasticcity.kotlmata
 
 import kr.co.plasticcity.kotlmata.KotlmataMachine.*
+import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
+import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.*
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modifier
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modifier.*
@@ -23,9 +25,17 @@ interface KotlmataMachine
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : InvokeBy
+		) = object : Extends<MachineBase, MachineTemplate, KotlmataMachine>
 		{
-			override fun by(block: MachineTemplate) = invoke(name, logLevel, block)
+			override fun extends(base: MachineBase) = object : By<MachineTemplate, KotlmataMachine>
+			{
+				override fun by(template: MachineTemplate) = invoke(name, logLevel) { machine ->
+					base(machine)
+					template(machine)
+				}
+			}
+			
+			override fun by(template: MachineTemplate) = invoke(name, logLevel, template)
 		}
 		
 		fun lazy(
@@ -39,19 +49,28 @@ interface KotlmataMachine
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : LazyBy
+		) = object : Extends<MachineBase, MachineTemplate, Lazy<KotlmataMachine>>
 		{
-			override fun by(block: MachineTemplate) = lazy { invoke(name, logLevel, block) }
+			override fun extends(base: MachineBase) = object : By<MachineTemplate, Lazy<KotlmataMachine>>
+			{
+				override fun by(template: MachineTemplate) = lazy {
+					invoke(name, logLevel) extends base by template
+				}
+			}
+			
+			override fun by(template: MachineTemplate) = lazy {
+				invoke(name, logLevel, template)
+			}
 		}
 		
-		interface InvokeBy
+		interface Extends<B, T, R> : By<T, R>
 		{
-			infix fun by(block: MachineTemplate): KotlmataMachine
+			infix fun extends(base: B): By<T, R>
 		}
 		
-		interface LazyBy
+		interface By<T, R>
 		{
-			infix fun by(block: MachineTemplate): Lazy<KotlmataMachine>
+			infix fun by(template: T): R
 		}
 	}
 	
@@ -239,9 +258,17 @@ interface KotlmataMutableMachine : KotlmataMachine
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : InvokeBy
+		) = object : Extends<MachineBase, MachineTemplate, KotlmataMutableMachine>
 		{
-			override fun by(block: MachineTemplate) = invoke(name, logLevel, block)
+			override fun extends(base: MachineBase) = object : By<MachineTemplate, KotlmataMutableMachine>
+			{
+				override fun by(template: MachineTemplate) = invoke(name, logLevel) { machine ->
+					base(machine)
+					template(machine)
+				}
+			}
+			
+			override fun by(template: MachineTemplate) = invoke(name, logLevel, template)
 		}
 		
 		fun lazy(
@@ -255,19 +282,18 @@ interface KotlmataMutableMachine : KotlmataMachine
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : LazyBy
+		) = object : Extends<MachineBase, MachineTemplate, Lazy<KotlmataMutableMachine>>
 		{
-			override fun by(block: MachineTemplate) = lazy { invoke(name, logLevel, block) }
-		}
-		
-		interface InvokeBy
-		{
-			infix fun by(block: MachineTemplate): KotlmataMutableMachine
-		}
-		
-		interface LazyBy
-		{
-			infix fun by(block: MachineTemplate): Lazy<KotlmataMutableMachine>
+			override fun extends(base: MachineBase) = object : By<MachineTemplate, Lazy<KotlmataMutableMachine>>
+			{
+				override fun by(template: MachineTemplate) = lazy {
+					invoke(name, logLevel) extends base by template
+				}
+			}
+			
+			override fun by(template: MachineTemplate) = lazy {
+				invoke(name, logLevel, template)
+			}
 		}
 		
 		internal fun create(

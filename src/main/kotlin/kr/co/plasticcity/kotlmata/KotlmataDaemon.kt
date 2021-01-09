@@ -1,8 +1,10 @@
 package kr.co.plasticcity.kotlmata
 
-import kr.co.plasticcity.kotlmata.KotlmataDaemon.Init
 import kr.co.plasticcity.kotlmata.KotlmataDaemon.Base
+import kr.co.plasticcity.kotlmata.KotlmataDaemon.Init
 import kr.co.plasticcity.kotlmata.KotlmataDaemonImpl.Request.*
+import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
+import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
 import kr.co.plasticcity.kotlmata.Log.detail
 import kr.co.plasticcity.kotlmata.Log.normal
 import kr.co.plasticcity.kotlmata.Log.simple
@@ -36,9 +38,17 @@ interface KotlmataDaemon
 			logLevel: Int = NO_LOG,
 			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false
-		) = object : InvokeBy
+		) = object : Extends<DaemonBase, DaemonTemplate, KotlmataDaemon>
 		{
-			override fun by(block: DaemonTemplate) = invoke(name, logLevel, threadName, isDaemon, block)
+			override fun extends(base: DaemonBase) = object : By<DaemonTemplate, KotlmataDaemon>
+			{
+				override fun by(template: DaemonTemplate) = invoke(name, logLevel, threadName, isDaemon) { daemon ->
+					base(daemon)
+					template(daemon)
+				}
+			}
+			
+			override fun by(template: DaemonTemplate) = invoke(name, logLevel, threadName, isDaemon, template)
 		}
 		
 		/**
@@ -62,19 +72,18 @@ interface KotlmataDaemon
 			logLevel: Int = NO_LOG,
 			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false
-		) = object : LazyBy
+		) = object : Extends<DaemonBase, DaemonTemplate, Lazy<KotlmataDaemon>>
 		{
-			override fun by(block: DaemonTemplate) = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
-		}
-		
-		interface InvokeBy
-		{
-			infix fun by(block: DaemonTemplate): KotlmataDaemon
-		}
-		
-		interface LazyBy
-		{
-			infix fun by(block: DaemonTemplate): Lazy<KotlmataDaemon>
+			override fun extends(base: DaemonBase) = object : By<DaemonTemplate, Lazy<KotlmataDaemon>>
+			{
+				override fun by(template: DaemonTemplate) = lazy {
+					invoke(name, logLevel, threadName, isDaemon) extends base by template
+				}
+			}
+			
+			override fun by(template: DaemonTemplate) = lazy {
+				invoke(name, logLevel, threadName, isDaemon, template)
+			}
 		}
 	}
 	
@@ -152,9 +161,17 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 			logLevel: Int = NO_LOG,
 			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false
-		) = object : InvokeBy
+		) = object : Extends<DaemonBase, DaemonTemplate, KotlmataMutableDaemon>
 		{
-			override fun by(block: DaemonTemplate) = invoke(name, logLevel, threadName, isDaemon, block)
+			override fun extends(base: DaemonBase) = object : By<DaemonTemplate, KotlmataMutableDaemon>
+			{
+				override fun by(template: DaemonTemplate) = invoke(name, logLevel, threadName, isDaemon) { daemon ->
+					base(daemon)
+					template(daemon)
+				}
+			}
+			
+			override fun by(template: DaemonTemplate) = invoke(name, logLevel, threadName, isDaemon, template)
 		}
 		
 		/**
@@ -180,19 +197,18 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 			logLevel: Int = NO_LOG,
 			threadName: String = "thread-KotlmataDaemon[$name]",
 			isDaemon: Boolean = false
-		) = object : LazyBy
+		) = object : Extends<DaemonBase, DaemonTemplate, Lazy<KotlmataMutableDaemon>>
 		{
-			override fun by(block: DaemonTemplate) = lazy { invoke(name, logLevel, threadName, isDaemon, block) }
-		}
-		
-		interface InvokeBy
-		{
-			infix fun by(block: DaemonTemplate): KotlmataMutableDaemon
-		}
-		
-		interface LazyBy
-		{
-			infix fun by(block: DaemonTemplate): Lazy<KotlmataMutableDaemon>
+			override fun extends(base: DaemonBase) = object : By<DaemonTemplate, Lazy<KotlmataMutableDaemon>>
+			{
+				override fun by(template: DaemonTemplate) = lazy {
+					invoke(name, logLevel, threadName, isDaemon) extends base by template
+				}
+			}
+			
+			override fun by(template: DaemonTemplate) = lazy {
+				invoke(name, logLevel, threadName, isDaemon, template)
+			}
 		}
 	}
 	
