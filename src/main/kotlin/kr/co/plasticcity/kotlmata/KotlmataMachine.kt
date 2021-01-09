@@ -676,214 +676,6 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override val currentState: STATE
-			get()
-			{
-				this@ModifyImpl shouldNot expired
-				return this@KotlmataMachineImpl.current.tag
-			}
-		
-		override val has = object : Has
-		{
-			val stop = object : Has.Or
-			{
-				override fun or(block: () -> Unit)
-				{
-					/* do nothing */
-				}
-			}
-			
-			val or = object : Has.Or
-			{
-				override fun or(block: () -> Unit)
-				{
-					block()
-				}
-			}
-			
-			override fun state(state: STATE) = object : Has.Then
-			{
-				override fun then(block: () -> Unit): Has.Or
-				{
-					this@ModifyImpl shouldNot expired
-					return if (state in stateMap)
-					{
-						block()
-						stop
-					}
-					else
-					{
-						or
-					}
-				}
-			}
-			
-			override fun rule(ruleLeft: RuleLeft) = object : Has.Then
-			{
-				override fun then(block: () -> Unit): Has.Or
-				{
-					this@ModifyImpl shouldNot expired
-					return ruleMap[ruleLeft.from, ruleLeft.signal]?.run {
-						block()
-						stop
-					} ?: or
-				}
-			}
-		}
-		
-		override val insert = object : Insert
-		{
-			override fun <T : STATE> state(state: T) = object : Insert.By<T>
-			{
-				override fun by(block: StateTemplate<T>)
-				{
-					this@ModifyImpl shouldNot expired
-					if (state !in stateMap)
-					{
-						state.invoke(block)
-					}
-				}
-			}
-			
-			override fun rule(ruleLeft: RuleLeft) = object : Insert.RemAssign
-			{
-				override fun remAssign(state: STATE)
-				{
-					this@ModifyImpl shouldNot expired
-					ruleMap[ruleLeft.from, ruleLeft.signal] ?: run {
-						ruleLeft %= state
-					}
-				}
-			}
-			
-			override fun or(keyword: Replace) = object : Insert.State
-			{
-				override fun <T : STATE> state(state: T) = object : Insert.By<T>
-				{
-					override fun by(block: StateTemplate<T>)
-					{
-						this@ModifyImpl shouldNot expired
-						state.invoke(block)
-					}
-				}
-			}
-			
-			override fun or(keyword: Update) = object : Insert.Rule
-			{
-				override fun rule(ruleLeft: RuleLeft) = object : Insert.RemAssign
-				{
-					override fun remAssign(state: STATE)
-					{
-						this@ModifyImpl shouldNot expired
-						ruleLeft %= state
-					}
-				}
-			}
-		}
-		
-		override val replace = object : Replace
-		{
-			override fun <T : STATE> state(state: T) = object : Replace.By<T>
-			{
-				override fun by(block: StateTemplate<T>)
-				{
-					this@ModifyImpl shouldNot expired
-					if (state in stateMap)
-					{
-						state.invoke(block)
-					}
-				}
-			}
-		}
-		
-		override val update = object : Update
-		{
-			override fun <T : STATE> state(state: T) = object : Update.By<T>
-			{
-				val stop = object : Update.Or<T>
-				{
-					override fun or(block: StateTemplate<T>)
-					{
-						/* do nothing */
-					}
-				}
-				
-				val or = object : Update.Or<T>
-				{
-					override fun or(block: StateTemplate<T>)
-					{
-						state.invoke(block)
-					}
-				}
-				
-				@Suppress("UNCHECKED_CAST")
-				override fun by(block: KotlmataMutableState.Modify.(T) -> Unit): Update.Or<T>
-				{
-					this@ModifyImpl shouldNot expired
-					return if (state in stateMap)
-					{
-						stateMap[state]!!.modify(block as KotlmataMutableState.Modify.(STATE) -> Unit)
-						stop
-					}
-					else
-					{
-						or
-					}
-				}
-			}
-			
-			override fun rule(ruleLeft: RuleLeft) = object : Update.RemAssign
-			{
-				override fun remAssign(state: STATE)
-				{
-					this@ModifyImpl shouldNot expired
-					ruleMap[ruleLeft.from, ruleLeft.signal]?.run {
-						ruleLeft %= state
-					}
-				}
-			}
-		}
-		
-		override val delete = object : Delete
-		{
-			override fun state(state: STATE)
-			{
-				this@ModifyImpl shouldNot expired
-				stateMap -= state
-			}
-			
-			override fun state(keyword: all)
-			{
-				this@ModifyImpl shouldNot expired
-				stateMap.clear()
-			}
-			
-			override fun rule(ruleLeft: RuleLeft)
-			{
-				this@ModifyImpl shouldNot expired
-				ruleMap[ruleLeft.from]?.let { map2 ->
-					map2 -= ruleLeft.signal
-				}
-			}
-			
-			override fun rule(keyword: of) = object : Delete.State
-			{
-				override fun state(state: STATE)
-				{
-					this@ModifyImpl shouldNot expired
-					ruleMap -= state
-					predicatesMap -= state
-				}
-			}
-			
-			override fun rule(keyword: all)
-			{
-				this@ModifyImpl shouldNot expired
-				ruleMap.clear()
-				predicatesMap.clear()
-			}
-		}
-		
 		override fun <S : STATE> S.invoke(block: StateTemplate<S>)
 		{
 			this@ModifyImpl shouldNot expired
@@ -1375,6 +1167,218 @@ private class KotlmataMachineImpl(
 						}
 					}
 				}
+			}
+		}
+		
+		/*###################################################################################################################################
+		 * Modify
+		 *###################################################################################################################################*/
+		
+		override val currentState: STATE
+			get()
+			{
+				this@ModifyImpl shouldNot expired
+				return this@KotlmataMachineImpl.current.tag
+			}
+		
+		override val has = object : Has
+		{
+			val stop = object : Has.Or
+			{
+				override fun or(block: () -> Unit)
+				{
+					/* do nothing */
+				}
+			}
+			
+			val or = object : Has.Or
+			{
+				override fun or(block: () -> Unit)
+				{
+					block()
+				}
+			}
+			
+			override fun state(state: STATE) = object : Has.Then
+			{
+				override fun then(block: () -> Unit): Has.Or
+				{
+					this@ModifyImpl shouldNot expired
+					return if (state in stateMap)
+					{
+						block()
+						stop
+					}
+					else
+					{
+						or
+					}
+				}
+			}
+			
+			override fun rule(ruleLeft: RuleLeft) = object : Has.Then
+			{
+				override fun then(block: () -> Unit): Has.Or
+				{
+					this@ModifyImpl shouldNot expired
+					return ruleMap[ruleLeft.from, ruleLeft.signal]?.run {
+						block()
+						stop
+					} ?: or
+				}
+			}
+		}
+		
+		override val insert = object : Insert
+		{
+			override fun <T : STATE> state(state: T) = object : Insert.By<T>
+			{
+				override fun by(block: StateTemplate<T>)
+				{
+					this@ModifyImpl shouldNot expired
+					if (state !in stateMap)
+					{
+						state.invoke(block)
+					}
+				}
+			}
+			
+			override fun rule(ruleLeft: RuleLeft) = object : Insert.RemAssign
+			{
+				override fun remAssign(state: STATE)
+				{
+					this@ModifyImpl shouldNot expired
+					ruleMap[ruleLeft.from, ruleLeft.signal] ?: run {
+						ruleLeft %= state
+					}
+				}
+			}
+			
+			override fun or(keyword: Replace) = object : Insert.State
+			{
+				override fun <T : STATE> state(state: T) = object : Insert.By<T>
+				{
+					override fun by(block: StateTemplate<T>)
+					{
+						this@ModifyImpl shouldNot expired
+						state.invoke(block)
+					}
+				}
+			}
+			
+			override fun or(keyword: Update) = object : Insert.Rule
+			{
+				override fun rule(ruleLeft: RuleLeft) = object : Insert.RemAssign
+				{
+					override fun remAssign(state: STATE)
+					{
+						this@ModifyImpl shouldNot expired
+						ruleLeft %= state
+					}
+				}
+			}
+		}
+		
+		override val replace = object : Replace
+		{
+			override fun <T : STATE> state(state: T) = object : Replace.By<T>
+			{
+				override fun by(block: StateTemplate<T>)
+				{
+					this@ModifyImpl shouldNot expired
+					if (state in stateMap)
+					{
+						state.invoke(block)
+					}
+				}
+			}
+		}
+		
+		override val update = object : Update
+		{
+			override fun <T : STATE> state(state: T) = object : Update.By<T>
+			{
+				val stop = object : Update.Or<T>
+				{
+					override fun or(block: StateTemplate<T>)
+					{
+						/* do nothing */
+					}
+				}
+				
+				val or = object : Update.Or<T>
+				{
+					override fun or(block: StateTemplate<T>)
+					{
+						state.invoke(block)
+					}
+				}
+				
+				@Suppress("UNCHECKED_CAST")
+				override fun by(block: KotlmataMutableState.Modify.(T) -> Unit): Update.Or<T>
+				{
+					this@ModifyImpl shouldNot expired
+					return if (state in stateMap)
+					{
+						stateMap[state]!!.modify(block as KotlmataMutableState.Modify.(STATE) -> Unit)
+						stop
+					}
+					else
+					{
+						or
+					}
+				}
+			}
+			
+			override fun rule(ruleLeft: RuleLeft) = object : Update.RemAssign
+			{
+				override fun remAssign(state: STATE)
+				{
+					this@ModifyImpl shouldNot expired
+					ruleMap[ruleLeft.from, ruleLeft.signal]?.run {
+						ruleLeft %= state
+					}
+				}
+			}
+		}
+		
+		override val delete = object : Delete
+		{
+			override fun state(state: STATE)
+			{
+				this@ModifyImpl shouldNot expired
+				stateMap -= state
+			}
+			
+			override fun state(keyword: all)
+			{
+				this@ModifyImpl shouldNot expired
+				stateMap.clear()
+			}
+			
+			override fun rule(ruleLeft: RuleLeft)
+			{
+				this@ModifyImpl shouldNot expired
+				ruleMap[ruleLeft.from]?.let { map2 ->
+					map2 -= ruleLeft.signal
+				}
+			}
+			
+			override fun rule(keyword: of) = object : Delete.State
+			{
+				override fun state(state: STATE)
+				{
+					this@ModifyImpl shouldNot expired
+					ruleMap -= state
+					predicatesMap -= state
+				}
+			}
+			
+			override fun rule(keyword: all)
+			{
+				this@ModifyImpl shouldNot expired
+				ruleMap.clear()
+				predicatesMap.clear()
 			}
 		}
 		
