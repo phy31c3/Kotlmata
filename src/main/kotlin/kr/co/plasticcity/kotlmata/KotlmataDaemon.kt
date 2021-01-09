@@ -212,8 +212,8 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 		}
 	}
 	
-	operator fun invoke(block: KotlmataMutableMachine.Modifier.() -> Unit) = modify(block)
-	infix fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	operator fun invoke(block: KotlmataMutableMachine.Modify.() -> Unit) = modify(block)
+	infix fun modify(block: KotlmataMutableMachine.Modify.() -> Unit)
 }
 
 private class LifecycleDef(val callback: DaemonCallback, val fallback: DaemonFallback? = null, val finally: DaemonCallback? = null)
@@ -562,7 +562,7 @@ private class KotlmataDaemonImpl(
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun modify(block: KotlmataMutableMachine.Modifier.() -> Unit)
+	override fun modify(block: KotlmataMutableMachine.Modify.() -> Unit)
 	{
 		val modifyR = Modify(block)
 		logLevel.detail(name, modifyR) { DAEMON_PUT_REQUEST }
@@ -692,7 +692,7 @@ private class KotlmataDaemonImpl(
 		class Stop(payload: Any?) : Control(payload)
 		class Terminate(payload: Any?, val shouldInterrupt: Boolean = true) : Control(payload)
 		
-		class Modify(val block: KotlmataMutableMachine.Modifier.() -> Unit) : Request(MODIFY)
+		class Modify(val block: KotlmataMutableMachine.Modify.() -> Unit) : Request(MODIFY)
 		
 		class Sync(val signal: SIGNAL, val type: KClass<SIGNAL>?, val payload: Any?) : Request(SYNC, "signal: $signal, type: ${type?.let { "${it.simpleName}::class, payload: $payload" } ?: "null"}")
 		

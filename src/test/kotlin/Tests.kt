@@ -154,7 +154,7 @@ class Tests
 			
 			update state "state1" by { state ->
 				input signal String::class function { s -> println("$state: 수정된 String 타입 입력함수: $s") }
-				delete action exit
+				delete action entry via { s: Int -> s < 10 }
 			}
 			
 			insert state "state2" by { state ->
@@ -168,20 +168,20 @@ class Tests
 		machine.input("some string")
 		machine.input("goToState2")
 		
-		var modifier: KotlmataMutableMachine.Modifier? = null
+		var modify: KotlmataMutableMachine.Modify? = null
 		machine {
 			println("현재 상태: $currentState")
-			modifier = this
+			modify = this
 		}
 		
-		println("현재 상태를 외부에서 확인: ${modifier?.currentState}")
+		println("현재 상태를 외부에서 확인: ${modify?.currentState}")
 	}
 	
 	@Test
 	fun daemonTest()
 	{
 		var shouldGC: WeakReference<KotlmataState.Init>? = null
-		var expire: KotlmataMutableState.Modifier? = null
+		var expire: KotlmataMutableState.Modify? = null
 		var thread: Thread? = null
 		
 		val base : DaemonBase = {
