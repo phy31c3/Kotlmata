@@ -112,6 +112,7 @@ interface KotlmataMachine
 	{
 		operator fun <S : STATE> S.invoke(block: StateTemplate<S>)
 		infix fun <S : T, T : STATE> S.extends(template: StateTemplate<T>): With<S>
+		infix fun <S : T, T : STATE> S.update(block: KotlmataMutableState.Update.(state: T) -> Unit)
 		
 		interface With<S : STATE>
 		{
@@ -620,6 +621,13 @@ private class KotlmataMachineImpl(
 				this@UpdateImpl shouldNot expired
 				state.update(block)
 			}
+		}
+		
+		@Suppress("UNCHECKED_CAST")
+		override fun <S : T, T : STATE> S.update(block: KotlmataMutableState.Update.(state: T) -> Unit)
+		{
+			this@UpdateImpl shouldNot expired
+			stateMap[this]?.update(block as KotlmataMutableState.Update.(STATE) -> Unit)
 		}
 		
 		override fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
