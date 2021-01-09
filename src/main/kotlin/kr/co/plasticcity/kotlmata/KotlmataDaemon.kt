@@ -301,10 +301,10 @@ private class KotlmataDaemonImpl(
 				entry action {
 					logLevel.normal(name) { DAEMON_START_CREATE }
 					machine = KotlmataMutableMachine.create(name, logLevel, "Daemon[$name]:$suffix") {
-						CREATED { /* for creating state */ }
+						`Initial state for KotlmataDaemon` { /* for creating state */ }
 						val init = InitImpl(block, this)
-						CREATED x any %= init.startAt
-						start at CREATED
+						`Initial state for KotlmataDaemon` x any %= init.startAt
+						start at `Initial state for KotlmataDaemon`
 					}
 					logLevel.normal(name) { DAEMON_END_CREATE }
 				} finally {

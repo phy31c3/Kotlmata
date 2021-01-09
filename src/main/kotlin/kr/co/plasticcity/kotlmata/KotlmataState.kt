@@ -186,7 +186,7 @@ private class KotlmataStateImpl<T : STATE>(
 	init
 	{
 		ModifierImpl(block)
-		if (tag !== CREATED)
+		if (tag !== `Initial state for KotlmataDaemon`)
 		{
 			logLevel.normal(prefix, tag) { STATE_CREATED }
 		}
@@ -322,7 +322,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: input?.also {
 			logLevel.normal(prefix, tag, signal) { STATE_RUN_INPUT_DEFAULT }
 		} ?: null.also {
-			if (tag !== CREATED) logLevel.normal(prefix, tag, signal) { STATE_NO_INPUT }
+			if (tag !== `Initial state for KotlmataDaemon`) logLevel.normal(prefix, tag, signal) { STATE_NO_INPUT }
 		}
 		
 		return inputDef?.run(signal, payload)
@@ -343,7 +343,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: input?.also {
 			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_RUN_INPUT_DEFAULT_TYPED }
 		} ?: null.also {
-			if (tag !== CREATED) logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_INPUT_TYPED }
+			if (tag !== `Initial state for KotlmataDaemon`) logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_INPUT_TYPED }
 		}
 		
 		return inputDef?.run(signal, payload)
@@ -372,7 +372,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: exit?.also {
 			logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT_DEFAULT }
 		} ?: null.also {
-			if (tag !== CREATED) logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
+			if (tag !== `Initial state for KotlmataDaemon`) logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
 		}
 		
 		exitDef?.run(signal, to)
@@ -393,7 +393,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: exit?.also {
 			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_RUN_EXIT_DEFAULT_TYPED }
 		} ?: null.also {
-			if (tag !== CREATED) logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_EXIT_TYPED }
+			if (tag !== `Initial state for KotlmataDaemon`) logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_EXIT_TYPED }
 		}
 		
 		exitDef?.run(signal, to)

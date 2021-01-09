@@ -436,16 +436,15 @@ private class KotlmataMachineImpl(
 		logLevel.normal(prefix) { MACHINE_END_BUILD }
 	}
 	
-	private inline fun <T> tryCatchReturn(block: () -> T?): T? = try
+	private inline fun tryCatchReturn(block: () -> Any?): Any? = try
 	{
 		block()
 	}
 	catch (e: Throwable)
 	{
-		onError?.also { onError ->
+		onError?.let { onError ->
 			ErrorActionReceiver(e).onError()
 		} ?: throw e
-		null
 	}
 	
 	private fun TransitionDef.call(from: STATE, signal: SIGNAL, to: STATE)
@@ -515,16 +514,18 @@ private class KotlmataMachineImpl(
 		val from = currentState.tag
 		
 		tryCatchReturn {
-			if (from !== CREATED)
+			if (from !== `Initial state for KotlmataDaemon`)
 			{
 				logLevel.normal(prefix, signal, payload, from) { MACHINE_START_INPUT }
 			}
 			currentState.input(signal, payload)
 		}.also {
-			if (from !== CREATED)
+			if (from !== `Initial state for KotlmataDaemon`)
 			{
 				logLevel.normal(prefix, signal, payload, from) { MACHINE_END_INPUT }
 			}
+		}.also { inputReturn ->
+			if (inputReturn == stay) return
 		}.convertToSync()?.also { sync ->
 			block(sync)
 		} ?: run {
@@ -566,6 +567,8 @@ private class KotlmataMachineImpl(
 			currentState.input(signal, type, payload)
 		}.also {
 			logLevel.normal(prefix, signal, "${type.simpleName}::class", payload, from) { MACHINE_END_TYPED_INPUT }
+		}.also { inputReturn ->
+			if (inputReturn == stay) return
 		}.convertToSync()?.also { sync ->
 			block(sync)
 		} ?: run {
