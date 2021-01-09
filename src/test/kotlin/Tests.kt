@@ -184,9 +184,9 @@ class Tests
 		var expire: KotlmataMutableState.Modifier? = null
 		var thread: Thread? = null
 		
-		fun template(msg: String, block: DaemonTemplate): DaemonTemplate = { daemon ->
+		val base : DaemonBase = {
 			on error {
-				println("$msg: $throwable")
+				println("템플릿에서 정의: $throwable")
 			}
 			on fatal {
 				println("치명적인 에러: $throwable")
@@ -200,13 +200,9 @@ class Tests
 			} catch { _, _, _ ->
 				println("${throwable}: on transition catch 에서 해결")
 			}
-			
-			block(daemon)
-			
-			start at "state1"
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 2) by template("템플릿에서 정의") { daemon ->
+		val daemon by KotlmataMutableDaemon.lazy("d1", 2) extends base by { daemon ->
 			on create {
 				println("--------------------- 데몬이 생성됨")
 				thread = Thread.currentThread()

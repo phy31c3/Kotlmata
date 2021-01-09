@@ -1,6 +1,8 @@
 package kr.co.plasticcity.kotlmata
 
 import kr.co.plasticcity.kotlmata.KotlmataMachine.*
+import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
+import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.*
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modifier
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Modifier.*
@@ -23,9 +25,17 @@ interface KotlmataMachine
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : InvokeBy
+		) = object : Extends<MachineBase, MachineTemplate, KotlmataMachine>
 		{
-			override fun by(block: MachineTemplate) = invoke(name, logLevel, block)
+			override fun extends(base: MachineBase) = object : By<MachineTemplate, KotlmataMachine>
+			{
+				override fun by(template: MachineTemplate) = invoke(name, logLevel) { machine ->
+					base(machine)
+					template(machine)
+				}
+			}
+			
+			override fun by(template: MachineTemplate) = invoke(name, logLevel, template)
 		}
 		
 		fun lazy(
@@ -39,27 +49,35 @@ interface KotlmataMachine
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : LazyBy
+		) = object : Extends<MachineBase, MachineTemplate, Lazy<KotlmataMachine>>
 		{
-			override fun by(block: MachineTemplate) = lazy { invoke(name, logLevel, block) }
+			override fun extends(base: MachineBase) = object : By<MachineTemplate, Lazy<KotlmataMachine>>
+			{
+				override fun by(template: MachineTemplate) = lazy {
+					invoke(name, logLevel) extends base by template
+				}
+			}
+			
+			override fun by(template: MachineTemplate) = lazy {
+				invoke(name, logLevel, template)
+			}
 		}
 		
-		interface InvokeBy
+		interface Extends<B, T, R> : By<T, R>
 		{
-			infix fun by(block: MachineTemplate): KotlmataMachine
+			infix fun extends(base: B): By<T, R>
 		}
 		
-		interface LazyBy
+		interface By<T, R>
 		{
-			infix fun by(block: MachineTemplate): Lazy<KotlmataMachine>
+			infix fun by(template: T): R
 		}
 	}
 	
 	@KotlmataMarker
-	interface Init : StateDefine, RuleDefine
+	interface Base : StateDefine, RuleDefine
 	{
 		val on: On
-		val start: Start
 		
 		interface On
 		{
@@ -76,6 +94,11 @@ interface KotlmataMachine
 		{
 			infix fun finally(finally: TransitionCallback)
 		}
+	}
+	
+	interface Init : Base
+	{
+		val start: Start
 		
 		interface Start
 		{
@@ -235,9 +258,17 @@ interface KotlmataMutableMachine : KotlmataMachine
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : InvokeBy
+		) = object : Extends<MachineBase, MachineTemplate, KotlmataMutableMachine>
 		{
-			override fun by(block: MachineTemplate) = invoke(name, logLevel, block)
+			override fun extends(base: MachineBase) = object : By<MachineTemplate, KotlmataMutableMachine>
+			{
+				override fun by(template: MachineTemplate) = invoke(name, logLevel) { machine ->
+					base(machine)
+					template(machine)
+				}
+			}
+			
+			override fun by(template: MachineTemplate) = invoke(name, logLevel, template)
 		}
 		
 		fun lazy(
@@ -251,19 +282,18 @@ interface KotlmataMutableMachine : KotlmataMachine
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : LazyBy
+		) = object : Extends<MachineBase, MachineTemplate, Lazy<KotlmataMutableMachine>>
 		{
-			override fun by(block: MachineTemplate) = lazy { invoke(name, logLevel, block) }
-		}
-		
-		interface InvokeBy
-		{
-			infix fun by(block: MachineTemplate): KotlmataMutableMachine
-		}
-		
-		interface LazyBy
-		{
-			infix fun by(block: MachineTemplate): Lazy<KotlmataMutableMachine>
+			override fun extends(base: MachineBase) = object : By<MachineTemplate, Lazy<KotlmataMutableMachine>>
+			{
+				override fun by(template: MachineTemplate) = lazy {
+					invoke(name, logLevel) extends base by template
+				}
+			}
+			
+			override fun by(template: MachineTemplate) = lazy {
+				invoke(name, logLevel, template)
+			}
 		}
 		
 		internal fun create(
@@ -592,19 +622,19 @@ private class KotlmataMachineImpl(
 		modify: (Modifier.() -> Unit)? = null
 	) : Init, Modifier, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_MODIFIER } })
 	{
-		override val on = object : Init.On
+		override val on = object : Base.On
 		{
-			override fun transition(callback: TransitionCallback): Init.Catch
+			override fun transition(callback: TransitionCallback): Base.Catch
 			{
 				this@ModifierImpl shouldNot expired
 				onTransition = TransitionDef(callback)
-				return object : Init.Catch
+				return object : Base.Catch
 				{
-					override fun catch(fallback: TransitionFallback): Init.Finally
+					override fun catch(fallback: TransitionFallback): Base.Finally
 					{
 						this@ModifierImpl shouldNot expired
 						onTransition = TransitionDef(callback, fallback)
-						return object : Init.Finally
+						return object : Base.Finally
 						{
 							override fun finally(finally: TransitionCallback)
 							{
