@@ -25,8 +25,8 @@ interface KotlmataState<T : STATE>
 	{
 		infix fun action(action: EntryAction<SIGNAL>): Catch<SIGNAL> = function(action)
 		infix fun function(function: EntryFunction<SIGNAL>): Catch<SIGNAL>
-		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
+		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signals: StatesOrSignals<T>): Action<T>
 		infix fun <T : SIGNAL> via(predicate: (T) -> Boolean): Action<T>
 		infix fun <T> via(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = via { t: T -> range.contains(t) }
@@ -53,8 +53,8 @@ interface KotlmataState<T : STATE>
 	{
 		infix fun action(action: InputAction<SIGNAL>): Catch<SIGNAL> = function(action)
 		infix fun function(function: InputFunction<SIGNAL>): Catch<SIGNAL>
-		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> signal(signal: T): Action<T>
+		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> signal(signals: StatesOrSignals<T>): Action<T>
 		infix fun <T : SIGNAL> signal(predicate: (T) -> Boolean): Action<T>
 		infix fun <T> signal(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = signal { t: T -> range.contains(t) }
@@ -80,8 +80,8 @@ interface KotlmataState<T : STATE>
 	interface Exit
 	{
 		infix fun action(action: ExitAction<SIGNAL>): Catch<SIGNAL>
-		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
+		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
 		infix fun <T : SIGNAL> via(signals: StatesOrSignals<T>): Action<T>
 		infix fun <T : SIGNAL> via(predicate: (T) -> Boolean): Action<T>
 		infix fun <T> via(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = via { t: T -> range.contains(t) }
@@ -477,7 +477,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> via(signal: KClass<T>) = object : Entry.Action<T>
+			override fun <T : SIGNAL> via(signal: T) = object : Entry.Action<T>
 			{
 				override fun function(function: EntryFunction<T>): Entry.Catch<T>
 				{
@@ -508,7 +508,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> via(signal: T) = object : Entry.Action<T>
+			override fun <T : SIGNAL> via(signal: KClass<T>) = object : Entry.Action<T>
 			{
 				override fun function(function: EntryFunction<T>): Entry.Catch<T>
 				{
@@ -645,7 +645,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> signal(signal: KClass<T>) = object : Input.Action<T>
+			override fun <T : SIGNAL> signal(signal: T) = object : Input.Action<T>
 			{
 				override fun function(function: InputFunction<T>): Input.Catch<T>
 				{
@@ -676,7 +676,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> signal(signal: T) = object : Input.Action<T>
+			override fun <T : SIGNAL> signal(signal: KClass<T>) = object : Input.Action<T>
 			{
 				override fun function(function: InputFunction<T>): Input.Catch<T>
 				{
@@ -815,7 +815,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> via(signal: KClass<T>) = object : Exit.Action<T>
+			override fun <T : SIGNAL> via(signal: T) = object : Exit.Action<T>
 			{
 				override fun action(action: ExitAction<T>): Exit.Catch<T>
 				{
@@ -846,7 +846,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> via(signal: T) = object : Exit.Action<T>
+			override fun <T : SIGNAL> via(signal: KClass<T>) = object : Exit.Action<T>
 			{
 				override fun action(action: ExitAction<T>): Exit.Catch<T>
 				{
