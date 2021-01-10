@@ -25,12 +25,15 @@ internal class Logs
 		const val DAEMON_END_REQUEST = "Daemon[%s]: << REQUEST {spent: %sms} %s"
 		
 		/* Machine */
-		const val MACHINE_START_BUILD = "%s build {"
-		const val MACHINE_START_UPDATE = "%s update (state: %s) {"
-		const val MACHINE_START_INPUT = "%s input (state: %s, signal: %s, payload: %s) {"
-		const val MACHINE_START_TYPED_INPUT = "%s input (state: %s, signal: %s, type: %s, payload: %s) {"
-		const val MACHINE_START_TRANSITION = "%s [%s] x (%s) -> [%s]"
-		const val MACHINE_START_TRANSITION_TAB = "%s     [%s] x (%s) -> [%s]"
+		const val MACHINE_BUILD = "%s build {"
+		const val MACHINE_UPDATE = "%s update (state: %s) {"
+		const val MACHINE_INPUT = "%s input (state: %s, signal: %s, payload: %s) {"
+		const val MACHINE_TYPED_INPUT = "%s input (state: %s, signal: %s, type: %s, payload: %s) {"
+		const val MACHINE_TRANSITION = "%s [%s] x (%s) -> [%s]"
+		const val MACHINE_TRANSITION_TAB = "%s     [%s] x (%s) -> [%s]"
+		const val MACHINE_ON_TRANSITION = "%s     on transition registered"
+		const val MACHINE_ON_ERROR = "%s     on error registered"
+		const val MACHINE_START_AT = "%s     start at [%s]"
 		const val MACHINE_END = "%s }"
 		
 		/* State */

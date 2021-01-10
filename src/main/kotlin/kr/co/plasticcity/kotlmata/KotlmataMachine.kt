@@ -354,7 +354,7 @@ private class KotlmataMachineImpl(
 	
 	init
 	{
-		logLevel.normal(prefix) { MACHINE_START_BUILD }
+		logLevel.normal(prefix) { MACHINE_BUILD }
 		UpdateImpl(init = block)
 		logLevel.normal(prefix) { MACHINE_END }
 	}
@@ -438,7 +438,7 @@ private class KotlmataMachineImpl(
 		
 		if (from !== `Initial state for KotlmataDaemon`)
 		{
-			logLevel.normal(prefix, from, signal, payload) { MACHINE_START_INPUT }
+			logLevel.normal(prefix, from, signal, payload) { MACHINE_INPUT }
 		}
 		tryCatchReturn {
 			currentState.input(signal, payload)
@@ -465,9 +465,9 @@ private class KotlmataMachineImpl(
 			tryCatchReturn { currentState.exit(signal, to) }
 			logLevel.simple(prefix, from, signal, to) {
 				if (logLevel > SIMPLE)
-					MACHINE_START_TRANSITION_TAB
+					MACHINE_TRANSITION_TAB
 				else
-					MACHINE_START_TRANSITION
+					MACHINE_TRANSITION
 			}
 			onTransition?.call(from, signal, to)
 			current = nextState
@@ -488,7 +488,7 @@ private class KotlmataMachineImpl(
 		val currentState = current
 		val from = currentState.tag
 		
-		logLevel.normal(prefix, from, signal, "${type.simpleName}::class", payload) { MACHINE_START_TYPED_INPUT }
+		logLevel.normal(prefix, from, signal, "${type.simpleName}::class", payload) { MACHINE_TYPED_INPUT }
 		tryCatchReturn {
 			currentState.input(signal, type, payload)
 		}.also { inputReturn ->
@@ -514,9 +514,9 @@ private class KotlmataMachineImpl(
 			tryCatchReturn { currentState.exit(signal, type, to) }
 			logLevel.simple(prefix, from, "${type.simpleName}::class", to) {
 				if (logLevel > SIMPLE)
-					MACHINE_START_TRANSITION_TAB
+					MACHINE_TRANSITION_TAB
 				else
-					MACHINE_START_TRANSITION
+					MACHINE_TRANSITION
 			}
 			onTransition?.call(from, signal, to)
 			current = nextState
@@ -539,7 +539,7 @@ private class KotlmataMachineImpl(
 	
 	override fun update(block: Update.() -> Unit)
 	{
-		logLevel.normal(prefix, current.tag) { MACHINE_START_UPDATE }
+		logLevel.normal(prefix, current.tag) { MACHINE_UPDATE }
 		UpdateImpl(update = block)
 		logLevel.normal(prefix) { MACHINE_END }
 	}
@@ -560,6 +560,7 @@ private class KotlmataMachineImpl(
 			{
 				this@UpdateImpl shouldNot expired
 				onTransition = TransitionDef(callback)
+				logLevel.normal(prefix) { MACHINE_ON_TRANSITION }
 				return object : Base.Catch
 				{
 					override fun catch(fallback: TransitionFallback): Base.Finally
@@ -588,6 +589,7 @@ private class KotlmataMachineImpl(
 			{
 				this@UpdateImpl shouldNot expired
 				onError = block
+				logLevel.normal(prefix) { MACHINE_ON_ERROR }
 			}
 		}
 		
@@ -599,6 +601,7 @@ private class KotlmataMachineImpl(
 				
 				stateMap[state]?.also {
 					this@KotlmataMachineImpl.current = it
+					logLevel.normal(prefix, state) { MACHINE_START_AT }
 				} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_START_STATE }
 				
 				return Init.End()
