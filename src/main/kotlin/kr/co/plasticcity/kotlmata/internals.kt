@@ -151,7 +151,7 @@ internal class Predicates
 	
 	fun test(signal: Any): ((Any) -> Boolean)?
 	{
-		return set.reversed().firstOrNull { predicate ->
+		return set.firstOrNull { predicate ->
 			try
 			{
 				predicate(signal)
