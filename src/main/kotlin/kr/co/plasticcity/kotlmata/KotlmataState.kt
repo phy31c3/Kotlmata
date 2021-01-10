@@ -178,9 +178,9 @@ private class KotlmataStateImpl<T : STATE>(
 	private var exitMap: MutableMap<SIGNAL, ExitDef>? = null
 	private var onError: StateErrorCallback? = null
 	
-	private var entryPredicates: Predicates? = null
-	private var inputPredicates: Predicates? = null
-	private var exitPredicates: Predicates? = null
+	private var entryTester: Tester? = null
+	private var inputTester: Tester? = null
+	private var exitTester: Tester? = null
 	
 	init
 	{
@@ -263,7 +263,7 @@ private class KotlmataStateImpl<T : STATE>(
 					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class") { STATE_RUN_ENTRY_VIA }
 					it[signal::class]
 				}
-				else -> entryPredicates?.test(signal)?.let { predicate ->
+				else -> entryTester?.test(signal)?.let { predicate ->
 					logLevel.normal(prefix, tag) { STATE_RUN_ENTRY_PREDICATE }
 					it[predicate]
 				}
@@ -313,7 +313,7 @@ private class KotlmataStateImpl<T : STATE>(
 					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class") { STATE_RUN_INPUT_SIGNAL }
 					it[signal::class]
 				}
-				else -> inputPredicates?.test(signal)?.let { predicate ->
+				else -> inputTester?.test(signal)?.let { predicate ->
 					logLevel.normal(prefix, tag) { STATE_RUN_INPUT_PREDICATE }
 					it[predicate]
 				}
@@ -363,7 +363,7 @@ private class KotlmataStateImpl<T : STATE>(
 					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class") { STATE_RUN_EXIT_VIA }
 					it[signal::class]
 				}
-				else -> exitPredicates?.test(signal)?.let { predicate ->
+				else -> exitTester?.test(signal)?.let { predicate ->
 					logLevel.normal(prefix, tag) { STATE_RUN_EXIT_PREDICATE }
 					it[predicate]
 				}
@@ -428,19 +428,19 @@ private class KotlmataStateImpl<T : STATE>(
 				this@KotlmataStateImpl.exitMap = it
 			}
 		
-		private val entryPredicates: Predicates
-			get() = this@KotlmataStateImpl.entryPredicates ?: Predicates().also {
-				this@KotlmataStateImpl.entryPredicates = it
+		private val entryTester: Tester
+			get() = this@KotlmataStateImpl.entryTester ?: Tester().also {
+				this@KotlmataStateImpl.entryTester = it
 			}
 		
-		private val inputPredicates: Predicates
-			get() = this@KotlmataStateImpl.inputPredicates ?: Predicates().also {
-				this@KotlmataStateImpl.inputPredicates = it
+		private val inputTester: Tester
+			get() = this@KotlmataStateImpl.inputTester ?: Tester().also {
+				this@KotlmataStateImpl.inputTester = it
 			}
 		
-		private val exitPredicates: Predicates
-			get() = this@KotlmataStateImpl.exitPredicates ?: Predicates().also {
-				this@KotlmataStateImpl.exitPredicates = it
+		private val exitTester: Tester
+			get() = this@KotlmataStateImpl.exitTester ?: Tester().also {
+				this@KotlmataStateImpl.exitTester = it
 			}
 		
 		/*###################################################################################################################################
@@ -584,7 +584,7 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun function(function: EntryFunction<T>): Entry.Catch<T>
 				{
 					this@UpdateImpl shouldNot expired
-					entryPredicates.store(predicate)
+					entryTester.store(predicate)
 					entryMap[predicate] = EntryDef(function as EntryFunction<SIGNAL>)
 					return object : Entry.Catch<T>
 					{
@@ -753,7 +753,7 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun function(function: InputFunction<T>): Input.Catch<T>
 				{
 					this@UpdateImpl shouldNot expired
-					inputPredicates.store(predicate)
+					inputTester.store(predicate)
 					inputMap[predicate] = InputDef(function as InputFunction<SIGNAL>)
 					return object : Input.Catch<T>
 					{
@@ -923,7 +923,7 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun action(action: ExitAction<T>): Exit.Catch<T>
 				{
 					this@UpdateImpl shouldNot expired
-					exitPredicates.store(predicate)
+					exitTester.store(predicate)
 					exitMap[predicate] = ExitDef(action as ExitAction<SIGNAL>)
 					return object : Exit.Catch<T>
 					{
@@ -992,7 +992,7 @@ private class KotlmataStateImpl<T : STATE>(
 					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.entry = stash
 					entryMap.remove(predicate)
-					entryPredicates.remove(predicate)
+					entryTester.remove(predicate)
 				}
 				
 				override fun via(keyword: all)
@@ -1000,7 +1000,7 @@ private class KotlmataStateImpl<T : STATE>(
 					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.entry = stash
 					this@KotlmataStateImpl.entryMap = null
-					this@KotlmataStateImpl.entryPredicates = null
+					this@KotlmataStateImpl.entryTester = null
 				}
 			}
 			
@@ -1034,7 +1034,7 @@ private class KotlmataStateImpl<T : STATE>(
 					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.input = stash
 					inputMap.remove(predicate)
-					inputPredicates.remove(predicate)
+					inputTester.remove(predicate)
 				}
 				
 				override fun signal(keyword: all)
@@ -1042,7 +1042,7 @@ private class KotlmataStateImpl<T : STATE>(
 					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.input = stash
 					this@KotlmataStateImpl.inputMap = null
-					this@KotlmataStateImpl.inputPredicates = null
+					this@KotlmataStateImpl.inputTester = null
 				}
 			}
 			
@@ -1076,7 +1076,7 @@ private class KotlmataStateImpl<T : STATE>(
 					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.exit = stash
 					exitMap.remove(predicate)
-					exitPredicates.remove(predicate)
+					exitTester.remove(predicate)
 				}
 				
 				override fun via(keyword: all)
@@ -1084,7 +1084,7 @@ private class KotlmataStateImpl<T : STATE>(
 					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.exit = stash
 					this@KotlmataStateImpl.exitMap = null
-					this@KotlmataStateImpl.exitPredicates = null
+					this@KotlmataStateImpl.exitTester = null
 				}
 			}
 			
@@ -1097,9 +1097,9 @@ private class KotlmataStateImpl<T : STATE>(
 				this@KotlmataStateImpl.entryMap = null
 				this@KotlmataStateImpl.inputMap = null
 				this@KotlmataStateImpl.exitMap = null
-				this@KotlmataStateImpl.entryPredicates = null
-				this@KotlmataStateImpl.inputPredicates = null
-				this@KotlmataStateImpl.exitPredicates = null
+				this@KotlmataStateImpl.entryTester = null
+				this@KotlmataStateImpl.inputTester = null
+				this@KotlmataStateImpl.exitTester = null
 			}
 		}
 		

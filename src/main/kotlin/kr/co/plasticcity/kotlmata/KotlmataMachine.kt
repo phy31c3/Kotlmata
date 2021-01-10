@@ -343,7 +343,7 @@ private class KotlmataMachineImpl(
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: Mutable2DMap<STATE, SIGNAL, STATE> = Mutable2DMap()
-	private val predicatesMap: MutableMap<STATE, Predicates> = HashMap()
+	private val testerMap: MutableMap<STATE, Tester> = HashMap()
 	
 	private var onTransition: TransitionDef? = null
 	private var onError: MachineErrorCallback? = null
@@ -424,7 +424,7 @@ private class KotlmataMachineImpl(
 	{
 		fun MutableMap<SIGNAL, STATE>.test(from: STATE, signal: SIGNAL): STATE?
 		{
-			return predicatesMap[from]?.test(signal)?.let { predicate ->
+			return testerMap[from]?.test(signal)?.let { predicate ->
 				this[predicate]
 			}
 		}
@@ -863,14 +863,14 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		private fun <T : SIGNAL> store(from: STATE, predicate: (T) -> Boolean): SIGNAL
+		private fun <T : SIGNAL> STATE.store(predicate: (T) -> Boolean): SIGNAL
 		{
 			this@UpdateImpl shouldNot expired
-			predicatesMap[from]?.also { predicates ->
-				predicates.store(predicate)
-			} ?: Predicates().also { predicates ->
-				predicates.store(predicate)
-				predicatesMap[from] = predicates
+			testerMap[this]?.also { tester ->
+				tester.store(predicate)
+			} ?: Tester().also { tester ->
+				tester.store(predicate)
+				testerMap[this] = tester
 			}
 			return predicate
 		}
@@ -982,7 +982,7 @@ private class KotlmataMachineImpl(
 		override fun STATE.x(any: any) = ruleLeft(this, any)
 		override fun STATE.x(anyOf: AnyOf) = `state x anyOf`(this, anyOf)
 		override fun STATE.x(anyExcept: AnyExcept) = `state x anyExcept`(this, anyExcept)
-		override fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean) = this x store(this, predicate)
+		override fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean) = this x this.store(predicate)
 		
 		override fun StatesOrSignals<*>.x(signal: SIGNAL) = toAnyOf() x signal
 		override fun StatesOrSignals<*>.x(signal: KClass<out SIGNAL>) = toAnyOf() x signal
@@ -998,7 +998,7 @@ private class KotlmataMachineImpl(
 		override fun any.x(any: any) = ruleLeft(this, any)
 		override fun any.x(anyOf: AnyOf) = `state x anyOf`(this, anyOf)
 		override fun any.x(anyExcept: AnyExcept) = `state x anyExcept`(this, anyExcept)
-		override fun <T : SIGNAL> any.x(predicate: (T) -> Boolean) = this x store(this, predicate)
+		override fun <T : SIGNAL> any.x(predicate: (T) -> Boolean) = this x this.store(predicate)
 		
 		override fun AnyOf.x(signal: SIGNAL) = `anyOf x signal`(this, signal)
 		override fun AnyOf.x(signal: KClass<out SIGNAL>) = `anyOf x signal`(this, signal)
@@ -1143,14 +1143,14 @@ private class KotlmataMachineImpl(
 				ruleMap[ruleLeft.from]?.let { map2 ->
 					map2 -= ruleLeft.signal
 				}
-				predicatesMap[ruleLeft.from]?.remove(ruleLeft.signal)
+				testerMap[ruleLeft.from]?.remove(ruleLeft.signal)
 			}
 			
 			override fun rule(all: all)
 			{
 				this@UpdateImpl shouldNot expired
 				ruleMap.clear()
-				predicatesMap.clear()
+				testerMap.clear()
 			}
 		}
 		

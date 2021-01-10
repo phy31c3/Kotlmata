@@ -134,7 +134,7 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	}
 }
 
-internal class Predicates
+internal class Tester
 {
 	private val set = LinkedHashSet<(Any) -> Boolean>()
 	
