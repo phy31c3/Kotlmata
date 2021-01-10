@@ -461,7 +461,7 @@ private class KotlmataMachineImpl(
 			val to = nextState.tag
 			tryCatchReturn { currentState.exit(signal, to) }
 			logLevel.simple(prefix, from, signal, to) {
-				if (logLevel > SIMPLE)
+				if (logLevel >= NORMAL)
 					MACHINE_TRANSITION_TAB
 				else
 					MACHINE_TRANSITION

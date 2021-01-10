@@ -178,16 +178,6 @@ class Tests
 	@Test
 	fun daemonTest()
 	{
-		fun println(s: String)
-		{
-		
-		}
-		
-		fun println(t: Throwable)
-		{
-		
-		}
-		
 		var shouldGC: WeakReference<KotlmataState.Init>? = null
 		var expire: KotlmataMutableState.Update? = null
 		var thread: Thread? = null
@@ -210,7 +200,7 @@ class Tests
 			}
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends base by { daemon ->
+		val daemon by KotlmataMutableDaemon.lazy("d1", 2) extends base by { daemon ->
 			on create {
 				println("--------------------- 데몬이 생성됨")
 				thread = Thread.currentThread()

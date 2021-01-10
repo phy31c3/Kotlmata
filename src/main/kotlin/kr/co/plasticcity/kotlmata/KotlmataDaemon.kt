@@ -5,6 +5,7 @@ import kr.co.plasticcity.kotlmata.KotlmataDaemon.Init
 import kr.co.plasticcity.kotlmata.KotlmataDaemonImpl.Request.*
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
+import kr.co.plasticcity.kotlmata.Log.detail
 import kr.co.plasticcity.kotlmata.Log.normal
 import kr.co.plasticcity.kotlmata.Log.simple
 import java.util.*
@@ -12,7 +13,6 @@ import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import kotlin.reflect.KClass
-import kotlin.system.measureTimeMillis
 
 interface KotlmataDaemon
 {
@@ -271,14 +271,14 @@ private class KotlmataDaemonImpl(
 			lateinit var machine: KotlmataMutableMachine
 			
 			val logLevel = logLevel
-			val suffix = if (logLevel > SIMPLE) tab else ""
+			val suffix = if (logLevel >= DETAIL) tab else ""
 			
 			val update: InputAction<Update> = { updateR ->
 				machine update updateR.block
 			}
 			
 			val ignore: InputAction<Request> = {
-				logLevel.normal(name) { DAEMON_IGNORE_REQUEST }
+				logLevel.detail(name) { DAEMON_IGNORE_REQUEST }
 			}
 			
 			val postSync: (FunctionDSL.Sync) -> Unit = {
@@ -287,7 +287,7 @@ private class KotlmataDaemonImpl(
 			}
 			
 			on transition { from, signal, to ->
-				logLevel.simple(name, from, to) {
+				logLevel.detail(name, from, to) {
 					when (to as String)
 					{
 						"Created", "Terminated", "Destroyed" ->
@@ -306,20 +306,20 @@ private class KotlmataDaemonImpl(
 			}
 			"Created" {
 				val onStart: InputAction<Control> = { controlR ->
-					logLevel.simple(name, controlR.payload) { DAEMON_ON_START }
+					logLevel.simple(name, suffix, controlR.payload) { DAEMON_ON_START }
 					onStart?.call(controlR.payload)
 					machine.input(controlR.payload/* as? SIGNAL */ ?: `Start KotlmataDaemon`, block = postSync)
 				}
 				
 				entry action {
-					logLevel.normal(name, name) { DAEMON_START_CREATE }
+					logLevel.detail(name, name) { DAEMON_START_CREATE }
 					machine = KotlmataMutableMachine.create(name, logLevel, "Daemon[$name]:$suffix") {
 						`Initial state for KotlmataDaemon` { /* for creating state */ }
 						val init = InitImpl(block, this)
 						`Initial state for KotlmataDaemon` x any %= init.startAt
 						start at `Initial state for KotlmataDaemon`
 					}
-					logLevel.normal(name) { DAEMON_END_CREATE }
+					logLevel.detail(name) { DAEMON_END_CREATE }
 				} finally {
 					logLevel.simple(name) { DAEMON_ON_CREATE }
 					onCreate?.call()
@@ -338,7 +338,7 @@ private class KotlmataDaemonImpl(
 					{
 						"Paused", "Stopped" ->
 						{
-							logLevel.simple(name, runR.payload) { DAEMON_ON_RESUME }
+							logLevel.simple(name, suffix, runR.payload) { DAEMON_ON_RESUME }
 							onResume?.call(runR.payload)
 						}
 					}
@@ -362,11 +362,11 @@ private class KotlmataDaemonImpl(
 				val stash: MutableList<Request> = ArrayList()
 				val keep: InputAction<Request> = { request ->
 					stash += request
-					logLevel.normal(name) { DAEMON_KEEP_REQUEST }
+					logLevel.detail(name) { DAEMON_KEEP_REQUEST }
 				}
 				
 				entry via Pause::class action { pauseR ->
-					logLevel.simple(name, pauseR.payload) { DAEMON_ON_PAUSE }
+					logLevel.simple(name, suffix, pauseR.payload) { DAEMON_ON_PAUSE }
 					onPause?.call(pauseR.payload)
 				}
 				input signal Run::class action {
@@ -380,7 +380,7 @@ private class KotlmataDaemonImpl(
 				input signal Update::class action update
 				input signal Sync::class action { syncR ->
 					sync = syncR
-					logLevel.normal(name) { DAEMON_KEEP_REQUEST }
+					logLevel.detail(name) { DAEMON_KEEP_REQUEST }
 				}
 				input signal Input::class action keep
 				input signal TypedInput::class action keep
@@ -399,7 +399,7 @@ private class KotlmataDaemonImpl(
 				}
 				
 				entry via Stop::class action { stopR ->
-					logLevel.simple(name, stopR.payload) { DAEMON_ON_STOP }
+					logLevel.simple(name, suffix, stopR.payload) { DAEMON_ON_STOP }
 					onStop?.call(stopR.payload)
 				}
 				input signal Run::class action { runR ->
@@ -410,7 +410,7 @@ private class KotlmataDaemonImpl(
 				input signal Update::class action update
 				input signal Sync::class action { syncR ->
 					sync = syncR
-					logLevel.normal(name) { DAEMON_KEEP_REQUEST }
+					logLevel.detail(name) { DAEMON_KEEP_REQUEST }
 				}
 				input signal Input::class action ignore
 				input signal TypedInput::class action ignore
@@ -430,7 +430,7 @@ private class KotlmataDaemonImpl(
 						{
 							logLevel.simple(name, terminateR.payload) {
 								if (terminateR.isExplicit)
-									DAEMON_ON_FINISH_TAB
+									suffix + DAEMON_ON_FINISH
 								else
 									DAEMON_ON_FINISH
 							}
@@ -447,7 +447,7 @@ private class KotlmataDaemonImpl(
 			}
 			"Destroyed" {
 				entry action {
-					logLevel.normal(name) { DAEMON_ON_DESTROY }
+					logLevel.simple(name) { DAEMON_ON_DESTROY }
 					onDestroy?.call()
 				} finally {
 					onCreate = null
@@ -489,6 +489,7 @@ private class KotlmataDaemonImpl(
 			val queue = queue!!
 			val logLevel = logLevel
 			val name = name
+			var start = 0L
 			
 			try
 			{
@@ -497,11 +498,13 @@ private class KotlmataDaemonImpl(
 				while (true)
 				{
 					queue.take().also { request ->
-						logLevel.normal(name, request, queue.size) { DAEMON_START_REQUEST }
-						measureTimeMillis {
-							core.input(request)
-						}.also { time ->
-							logLevel.normal(name, time) { DAEMON_END_REQUEST }
+						logLevel.detail(name, request, queue.size) {
+							start = System.currentTimeMillis()
+							DAEMON_START_REQUEST
+						}
+						core.input(request)
+						logLevel.detail(name) {
+							DAEMON_END_REQUEST + " ${System.currentTimeMillis() - start}ms"
 						}
 					}
 				}
@@ -622,45 +625,47 @@ private class KotlmataDaemonImpl(
 				}
 			}
 			
+			private val suffix = if (logLevel >= DETAIL) tab else ""
+			
 			override fun create(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.simple(name) { DAEMON_REGISTER_ON_CREATE }
+				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_CREATE }
 				return setLifecycleDef(callback) { onCreate = it }
 			}
 			
 			override fun start(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.simple(name) { DAEMON_REGISTER_ON_START }
+				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_START }
 				return setLifecycleDef(callback) { onStart = it }
 			}
 			
 			override fun pause(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.simple(name) { DAEMON_REGISTER_ON_PAUSE }
+				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_PAUSE }
 				return setLifecycleDef(callback) { onPause = it }
 			}
 			
 			override fun stop(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.simple(name) { DAEMON_REGISTER_ON_STOP }
+				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_STOP }
 				return setLifecycleDef(callback) { onStop = it }
 			}
 			
 			override fun resume(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.simple(name) { DAEMON_REGISTER_ON_RESUME }
+				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_RESUME }
 				return setLifecycleDef(callback) { onResume = it }
 			}
 			
 			override fun finish(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.simple(name) { DAEMON_REGISTER_ON_FINISH }
+				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_FINISH }
 				return setLifecycleDef(callback) { onFinish = it }
 			}
 			
 			override fun destroy(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.simple(name) { DAEMON_REGISTER_ON_DESTROY }
+				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_DESTROY }
 				return setLifecycleDef(callback) { onDestroy = it }
 			}
 			
