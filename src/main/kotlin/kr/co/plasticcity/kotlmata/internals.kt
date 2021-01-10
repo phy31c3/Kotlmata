@@ -26,7 +26,7 @@ internal object `Initial state for KotlmataDaemon`
 	override fun toString(): String = this::class.simpleName ?: ""
 }
 
-internal const val tab: String = "   "
+internal const val tab: String = "    "
 
 internal fun Any?.convertToSync() = when (this)
 {

@@ -72,20 +72,16 @@ class Tests
 	@Test
 	fun machineTest()
 	{
-		fun template(msg: String, block: MachineTemplate): MachineTemplate = { machine ->
+		val base: MachineBase = {
 			on error {
-				println("$msg: on error")
+				println("템플릿에서 정의: on error")
 			}
 			on transition { from, signal, to ->
 				println("on transition : [$transitionCount] $from x $signal -> $to")
 			}
-			
-			block(machine)
-			
-			start at "state1"
 		}
 		
-		val machine by KotlmataMutableMachine.lazy("m1", 2) by template("템플릿에서 정의") {
+		val machine by KotlmataMutableMachine.lazy("m1", 3) extends base by {
 			"state1" { state ->
 				entry function { println("$state: 기본 진입함수") }
 				input signal String::class function { s -> println("$state: String 타입 입력함수: $s") }
@@ -95,8 +91,8 @@ class Tests
 			
 			"state2" { state ->
 				entry function { println("$state: 기본 진입함수") }
-				input signal Number::class function { s -> println("$state: Number 타입 입력함수: $s") }
-				input signal 5 function { println("state3로 이동") }
+				input signal 5 function { s -> println("$state: Number 타입 입력함수: $s") }
+				input signal Number::class function { println("state3로 이동") }
 				exit action { println("$state: 퇴장함수") }
 			}
 			
@@ -126,7 +122,7 @@ class Tests
 			}
 			
 			"state1" x "goToState2" %= "state2"
-			"state2" x 5 %= "state3"
+			"state2" x Number::class %= "state3"
 			"state3" x "goToState1" %= "state1"
 			"state1" x any.of("goToState4-1", "goToState4-2", "goToState4-3") %= "state4"
 			"simple" x "goToSimple" %= "state1"
@@ -137,8 +133,8 @@ class Tests
 		
 		machine.input("some string")
 		machine.input("goToState2")
-		machine.input(5, Number::class)
 		machine.input(5)
+		machine.input(5, Number::class)
 		machine.input("error")
 		machine.input("goToState1")
 		machine.input("goToState4-3")

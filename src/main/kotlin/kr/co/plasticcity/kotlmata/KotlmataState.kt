@@ -255,21 +255,21 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				signal in it ->
 				{
-					logLevel.normal(prefix, tag, signal) { STATE_RUN_ENTRY_OBJECT }
+					logLevel.normal(prefix, tag, signal) { STATE_RUN_ENTRY_VIA }
 					it[signal]
 				}
 				signal::class in it ->
 				{
-					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class", signal) { STATE_RUN_ENTRY_CLASS }
+					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class") { STATE_RUN_ENTRY_VIA }
 					it[signal::class]
 				}
 				else -> entryPredicates?.test(signal)?.let { predicate ->
-					logLevel.normal(prefix, tag, signal) { STATE_RUN_ENTRY_PREDICATE }
+					logLevel.normal(prefix, tag) { STATE_RUN_ENTRY_PREDICATE }
 					it[predicate]
 				}
 			}
 		} ?: entry?.also {
-			logLevel.normal(prefix, tag, signal) { STATE_RUN_ENTRY_DEFAULT }
+			logLevel.normal(prefix, tag) { STATE_RUN_ENTRY }
 		} ?: null.also {
 			logLevel.normal(prefix, tag, signal) { STATE_NO_ENTRY }
 		}
@@ -284,15 +284,15 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				in it ->
 				{
-					logLevel.normal(prefix, tag, "${type.simpleName}::class", signal, "${type.simpleName}::class") { STATE_RUN_ENTRY_CLASS_TYPED }
+					logLevel.normal(prefix, tag, "${type.simpleName}::class") { STATE_RUN_ENTRY_VIA }
 					it[type]
 				}
 				else -> null
 			}
 		} ?: entry?.also {
-			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_RUN_ENTRY_DEFAULT_TYPED }
+			logLevel.normal(prefix, tag) { STATE_RUN_ENTRY }
 		} ?: null.also {
-			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_ENTRY_TYPED }
+			logLevel.normal(prefix, tag, "${type.simpleName}::class") { STATE_NO_ENTRY }
 		}
 		
 		return entryDef?.run(from, signal)
@@ -305,21 +305,21 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				signal in it ->
 				{
-					logLevel.normal(prefix, tag, signal) { STATE_RUN_INPUT_OBJECT }
+					logLevel.normal(prefix, tag, signal) { STATE_RUN_INPUT_SIGNAL }
 					it[signal]
 				}
 				signal::class in it ->
 				{
-					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class", signal) { STATE_RUN_INPUT_CLASS }
+					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class") { STATE_RUN_INPUT_SIGNAL }
 					it[signal::class]
 				}
 				else -> inputPredicates?.test(signal)?.let { predicate ->
-					logLevel.normal(prefix, tag, signal) { STATE_RUN_INPUT_PREDICATE }
+					logLevel.normal(prefix, tag) { STATE_RUN_INPUT_PREDICATE }
 					it[predicate]
 				}
 			}
 		} ?: input?.also {
-			logLevel.normal(prefix, tag, signal) { STATE_RUN_INPUT_DEFAULT }
+			logLevel.normal(prefix, tag) { STATE_RUN_INPUT }
 		} ?: null.also {
 			if (tag !== `Initial state for KotlmataDaemon`) logLevel.normal(prefix, tag, signal) { STATE_NO_INPUT }
 		}
@@ -334,15 +334,15 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				in it ->
 				{
-					logLevel.normal(prefix, tag, "${type.simpleName}::class", signal, "${type.simpleName}::class") { STATE_RUN_INPUT_CLASS_TYPED }
+					logLevel.normal(prefix, tag, "${type.simpleName}::class") { STATE_RUN_INPUT_SIGNAL }
 					it[type]
 				}
 				else -> null
 			}
 		} ?: input?.also {
-			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_RUN_INPUT_DEFAULT_TYPED }
+			logLevel.normal(prefix, tag) { STATE_RUN_INPUT }
 		} ?: null.also {
-			if (tag !== `Initial state for KotlmataDaemon`) logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_INPUT_TYPED }
+			if (tag !== `Initial state for KotlmataDaemon`) logLevel.normal(prefix, tag, "${type.simpleName}::class") { STATE_NO_INPUT }
 		}
 		
 		return inputDef?.run(signal, payload)
@@ -355,21 +355,21 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				signal in it ->
 				{
-					logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT_OBJECT }
+					logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT_VIA }
 					it[signal]
 				}
 				signal::class in it ->
 				{
-					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class", signal) { STATE_RUN_EXIT_CLASS }
+					logLevel.normal(prefix, tag, "${signal::class.simpleName}::class") { STATE_RUN_EXIT_VIA }
 					it[signal::class]
 				}
 				else -> exitPredicates?.test(signal)?.let { predicate ->
-					logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT_PREDICATE }
+					logLevel.normal(prefix, tag) { STATE_RUN_EXIT_PREDICATE }
 					it[predicate]
 				}
 			}
 		} ?: exit?.also {
-			logLevel.normal(prefix, tag, signal) { STATE_RUN_EXIT_DEFAULT }
+			logLevel.normal(prefix, tag) { STATE_RUN_EXIT }
 		} ?: null.also {
 			if (tag !== `Initial state for KotlmataDaemon`) logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
 		}
@@ -384,15 +384,15 @@ private class KotlmataStateImpl<T : STATE>(
 			{
 				in it ->
 				{
-					logLevel.normal(prefix, tag, "${type.simpleName}::class", signal, "${type.simpleName}::class") { STATE_RUN_EXIT_CLASS_TYPED }
+					logLevel.normal(prefix, tag, "${type.simpleName}::class") { STATE_RUN_EXIT_VIA }
 					it[type]
 				}
 				else -> null
 			}
 		} ?: exit?.also {
-			logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_RUN_EXIT_DEFAULT_TYPED }
+			logLevel.normal(prefix, tag) { STATE_RUN_EXIT }
 		} ?: null.also {
-			if (tag !== `Initial state for KotlmataDaemon`) logLevel.normal(prefix, tag, signal, "${type.simpleName}::class") { STATE_NO_EXIT_TYPED }
+			if (tag !== `Initial state for KotlmataDaemon`) logLevel.normal(prefix, tag, "${type.simpleName}::class") { STATE_NO_EXIT }
 		}
 		
 		exitDef?.run(signal, to)
