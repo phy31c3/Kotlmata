@@ -295,7 +295,7 @@ private class KotlmataDaemonImpl(
 				val onStart: InputAction<Control> = { controlR ->
 					logLevel.simple(name, suffix) { DAEMON_START }
 					onStart?.call(controlR.payload)
-					machine.input(controlR.payload/* as? SIGNAL */ ?: "start", block = postSync)
+					machine.input(controlR.payload/* as? SIGNAL */ ?: `Start KotlmataDaemon`, block = postSync)
 				}
 				
 				entry action {
@@ -622,19 +622,19 @@ private class KotlmataDaemonImpl(
 			override fun transition(callback: TransitionCallback): KotlmataMachine.Base.Catch
 			{
 				this@InitImpl shouldNot expired
-				init.on transition callback
+				val transition = init.on transition callback
 				return object : KotlmataMachine.Base.Catch
 				{
 					override fun catch(fallback: TransitionFallback): KotlmataMachine.Base.Finally
 					{
 						this@InitImpl shouldNot expired
-						init.on transition callback catch fallback
+						val catch = transition catch fallback
 						return object : KotlmataMachine.Base.Finally
 						{
 							override fun finally(finally: TransitionCallback)
 							{
 								this@InitImpl shouldNot expired
-								init.on transition callback catch fallback finally finally
+								catch finally finally
 							}
 						}
 					}
@@ -642,7 +642,7 @@ private class KotlmataDaemonImpl(
 					override fun finally(finally: TransitionCallback)
 					{
 						this@InitImpl shouldNot expired
-						init.on transition callback finally finally
+						transition finally finally
 					}
 				}
 			}

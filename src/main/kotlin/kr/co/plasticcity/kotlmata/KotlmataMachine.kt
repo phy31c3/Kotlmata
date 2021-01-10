@@ -601,7 +601,10 @@ private class KotlmataMachineImpl(
 				
 				stateMap[state]?.also {
 					this@KotlmataMachineImpl.current = it
-					logLevel.normal(prefix, state) { MACHINE_START_AT }
+					if (state !== `Initial state for KotlmataDaemon`)
+					{
+						logLevel.normal(prefix, state) { MACHINE_START_AT }
+					}
 				} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_START_STATE }
 				
 				return Init.End()
