@@ -134,12 +134,12 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	}
 }
 
-internal class Predicates
+internal class Tester
 {
 	private val set = LinkedHashSet<(Any) -> Boolean>()
 	
 	@Suppress("UNCHECKED_CAST")
-	fun <T> store(predicate: (T) -> Boolean)
+	operator fun <T> plusAssign(predicate: (T) -> Boolean)
 	{
 		set.add(predicate as (Any) -> Boolean)
 	}
@@ -151,7 +151,7 @@ internal class Predicates
 	
 	fun test(signal: Any): ((Any) -> Boolean)?
 	{
-		return set.reversed().firstOrNull { predicate ->
+		return set.firstOrNull { predicate ->
 			try
 			{
 				predicate(signal)
