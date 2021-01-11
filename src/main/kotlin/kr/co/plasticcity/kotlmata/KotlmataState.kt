@@ -584,7 +584,7 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun function(function: EntryFunction<T>): Entry.Catch<T>
 				{
 					this@UpdateImpl shouldNot expired
-					entryTester.store(predicate)
+					entryTester += predicate
 					entryMap[predicate] = EntryDef(function as EntryFunction<SIGNAL>)
 					return object : Entry.Catch<T>
 					{
@@ -753,7 +753,7 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun function(function: InputFunction<T>): Input.Catch<T>
 				{
 					this@UpdateImpl shouldNot expired
-					inputTester.store(predicate)
+					inputTester += predicate
 					inputMap[predicate] = InputDef(function as InputFunction<SIGNAL>)
 					return object : Input.Catch<T>
 					{
@@ -923,7 +923,7 @@ private class KotlmataStateImpl<T : STATE>(
 				override fun action(action: ExitAction<T>): Exit.Catch<T>
 				{
 					this@UpdateImpl shouldNot expired
-					exitTester.store(predicate)
+					exitTester += predicate
 					exitMap[predicate] = ExitDef(action as ExitAction<SIGNAL>)
 					return object : Exit.Catch<T>
 					{

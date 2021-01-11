@@ -139,7 +139,7 @@ internal class Tester
 	private val set = LinkedHashSet<(Any) -> Boolean>()
 	
 	@Suppress("UNCHECKED_CAST")
-	fun <T> store(predicate: (T) -> Boolean)
+	operator fun <T> plusAssign(predicate: (T) -> Boolean)
 	{
 		set.add(predicate as (Any) -> Boolean)
 	}

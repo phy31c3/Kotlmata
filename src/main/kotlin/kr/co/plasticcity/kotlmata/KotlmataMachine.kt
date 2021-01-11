@@ -867,9 +867,9 @@ private class KotlmataMachineImpl(
 		{
 			this@UpdateImpl shouldNot expired
 			testerMap[this]?.also { tester ->
-				tester.store(predicate)
+				tester += predicate
 			} ?: Tester().also { tester ->
-				tester.store(predicate)
+				tester += predicate
 				testerMap[this] = tester
 			}
 			return predicate
