@@ -430,7 +430,7 @@ private class KotlmataMachineImpl(
 		}
 		
 		fun next(from: STATE): STATE? = ruleMap[from]?.let { map2 ->
-			return map2[signal] ?: map2[signal::class] ?: map2.test(from, signal) ?: map2[any]
+			return map2[signal] ?: map2.test(from, signal) ?: map2[signal::class] ?: map2[any]
 		}
 		
 		val currentState = current
