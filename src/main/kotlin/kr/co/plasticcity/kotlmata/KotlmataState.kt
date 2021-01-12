@@ -291,7 +291,7 @@ private class KotlmataStateImpl<T : STATE>(
 			} ?: inputTester?.test(signal)?.let { predicate ->
 				logLevel.normal(prefix, tag) { STATE_RUN_INPUT_PREDICATE }
 				inputMap[predicate]
-			} ?: inputMap[signal::class].also {
+			} ?: inputMap[signal::class]?.also {
 				logLevel.normal(prefix, tag, "${signal::class.simpleName}::class") { STATE_RUN_INPUT_SIGNAL }
 			}
 		} ?: input?.also {
