@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 import kr.co.plasticcity.kotlmata.*
 import org.junit.Before
 import org.junit.Test
@@ -16,57 +18,371 @@ class Tests
 		}
 	}
 	
+	private fun Map<String, Boolean>.verify() = forEach { (key, pass) ->
+		assert(pass) {
+			"\"$key\" failed"
+		}
+	}
+	
 	@Test
-	fun stateTest()
+	fun `모든 유형의 진입동작이 제대로 불리는가`()
 	{
-		var expired: KotlmataState.Init? = null
-		val predicate = { s: Int -> s < 10 }
-		val state = KotlmataMutableState("s1", 3, "") {
-			expired = this
-			val lambda1: EntryAction<SIGNAL> = {
-				println("기본 진입함수")
+		val checklist = mutableMapOf(
+			"entry" to false,
+			"entry catch" to false,
+			"entry final" to false,
+			"entry signal" to false,
+			"entry signal catch" to false,
+			"entry signal final" to false,
+			"entry type" to false,
+			"entry type catch" to false,
+			"entry type final" to false,
+			"entry signals" to false,
+			"entry signals catch" to false,
+			"entry signals final" to false,
+			"entry predicate" to false,
+			"entry predicate catch" to false,
+			"entry predicate final" to false,
+			"entry range" to false,
+			"entry range catch" to false,
+			"entry range final" to false
+		)
+		KotlmataMachine("machine") {
+			"state" {
+				entry action {
+					checklist["entry"] = true
+					throw Exception()
+				} catch {
+					checklist["entry catch"] = true
+				} finally {
+					checklist["entry final"] = true
+				}
+				entry via "signal" action {
+					checklist["entry signal"] = true
+					throw Exception()
+				} catch {
+					checklist["entry signal catch"] = true
+				} finally {
+					checklist["entry signal final"] = true
+				}
+				entry via String::class action {
+					checklist["entry type"] = true
+					throw Exception()
+				} catch {
+					checklist["entry type catch"] = true
+				} finally {
+					checklist["entry type final"] = true
+				}
+				entry via ("a" or "b" or "c") action {
+					checklist["entry signals"] = true
+					throw Exception()
+				} catch {
+					checklist["entry signals catch"] = true
+				} finally {
+					checklist["entry signals final"] = true
+				}
+				entry via { s: String -> s.startsWith("pre") } action {
+					checklist["entry predicate"] = true
+					throw Exception()
+				} catch {
+					checklist["entry predicate catch"] = true
+				} finally {
+					checklist["entry predicate final"] = true
+				}
+				entry via 0..5 action {
+					checklist["entry range"] = true
+					throw Exception()
+				} catch {
+					checklist["entry range catch"] = true
+				} finally {
+					checklist["entry range final"] = true
+				}
 			}
-			val lambda2: EntryAction<String> = { signal ->
-				println("String 타입 진입함수: $signal")
+			
+			"state" x any %= self
+			
+			start at "state"
+		}.also { machine ->
+			machine.input(10)
+			machine.input("signal")
+			machine.input("string")
+			machine.input("a")
+			machine.input("predicate")
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `모든 유형의 입력동작이 제대로 불리는가`()
+	{
+		val checklist = mutableMapOf(
+			"input" to false,
+			"input catch" to false,
+			"input final" to false,
+			"input signal" to false,
+			"input signal catch" to false,
+			"input signal final" to false,
+			"input type" to false,
+			"input type catch" to false,
+			"input type final" to false,
+			"input signals" to false,
+			"input signals catch" to false,
+			"input signals final" to false,
+			"input predicate" to false,
+			"input predicate catch" to false,
+			"input predicate final" to false,
+			"input range" to false,
+			"input range catch" to false,
+			"input range final" to false
+		)
+		KotlmataMachine("machine") {
+			"state" {
+				input action {
+					checklist["input"] = true
+					throw payload as Exception
+				} catch {
+					checklist["input catch"] = true
+				} finally {
+					checklist["input final"] = true
+				}
+				input signal "signal" action {
+					checklist["input signal"] = true
+					throw payload as Exception
+				} catch {
+					checklist["input signal catch"] = true
+				} finally {
+					checklist["input signal final"] = true
+				}
+				input signal String::class action {
+					checklist["input type"] = true
+					throw payload as Exception
+				} catch {
+					checklist["input type catch"] = true
+				} finally {
+					checklist["input type final"] = true
+				}
+				input signal ("a" or "b" or "c") action {
+					checklist["input signals"] = true
+					throw payload as Exception
+				} catch {
+					checklist["input signals catch"] = true
+				} finally {
+					checklist["input signals final"] = true
+				}
+				input signal { s: String -> s.startsWith("pre") } action {
+					checklist["input predicate"] = true
+					throw payload as Exception
+				} catch {
+					checklist["input predicate catch"] = true
+				} finally {
+					checklist["input predicate final"] = true
+				}
+				input signal 0..5 action {
+					checklist["input range"] = true
+					throw payload as Exception
+				} catch {
+					checklist["input range catch"] = true
+				} finally {
+					checklist["input range final"] = true
+				}
 			}
-			entry function lambda1
-			entry via String::class function lambda2
-			entry via "a" function { println("a 진입함수") }
-			entry via "b" function {
-				println("b 진입함수")
-				"next"
+			
+			"state" x any %= stay
+			
+			start at "state"
+		}.also { machine ->
+			machine.input(10, Exception())
+			machine.input("signal", Exception())
+			machine.input("string", Exception())
+			machine.input("b", Exception())
+			machine.input("predicate", Exception())
+			machine.input(3, Exception())
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `모든 유형의 퇴장동작이 제대로 불리는가`()
+	{
+		val checklist = mutableMapOf(
+			"exit" to false,
+			"exit catch" to false,
+			"exit final" to false,
+			"exit signal" to false,
+			"exit signal catch" to false,
+			"exit signal final" to false,
+			"exit type" to false,
+			"exit type catch" to false,
+			"exit type final" to false,
+			"exit signals" to false,
+			"exit signals catch" to false,
+			"exit signals final" to false,
+			"exit predicate" to false,
+			"exit predicate catch" to false,
+			"exit predicate final" to false,
+			"exit range" to false,
+			"exit range catch" to false,
+			"exit range final" to false
+		)
+		KotlmataMachine("machine") {
+			"state" {
+				exit action {
+					checklist["exit"] = true
+					throw Exception()
+				} catch {
+					checklist["exit catch"] = true
+				} finally {
+					checklist["exit final"] = true
+				}
+				exit via "signal" action {
+					checklist["exit signal"] = true
+					throw Exception()
+				} catch {
+					checklist["exit signal catch"] = true
+				} finally {
+					checklist["exit signal final"] = true
+				}
+				exit via String::class action {
+					checklist["exit type"] = true
+					throw Exception()
+				} catch {
+					checklist["exit type catch"] = true
+				} finally {
+					checklist["exit type final"] = true
+				}
+				exit via ("a" or "b" or "c") action {
+					checklist["exit signals"] = true
+					throw Exception()
+				} catch {
+					checklist["exit signals catch"] = true
+				} finally {
+					checklist["exit signals final"] = true
+				}
+				exit via { s: String -> s.startsWith("pre") } action {
+					checklist["exit predicate"] = true
+					throw Exception()
+				} catch {
+					checklist["exit predicate catch"] = true
+				} finally {
+					checklist["exit predicate final"] = true
+				}
+				exit via 0..5 action {
+					checklist["exit range"] = true
+					throw Exception()
+				} catch {
+					checklist["exit range catch"] = true
+				} finally {
+					checklist["exit range final"] = true
+				}
 			}
-			input function { println("기본 입력함수") }
-			input signal Any::class function { s -> println("Any 타입 입력함수: $s") }
-			input signal "next" function { println("진입함수에서 흘러들어옴") }
-			input signal predicate action { s -> println("술어형 신호: $s") }
-			exit action { println("퇴장함수") }
+			
+			"state" x any %= self
+			
+			start at "state"
+		}.also { machine ->
+			machine.input(10)
+			machine.input("signal")
+			machine.input("string")
+			machine.input("c")
+			machine.input("predicate")
+			machine.input(5)
 		}
 		
-		state.entry("", Any())
-		state.entry("", "signal")
-		state.entry("", "a")
-		state.entry("", "b")?.let { signal ->
-			state.input(signal)
-		}
-		state.input("basic")
-		state.input("basic", Any::class)
-		state.exit("basic", "")
-		state.input(5)
+		checklist.verify()
+	}
+	
+	@Test
+	fun `모든 상태동작의 'function'이 제대로 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"entry" to false,
+			"entry signal" to false,
+			"entry type" to false,
+			"entry signals" to false,
+			"entry predicate" to false,
+			"entry range" to false,
+			"input" to false,
+			"input signal" to false,
+			"input type" to false,
+			"input signals" to false,
+			"input predicate" to false,
+			"input range" to false,
+			"finish" to false
+		)
 		
-		state {
-			delete action input signal predicate
+		KotlmataMachine("machine") {
+			"input"{
+				input function {
+					checklist["input"] = true
+					"a"
+				}
+				input signal "a" function {
+					checklist["input signal"] = true
+					"b" `as` String::class
+				}
+				input signal String::class function {
+					checklist["input type"] = true
+					"c"
+				}
+				input signal ("c" or "d") function {
+					checklist["input signals"] = true
+					"e"
+				}
+				input signal { s: String -> s == "e" } function {
+					checklist["input predicate"] = true
+					"f"
+				}
+				input signal "f".."g" function {
+					checklist["input range"] = true
+					1
+				}
+				input signal 1 action {
+					/* nothing */
+				}
+			}
+			"entry" {
+				entry function {
+					checklist["entry"] = true
+					"a"
+				}
+				entry via "a" function {
+					checklist["entry signal"] = true
+					"b" `as` String::class
+				}
+				entry via String::class function {
+					checklist["entry type"] = true
+					"c"
+				}
+				entry via ("c" or "d") function {
+					checklist["entry signals"] = true
+					"e"
+				}
+				entry via { s: String -> s == "e" } function {
+					checklist["entry predicate"] = true
+					"f"
+				}
+				entry via "f".."g" function {
+					checklist["entry range"] = true
+					2
+				}
+			}
+			"finish" {
+				entry action {
+					checklist["finish"] = true
+				}
+			}
+			
+			"input" x 1 %= "entry"
+			"entry" x String::class %= self
+			"entry" x 2 %= "finish"
+			
+			start at "input"
+		}.also { machine ->
+			machine.input(0)
 		}
-		state.input(5)
-		
-		state.entry("", "b")?.let { signal ->
-			state.input(signal)
-		}
-		state.entry("", "a")?.let { signal ->
-			state.input(signal)
-		}
-		
-		expired?.entry?.function {}
 	}
 	
 	@Test
