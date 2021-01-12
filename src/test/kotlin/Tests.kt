@@ -295,26 +295,26 @@ class Tests
 	}
 	
 	@Test
-	fun `모든 상태동작의 'function'이 제대로 동작하는가`()
+	fun `모든 상태함수가 제대로 동작하는가`()
 	{
 		val checklist = mutableMapOf(
-			"entry" to false,
-			"entry signal" to false,
-			"entry type" to false,
-			"entry signals" to false,
-			"entry predicate" to false,
-			"entry range" to false,
 			"input" to false,
 			"input signal" to false,
 			"input type" to false,
 			"input signals" to false,
 			"input predicate" to false,
 			"input range" to false,
+			"entry" to false,
+			"entry signal" to false,
+			"entry type" to false,
+			"entry signals" to false,
+			"entry predicate" to false,
+			"entry range" to false,
 			"finish" to false
 		)
 		
 		KotlmataMachine("machine") {
-			"input"{
+			"input" {
 				input function {
 					checklist["input"] = true
 					"a"
@@ -383,6 +383,168 @@ class Tests
 		}.also { machine ->
 			machine.input(0)
 		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `상태의 'on error'가 제대로 호출 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on error" to false
+		)
+		
+		KotlmataMachine("machine") {
+			"state" {
+				input action {
+					throw Exception()
+				}
+				on error {
+					checklist["on error"] = true
+				}
+			}
+			
+			start at "state"
+		}.also { machine ->
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `상태 업데이트 시 상태동작이 잘 덮어써지는가`()
+	{
+		val checklist = mutableMapOf(
+			"input" to false,
+			"exit" to false,
+			"entry" to false
+		)
+		
+		val predicate = { s: Int -> s < 10 }
+		
+		KotlmataMutableMachine("machine") {
+			"state" {
+				entry via predicate action {
+					checklist["entry"] = false
+				}
+				input action {
+					checklist["input"] = false
+				}
+				exit via 0 action {
+					checklist["exit"] = false
+				}
+			}
+			
+			"state" x any %= self
+			
+			start at "state"
+		}.also { machine ->
+			machine {
+				"state" update {
+					entry via predicate action {
+						checklist["entry"] = true
+					}
+					input action {
+						checklist["input"] = true
+					}
+					exit via 0 action {
+						checklist["exit"] = true
+					}
+				}
+			}
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `상태 업데이트 시 상태동작이 잘 삭제되는가`()
+	{
+		val checklist = mutableMapOf(
+			"input" to true,
+			"input signal" to true,
+			"input type" to true,
+			"input signals" to true,
+			"input predicate" to true,
+			"exit" to true,
+			"entry" to true,
+			"entry all" to true,
+			"input all" to true,
+			"exit all" to true,
+			"all" to true
+		)
+		
+		val predicate = { s: Int -> s in 0..1 }
+		
+		KotlmataMutableMachine("machine") {
+			"state1" {
+				input action {
+					checklist["input"] = false
+				}
+				input signal 0 action {
+					checklist["input signal"] = false
+				}
+				input signal Int::class action {
+					checklist["input type"] = false
+				}
+				input signal predicate action {
+					checklist["input predicate"] = false
+				}
+				exit action {
+					checklist["exit"] = false
+				}
+			}
+			"state2" {
+				entry action {
+					checklist["entry"] = false
+				}
+				entry via 0..1 action {
+					checklist["entry all"] = false
+				}
+				input signal 1..2 action {
+					checklist["input all"] = false
+				}
+				exit via 1..2 action {
+					checklist["exit all"] = false
+				}
+			}
+			"state3" {
+				entry action {
+					checklist["all"] = false
+				}
+			}
+			
+			"state1" x 0 %= "state2"
+			"state2" x 1 %= "state3"
+			
+			start at "state1"
+		}.also { machine ->
+			machine {
+				"state1" update {
+					delete action input signal 0
+					delete action input signal predicate
+					delete action input signal Int::class
+					delete action input
+					delete action exit
+				}
+				"state2" update {
+					delete action entry via all
+					delete action entry
+					delete action input signal all
+					delete action exit via all
+				}
+				"state3" update {
+					delete action all
+				}
+			}
+			machine.input(0)
+			machine.input(1)
+			machine.input(2)
+		}
+		
+		checklist.verify()
 	}
 	
 	@Test
