@@ -350,7 +350,9 @@ private class KotlmataMachineImpl(
 	
 	private var transitionCounter: Long = 0
 	
-	private lateinit var current: KotlmataState<out STATE>
+	private lateinit var currentTag: STATE
+	private val currentState: KotlmataState<out STATE>
+		get() = stateMap[currentTag] ?: Log.e(prefix.trimEnd(), currentTag, currentTag) { FAILED_TO_GET_STATE }
 	
 	init
 	{
@@ -433,8 +435,8 @@ private class KotlmataMachineImpl(
 			return map2[signal] ?: map2.test(from, signal) ?: map2[signal::class] ?: map2[any]
 		}
 		
-		val currentState = current
-		val from = currentState.tag
+		val from = currentTag
+		val currentState = currentState
 		
 		logLevel.normal(prefix, from, signal, payload) { MACHINE_INPUT }
 		tryCatchReturn {
@@ -467,7 +469,7 @@ private class KotlmataMachineImpl(
 					MACHINE_TRANSITION
 			}
 			onTransition?.call(from, signal, to)
-			current = nextState
+			currentTag = to
 			tryCatchReturn { nextState.entry(from, signal) }.convertToSync()?.also(block)
 		}
 		logLevel.normal(prefix) { MACHINE_END }
@@ -479,8 +481,8 @@ private class KotlmataMachineImpl(
 			return map2[type] ?: map2[any]
 		}
 		
-		val currentState = current
-		val from = currentState.tag
+		val from = currentTag
+		val currentState = currentState
 		
 		logLevel.normal(prefix, from, signal, "${type.simpleName}::class", payload) { MACHINE_TYPED_INPUT }
 		tryCatchReturn {
@@ -513,7 +515,7 @@ private class KotlmataMachineImpl(
 					MACHINE_TRANSITION
 			}
 			onTransition?.call(from, signal, to)
-			current = nextState
+			currentTag = to
 			tryCatchReturn { nextState.entry(from, signal, type) }.convertToSync()?.also(block)
 		}
 		logLevel.normal(prefix) { MACHINE_END }
@@ -533,7 +535,7 @@ private class KotlmataMachineImpl(
 	
 	override fun update(block: Update.() -> Unit)
 	{
-		logLevel.normal(prefix, current.tag) { MACHINE_UPDATE }
+		logLevel.normal(prefix, currentTag) { MACHINE_UPDATE }
 		UpdateImpl(update = block)
 		logLevel.normal(prefix) { MACHINE_END }
 	}
@@ -594,7 +596,7 @@ private class KotlmataMachineImpl(
 				this@UpdateImpl shouldNot expired
 				
 				stateMap[state]?.also {
-					this@KotlmataMachineImpl.current = it
+					currentTag = state
 					if (state !== `Initial state for KotlmataDaemon`)
 					{
 						logLevel.normal(prefix, state) { MACHINE_START_AT }
@@ -1114,7 +1116,7 @@ private class KotlmataMachineImpl(
 			get()
 			{
 				this@UpdateImpl shouldNot expired
-				return this@KotlmataMachineImpl.current.tag
+				return currentTag
 			}
 		
 		override val has = object : Has

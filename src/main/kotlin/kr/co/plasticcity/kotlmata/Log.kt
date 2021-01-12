@@ -66,6 +66,7 @@ internal class Logs
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_OBJECT = "%s Use of expired object: The object is only available inside the 'init' or 'update' block."
 		const val UNDEFINED_START_STATE = "%s The start state '%s' is undefined."
+		const val FAILED_TO_GET_STATE = "%s Attempted to get state %s that does not exist. (Make sure that state %s wasn't deleted at this time.)"
 	}
 }
 
