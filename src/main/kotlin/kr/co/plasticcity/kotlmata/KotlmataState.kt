@@ -133,17 +133,17 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 	
 	interface Delete
 	{
-		infix fun action(keyword: Entry): Via
-		infix fun action(keyword: Input): Signal
-		infix fun action(keyword: Exit): Via
-		infix fun action(keyword: all)
+		infix fun action(entry: Entry): Via
+		infix fun action(input: Input): Signal
+		infix fun action(exit: Exit): Via
+		infix fun action(all: all)
 		
 		interface Via
 		{
 			infix fun <T : SIGNAL> via(signal: KClass<T>)
 			infix fun <T : SIGNAL> via(signal: T)
 			infix fun <T : SIGNAL> via(predicate: (T) -> Boolean)
-			infix fun via(keyword: all)
+			infix fun via(all: all)
 		}
 		
 		interface Signal
@@ -151,7 +151,7 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 			infix fun <T : SIGNAL> signal(signal: KClass<T>)
 			infix fun <T : SIGNAL> signal(signal: T)
 			infix fun <T : SIGNAL> signal(predicate: (T) -> Boolean)
-			infix fun signal(keyword: all)
+			infix fun signal(all: all)
 		}
 	}
 	
@@ -917,7 +917,7 @@ private class KotlmataStateImpl<T : STATE>(
 		
 		override val delete = object : Delete
 		{
-			override fun action(keyword: Entry) = object : Delete.Via
+			override fun action(entry: Entry) = object : Delete.Via
 			{
 				val stash = this@KotlmataStateImpl.entry
 				
@@ -950,7 +950,7 @@ private class KotlmataStateImpl<T : STATE>(
 					entryTester.remove(predicate)
 				}
 				
-				override fun via(keyword: all)
+				override fun via(all: all)
 				{
 					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.entry = stash
@@ -959,7 +959,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun action(keyword: Input) = object : Delete.Signal
+			override fun action(input: Input) = object : Delete.Signal
 			{
 				val stash = this@KotlmataStateImpl.input
 				
@@ -992,7 +992,7 @@ private class KotlmataStateImpl<T : STATE>(
 					inputTester.remove(predicate)
 				}
 				
-				override fun signal(keyword: all)
+				override fun signal(all: all)
 				{
 					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.input = stash
@@ -1001,7 +1001,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun action(keyword: Exit) = object : Delete.Via
+			override fun action(exit: Exit) = object : Delete.Via
 			{
 				val stash = this@KotlmataStateImpl.exit
 				
@@ -1034,7 +1034,7 @@ private class KotlmataStateImpl<T : STATE>(
 					exitTester.remove(predicate)
 				}
 				
-				override fun via(keyword: all)
+				override fun via(all: all)
 				{
 					this@UpdateImpl shouldNot expired
 					this@KotlmataStateImpl.exit = stash
@@ -1043,7 +1043,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun action(keyword: all)
+			override fun action(all: all)
 			{
 				this@UpdateImpl shouldNot expired
 				this@KotlmataStateImpl.entry = null

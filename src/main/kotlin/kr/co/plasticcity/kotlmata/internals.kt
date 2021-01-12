@@ -96,7 +96,7 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	
 	protected class Expired
 	
-	protected infix fun shouldNot(@Suppress("UNUSED_PARAMETER") keyword: Expired)
+	protected infix fun shouldNot(@Suppress("UNUSED_PARAMETER") expired: Expired)
 	{
 		if (expire)
 		{
@@ -104,7 +104,7 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 		}
 	}
 	
-	protected infix fun not(@Suppress("UNUSED_PARAMETER") keyword: Expired) = object : then
+	protected infix fun not(@Suppress("UNUSED_PARAMETER") expired: Expired) = object : then
 	{
 		override fun then(block: () -> Unit)
 		{
