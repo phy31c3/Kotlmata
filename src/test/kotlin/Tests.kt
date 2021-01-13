@@ -413,7 +413,7 @@ class Tests
 	}
 	
 	@Test
-	fun `상태 업데이트 시 상태동작이 잘 덮어써지는가`()
+	fun `상태 업데이트 시 상태동작이 잘 교체되는가`()
 	{
 		val checklist = mutableMapOf(
 			"input" to false,
@@ -542,6 +542,79 @@ class Tests
 			machine.input(0)
 			machine.input(1)
 			machine.input(2)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `상태 템플릿이 잘 적용되는가`()
+	{
+		val checklist = mutableMapOf(
+			"input" to false,
+			"on error" to false
+		)
+		
+		KotlmataMachine("machine") {
+			val template: StateTemplate<STATE> = {
+				on error {
+					checklist["on error"] = true
+				}
+			}
+			
+			"state" extends template with {
+				input action {
+					checklist["input"] = true
+					throw Exception()
+				}
+			}
+			
+			start at "state"
+		}.also { machine ->
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `간략한 상태 정의가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"entry" to false,
+			"entry signal" to false,
+			"entry type" to false,
+			"entry predicate" to false,
+			"entry range" to false
+		)
+		
+		KotlmataMachine("machine") {
+			"a" {}
+			"b" function {
+				checklist["entry"] = true
+				it
+			}
+			"c" via 0 function {
+				checklist["entry signal"] = true
+				it
+			}
+			"d" via Int::class function {
+				checklist["entry type"] = true
+				it
+			}
+			"e" via { s: Int -> s == 0 } function {
+				checklist["entry predicate"] = true
+				it
+			}
+			"f" via 0..1 action {
+				checklist["entry range"] = true
+			}
+			
+			chain from "a" to "b" to "c" to "d" to "e" to "f" via 0
+			
+			start at "a"
+		}.also { machine ->
+			machine.input(0)
 		}
 		
 		checklist.verify()
