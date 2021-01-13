@@ -36,10 +36,11 @@ internal class Logs
 		const val MACHINE_REGISTER_ON_TRANSITION = "%s     on transition registered"
 		const val MACHINE_REGISTER_ON_ERROR = "%s     on error registered"
 		const val MACHINE_UPDATE = "%s update(state: %s) {"
-		const val MACHINE_INPUT = "%s input(state: %s, signal: %s, payload: %s) {"
-		const val MACHINE_TYPED_INPUT = "%s input(state: %s, signal: %s, type: %s, payload: %s) {"
+		const val MACHINE_INPUT = "%s input(signal: %s, payload: %s) {"
+		const val MACHINE_TYPED_INPUT = "%s input(signal: %s, type: %s, payload: %s) {"
 		const val MACHINE_TRANSITION = "%s [%s] x (%s) -> [%s]"
 		const val MACHINE_TRANSITION_TAB = "%s     [%s] x (%s) -> [%s]"
+		const val MACHINE_RETURN_SYNC_INPUT = "%s     return(signal: %s, type: %s, payload: %s)"
 		const val MACHINE_START_AT = "%s     start at [%s]"
 		const val MACHINE_END = "%s }"
 		

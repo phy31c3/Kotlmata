@@ -438,12 +438,13 @@ private class KotlmataMachineImpl(
 		val from = currentTag
 		val currentState = currentState
 		
-		logLevel.normal(prefix, from, signal, payload) { MACHINE_INPUT }
+		logLevel.normal(prefix, signal, payload) { MACHINE_INPUT }
 		tryCatchReturn {
 			currentState.input(signal, payload)
 		}.also { inputReturn ->
 			if (inputReturn == stay) return
 		}.convertToSync()?.also { sync ->
+			logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 			block(sync)
 		} ?: run {
 			next(from) ?: next(any)
@@ -470,7 +471,10 @@ private class KotlmataMachineImpl(
 			}
 			onTransition?.call(from, signal, to)
 			currentTag = to
-			tryCatchReturn { nextState.entry(from, signal) }.convertToSync()?.also(block)
+			tryCatchReturn { nextState.entry(from, signal) }.convertToSync()?.also { sync ->
+				logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
+				block(sync)
+			}
 		}
 		logLevel.normal(prefix) { MACHINE_END }
 	}
@@ -484,12 +488,13 @@ private class KotlmataMachineImpl(
 		val from = currentTag
 		val currentState = currentState
 		
-		logLevel.normal(prefix, from, signal, "${type.simpleName}::class", payload) { MACHINE_TYPED_INPUT }
+		logLevel.normal(prefix, signal, "${type.simpleName}::class", payload) { MACHINE_TYPED_INPUT }
 		tryCatchReturn {
 			currentState.input(signal, type, payload)
 		}.also { inputReturn ->
 			if (inputReturn == stay) return
 		}.convertToSync()?.also { sync ->
+			logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 			block(sync)
 		} ?: run {
 			next(from) ?: next(any)
@@ -516,7 +521,10 @@ private class KotlmataMachineImpl(
 			}
 			onTransition?.call(from, signal, to)
 			currentTag = to
-			tryCatchReturn { nextState.entry(from, signal, type) }.convertToSync()?.also(block)
+			tryCatchReturn { nextState.entry(from, signal, type) }.convertToSync()?.also { sync ->
+				logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
+				block(sync)
+			}
 		}
 		logLevel.normal(prefix) { MACHINE_END }
 	}
