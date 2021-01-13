@@ -621,6 +621,116 @@ class Tests
 	}
 	
 	@Test
+	fun `모든 유형의 머신 생성이 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"machine" to false,
+			"machine extends" to false,
+			"machine lazy" to false,
+			"machine lazy extends" to false,
+			"mutable machine" to false,
+			"mutable machine extends" to false,
+			"mutable machine lazy" to false,
+			"mutable machine lazy extends" to false
+		)
+		
+		fun base(check: String): MachineBase = {
+			"state" {
+				input action {
+					checklist[check] = true
+				}
+			}
+		}
+		
+		val m1 = KotlmataMachine("m1") {
+			"state" {
+				input action {
+					checklist["machine"] = true
+				}
+			}
+			start at "state"
+		}
+		val m2 = KotlmataMachine("m2") extends base("machine extends") by {
+			start at "state"
+		}
+		val m3 by KotlmataMachine.lazy("m3") {
+			"state" {
+				input action {
+					checklist["machine lazy"] = true
+				}
+			}
+			start at "state"
+		}
+		val m4 by KotlmataMachine.lazy("m4") extends base("machine lazy extends") by {
+			start at "state"
+		}
+		val m5 = KotlmataMutableMachine("m1") {
+			"state" {
+				input action {
+					checklist["mutable machine"] = true
+				}
+			}
+			start at "state"
+		}
+		val m6 = KotlmataMutableMachine("m6") extends base("mutable machine extends") by {
+			start at "state"
+		}
+		val m7 by KotlmataMutableMachine.lazy("m7") {
+			"state" {
+				input action {
+					checklist["mutable machine lazy"] = true
+				}
+			}
+			start at "state"
+		}
+		val m8 by KotlmataMutableMachine.lazy("m8") extends base("mutable machine lazy extends") by {
+			start at "state"
+		}
+		
+		m1.input(0)
+		m2.input(0)
+		m3.input(0)
+		m4.input(0)
+		m5.input(0)
+		m6.input(0)
+		m7.input(0)
+		m8.input(0)
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `머신의 'on transition'이 제대로 호출 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on transition" to false,
+			"on transition catch" to false,
+			"on transition final" to false
+		)
+		
+		KotlmataMachine("machine") {
+			on transition { _, _, _ ->
+				checklist["on transition"] = true
+				throw Exception()
+			} catch { _, _, _ ->
+				checklist["on transition catch"] = true
+			} finally { _, _, _ ->
+				checklist["on transition final"] = true
+			}
+			
+			"state" {}
+			
+			"state" x any %= self
+			
+			start at "state"
+		}.also { machine ->
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
 	fun machineTest()
 	{
 		val base: MachineBase = {
