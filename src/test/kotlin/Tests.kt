@@ -295,7 +295,7 @@ class Tests
 	}
 	
 	@Test
-	fun `모든 상태함수가 제대로 동작하는가`()
+	fun `상태의 'function'이 제대로 동작하는가`()
 	{
 		val checklist = mutableMapOf(
 			"input" to false,
@@ -366,6 +366,81 @@ class Tests
 				}
 				entry via "f".."g" function {
 					checklist["entry range"] = true
+					2
+				}
+			}
+			"finish" {
+				entry action {
+					checklist["finish"] = true
+				}
+			}
+			
+			"input" x 1 %= "entry"
+			"entry" x String::class %= self
+			"entry" x 2 %= "finish"
+			
+			start at "input"
+		}.also { machine ->
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `상태의 'intercept'가 제대로 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"input" to false,
+			"input intercept" to false,
+			"input signal" to false,
+			"input signal intercept" to false,
+			"input signal final" to false,
+			"entry" to false,
+			"entry intercept" to false,
+			"entry final" to false,
+			"entry signal" to false,
+			"entry signal intercept" to false,
+			"finish" to false
+		)
+		
+		KotlmataMachine("machine") {
+			"input" {
+				input action {
+					checklist["input"] = true
+					throw Exception()
+				} intercept {
+					checklist["input intercept"] = true
+					"a"
+				}
+				input signal "a" function {
+					checklist["input signal"] = true
+					throw Exception()
+				} intercept {
+					checklist["input signal intercept"] = true
+					1
+				} finally {
+					checklist["input signal final"] = true
+				}
+				input signal 1 action {
+					/* nothing */
+				}
+			}
+			"entry" {
+				entry function {
+					checklist["entry"] = true
+					throw Exception()
+				} intercept {
+					checklist["entry intercept"] = true
+					"a"
+				} finally {
+					checklist["entry final"] = true
+				}
+				entry via "a" action {
+					checklist["entry signal"] = true
+					throw Exception()
+				} intercept {
+					checklist["entry signal intercept"] = true
 					2
 				}
 			}
