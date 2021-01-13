@@ -339,9 +339,7 @@ class Tests
 					checklist["input range"] = true
 					1
 				}
-				input signal 1 action {
-					/* nothing */
-				}
+				input signal 1 action {}
 			}
 			"entry" {
 				entry function {
@@ -388,6 +386,51 @@ class Tests
 	}
 	
 	@Test
+	fun `상태의 'function'에서 타입지정과 payload 전달이 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"input as" to false,
+			"entry as with" to false,
+			"input with" to false
+		)
+		
+		KotlmataMachine("machine") {
+			"state1" {
+				input signal Int::class function {
+					"10" `as` String::class
+				}
+			}
+			"state2" {
+				entry via "10" function {
+					1 `as` Int::class with 1
+				}
+				entry via String::class function {
+					checklist["input as"] = true
+					1 `as` Int::class with 1
+				}
+				input signal Int::class function { signal ->
+					checklist["entry as with"] = true
+					signal + payload as Int with 2
+				}
+				input signal 2 action { signal ->
+					if (signal - payload as Int == 0)
+					{
+						checklist["input with"] = true
+					}
+				}
+			}
+			
+			"state1" x String::class %= "state2"
+			
+			start at "state1"
+		}.also { machine ->
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
 	fun `상태의 'intercept'가 제대로 동작하는가`()
 	{
 		val checklist = mutableMapOf(
@@ -422,9 +465,7 @@ class Tests
 				} finally {
 					checklist["input signal final"] = true
 				}
-				input signal 1 action {
-					/* nothing */
-				}
+				input signal 1 action {}
 			}
 			"entry" {
 				entry function {
@@ -798,6 +839,39 @@ class Tests
 			"state" x any %= self
 			
 			start at "state"
+		}.also { machine ->
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `머신의 'on error'가 제대로 호출 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on error action" to false,
+			"on error callback" to false
+		)
+		
+		KotlmataMachine("machine") {
+			on transition { _, _, _ ->
+				throw Exception("on error callback")
+			}
+			on error {
+				checklist[throwable.message!!] = true
+			}
+			
+			"state1" {
+				input action {
+					throw Exception("on error action")
+				}
+			}
+			"state2" {}
+			
+			"state1" x any %= "state2"
+			
+			start at "state1"
 		}.also { machine ->
 			machine.input(0)
 		}
