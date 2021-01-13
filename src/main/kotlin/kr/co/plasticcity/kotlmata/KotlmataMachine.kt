@@ -391,8 +391,8 @@ private class KotlmataMachineImpl(
 		}
 		finally
 		{
-			finally?.also {
-				TransitionActionReceiver(transitionCount).callback(from, signal, to)
+			finally?.also { finally ->
+				TransitionActionReceiver(transitionCount).finally(from, signal, to)
 			}
 		}
 	}
