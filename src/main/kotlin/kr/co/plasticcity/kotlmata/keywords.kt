@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package kr.co.plasticcity.kotlmata
 
 import kotlin.reflect.KClass
@@ -72,12 +74,12 @@ object all
 interface StatesOrSignals<T : `STATE or SIGNAL`> : MutableList<`STATE or SIGNAL`>
 interface StatesOrSignalsDefinable
 {
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: T2): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.OR(stateOrSignal: T2): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.OR(stateOrSignal: KClass<T2>): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.OR(stateOrSignal: T2): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.OR(stateOrSignal: KClass<T2>): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.OR(stateOrSignal: T2): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.OR(stateOrSignal: KClass<T2>): StatesOrSignals<R>
 }
 
 interface ErrorHolder

@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package kr.co.plasticcity.kotlmata
 
 import kotlin.reflect.KClass
@@ -43,28 +45,28 @@ internal fun Any?.convertToSync() = when (this)
 	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
 }
 
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: T1, rhs: T2): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: T1, rhs: T2): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
 	{ /* empty */ }
 }
 
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: T1, rhs: KClass<T2>): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: T1, rhs: KClass<T2>): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
 	{ /* empty */ }
 }
 
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: KClass<T1>, rhs: T2): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: KClass<T1>, rhs: T2): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
 	{ /* empty */ }
 }
 
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: KClass<T1>, rhs: KClass<T2>): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: KClass<T1>, rhs: KClass<T2>): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
@@ -72,7 +74,7 @@ internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: KClass<T1
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: StatesOrSignals<T1>, rhs: T2): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: StatesOrSignals<T1>, rhs: T2): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	lhs.add(rhs)
@@ -80,7 +82,7 @@ internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: StatesOrS
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: StatesOrSignals<T1>, rhs: KClass<T2>): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: StatesOrSignals<T1>, rhs: KClass<T2>): StatesOrSignals<R>
 {
 	shouldNotExpired()
 	lhs.add(rhs)

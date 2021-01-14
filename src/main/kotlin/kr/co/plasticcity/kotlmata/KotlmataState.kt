@@ -1058,12 +1058,12 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		}
 		
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: T2) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: T2) = or(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>) = or(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.OR(stateOrSignal: T2) = OR(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.OR(stateOrSignal: KClass<T2>) = OR(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.OR(stateOrSignal: T2) = OR(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.OR(stateOrSignal: KClass<T2>) = OR(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.OR(stateOrSignal: T2) = OR(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.OR(stateOrSignal: KClass<T2>) = OR(this, stateOrSignal)
 		
 		init
 		{
