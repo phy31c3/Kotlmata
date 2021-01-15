@@ -373,7 +373,7 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	private inner class UpdateImpl(
 		block: Update.(T) -> Unit
-	) : Update, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
+	) : Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
 	{
 		private val entryMap: MutableMap<SIGNAL, EntryDef>
 			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, EntryDef>().also {
@@ -1064,13 +1064,6 @@ private class KotlmataStateImpl<T : STATE>(
 				this@KotlmataStateImpl.exitTester = null
 			}
 		}
-		
-		override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2) = OR(this, signal)
-		override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>) = OR(this, signal)
-		override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2) = OR(this, signal)
-		override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>) = OR(this, signal)
-		override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2) = OR(this, signal)
-		override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>) = OR(this, signal)
 		
 		init
 		{

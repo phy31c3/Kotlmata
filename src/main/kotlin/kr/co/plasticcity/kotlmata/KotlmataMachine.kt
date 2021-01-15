@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package kr.co.plasticcity.kotlmata
 
 import kr.co.plasticcity.kotlmata.KotlmataMachine.*
@@ -130,11 +132,16 @@ interface KotlmataMachine
 	
 	interface RuleDefine : SignalsDefinable
 	{
-		fun any.of(vararg args: SIGNAL): AnyOf
-		fun any.except(vararg args: SIGNAL): AnyExcept
+		interface States : MutableList<STATE>
+		
+		infix fun STATE.AND(state: STATE): States
+		infix fun States.AND(state: STATE): States
 		
 		interface AnyOf : List<SIGNAL>
 		interface AnyExcept : List<SIGNAL>
+		
+		fun any.of(vararg args: SIGNAL): AnyOf
+		fun any.except(vararg args: SIGNAL): AnyExcept
 		
 		infix fun STATE.x(signal: SIGNAL): RuleLeft
 		infix fun STATE.x(signal: KClass<out SIGNAL>): RuleLeft
@@ -145,14 +152,14 @@ interface KotlmataMachine
 		infix fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean): RuleLeft
 		infix fun <T> STATE.x(range: ClosedRange<T>): RuleAssignable where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
 		
-		infix fun Signals<*>.x(signal: SIGNAL): RuleAssignable
-		infix fun Signals<*>.x(signal: KClass<out SIGNAL>): RuleAssignable
-		infix fun Signals<*>.x(signals: Signals<*>): RuleAssignable
-		infix fun Signals<*>.x(any: any): RuleAssignable
-		infix fun Signals<*>.x(anyOf: AnyOf): RuleAssignable
-		infix fun Signals<*>.x(anyExcept: AnyExcept): RuleAssignable
-		infix fun <T : SIGNAL> Signals<*>.x(predicate: (T) -> Boolean): RuleAssignable
-		infix fun <T> Signals<*>.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
+		infix fun States.x(signal: SIGNAL): RuleAssignable
+		infix fun States.x(signal: KClass<out SIGNAL>): RuleAssignable
+		infix fun States.x(signals: Signals<*>): RuleAssignable
+		infix fun States.x(any: any): RuleAssignable
+		infix fun States.x(anyOf: AnyOf): RuleAssignable
+		infix fun States.x(anyExcept: AnyExcept): RuleAssignable
+		infix fun <T : SIGNAL> States.x(predicate: (T) -> Boolean): RuleAssignable
+		infix fun <T> States.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
 		
 		infix fun any.x(signal: SIGNAL): RuleLeft
 		infix fun any.x(signal: KClass<out SIGNAL>): RuleLeft
@@ -180,6 +187,30 @@ interface KotlmataMachine
 		infix fun AnyExcept.x(anyExcept: AnyExcept): RuleAssignable
 		infix fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean): RuleAssignable
 		infix fun <T> AnyExcept.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
+		
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		infix fun Signals<*>.x(signal: SIGNAL)
+		
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		infix fun Signals<*>.x(signal: KClass<out SIGNAL>)
+		
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		infix fun Signals<*>.x(signals: Signals<*>)
+		
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		infix fun Signals<*>.x(any: any)
+		
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		infix fun Signals<*>.x(anyOf: AnyOf)
+		
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		infix fun Signals<*>.x(anyExcept: AnyExcept)
+		
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		infix fun <T : SIGNAL> Signals<*>.x(predicate: (T) -> Boolean)
+		
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		infix fun <T> Signals<*>.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T>
 		
 		/**
 		 * For chaining transition rule
@@ -556,7 +587,7 @@ private class KotlmataMachineImpl(
 	private inner class UpdateImpl(
 		init: (MachineTemplate)? = null,
 		update: (Update.() -> Unit)? = null
-	) : Init, Update, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
+	) : Init, Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
 	{
 		override val on = object : Base.On
 		{
@@ -874,12 +905,10 @@ private class KotlmataMachineImpl(
 		 * Transition rules
 		 *###################################################################################################################################*/
 		
-		override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2) = OR(this, signal)
-		override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>) = OR(this, signal)
-		override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2) = OR(this, signal)
-		override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>) = OR(this, signal)
-		override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2) = OR(this, signal)
-		override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>) = OR(this, signal)
+		override fun STATE.AND(state: STATE): States = object : States, MutableList<SIGNAL> by mutableListOf(this, state)
+		{ /* empty */ }
+		
+		override fun States.AND(state: STATE): States = this.apply { add(state) }
 		
 		override fun any.of(vararg args: SIGNAL): AnyOf = object : AnyOf, List<SIGNAL> by listOf(*args)
 		{ /* empty */ }
@@ -888,6 +917,9 @@ private class KotlmataMachineImpl(
 		{ /* empty */ }
 		
 		private fun Signals<*>.toAnyOf() = object : AnyOf, List<SIGNAL> by this
+		{ /* empty */ }
+		
+		private fun States.toAnyOf() = object : AnyOf, List<STATE> by this
 		{ /* empty */ }
 		
 		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : RuleLeft
@@ -915,7 +947,6 @@ private class KotlmataMachineImpl(
 			return predicate
 		}
 		
-		@Suppress("FunctionName")
 		private fun `state x anyOf`(from: STATE, anyOfSignal: AnyOf) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
@@ -927,7 +958,6 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		@Suppress("FunctionName")
 		private fun `state x anyExcept`(from: STATE, anyExceptSignal: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
@@ -942,7 +972,6 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		@Suppress("FunctionName")
 		private fun `anyOf x signal`(anyOfFrom: AnyOf, signal: SIGNAL) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
@@ -954,7 +983,6 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		@Suppress("FunctionName")
 		private fun `anyOf x anyOf`(anyOfFrom: AnyOf, anyOfSignal: AnyOf) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
@@ -966,7 +994,6 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		@Suppress("FunctionName")
 		private fun `anyOf x anyExcept`(anyOfFrom: AnyOf, anyExceptSignal: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
@@ -978,7 +1005,6 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		@Suppress("FunctionName")
 		private fun `anyExcept x signal`(anyExceptFrom: AnyExcept, signal: SIGNAL) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
@@ -993,7 +1019,6 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		@Suppress("FunctionName")
 		private fun `anyExcept x anyOf`(anyExceptFrom: AnyExcept, anyOfSignal: AnyOf) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
@@ -1005,7 +1030,6 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		@Suppress("FunctionName")
 		private fun `anyExcept x anyExcept`(anyExceptFrom: AnyExcept, anyExceptSignal: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
@@ -1024,13 +1048,13 @@ private class KotlmataMachineImpl(
 		override fun STATE.x(anyExcept: AnyExcept) = `state x anyExcept`(this, anyExcept)
 		override fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean) = this x this.store(predicate)
 		
-		override fun Signals<*>.x(signal: SIGNAL) = toAnyOf() x signal
-		override fun Signals<*>.x(signal: KClass<out SIGNAL>) = toAnyOf() x signal
-		override fun Signals<*>.x(signals: Signals<*>) = toAnyOf() x signals.toAnyOf()
-		override fun Signals<*>.x(any: any) = toAnyOf() x any
-		override fun Signals<*>.x(anyOf: AnyOf) = toAnyOf() x anyOf
-		override fun Signals<*>.x(anyExcept: AnyExcept) = toAnyOf() x anyExcept
-		override fun <T : SIGNAL> Signals<*>.x(predicate: (T) -> Boolean) = this.toAnyOf() x predicate
+		override fun States.x(signal: SIGNAL) = toAnyOf() x signal
+		override fun States.x(signal: KClass<out SIGNAL>) = toAnyOf() x signal
+		override fun States.x(signals: Signals<*>) = toAnyOf() x signals.toAnyOf()
+		override fun States.x(any: any) = toAnyOf() x any
+		override fun States.x(anyOf: AnyOf) = toAnyOf() x anyOf
+		override fun States.x(anyExcept: AnyExcept) = toAnyOf() x anyExcept
+		override fun <T : SIGNAL> States.x(predicate: (T) -> Boolean) = this.toAnyOf() x predicate
 		
 		override fun any.x(signal: SIGNAL) = ruleLeft(this, signal)
 		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
@@ -1075,6 +1099,54 @@ private class KotlmataMachineImpl(
 					}
 				}
 			}
+		}
+		
+		@Suppress("OverridingDeprecatedMember")
+		override fun Signals<*>.x(signal: SIGNAL)
+		{
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+		}
+		
+		@Suppress("OverridingDeprecatedMember")
+		override fun Signals<*>.x(signal: KClass<out SIGNAL>)
+		{
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+		}
+		
+		@Suppress("OverridingDeprecatedMember")
+		override fun Signals<*>.x(signals: Signals<*>)
+		{
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+		}
+		
+		@Suppress("OverridingDeprecatedMember")
+		override fun Signals<*>.x(any: any)
+		{
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+		}
+		
+		@Suppress("OverridingDeprecatedMember")
+		override fun Signals<*>.x(anyOf: AnyOf)
+		{
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+		}
+		
+		@Suppress("OverridingDeprecatedMember")
+		override fun Signals<*>.x(anyExcept: AnyExcept)
+		{
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+		}
+		
+		@Suppress("OverridingDeprecatedMember")
+		override fun <T : SIGNAL> Signals<*>.x(predicate: (T) -> Boolean)
+		{
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+		}
+		
+		@Suppress("OverridingDeprecatedMember")
+		override fun <T> Signals<*>.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T>
+		{
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
 		}
 		
 		/*###################################################################################################################################

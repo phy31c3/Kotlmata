@@ -43,48 +43,33 @@ internal fun Any?.convertToSync() = when (this)
 	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
 }
 
-internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: T1, rhs: T2): Signals<R>
+internal object SignalsDefinableImpl : SignalsDefinable
 {
-	shouldNotExpired()
-	return object : Signals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
-}
-
-internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: T1, rhs: KClass<T2>): Signals<R>
-{
-	shouldNotExpired()
-	return object : Signals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	
+	override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
-}
-
-internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: KClass<T1>, rhs: T2): Signals<R>
-{
-	shouldNotExpired()
-	return object : Signals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	
+	override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
-}
-
-internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: KClass<T1>, rhs: KClass<T2>): Signals<R>
-{
-	shouldNotExpired()
-	return object : Signals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	
+	override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
-}
-
-@Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: Signals<T1>, rhs: T2): Signals<R>
-{
-	shouldNotExpired()
-	lhs.add(rhs)
-	return lhs as Signals<R>
-}
-
-@Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: Signals<T1>, rhs: KClass<T2>): Signals<R>
-{
-	shouldNotExpired()
-	lhs.add(rhs)
-	return lhs as Signals<R>
+	
+	@Suppress("UNCHECKED_CAST")
+	override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2): Signals<R>
+	{
+		add(signal)
+		return this as Signals<R>
+	}
+	
+	@Suppress("UNCHECKED_CAST")
+	override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>): Signals<R>
+	{
+		add(signal)
+		return this as Signals<R>
+	}
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing)
