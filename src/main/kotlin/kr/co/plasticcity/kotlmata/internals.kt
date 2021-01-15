@@ -147,6 +147,23 @@ internal class Tester
 			}
 		}
 	}
+	
+	inline fun test(signal: Any, onFind: ((Any) -> Boolean) -> Unit)
+	{
+		set.forEach { predicate ->
+			try
+			{
+				if (predicate(signal))
+				{
+					onFind(predicate)
+				}
+			}
+			catch (e: ClassCastException)
+			{
+				/* ignore */
+			}
+		}
+	}
 }
 
 internal class Mutable2DMap<K1, K2, V>(private val map: MutableMap<K1, MutableMap<K2, V>> = HashMap()) : MutableMap<K1, MutableMap<K2, V>> by map

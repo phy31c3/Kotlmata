@@ -345,6 +345,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 }
 
 private class TransitionDef(val callback: TransitionCallback, val fallback: TransitionFallback? = null, val finally: TransitionCallback? = null)
+private class Excepts(val exceptStates: List<STATE>?, val exceptSignals: List<SIGNAL>?, val to: STATE)
 
 private class KotlmataMachineImpl(
 	override val name: String,
@@ -434,6 +435,19 @@ private class KotlmataMachineImpl(
 		defaultInput(FunctionDSL.Sync(signal, type as KClass<SIGNAL>, payload))
 	}
 	
+	private fun Excepts.has(from: STATE, signal: SIGNAL): Boolean
+	{
+		return exceptStates?.contains(from) == true
+			|| exceptSignals?.contains(signal) == true
+	}
+	
+	private fun STATE.applyExcepts(from: STATE, signal: SIGNAL) = when
+	{
+		this !is Excepts -> this
+		this.has(from, signal) -> null
+		else -> this.to
+	}
+	
 	override fun input(signal: SIGNAL, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
 	{
 		fun MutableMap<SIGNAL, STATE>.test(from: STATE, signal: SIGNAL): STATE?
@@ -443,8 +457,28 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
+		fun MutableMap<SIGNAL, STATE>.testAny(from: STATE, signal: SIGNAL): STATE?
+		{
+			testerMap[any]?.test(signal) { predicate ->
+				this[predicate]?.applyExcepts(from, signal)?.let { to ->
+					return to
+				}
+			}
+			return null
+		}
+		
 		fun next(from: STATE): STATE? = ruleMap[from]?.let { map2 ->
-			return map2[signal] ?: map2.test(from, signal) ?: map2[signal::class] ?: map2[any]
+			return map2[signal]
+				?: map2.test(from, signal)
+				?: map2[signal::class]
+				?: map2[any]?.applyExcepts(from, signal)
+		}
+		
+		fun nextAny(from: STATE): STATE? = ruleMap[any]?.let { map2 ->
+			return map2[signal]?.applyExcepts(from, signal)
+				?: map2.testAny(from, signal)
+				?: map2[signal::class]?.applyExcepts(from, signal)
+				?: map2[any]?.applyExcepts(from, signal)
 		}
 		
 		val from = currentTag
@@ -459,7 +493,7 @@ private class KotlmataMachineImpl(
 			logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 			block(sync)
 		} ?: run {
-			next(from) ?: next(any)
+			next(from) ?: nextAny(from)
 		}?.let { to ->
 			when (to)
 			{
@@ -494,7 +528,13 @@ private class KotlmataMachineImpl(
 	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
 	{
 		fun next(from: STATE): STATE? = ruleMap[from]?.let { map2 ->
-			return map2[type] ?: map2[any]
+			return map2[type]
+				?: map2[any]?.applyExcepts(from, signal)
+		}
+		
+		fun nextAny(from: STATE): STATE? = ruleMap[any]?.let { map2 ->
+			return map2[type]?.applyExcepts(from, signal)
+				?: map2[any]?.applyExcepts(from, signal)
 		}
 		
 		val from = currentTag
@@ -509,7 +549,7 @@ private class KotlmataMachineImpl(
 			logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 			block(sync)
 		} ?: run {
-			next(from) ?: next(any)
+			next(from) ?: nextAny(from)
 		}?.let { to ->
 			when (to)
 			{
@@ -937,12 +977,7 @@ private class KotlmataMachineImpl(
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				from x any %= to
-				exceptSignals.forEach { signal ->
-					ruleMap[from, signal] ?: run {
-						from x signal %= stay
-					}
-				}
+				from x any %= Excepts(null, exceptSignals, to)
 			}
 		}
 		
@@ -995,12 +1030,7 @@ private class KotlmataMachineImpl(
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				any x signal %= to
-				exceptStates.forEach { from ->
-					ruleMap[from, signal] ?: run {
-						from x signal %= stay
-					}
-				}
+				any x signal %= Excepts(exceptStates, null, to)
 			}
 		}
 		
@@ -1020,8 +1050,7 @@ private class KotlmataMachineImpl(
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				exceptStates x any %= to
-				any x exceptSignals %= to
+				any x any %= Excepts(exceptStates, exceptSignals, to)
 			}
 		}
 		
@@ -1030,12 +1059,7 @@ private class KotlmataMachineImpl(
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				any x predicate %= to
-				exceptStates.forEach { from ->
-					ruleMap[from, predicate] ?: run {
-						from x predicate %= stay
-					}
-				}
+				any x predicate %= Excepts(exceptStates, null, to)
 			}
 		}
 		
