@@ -619,6 +619,10 @@ private class KotlmataMachineImpl(
 		{
 			this@UpdateImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this, logLevel, "$prefix$tab", block)
+			if (this !== `Initial state for KotlmataDaemon`)
+			{
+				logLevel.normal(prefix, this) { MACHINE_ADD_STATE }
+			}
 		}
 		
 		override fun <S : T, T : STATE> S.extends(template: StateTemplate<T>) = object : StateDefine.With<S>
@@ -630,6 +634,10 @@ private class KotlmataMachineImpl(
 				this@UpdateImpl shouldNot expired
 				state = KotlmataMutableState(this@extends, logLevel, "$prefix$tab", template)
 				stateMap[this@extends] = state
+				if (this@extends !== `Initial state for KotlmataDaemon`)
+				{
+					logLevel.normal(prefix, this@extends) { MACHINE_ADD_STATE }
+				}
 			}
 			
 			override fun with(block: StateTemplate<S>)
@@ -644,6 +652,7 @@ private class KotlmataMachineImpl(
 		{
 			this@UpdateImpl shouldNot expired
 			stateMap[this]?.update(block as KotlmataMutableState.Update.(STATE) -> Unit)
+			logLevel.normal(prefix, this) { MACHINE_UPDATE_STATE }
 		}
 		
 		override fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
@@ -653,6 +662,10 @@ private class KotlmataMachineImpl(
 				entry function function
 			}
 			stateMap[this] = state
+			if (this !== `Initial state for KotlmataDaemon`)
+			{
+				logLevel.normal(prefix, this) { MACHINE_ADD_STATE }
+			}
 			return object : KotlmataState.Entry.Catch<SIGNAL>
 			{
 				override fun intercept(intercept: EntryErrorFunction<SIGNAL>): KotlmataState.Entry.Finally<SIGNAL>
@@ -690,6 +703,10 @@ private class KotlmataMachineImpl(
 					entry via signal function function
 				}
 				stateMap[this@via] = state
+				if (this@via !== `Initial state for KotlmataDaemon`)
+				{
+					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
+				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
@@ -730,6 +747,10 @@ private class KotlmataMachineImpl(
 					entry via signal function function
 				}
 				stateMap[this@via] = state
+				if (this@via !== `Initial state for KotlmataDaemon`)
+				{
+					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
+				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
@@ -770,6 +791,10 @@ private class KotlmataMachineImpl(
 					entry via signals function function
 				}
 				stateMap[this@via] = state
+				if (this@via !== `Initial state for KotlmataDaemon`)
+				{
+					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
+				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
@@ -810,6 +835,10 @@ private class KotlmataMachineImpl(
 					entry via predicate function function
 				}
 				stateMap[this@via] = state
+				if (this@via !== `Initial state for KotlmataDaemon`)
+				{
+					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
+				}
 				return object : KotlmataState.Entry.Catch<T>
 				{
 					override fun intercept(intercept: EntryErrorFunction<T>): KotlmataState.Entry.Finally<T>
@@ -870,6 +899,7 @@ private class KotlmataMachineImpl(
 			{
 				this@UpdateImpl shouldNot expired
 				ruleMap[from, signal] = to
+				logLevel.normal(prefix, from, signal, to) { MACHINE_ADD_RULE }
 			}
 		}
 		
@@ -1139,21 +1169,23 @@ private class KotlmataMachineImpl(
 			{
 				this@UpdateImpl shouldNot expired
 				stateMap -= from
+				logLevel.normal(prefix, from) { MACHINE_DELETE_STATE }
 			}
 			
 			override fun state(all: all)
 			{
 				this@UpdateImpl shouldNot expired
 				stateMap.clear()
+				logLevel.normal(prefix) { MACHINE_DELETE_STATE_ALL }
 			}
 			
-			override fun rule(ruleLeft: RuleLeft)
-			{
+			override fun rule(ruleLeft: RuleLeft) = ruleLeft.run {
 				this@UpdateImpl shouldNot expired
-				ruleMap[ruleLeft.from]?.let { map2 ->
-					map2 -= ruleLeft.signal
+				ruleMap[from]?.let { map2 ->
+					map2 -= signal
 				}
-				testerMap[ruleLeft.from]?.remove(ruleLeft.signal)
+				testerMap[from]?.remove(signal)
+				logLevel.normal(prefix, from, signal) { MACHINE_DELETE_RULE }
 			}
 			
 			override fun rule(all: all)
@@ -1161,6 +1193,7 @@ private class KotlmataMachineImpl(
 				this@UpdateImpl shouldNot expired
 				ruleMap.clear()
 				testerMap.clear()
+				logLevel.normal(prefix) { MACHINE_DELETE_RULE_ALL }
 			}
 		}
 		

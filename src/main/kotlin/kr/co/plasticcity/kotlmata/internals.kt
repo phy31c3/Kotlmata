@@ -25,13 +25,13 @@ internal class TransitionErrorActionReceiver(override val transitionCount: Long,
 @Suppress("ClassName")
 internal object `Initial state for KotlmataDaemon`
 {
-	override fun toString(): String = this::class.simpleName ?: ""
+	override fun toString(): String = this::class.simpleName ?: "Initial state for KotlmataDaemon"
 }
 
 @Suppress("ClassName")
 internal object `Start KotlmataDaemon`
 {
-	override fun toString(): String = this::class.simpleName ?: ""
+	override fun toString(): String = this::class.simpleName ?: "Start KotlmataDaemon"
 }
 
 internal const val tab: String = "    "

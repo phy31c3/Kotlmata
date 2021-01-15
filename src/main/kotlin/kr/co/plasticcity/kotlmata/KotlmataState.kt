@@ -185,10 +185,6 @@ private class KotlmataStateImpl<T : STATE>(
 	init
 	{
 		UpdateImpl(block)
-		if (tag !== `Initial state for KotlmataDaemon`)
-		{
-			logLevel.normal(prefix, tag) { STATE_CREATED }
-		}
 	}
 	
 	private fun EntryDef.run(from: STATE, signal: SIGNAL): Any? = try
@@ -356,7 +352,6 @@ private class KotlmataStateImpl<T : STATE>(
 	override fun update(block: Update.(T) -> Unit)
 	{
 		UpdateImpl(block)
-		logLevel.normal(prefix, tag) { STATE_UPDATED }
 	}
 	
 	override fun toString(): String

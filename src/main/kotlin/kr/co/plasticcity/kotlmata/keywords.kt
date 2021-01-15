@@ -28,6 +28,9 @@ typealias SIGNAL = Any
  * ```
  */
 object any
+{
+	override fun toString(): String = this::class.simpleName ?: "any"
+}
 
 /**
  * In State:
@@ -45,6 +48,9 @@ object any
  * ```
  */
 object stay
+{
+	override fun toString(): String = this::class.simpleName ?: "stay"
+}
 
 /**
  * In Machine:
@@ -54,6 +60,9 @@ object stay
  * ```
  */
 object self
+{
+	override fun toString(): String = this::class.simpleName ?: "self"
+}
 
 /**
  * In State:
