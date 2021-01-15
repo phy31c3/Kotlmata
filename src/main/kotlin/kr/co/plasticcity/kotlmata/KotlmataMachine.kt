@@ -506,14 +506,14 @@ private class KotlmataMachineImpl(
 				in stateMap -> stateMap[to]
 				else ->
 				{
-					Log.w(prefix.trimEnd(), from, "${type.simpleName}::class", to) { TRANSITION_FAILED }
+					Log.w(prefix.trimEnd(), from, type, to) { TRANSITION_FAILED }
 					null
 				}
 			}
 		}?.also { nextState ->
 			val to = nextState.tag
 			tryCatchReturn { currentState.exit(signal, type, to) }
-			logLevel.simple(prefix, from, "${type.simpleName}::class", to) {
+			logLevel.simple(prefix, from, type, to) {
 				if (logLevel > SIMPLE)
 					MACHINE_TRANSITION_TAB
 				else

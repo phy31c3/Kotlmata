@@ -1,5 +1,7 @@
 package kr.co.plasticcity.kotlmata
 
+import kotlin.reflect.KClass
+
 internal class Logs
 {
 	companion object
@@ -71,8 +73,8 @@ internal class Logs
 		
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_OBJECT = "%s Use of expired object: The object is only available inside the 'init' or 'update' block."
-		const val UNDEFINED_START_STATE = "%s The start state '%s' is undefined."
-		const val FAILED_TO_GET_STATE = "%s Attempted to get state %s that does not exist. (Make sure that state %s wasn't deleted at this time.)"
+		const val UNDEFINED_START_STATE = "%s The start state [%s] is undefined."
+		const val FAILED_TO_GET_STATE = "%s Attempted to get state [%s] that does not exist. (Make sure that state [%s] wasn't deleted at this time.)"
 	}
 }
 
@@ -94,29 +96,93 @@ internal object Log
 	
 	fun Int.simple(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (this >= SIMPLE) debug?.invoke(Logs.log().format(*args))
+		if (this >= SIMPLE) debug?.invoke(log(Logs).apply(*args))
 	}
 	
 	fun Int.normal(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (this >= NORMAL) debug?.invoke(Logs.log().format(*args))
+		if (this >= NORMAL) debug?.invoke(log(Logs).apply(*args))
 	}
 	
 	fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (this >= DETAIL) debug?.invoke(Logs.log().format(*args))
+		if (this >= DETAIL) debug?.invoke(log(Logs).apply(*args))
 	}
 	
 	fun w(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		warn?.invoke(Logs.log().format(*args))
+		warn?.invoke(log(Logs).apply(*args))
 	}
 	
 	fun e(vararg args: Any?, log: Logs.Companion.() -> String): Nothing
 	{
-		Logs.log().format(*args).also { formatted ->
+		log(Logs).apply(*args).also { formatted ->
 			error(formatted)
 			throw IllegalStateException(formatted)
 		}
+	}
+	
+	private fun String.apply(vararg args: Any?): String
+	{
+		@Suppress("UNCHECKED_CAST")
+		args as Array<Any?>
+		
+		var cursor = -1
+		var token = ""
+		
+		this.forEach {
+			when (token)
+			{
+				"" ->
+				{
+					if (it == '%' || it == '(')
+					{
+						token += it
+					}
+				}
+				"%" ->
+				{
+					if (it == 's')
+					{
+						token = ""
+						++cursor
+					}
+					else token = ""
+				}
+				"(" ->
+				{
+					if (it == '%')
+					{
+						token += it
+					}
+					else token = ""
+				}
+				"(%" ->
+				{
+					if (it == 's')
+					{
+						token += it
+						++cursor
+					}
+					else token = ""
+				}
+				"(%s" ->
+				{
+					if (it == ')')
+					{
+						token = ""
+						when (val arg = args[cursor])
+						{
+							is KClass<*> -> args[cursor] = "${arg.simpleName}::class"
+							is String -> args[cursor] = "\"$arg\""
+							is Char -> args[cursor] = "'$arg'"
+						}
+					}
+					else token = ""
+				}
+			}
+		}
+		
+		return this.format(*args)
 	}
 }
