@@ -629,43 +629,43 @@ private class KotlmataDaemonImpl(
 			
 			override fun create(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_CREATE }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_CREATE }
 				return setLifecycleDef(callback) { onCreate = it }
 			}
 			
 			override fun start(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_START }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_START }
 				return setLifecycleDef(callback) { onStart = it }
 			}
 			
 			override fun pause(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_PAUSE }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_PAUSE }
 				return setLifecycleDef(callback) { onPause = it }
 			}
 			
 			override fun stop(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_STOP }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_STOP }
 				return setLifecycleDef(callback) { onStop = it }
 			}
 			
 			override fun resume(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_RESUME }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_RESUME }
 				return setLifecycleDef(callback) { onResume = it }
 			}
 			
 			override fun finish(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_FINISH }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_FINISH }
 				return setLifecycleDef(callback) { onFinish = it }
 			}
 			
 			override fun destroy(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_DESTROY }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_DESTROY }
 				return setLifecycleDef(callback) { onDestroy = it }
 			}
 			

@@ -1161,7 +1161,7 @@ class Tests
 			}
 		}
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 2) extends base by { daemon ->
+		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends base by { daemon ->
 			on create {
 				println("--------------------- 데몬이 생성됨")
 				thread = Thread.currentThread()

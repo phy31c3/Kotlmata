@@ -619,7 +619,7 @@ private class KotlmataMachineImpl(
 			{
 				this@UpdateImpl shouldNot expired
 				onTransition = TransitionDef(callback)
-				logLevel.normal(prefix) { MACHINE_REGISTER_ON_TRANSITION }
+				logLevel.normal(prefix) { MACHINE_SET_ON_TRANSITION }
 				return object : Base.Catch
 				{
 					override fun catch(fallback: TransitionFallback): Base.Finally
@@ -648,7 +648,7 @@ private class KotlmataMachineImpl(
 			{
 				this@UpdateImpl shouldNot expired
 				onError = block
-				logLevel.normal(prefix) { MACHINE_REGISTER_ON_ERROR }
+				logLevel.normal(prefix) { MACHINE_SET_ON_ERROR }
 			}
 		}
 		
@@ -948,7 +948,10 @@ private class KotlmataMachineImpl(
 			{
 				this@UpdateImpl shouldNot expired
 				ruleMap[from, signal] = to
-				logLevel.normal(prefix, from, signal, to) { MACHINE_ADD_RULE }
+				if (from !== `Initial state for KotlmataDaemon`)
+				{
+					logLevel.normal(prefix, from, signal, to) { MACHINE_ADD_RULE }
+				}
 			}
 		}
 		
