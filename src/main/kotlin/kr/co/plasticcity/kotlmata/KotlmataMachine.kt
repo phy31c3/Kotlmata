@@ -137,17 +137,14 @@ interface KotlmataMachine
 		infix fun STATE.AND(state: STATE): States
 		infix fun States.AND(state: STATE): States
 		
-		interface AnyOf : List<SIGNAL>
 		interface AnyExcept : List<SIGNAL>
 		
-		fun any.of(vararg args: SIGNAL): AnyOf
 		fun any.except(vararg args: SIGNAL): AnyExcept
 		
 		infix fun STATE.x(signal: SIGNAL): RuleLeft
 		infix fun STATE.x(signal: KClass<out SIGNAL>): RuleLeft
 		infix fun STATE.x(signals: Signals<*>): RuleAssignable
 		infix fun STATE.x(any: any): RuleLeft
-		infix fun STATE.x(anyOf: AnyOf): RuleAssignable
 		infix fun STATE.x(anyExcept: AnyExcept): RuleAssignable
 		infix fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean): RuleLeft
 		infix fun <T> STATE.x(range: ClosedRange<T>): RuleAssignable where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
@@ -156,7 +153,6 @@ interface KotlmataMachine
 		infix fun States.x(signal: KClass<out SIGNAL>): RuleAssignable
 		infix fun States.x(signals: Signals<*>): RuleAssignable
 		infix fun States.x(any: any): RuleAssignable
-		infix fun States.x(anyOf: AnyOf): RuleAssignable
 		infix fun States.x(anyExcept: AnyExcept): RuleAssignable
 		infix fun <T : SIGNAL> States.x(predicate: (T) -> Boolean): RuleAssignable
 		infix fun <T> States.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
@@ -165,25 +161,14 @@ interface KotlmataMachine
 		infix fun any.x(signal: KClass<out SIGNAL>): RuleLeft
 		infix fun any.x(signals: Signals<*>): RuleAssignable
 		infix fun any.x(any: any): RuleLeft
-		infix fun any.x(anyOf: AnyOf): RuleAssignable
 		infix fun any.x(anyExcept: AnyExcept): RuleAssignable
 		infix fun <T : SIGNAL> any.x(predicate: (T) -> Boolean): RuleLeft
 		infix fun <T> any.x(range: ClosedRange<T>): RuleAssignable where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
-		
-		infix fun AnyOf.x(signal: SIGNAL): RuleAssignable
-		infix fun AnyOf.x(signal: KClass<out SIGNAL>): RuleAssignable
-		infix fun AnyOf.x(signals: Signals<*>): RuleAssignable
-		infix fun AnyOf.x(any: any): RuleAssignable
-		infix fun AnyOf.x(anyOf: AnyOf): RuleAssignable
-		infix fun AnyOf.x(anyExcept: AnyExcept): RuleAssignable
-		infix fun <T : SIGNAL> AnyOf.x(predicate: (T) -> Boolean): RuleAssignable
-		infix fun <T> AnyOf.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
 		
 		infix fun AnyExcept.x(signal: SIGNAL): RuleAssignable
 		infix fun AnyExcept.x(signal: KClass<out SIGNAL>): RuleAssignable
 		infix fun AnyExcept.x(signals: Signals<*>): RuleAssignable
 		infix fun AnyExcept.x(any: any): RuleAssignable
-		infix fun AnyExcept.x(anyOf: AnyOf): RuleAssignable
 		infix fun AnyExcept.x(anyExcept: AnyExcept): RuleAssignable
 		infix fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean): RuleAssignable
 		infix fun <T> AnyExcept.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
@@ -199,9 +184,6 @@ interface KotlmataMachine
 		
 		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(any: any)
-		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
-		infix fun Signals<*>.x(anyOf: AnyOf)
 		
 		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(anyExcept: AnyExcept)
@@ -234,7 +216,6 @@ interface KotlmataMachine
 				infix fun via(signal: KClass<out SIGNAL>)
 				infix fun via(signals: Signals<*>)
 				infix fun via(any: any)
-				infix fun via(anyOf: AnyOf)
 				infix fun via(anyExcept: AnyExcept)
 				infix fun <T : SIGNAL> via(predicate: (T) -> Boolean)
 				infix fun <T> via(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this via { t: T -> range.contains(t) }
@@ -908,18 +889,11 @@ private class KotlmataMachineImpl(
 		override fun STATE.AND(state: STATE): States = object : States, MutableList<SIGNAL> by mutableListOf(this, state)
 		{ /* empty */ }
 		
-		override fun States.AND(state: STATE): States = this.apply { add(state) }
-		
-		override fun any.of(vararg args: SIGNAL): AnyOf = object : AnyOf, List<SIGNAL> by listOf(*args)
-		{ /* empty */ }
+		override fun States.AND(state: STATE): States = this.apply {
+			add(state)
+		}
 		
 		override fun any.except(vararg args: SIGNAL): AnyExcept = object : AnyExcept, List<SIGNAL> by listOf(*args)
-		{ /* empty */ }
-		
-		private fun Signals<*>.toAnyOf() = object : AnyOf, List<SIGNAL> by this
-		{ /* empty */ }
-		
-		private fun States.toAnyOf() = object : AnyOf, List<STATE> by this
 		{ /* empty */ }
 		
 		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : RuleLeft
@@ -947,24 +921,24 @@ private class KotlmataMachineImpl(
 			return predicate
 		}
 		
-		private fun `state x anyOf`(from: STATE, anyOfSignal: AnyOf) = object : RuleAssignable
+		private fun `state x signals`(from: STATE, signals: Signals<*>) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				anyOfSignal.forEach { signal ->
+				signals.forEach { signal ->
 					from x signal %= to
 				}
 			}
 		}
 		
-		private fun `state x anyExcept`(from: STATE, anyExceptSignal: AnyExcept) = object : RuleAssignable
+		private fun `state x excepts`(from: STATE, exceptSignals: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
 				from x any %= to
-				anyExceptSignal.forEach { signal ->
+				exceptSignals.forEach { signal ->
 					ruleMap[from, signal] ?: run {
 						from x signal %= stay
 					}
@@ -972,46 +946,57 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		private fun `anyOf x signal`(anyOfFrom: AnyOf, signal: SIGNAL) = object : RuleAssignable
+		private fun `states x signal`(states: States, signal: SIGNAL) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				anyOfFrom.forEach { from ->
+				states.forEach { from ->
 					from x signal %= to
 				}
 			}
 		}
 		
-		private fun `anyOf x anyOf`(anyOfFrom: AnyOf, anyOfSignal: AnyOf) = object : RuleAssignable
+		private fun `states x signals`(states: States, signals: Signals<*>) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				anyOfFrom.forEach { from ->
-					from x anyOfSignal %= to
+				states.forEach { from ->
+					from x signals %= to
 				}
 			}
 		}
 		
-		private fun `anyOf x anyExcept`(anyOfFrom: AnyOf, anyExceptSignal: AnyExcept) = object : RuleAssignable
+		private fun `states x excepts`(states: States, exceptSignals: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				anyOfFrom.forEach { from ->
-					from x anyExceptSignal %= to
+				states.forEach { from ->
+					from x exceptSignals %= to
 				}
 			}
 		}
 		
-		private fun `anyExcept x signal`(anyExceptFrom: AnyExcept, signal: SIGNAL) = object : RuleAssignable
+		private fun <T : SIGNAL> `states x predicate`(states: States, predicate: (T) -> Boolean) = object : RuleAssignable
+		{
+			override fun remAssign(to: STATE)
+			{
+				this@UpdateImpl shouldNot expired
+				states.forEach { from ->
+					from x predicate %= to
+				}
+			}
+		}
+		
+		private fun `excepts x signal`(exceptStates: AnyExcept, signal: SIGNAL) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
 				any x signal %= to
-				anyExceptFrom.forEach { from ->
+				exceptStates.forEach { from ->
 					ruleMap[from, signal] ?: run {
 						from x signal %= stay
 					}
@@ -1019,87 +1004,68 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		private fun `anyExcept x anyOf`(anyExceptFrom: AnyExcept, anyOfSignal: AnyOf) = object : RuleAssignable
+		private fun `excepts x signals`(exceptStates: AnyExcept, signals: Signals<*>) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				anyOfSignal.forEach { signal ->
-					anyExceptFrom x signal %= to
+				signals.forEach { signal ->
+					exceptStates x signal %= to
 				}
 			}
 		}
 		
-		private fun `anyExcept x anyExcept`(anyExceptFrom: AnyExcept, anyExceptSignal: AnyExcept) = object : RuleAssignable
+		private fun `excepts x excepts`(exceptStates: AnyExcept, exceptSignals: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				anyExceptFrom x any %= to
-				any x anyExceptSignal %= to
+				exceptStates x any %= to
+				any x exceptSignals %= to
 			}
 		}
 		
-		override fun STATE.x(signal: SIGNAL) = ruleLeft(this, signal)
-		override fun STATE.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
-		override fun STATE.x(signals: Signals<*>) = this x signals.toAnyOf()
-		override fun STATE.x(any: any) = ruleLeft(this, any)
-		override fun STATE.x(anyOf: AnyOf) = `state x anyOf`(this, anyOf)
-		override fun STATE.x(anyExcept: AnyExcept) = `state x anyExcept`(this, anyExcept)
-		override fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean) = this x this.store(predicate)
-		
-		override fun States.x(signal: SIGNAL) = toAnyOf() x signal
-		override fun States.x(signal: KClass<out SIGNAL>) = toAnyOf() x signal
-		override fun States.x(signals: Signals<*>) = toAnyOf() x signals.toAnyOf()
-		override fun States.x(any: any) = toAnyOf() x any
-		override fun States.x(anyOf: AnyOf) = toAnyOf() x anyOf
-		override fun States.x(anyExcept: AnyExcept) = toAnyOf() x anyExcept
-		override fun <T : SIGNAL> States.x(predicate: (T) -> Boolean) = this.toAnyOf() x predicate
-		
-		override fun any.x(signal: SIGNAL) = ruleLeft(this, signal)
-		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
-		override fun any.x(signals: Signals<*>) = this x signals.toAnyOf()
-		override fun any.x(any: any) = ruleLeft(this, any)
-		override fun any.x(anyOf: AnyOf) = `state x anyOf`(this, anyOf)
-		override fun any.x(anyExcept: AnyExcept) = `state x anyExcept`(this, anyExcept)
-		override fun <T : SIGNAL> any.x(predicate: (T) -> Boolean) = this x this.store(predicate)
-		
-		override fun AnyOf.x(signal: SIGNAL) = `anyOf x signal`(this, signal)
-		override fun AnyOf.x(signal: KClass<out SIGNAL>) = `anyOf x signal`(this, signal)
-		override fun AnyOf.x(signals: Signals<*>) = this x signals.toAnyOf()
-		override fun AnyOf.x(any: any) = `anyOf x signal`(this, any)
-		override fun AnyOf.x(anyOf: AnyOf) = `anyOf x anyOf`(this, anyOf)
-		override fun AnyOf.x(anyExcept: AnyExcept) = `anyOf x anyExcept`(this, anyExcept)
-		override fun <T : SIGNAL> AnyOf.x(predicate: (T) -> Boolean) = object : RuleAssignable
-		{
-			override fun remAssign(to: STATE)
-			{
-				this@UpdateImpl shouldNot expired
-				this@x.forEach { from ->
-					from x predicate %= to
-				}
-			}
-		}
-		
-		override fun AnyExcept.x(signal: SIGNAL) = `anyExcept x signal`(this, signal)
-		override fun AnyExcept.x(signal: KClass<out SIGNAL>) = `anyExcept x signal`(this, signal)
-		override fun AnyExcept.x(signals: Signals<*>) = this x signals.toAnyOf()
-		override fun AnyExcept.x(any: any) = `anyExcept x signal`(this, any)
-		override fun AnyExcept.x(anyOf: AnyOf) = `anyExcept x anyOf`(this, anyOf)
-		override fun AnyExcept.x(anyExcept: AnyExcept) = `anyExcept x anyExcept`(this, anyExcept)
-		override fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean) = object : RuleAssignable
+		private fun <T : SIGNAL> `excepts x predicate`(exceptStates: AnyExcept, predicate: (T) -> Boolean) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
 				any x predicate %= to
-				this@x.forEach { from ->
+				exceptStates.forEach { from ->
 					ruleMap[from, predicate] ?: run {
 						from x predicate %= stay
 					}
 				}
 			}
 		}
+		
+		override fun STATE.x(signal: SIGNAL) = ruleLeft(this, signal)
+		override fun STATE.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
+		override fun STATE.x(signals: Signals<*>) = `state x signals`(this, signals)
+		override fun STATE.x(any: any) = ruleLeft(this, any)
+		override fun STATE.x(anyExcept: AnyExcept) = `state x excepts`(this, anyExcept)
+		override fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean) = this x this.store(predicate)
+		
+		override fun States.x(signal: SIGNAL) = `states x signal`(this, signal)
+		override fun States.x(signal: KClass<out SIGNAL>) = `states x signal`(this, signal)
+		override fun States.x(signals: Signals<*>) = `states x signals`(this, signals)
+		override fun States.x(any: any) = `states x signal`(this, any)
+		override fun States.x(anyExcept: AnyExcept) = `states x excepts`(this, anyExcept)
+		override fun <T : SIGNAL> States.x(predicate: (T) -> Boolean) = `states x predicate`(this, predicate)
+		
+		override fun any.x(signal: SIGNAL) = ruleLeft(this, signal)
+		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
+		override fun any.x(signals: Signals<*>) = `state x signals`(this, signals)
+		override fun any.x(any: any) = ruleLeft(this, any)
+		override fun any.x(anyExcept: AnyExcept) = `state x excepts`(this, anyExcept)
+		override fun <T : SIGNAL> any.x(predicate: (T) -> Boolean) = this x this.store(predicate)
+		
+		override fun AnyExcept.x(signal: SIGNAL) = `excepts x signal`(this, signal)
+		override fun AnyExcept.x(signal: KClass<out SIGNAL>) = `excepts x signal`(this, signal)
+		override fun AnyExcept.x(signals: Signals<*>) = `excepts x signals`(this, signals)
+		override fun AnyExcept.x(any: any) = `excepts x signal`(this, any)
+		override fun AnyExcept.x(anyExcept: AnyExcept) = `excepts x excepts`(this, anyExcept)
+		override fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean) = `excepts x predicate`(this, predicate)
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(signal: SIGNAL)
@@ -1121,12 +1087,6 @@ private class KotlmataMachineImpl(
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(any: any)
-		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
-		}
-		
-		@Suppress("OverridingDeprecatedMember")
-		override fun Signals<*>.x(anyOf: AnyOf)
 		{
 			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
 		}
@@ -1181,18 +1141,16 @@ private class KotlmataMachineImpl(
 						loop { from, to -> from x signal %= to }
 					}
 					
-					override fun via(signals: Signals<*>) = via(signals.toAnyOf())
+					override fun via(signals: Signals<*>)
+					{
+						this@UpdateImpl shouldNot expired
+						loop { from, to -> from x signals %= to }
+					}
 					
 					override fun via(any: any)
 					{
 						this@UpdateImpl shouldNot expired
 						loop { from, to -> from x any %= to }
-					}
-					
-					override fun via(anyOf: AnyOf)
-					{
-						this@UpdateImpl shouldNot expired
-						loop { from, to -> from x anyOf %= to }
 					}
 					
 					override fun via(anyExcept: AnyExcept)

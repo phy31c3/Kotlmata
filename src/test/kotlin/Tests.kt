@@ -887,24 +887,21 @@ class Tests
 			"state x type" to false,
 			"state x signals" to false,
 			"state x any" to false,
-			"state x anyOf" to false,
-			"state x anyExcept" to false,
+			"state x excepts" to false,
 			"state x predicate" to false,
 			"state x range" to false,
 			"signals x signal" to false,
 			"signals x type" to false,
 			"signals x signals" to false,
 			"signals x any" to false,
-			"signals x anyOf" to false,
-			"signals x anyExcept" to false,
+			"signals x excepts" to false,
 			"signals x predicate" to false,
 			"signals x range" to false,
 			"any x signal" to false,
 			"any x type" to false,
 			"any x signals" to false,
 			"any x any" to false,
-			"any x anyOf" to false,
-			"any x anyExcept" to false,
+			"any x excepts" to false,
 			"any x predicate" to false,
 			"any x range" to false
 		)
@@ -915,10 +912,9 @@ class Tests
 			"2" action { checklist["state x type"] = true }
 			"3" action { checklist["state x signals"] = true }
 			"4" action { checklist["state x any"] = true }
-			"5" action { checklist["state x anyOf"] = true }
-			"6" action { checklist["state x anyExcept"] = true }
-			"7" action { checklist["state x predicate"] = true }
-			"8" action { checklist["state x range"] = true }
+			"5" action { checklist["state x excepts"] = true }
+			"6" action { checklist["state x predicate"] = true }
+			"7" action { checklist["state x range"] = true }
 			
 			"1a" action { checklist["signals x signal"] = true }
 			"1b" action { checklist["signals x signal"] = true }
@@ -928,49 +924,43 @@ class Tests
 			"3b" action { checklist["signals x signals"] = true }
 			"4a" action { checklist["signals x any"] = true }
 			"4b" action { checklist["signals x any"] = true }
-			"5a" action { checklist["signals x anyOf"] = true }
-			"5b" action { checklist["signals x anyOf"] = true }
-			"6a" action { checklist["signals x anyExcept"] = true }
-			"6b" action { checklist["signals x anyExcept"] = true }
-			"7a" action { checklist["signals x predicate"] = true }
-			"7b" action { checklist["signals x predicate"] = true }
-			"8a" action { checklist["signals x range"] = true }
-			"8b" action { checklist["signals x range"] = true }
+			"5a" action { checklist["signals x excepts"] = true }
+			"5b" action { checklist["signals x excepts"] = true }
+			"6a" action { checklist["signals x predicate"] = true }
+			"6b" action { checklist["signals x predicate"] = true }
+			"7a" action { checklist["signals x range"] = true }
+			"7b" action { checklist["signals x range"] = true }
 			
 			"1c" action { checklist["any x signal"] = true }
 			"2c" action { checklist["any x type"] = true }
 			"3c" action { checklist["any x signals"] = true }
 			"4c" action { checklist["any x any"] = true }
-			"5c" action { checklist["any x anyOf"] = true }
-			"6c" action { checklist["any x anyExcept"] = true }
-			"7c" action { checklist["any x predicate"] = true }
-			"8c" action { checklist["any x range"] = true }
+			"5c" action { checklist["any x excepts"] = true }
+			"6c" action { checklist["any x predicate"] = true }
+			"7c" action { checklist["any x range"] = true }
 			
 			"0" x 0 %= "1"
 			"1" x Int::class %= "2"
 			"2" x (2 OR 3) %= "3"
 			"3" x any %= "4"
-			"4" x any.of(4, 5) %= "5"
-			"5" x any.except(4, 6) %= "6"
-			"6" x { s: Int -> s == 6 } %= "7"
-			"7" x 7..8 %= "8"
+			"4" x any.except(4, 6) %= "5"
+			"5" x { s: Int -> s == 6 } %= "6"
+			"6" x 7..8 %= "7"
 			
-			"8" x 0 %= "1a"
+			"7" x 0 %= "1a"
 			("1a" AND "1b") x Int::class %= "2b"
 			("2a" AND "2b") x (2 OR 3) %= "3a"
 			("3a" AND "3b") x any %= "4b"
-			("4a" AND "4b") x any.of(4, 5) %= "5a"
-			("5a" AND "5b") x any.except(4, 6) %= "6b"
-			("6a" AND "6b") x { s: Int -> s == 6 } %= "7a"
-			("7a" AND "7b") x 7..8 %= "8b"
+			("4a" AND "4b") x any.except(4, 6) %= "5b"
+			("5a" AND "5b") x { s: Int -> s == 6 } %= "6a"
+			("6a" AND "6b") x 7..8 %= "7b"
 			
 			any x 0 %= "1c"
 			any x Int::class %= "2c"
 			any x (2 OR 13) %= "3c"
 			any x any %= "4c"
-			any x any.of(4, 15) %= "5c"
-			any x { s: Int -> s == 6 } %= "7c"
-			any x 7..8 %= "8c"
+			any x { s: Int -> s == 6 } %= "6c"
+			any x 7..8 %= "7c"
 			
 			start at "0"
 		}.also { machine ->
@@ -998,7 +988,7 @@ class Tests
 			machine.input(2)
 			machine.input(3)
 			machine.input(4)
-			machine { any x any.except(4, 6) %= "6c" }
+			machine { any x any.except(4, 6) %= "5c" }
 			machine.input(5)
 			machine.input(6)
 			machine.input(7)
@@ -1062,7 +1052,7 @@ class Tests
 			"state1" x "goToState2" %= "state2"
 			"state2" x Number::class %= "state3"
 			"state3" x "goToState1" %= "state1"
-			"state1" x any.of("goToState4-1", "goToState4-2", "goToState4-3") %= "state4"
+			"state1" x ("goToState4-1" OR "goToState4-2" OR "goToState4-3") %= "state4"
 			"simple" x "goToSimple" %= "state1"
 			any.except("simple") x "goToSimple" %= "simple"
 			
