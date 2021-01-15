@@ -139,7 +139,7 @@ interface KotlmataMachine
 		
 		interface AnyExcept : List<SIGNAL>
 		
-		fun any.except(vararg args: SIGNAL): AnyExcept
+		operator fun any.invoke(vararg except: SIGNAL): AnyExcept
 		
 		infix fun STATE.x(signal: SIGNAL): RuleLeft
 		infix fun STATE.x(signal: KClass<out SIGNAL>): RuleLeft
@@ -933,7 +933,7 @@ private class KotlmataMachineImpl(
 			add(state)
 		}
 		
-		override fun any.except(vararg args: SIGNAL): AnyExcept = object : AnyExcept, List<SIGNAL> by listOf(*args)
+		override fun any.invoke(vararg except: SIGNAL): AnyExcept = object : AnyExcept, List<SIGNAL> by listOf(*except)
 		{ /* empty */ }
 		
 		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : RuleLeft
