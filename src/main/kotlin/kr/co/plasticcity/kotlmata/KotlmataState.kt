@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 interface KotlmataState<T : STATE>
 {
 	@KotlmataMarker
-	interface Init : StatesOrSignalsDefinable
+	interface Init : SignalsDefinable
 	{
 		val entry: Entry
 		val input: Input
@@ -27,7 +27,7 @@ interface KotlmataState<T : STATE>
 		infix fun function(function: EntryFunction<SIGNAL>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
-		infix fun <T : SIGNAL> via(signals: StatesOrSignals<T>): Action<T>
+		infix fun <T : SIGNAL> via(signals: Signals<T>): Action<T>
 		infix fun <T : SIGNAL> via(predicate: (T) -> Boolean): Action<T>
 		infix fun <T> via(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = via { t: T -> range.contains(t) }
 		
@@ -55,7 +55,7 @@ interface KotlmataState<T : STATE>
 		infix fun function(function: InputFunction<SIGNAL>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> signal(signal: T): Action<T>
 		infix fun <T : SIGNAL> signal(signal: KClass<T>): Action<T>
-		infix fun <T : SIGNAL> signal(signals: StatesOrSignals<T>): Action<T>
+		infix fun <T : SIGNAL> signal(signals: Signals<T>): Action<T>
 		infix fun <T : SIGNAL> signal(predicate: (T) -> Boolean): Action<T>
 		infix fun <T> signal(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = signal { t: T -> range.contains(t) }
 		
@@ -82,7 +82,7 @@ interface KotlmataState<T : STATE>
 		infix fun action(action: ExitAction<SIGNAL>): Catch<SIGNAL>
 		infix fun <T : SIGNAL> via(signal: T): Action<T>
 		infix fun <T : SIGNAL> via(signal: KClass<T>): Action<T>
-		infix fun <T : SIGNAL> via(signals: StatesOrSignals<T>): Action<T>
+		infix fun <T : SIGNAL> via(signals: Signals<T>): Action<T>
 		infix fun <T : SIGNAL> via(predicate: (T) -> Boolean): Action<T>
 		infix fun <T> via(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = via { t: T -> range.contains(t) }
 		
@@ -501,7 +501,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> via(signals: StatesOrSignals<T>) = object : Entry.Action<T>
+			override fun <T : SIGNAL> via(signals: Signals<T>) = object : Entry.Action<T>
 			{
 				override fun function(function: EntryFunction<T>): Entry.Catch<T>
 				{
@@ -669,7 +669,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> signal(signals: StatesOrSignals<T>) = object : Input.Action<T>
+			override fun <T : SIGNAL> signal(signals: Signals<T>) = object : Input.Action<T>
 			{
 				override fun function(function: InputFunction<T>): Input.Catch<T>
 				{
@@ -839,7 +839,7 @@ private class KotlmataStateImpl<T : STATE>(
 				}
 			}
 			
-			override fun <T : SIGNAL> via(signals: StatesOrSignals<T>) = object : Exit.Action<T>
+			override fun <T : SIGNAL> via(signals: Signals<T>) = object : Exit.Action<T>
 			{
 				override fun action(action: ExitAction<T>): Exit.Catch<T>
 				{
@@ -1065,12 +1065,12 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		}
 		
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.OR(stateOrSignal: T2) = OR(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.OR(stateOrSignal: KClass<T2>) = OR(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.OR(stateOrSignal: T2) = OR(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.OR(stateOrSignal: KClass<T2>) = OR(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.OR(stateOrSignal: T2) = OR(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.OR(stateOrSignal: KClass<T2>) = OR(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2) = OR(this, signal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>) = OR(this, signal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2) = OR(this, signal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>) = OR(this, signal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2) = OR(this, signal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>) = OR(this, signal)
 		
 		init
 		{

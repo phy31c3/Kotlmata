@@ -123,40 +123,40 @@ interface KotlmataMachine
 		infix fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: KClass<T>): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(signal: T): KotlmataState.Entry.Action<T>
-		infix fun <S : STATE, T : SIGNAL> S.via(signals: StatesOrSignals<T>): KotlmataState.Entry.Action<T>
+		infix fun <S : STATE, T : SIGNAL> S.via(signals: Signals<T>): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T : SIGNAL> S.via(predicate: (T) -> Boolean): KotlmataState.Entry.Action<T>
 		infix fun <S : STATE, T> S.via(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = via { t: T -> range.contains(t) }
 	}
 	
-	interface RuleDefine : StatesOrSignalsDefinable
+	interface RuleDefine : SignalsDefinable
 	{
-		fun any.of(vararg args: `STATE or SIGNAL`): AnyOf
-		fun any.except(vararg args: `STATE or SIGNAL`): AnyExcept
+		fun any.of(vararg args: SIGNAL): AnyOf
+		fun any.except(vararg args: SIGNAL): AnyExcept
 		
-		interface AnyOf : List<`STATE or SIGNAL`>
-		interface AnyExcept : List<`STATE or SIGNAL`>
+		interface AnyOf : List<SIGNAL>
+		interface AnyExcept : List<SIGNAL>
 		
 		infix fun STATE.x(signal: SIGNAL): RuleLeft
 		infix fun STATE.x(signal: KClass<out SIGNAL>): RuleLeft
-		infix fun STATE.x(signals: StatesOrSignals<*>): RuleAssignable
+		infix fun STATE.x(signals: Signals<*>): RuleAssignable
 		infix fun STATE.x(any: any): RuleLeft
 		infix fun STATE.x(anyOf: AnyOf): RuleAssignable
 		infix fun STATE.x(anyExcept: AnyExcept): RuleAssignable
 		infix fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean): RuleLeft
 		infix fun <T> STATE.x(range: ClosedRange<T>): RuleAssignable where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
 		
-		infix fun StatesOrSignals<*>.x(signal: SIGNAL): RuleAssignable
-		infix fun StatesOrSignals<*>.x(signal: KClass<out SIGNAL>): RuleAssignable
-		infix fun StatesOrSignals<*>.x(signals: StatesOrSignals<*>): RuleAssignable
-		infix fun StatesOrSignals<*>.x(any: any): RuleAssignable
-		infix fun StatesOrSignals<*>.x(anyOf: AnyOf): RuleAssignable
-		infix fun StatesOrSignals<*>.x(anyExcept: AnyExcept): RuleAssignable
-		infix fun <T : SIGNAL> StatesOrSignals<*>.x(predicate: (T) -> Boolean): RuleAssignable
-		infix fun <T> StatesOrSignals<*>.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
+		infix fun Signals<*>.x(signal: SIGNAL): RuleAssignable
+		infix fun Signals<*>.x(signal: KClass<out SIGNAL>): RuleAssignable
+		infix fun Signals<*>.x(signals: Signals<*>): RuleAssignable
+		infix fun Signals<*>.x(any: any): RuleAssignable
+		infix fun Signals<*>.x(anyOf: AnyOf): RuleAssignable
+		infix fun Signals<*>.x(anyExcept: AnyExcept): RuleAssignable
+		infix fun <T : SIGNAL> Signals<*>.x(predicate: (T) -> Boolean): RuleAssignable
+		infix fun <T> Signals<*>.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
 		
 		infix fun any.x(signal: SIGNAL): RuleLeft
 		infix fun any.x(signal: KClass<out SIGNAL>): RuleLeft
-		infix fun any.x(signals: StatesOrSignals<*>): RuleAssignable
+		infix fun any.x(signals: Signals<*>): RuleAssignable
 		infix fun any.x(any: any): RuleLeft
 		infix fun any.x(anyOf: AnyOf): RuleAssignable
 		infix fun any.x(anyExcept: AnyExcept): RuleAssignable
@@ -165,7 +165,7 @@ interface KotlmataMachine
 		
 		infix fun AnyOf.x(signal: SIGNAL): RuleAssignable
 		infix fun AnyOf.x(signal: KClass<out SIGNAL>): RuleAssignable
-		infix fun AnyOf.x(signals: StatesOrSignals<*>): RuleAssignable
+		infix fun AnyOf.x(signals: Signals<*>): RuleAssignable
 		infix fun AnyOf.x(any: any): RuleAssignable
 		infix fun AnyOf.x(anyOf: AnyOf): RuleAssignable
 		infix fun AnyOf.x(anyExcept: AnyExcept): RuleAssignable
@@ -174,7 +174,7 @@ interface KotlmataMachine
 		
 		infix fun AnyExcept.x(signal: SIGNAL): RuleAssignable
 		infix fun AnyExcept.x(signal: KClass<out SIGNAL>): RuleAssignable
-		infix fun AnyExcept.x(signals: StatesOrSignals<*>): RuleAssignable
+		infix fun AnyExcept.x(signals: Signals<*>): RuleAssignable
 		infix fun AnyExcept.x(any: any): RuleAssignable
 		infix fun AnyExcept.x(anyOf: AnyOf): RuleAssignable
 		infix fun AnyExcept.x(anyExcept: AnyExcept): RuleAssignable
@@ -201,7 +201,7 @@ interface KotlmataMachine
 			{
 				infix fun via(signal: SIGNAL)
 				infix fun via(signal: KClass<out SIGNAL>)
-				infix fun via(signals: StatesOrSignals<*>)
+				infix fun via(signals: Signals<*>)
 				infix fun via(any: any)
 				infix fun via(anyOf: AnyOf)
 				infix fun via(anyExcept: AnyExcept)
@@ -782,7 +782,7 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override fun <S : STATE, T : SIGNAL> S.via(signals: StatesOrSignals<T>) = object : KotlmataState.Entry.Action<T>
+		override fun <S : STATE, T : SIGNAL> S.via(signals: Signals<T>) = object : KotlmataState.Entry.Action<T>
 		{
 			override fun function(function: EntryFunction<T>): KotlmataState.Entry.Catch<T>
 			{
@@ -874,20 +874,20 @@ private class KotlmataMachineImpl(
 		 * Transition rules
 		 *###################################################################################################################################*/
 		
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.OR(stateOrSignal: T2) = OR(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.OR(stateOrSignal: KClass<T2>) = OR(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.OR(stateOrSignal: T2) = OR(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.OR(stateOrSignal: KClass<T2>) = OR(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.OR(stateOrSignal: T2) = OR(this, stateOrSignal)
-		override fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.OR(stateOrSignal: KClass<T2>) = OR(this, stateOrSignal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2) = OR(this, signal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>) = OR(this, signal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2) = OR(this, signal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>) = OR(this, signal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2) = OR(this, signal)
+		override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>) = OR(this, signal)
 		
-		override fun any.of(vararg args: `STATE or SIGNAL`): AnyOf = object : AnyOf, List<`STATE or SIGNAL`> by listOf(*args)
+		override fun any.of(vararg args: SIGNAL): AnyOf = object : AnyOf, List<SIGNAL> by listOf(*args)
 		{ /* empty */ }
 		
-		override fun any.except(vararg args: `STATE or SIGNAL`): AnyExcept = object : AnyExcept, List<`STATE or SIGNAL`> by listOf(*args)
+		override fun any.except(vararg args: SIGNAL): AnyExcept = object : AnyExcept, List<SIGNAL> by listOf(*args)
 		{ /* empty */ }
 		
-		private fun StatesOrSignals<*>.toAnyOf() = object : AnyOf, List<`STATE or SIGNAL`> by this
+		private fun Signals<*>.toAnyOf() = object : AnyOf, List<SIGNAL> by this
 		{ /* empty */ }
 		
 		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : RuleLeft
@@ -1018,23 +1018,23 @@ private class KotlmataMachineImpl(
 		
 		override fun STATE.x(signal: SIGNAL) = ruleLeft(this, signal)
 		override fun STATE.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
-		override fun STATE.x(signals: StatesOrSignals<*>) = this x signals.toAnyOf()
+		override fun STATE.x(signals: Signals<*>) = this x signals.toAnyOf()
 		override fun STATE.x(any: any) = ruleLeft(this, any)
 		override fun STATE.x(anyOf: AnyOf) = `state x anyOf`(this, anyOf)
 		override fun STATE.x(anyExcept: AnyExcept) = `state x anyExcept`(this, anyExcept)
 		override fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean) = this x this.store(predicate)
 		
-		override fun StatesOrSignals<*>.x(signal: SIGNAL) = toAnyOf() x signal
-		override fun StatesOrSignals<*>.x(signal: KClass<out SIGNAL>) = toAnyOf() x signal
-		override fun StatesOrSignals<*>.x(signals: StatesOrSignals<*>) = toAnyOf() x signals.toAnyOf()
-		override fun StatesOrSignals<*>.x(any: any) = toAnyOf() x any
-		override fun StatesOrSignals<*>.x(anyOf: AnyOf) = toAnyOf() x anyOf
-		override fun StatesOrSignals<*>.x(anyExcept: AnyExcept) = toAnyOf() x anyExcept
-		override fun <T : SIGNAL> StatesOrSignals<*>.x(predicate: (T) -> Boolean) = this.toAnyOf() x predicate
+		override fun Signals<*>.x(signal: SIGNAL) = toAnyOf() x signal
+		override fun Signals<*>.x(signal: KClass<out SIGNAL>) = toAnyOf() x signal
+		override fun Signals<*>.x(signals: Signals<*>) = toAnyOf() x signals.toAnyOf()
+		override fun Signals<*>.x(any: any) = toAnyOf() x any
+		override fun Signals<*>.x(anyOf: AnyOf) = toAnyOf() x anyOf
+		override fun Signals<*>.x(anyExcept: AnyExcept) = toAnyOf() x anyExcept
+		override fun <T : SIGNAL> Signals<*>.x(predicate: (T) -> Boolean) = this.toAnyOf() x predicate
 		
 		override fun any.x(signal: SIGNAL) = ruleLeft(this, signal)
 		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
-		override fun any.x(signals: StatesOrSignals<*>) = this x signals.toAnyOf()
+		override fun any.x(signals: Signals<*>) = this x signals.toAnyOf()
 		override fun any.x(any: any) = ruleLeft(this, any)
 		override fun any.x(anyOf: AnyOf) = `state x anyOf`(this, anyOf)
 		override fun any.x(anyExcept: AnyExcept) = `state x anyExcept`(this, anyExcept)
@@ -1042,7 +1042,7 @@ private class KotlmataMachineImpl(
 		
 		override fun AnyOf.x(signal: SIGNAL) = `anyOf x signal`(this, signal)
 		override fun AnyOf.x(signal: KClass<out SIGNAL>) = `anyOf x signal`(this, signal)
-		override fun AnyOf.x(signals: StatesOrSignals<*>) = this x signals.toAnyOf()
+		override fun AnyOf.x(signals: Signals<*>) = this x signals.toAnyOf()
 		override fun AnyOf.x(any: any) = `anyOf x signal`(this, any)
 		override fun AnyOf.x(anyOf: AnyOf) = `anyOf x anyOf`(this, anyOf)
 		override fun AnyOf.x(anyExcept: AnyExcept) = `anyOf x anyExcept`(this, anyExcept)
@@ -1059,7 +1059,7 @@ private class KotlmataMachineImpl(
 		
 		override fun AnyExcept.x(signal: SIGNAL) = `anyExcept x signal`(this, signal)
 		override fun AnyExcept.x(signal: KClass<out SIGNAL>) = `anyExcept x signal`(this, signal)
-		override fun AnyExcept.x(signals: StatesOrSignals<*>) = this x signals.toAnyOf()
+		override fun AnyExcept.x(signals: Signals<*>) = this x signals.toAnyOf()
 		override fun AnyExcept.x(any: any) = `anyExcept x signal`(this, any)
 		override fun AnyExcept.x(anyOf: AnyOf) = `anyExcept x anyOf`(this, anyOf)
 		override fun AnyExcept.x(anyExcept: AnyExcept) = `anyExcept x anyExcept`(this, anyExcept)
@@ -1109,7 +1109,7 @@ private class KotlmataMachineImpl(
 						loop { from, to -> from x signal %= to }
 					}
 					
-					override fun via(signals: StatesOrSignals<*>) = via(signals.toAnyOf())
+					override fun via(signals: Signals<*>) = via(signals.toAnyOf())
 					
 					override fun via(any: any)
 					{

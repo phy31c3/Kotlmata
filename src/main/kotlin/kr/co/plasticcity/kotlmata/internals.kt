@@ -7,8 +7,6 @@ import kotlin.reflect.KClass
 @DslMarker
 internal annotation class KotlmataMarker
 
-internal typealias `STATE or SIGNAL` = Any
-
 internal class ErrorActionReceiver(override val throwable: Throwable) : ErrorActionDSL
 internal class EntryActionReceiver(override val previousState: STATE) : EntryActionDSL
 internal class EntryFunctionReceiver(override val previousState: STATE) : EntryFunctionDSL
@@ -45,48 +43,48 @@ internal fun Any?.convertToSync() = when (this)
 	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
 }
 
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: T1, rhs: T2): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: T1, rhs: T2): Signals<R>
 {
 	shouldNotExpired()
-	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	return object : Signals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
 	{ /* empty */ }
 }
 
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: T1, rhs: KClass<T2>): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: T1, rhs: KClass<T2>): Signals<R>
 {
 	shouldNotExpired()
-	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	return object : Signals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
 	{ /* empty */ }
 }
 
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: KClass<T1>, rhs: T2): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: KClass<T1>, rhs: T2): Signals<R>
 {
 	shouldNotExpired()
-	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	return object : Signals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
 	{ /* empty */ }
 }
 
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: KClass<T1>, rhs: KClass<T2>): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: KClass<T1>, rhs: KClass<T2>): Signals<R>
 {
 	shouldNotExpired()
-	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	return object : Signals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
 	{ /* empty */ }
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: StatesOrSignals<T1>, rhs: T2): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: Signals<T1>, rhs: T2): Signals<R>
 {
 	shouldNotExpired()
 	lhs.add(rhs)
-	return lhs as StatesOrSignals<R>
+	return lhs as Signals<R>
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.OR(lhs: StatesOrSignals<T1>, rhs: KClass<T2>): StatesOrSignals<R>
+internal fun <T1 : R, T2 : R, R : SIGNAL> Expirable.OR(lhs: Signals<T1>, rhs: KClass<T2>): Signals<R>
 {
 	shouldNotExpired()
 	lhs.add(rhs)
-	return lhs as StatesOrSignals<R>
+	return lhs as Signals<R>
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing)
