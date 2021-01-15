@@ -890,23 +890,30 @@ class Tests
 			"state x excepts" to false,
 			"state x predicate" to false,
 			"state x range" to false,
-			"signals x signal" to false,
-			"signals x type" to false,
-			"signals x signals" to false,
-			"signals x any" to false,
-			"signals x excepts" to false,
-			"signals x predicate" to false,
-			"signals x range" to false,
+			"states x signal" to false,
+			"states x type" to false,
+			"states x signals" to false,
+			"states x any" to false,
+			"states x excepts" to false,
+			"states x predicate" to false,
+			"states x range" to false,
 			"any x signal" to false,
 			"any x type" to false,
 			"any x signals" to false,
 			"any x any" to false,
 			"any x excepts" to false,
 			"any x predicate" to false,
-			"any x range" to false
+			"any x range" to false,
+			"excepts x signal" to false,
+			"excepts x type" to false,
+			"excepts x signals" to false,
+			"excepts x any" to false,
+			"excepts x excepts" to false,
+			"excepts x predicate" to false,
+			"excepts x range" to false
 		)
 		
-		KotlmataMutableMachine("machine", 2) {
+		KotlmataMutableMachine("machine") {
 			"0" {}
 			"1" action { checklist["state x signal"] = true }
 			"2" action { checklist["state x type"] = true }
@@ -916,20 +923,20 @@ class Tests
 			"6" action { checklist["state x predicate"] = true }
 			"7" action { checklist["state x range"] = true }
 			
-			"1a" action { checklist["signals x signal"] = true }
-			"1b" action { checklist["signals x signal"] = true }
-			"2a" action { checklist["signals x type"] = true }
-			"2b" action { checklist["signals x type"] = true }
-			"3a" action { checklist["signals x signals"] = true }
-			"3b" action { checklist["signals x signals"] = true }
-			"4a" action { checklist["signals x any"] = true }
-			"4b" action { checklist["signals x any"] = true }
-			"5a" action { checklist["signals x excepts"] = true }
-			"5b" action { checklist["signals x excepts"] = true }
-			"6a" action { checklist["signals x predicate"] = true }
-			"6b" action { checklist["signals x predicate"] = true }
-			"7a" action { checklist["signals x range"] = true }
-			"7b" action { checklist["signals x range"] = true }
+			"1a" action { checklist["states x signal"] = true }
+			"1b" action { checklist["states x signal"] = true }
+			"2a" action { checklist["states x type"] = true }
+			"2b" action { checklist["states x type"] = true }
+			"3a" action { checklist["states x signals"] = true }
+			"3b" action { checklist["states x signals"] = true }
+			"4a" action { checklist["states x any"] = true }
+			"4b" action { checklist["states x any"] = true }
+			"5a" action { checklist["states x excepts"] = true }
+			"5b" action { checklist["states x excepts"] = true }
+			"6a" action { checklist["states x predicate"] = true }
+			"6b" action { checklist["states x predicate"] = true }
+			"7a" action { checklist["states x range"] = true }
+			"7b" action { checklist["states x range"] = true }
 			
 			"1c" action { checklist["any x signal"] = true }
 			"2c" action { checklist["any x type"] = true }
@@ -939,28 +946,42 @@ class Tests
 			"6c" action { checklist["any x predicate"] = true }
 			"7c" action { checklist["any x range"] = true }
 			
+			"1d" action { checklist["excepts x signal"] = true }
+			"2d" action { checklist["excepts x type"] = true }
+			"3d" action { checklist["excepts x signals"] = true }
+			"4d" action { checklist["excepts x any"] = true }
+			"5d" action { checklist["excepts x excepts"] = true }
+			"6d" action { checklist["excepts x predicate"] = true }
+			"7d" action { checklist["excepts x range"] = true }
+			
 			"0" x 0 %= "1"
 			"1" x Int::class %= "2"
 			"2" x (2 OR 3) %= "3"
 			"3" x any %= "4"
-			"4" x any.except(4, 6) %= "5"
-			"5" x { s: Int -> s == 6 } %= "6"
-			"6" x 7..8 %= "7"
+			"4" x any(3, 5) %= "5"
+			"5" x { s: Int -> s == 5 } %= "6"
+			"6" x 6..7 %= "7"
 			
-			"7" x 0 %= "1a"
+			("7" AND "8") x 0 %= "1a"
 			("1a" AND "1b") x Int::class %= "2b"
 			("2a" AND "2b") x (2 OR 3) %= "3a"
 			("3a" AND "3b") x any %= "4b"
-			("4a" AND "4b") x any.except(4, 6) %= "5b"
-			("5a" AND "5b") x { s: Int -> s == 6 } %= "6a"
-			("6a" AND "6b") x 7..8 %= "7b"
+			("4a" AND "4b") x any(3, 5) %= "5b"
+			("5a" AND "5b") x { s: Int -> s == 5 } %= "6a"
+			("6a" AND "6b") x 6..7 %= "7b"
 			
 			any x 0 %= "1c"
 			any x Int::class %= "2c"
-			any x (2 OR 13) %= "3c"
+			any x (2 OR 3) %= "3c"
 			any x any %= "4c"
-			any x { s: Int -> s == 6 } %= "6c"
-			any x 7..8 %= "7c"
+			any x { s: Int -> s == 5 } %= "6c"
+			any x 6..7 %= "7c"
+			
+			any("6c", "1d") x "0" %= "1d"
+			any("3c", "4c", "3d", "4d") x String::class %= "2d"
+			any("1d", "3d") x ("2" OR "22") %= "3d"
+			any("4d", "6d") x { s: String -> s == "5" } %= "6d"
+			any("5d", "7d") x "6".."7" %= "7d"
 			
 			start at "0"
 		}.also { machine ->
@@ -971,7 +992,6 @@ class Tests
 			machine.input(4)
 			machine.input(5)
 			machine.input(6)
-			machine.input(7)
 			
 			machine.input(0)
 			machine.input(1)
@@ -980,18 +1000,31 @@ class Tests
 			machine.input(4)
 			machine.input(5)
 			machine.input(6)
-			machine.input(7)
 			
 			machine.input(0)
 			machine.input(1)
-			machine { delete rule (any x Int::class) }
 			machine.input(2)
-			machine.input(3)
-			machine.input(4)
-			machine { any x any.except(4, 6) %= "5c" }
+			machine.input("3")
+			machine {
+				any x any("3", "5") %= "5c"
+			}
+			machine.input("4")
 			machine.input(5)
 			machine.input(6)
-			machine.input(7)
+			
+			machine.input("0")
+			machine.input("1")
+			machine.input("2")
+			machine {
+				any("2d", "4d") x any %= "4d"
+			}
+			machine.input("3")
+			machine {
+				any("3d", "5d") x any("3", "5") %= "5d"
+			}
+			machine.input("4")
+			machine.input("5")
+			machine.input("6")
 		}
 		
 		checklist.verify()
@@ -1054,7 +1087,7 @@ class Tests
 			"state3" x "goToState1" %= "state1"
 			"state1" x ("goToState4-1" OR "goToState4-2" OR "goToState4-3") %= "state4"
 			"simple" x "goToSimple" %= "state1"
-			any.except("simple") x "goToSimple" %= "simple"
+			any("simple") x "goToSimple" %= "simple"
 			
 			start at "state1"
 		}
@@ -1345,7 +1378,7 @@ class Tests
 			"errorSync" x "goToState5" %= "state5"
 			"state5" x String::class %= "state1"
 			chain from "state1" to "chain1" to "chain2" to "chain3" via "next"
-			any.except("chain1", "chain2") x ("a" OR "b" OR "c") %= "state1"
+			any("chain1", "chain2") x ("a" OR "b" OR "c") %= "state1"
 			"state1" x "signal" %= "state6"
 			"state6" x String::class %= self
 			"state6" x "goToState7" %= "state7"

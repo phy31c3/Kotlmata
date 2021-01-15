@@ -109,14 +109,6 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	{
 		expire = true
 	}
-	
-	internal fun shouldNotExpired()
-	{
-		if (expire)
-		{
-			block()
-		}
-	}
 }
 
 internal class Tester
