@@ -345,7 +345,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 }
 
 private class TransitionDef(val callback: TransitionCallback, val fallback: TransitionFallback? = null, val finally: TransitionCallback? = null)
-private class Excepts(val exceptStates: List<STATE>?, val exceptSignals: List<SIGNAL>?, val to: STATE)
+private class Except(val exceptStates: List<STATE>?, val exceptSignals: List<SIGNAL>?, val to: STATE)
 {
 	override fun toString() = to.toString()
 }
@@ -438,7 +438,7 @@ private class KotlmataMachineImpl(
 		defaultInput(FunctionDSL.Sync(signal, type as KClass<SIGNAL>, payload))
 	}
 	
-	private fun Excepts.has(from: STATE, signal: SIGNAL): Boolean
+	private fun Except.has(from: STATE, signal: SIGNAL): Boolean
 	{
 		return exceptStates?.contains(from) == true
 			|| exceptSignals?.contains(signal) == true
@@ -446,7 +446,7 @@ private class KotlmataMachineImpl(
 	
 	private fun STATE.applyExcepts(from: STATE, signal: SIGNAL) = when
 	{
-		this !is Excepts -> this
+		this !is Except -> this
 		this.has(from, signal) -> null
 		else -> this.to
 	}
@@ -978,12 +978,12 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		private fun `state x excepts`(from: STATE, exceptSignals: AnyExcept) = object : RuleAssignable
+		private fun `state x except`(from: STATE, exceptSignals: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				from x any %= Excepts(null, exceptSignals, to)
+				from x any %= Except(null, exceptSignals, to)
 			}
 		}
 		
@@ -1009,7 +1009,7 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		private fun `states x excepts`(states: States, exceptSignals: AnyExcept) = object : RuleAssignable
+		private fun `states x except`(states: States, exceptSignals: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
@@ -1031,16 +1031,16 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		private fun `excepts x signal`(exceptStates: AnyExcept, signal: SIGNAL) = object : RuleAssignable
+		private fun `except x signal`(exceptStates: AnyExcept, signal: SIGNAL) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				any x signal %= Excepts(exceptStates, null, to)
+				any x signal %= Except(exceptStates, null, to)
 			}
 		}
 		
-		private fun `excepts x signals`(exceptStates: AnyExcept, signals: Signals<*>) = object : RuleAssignable
+		private fun `except x signals`(exceptStates: AnyExcept, signals: Signals<*>) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
@@ -1051,21 +1051,21 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		private fun `excepts x excepts`(exceptStates: AnyExcept, exceptSignals: AnyExcept) = object : RuleAssignable
+		private fun `except x except`(exceptStates: AnyExcept, exceptSignals: AnyExcept) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				any x any %= Excepts(exceptStates, exceptSignals, to)
+				any x any %= Except(exceptStates, exceptSignals, to)
 			}
 		}
 		
-		private fun <T : SIGNAL> `excepts x predicate`(exceptStates: AnyExcept, predicate: (T) -> Boolean) = object : RuleAssignable
+		private fun <T : SIGNAL> `except x predicate`(exceptStates: AnyExcept, predicate: (T) -> Boolean) = object : RuleAssignable
 		{
 			override fun remAssign(to: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				any x predicate %= Excepts(exceptStates, null, to)
+				any x predicate %= Except(exceptStates, null, to)
 			}
 		}
 		
@@ -1073,29 +1073,29 @@ private class KotlmataMachineImpl(
 		override fun STATE.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
 		override fun STATE.x(signals: Signals<*>) = `state x signals`(this, signals)
 		override fun STATE.x(any: any) = ruleLeft(this, any)
-		override fun STATE.x(anyExcept: AnyExcept) = `state x excepts`(this, anyExcept)
+		override fun STATE.x(anyExcept: AnyExcept) = `state x except`(this, anyExcept)
 		override fun <T : SIGNAL> STATE.x(predicate: (T) -> Boolean) = this x this.store(predicate)
 		
 		override fun States.x(signal: SIGNAL) = `states x signal`(this, signal)
 		override fun States.x(signal: KClass<out SIGNAL>) = `states x signal`(this, signal)
 		override fun States.x(signals: Signals<*>) = `states x signals`(this, signals)
 		override fun States.x(any: any) = `states x signal`(this, any)
-		override fun States.x(anyExcept: AnyExcept) = `states x excepts`(this, anyExcept)
+		override fun States.x(anyExcept: AnyExcept) = `states x except`(this, anyExcept)
 		override fun <T : SIGNAL> States.x(predicate: (T) -> Boolean) = `states x predicate`(this, predicate)
 		
 		override fun any.x(signal: SIGNAL) = ruleLeft(this, signal)
 		override fun any.x(signal: KClass<out SIGNAL>) = ruleLeft(this, signal)
 		override fun any.x(signals: Signals<*>) = `state x signals`(this, signals)
 		override fun any.x(any: any) = ruleLeft(this, any)
-		override fun any.x(anyExcept: AnyExcept) = `state x excepts`(this, anyExcept)
+		override fun any.x(anyExcept: AnyExcept) = `state x except`(this, anyExcept)
 		override fun <T : SIGNAL> any.x(predicate: (T) -> Boolean) = this x this.store(predicate)
 		
-		override fun AnyExcept.x(signal: SIGNAL) = `excepts x signal`(this, signal)
-		override fun AnyExcept.x(signal: KClass<out SIGNAL>) = `excepts x signal`(this, signal)
-		override fun AnyExcept.x(signals: Signals<*>) = `excepts x signals`(this, signals)
-		override fun AnyExcept.x(any: any) = `excepts x signal`(this, any)
-		override fun AnyExcept.x(anyExcept: AnyExcept) = `excepts x excepts`(this, anyExcept)
-		override fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean) = `excepts x predicate`(this, predicate)
+		override fun AnyExcept.x(signal: SIGNAL) = `except x signal`(this, signal)
+		override fun AnyExcept.x(signal: KClass<out SIGNAL>) = `except x signal`(this, signal)
+		override fun AnyExcept.x(signals: Signals<*>) = `except x signals`(this, signals)
+		override fun AnyExcept.x(any: any) = `except x signal`(this, any)
+		override fun AnyExcept.x(anyExcept: AnyExcept) = `except x except`(this, anyExcept)
+		override fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean) = `except x predicate`(this, predicate)
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(signal: SIGNAL)
