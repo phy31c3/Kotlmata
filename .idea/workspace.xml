@@ -38,7 +38,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -115,7 +114,7 @@
       <recent name="D:\workspace\Kotlmata\src\test\kotlin" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.Tests">
+  <component name="RunManager" selected="JUnit.Tests.daemonTest">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method v="2">
@@ -132,22 +131,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Tests.모든 유형의 진입동작이 제대로 불리는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="Tests.모든 유형의 전이규칙이 잘 동작하는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Kotlmata.test" />
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="Tests" />
-      <option name="METHOD_NAME" value="모든 유형의 진입동작이 제대로 불리는가" />
+      <option name="METHOD_NAME" value="모든 유형의 전이규칙이 잘 동작하는가" />
       <option name="TEST_OBJECT" value="method" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Tests.상태의 'function'에서 타입지정과 payload 전달이 잘 되는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="Tests.머신의 체인규칙이 잘 동작하는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Kotlmata.test" />
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="Tests" />
-      <option name="METHOD_NAME" value="상태의 'function'에서 타입지정과 payload 전달이 잘 되는가" />
+      <option name="METHOD_NAME" value="머신의 체인규칙이 잘 동작하는가" />
       <option name="TEST_OBJECT" value="method" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
       <method v="2">
@@ -165,11 +164,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Tests.모든 유형의 전이규칙이 잘 동작하는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="Tests.모든 유형의 진입동작이 제대로 불리는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Kotlmata.test" />
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="Tests" />
-      <option name="METHOD_NAME" value="모든 유형의 전이규칙이 잘 동작하는가" />
+      <option name="METHOD_NAME" value="모든 유형의 진입동작이 제대로 불리는가" />
+      <option name="TEST_OBJECT" value="method" />
+      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Tests.daemonTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Kotlmata.test" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="Tests" />
+      <option name="METHOD_NAME" value="daemonTest" />
       <option name="TEST_OBJECT" value="method" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
       <method v="2">
@@ -193,19 +203,19 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="JUnit.Tests.상태의 'function'에서 타입지정과 payload 전달이 잘 되는가" />
       <item itemvalue="JUnit.Tests.머신의 'on error'가 제대로 호출 되는가" />
       <item itemvalue="JUnit.Tests" />
-      <item itemvalue="JUnit.Tests.모든 유형의 전이규칙이 잘 동작하는가" />
       <item itemvalue="JUnit.Tests.모든 유형의 진입동작이 제대로 불리는가" />
+      <item itemvalue="JUnit.Tests.머신의 체인규칙이 잘 동작하는가" />
+      <item itemvalue="JUnit.Tests.daemonTest" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.Tests.daemonTest" />
+        <item itemvalue="JUnit.Tests.머신의 체인규칙이 잘 동작하는가" />
         <item itemvalue="JUnit.Tests" />
-        <item itemvalue="JUnit.Tests.모든 유형의 전이규칙이 잘 동작하는가" />
         <item itemvalue="JUnit.Tests.모든 유형의 진입동작이 제대로 불리는가" />
         <item itemvalue="JUnit.Tests.머신의 'on error'가 제대로 호출 되는가" />
-        <item itemvalue="JUnit.Tests.상태의 'function'에서 타입지정과 payload 전달이 잘 되는가" />
       </list>
     </recent_temporary>
   </component>

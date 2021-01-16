@@ -268,7 +268,7 @@ private class KotlmataDaemonImpl(
 	init
 	{
 		val core = KotlmataMachine("$name@core") {
-			lateinit var machine: KotlmataMutableMachine
+			lateinit var machine: KotlmataInternalMachine
 			
 			val logLevel = logLevel
 			val suffix = if (logLevel >= DETAIL) tab else ""
@@ -318,7 +318,7 @@ private class KotlmataDaemonImpl(
 						val init = InitImpl(block, this)
 						`Initial state for KotlmataDaemon` x any %= init.startAt
 						start at `Initial state for KotlmataDaemon`
-					}
+					} as KotlmataInternalMachine
 					logLevel.detail(name) { DAEMON_END_CREATE }
 				} finally {
 					logLevel.simple(name) { DAEMON_ON_CREATE }

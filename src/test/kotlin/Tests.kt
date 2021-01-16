@@ -887,30 +887,30 @@ class Tests
 			"state x type" to false,
 			"state x signals" to false,
 			"state x any" to false,
-			"state x excepts" to false,
+			"state x except" to false,
 			"state x predicate" to false,
 			"state x range" to false,
 			"states x signal" to false,
 			"states x type" to false,
 			"states x signals" to false,
 			"states x any" to false,
-			"states x excepts" to false,
+			"states x except" to false,
 			"states x predicate" to false,
 			"states x range" to false,
 			"any x signal" to false,
 			"any x type" to false,
 			"any x signals" to false,
 			"any x any" to false,
-			"any x excepts" to false,
+			"any x except" to false,
 			"any x predicate" to false,
 			"any x range" to false,
-			"excepts x signal" to false,
-			"excepts x type" to false,
-			"excepts x signals" to false,
-			"excepts x any" to false,
-			"excepts x excepts" to false,
-			"excepts x predicate" to false,
-			"excepts x range" to false
+			"except x signal" to false,
+			"except x type" to false,
+			"except x signals" to false,
+			"except x any" to false,
+			"except x except" to false,
+			"except x predicate" to false,
+			"except x range" to false
 		)
 		
 		KotlmataMutableMachine("machine") {
@@ -919,7 +919,7 @@ class Tests
 			"2" action { checklist["state x type"] = true }
 			"3" action { checklist["state x signals"] = true }
 			"4" action { checklist["state x any"] = true }
-			"5" action { checklist["state x excepts"] = true }
+			"5" action { checklist["state x except"] = true }
 			"6" action { checklist["state x predicate"] = true }
 			"7" action { checklist["state x range"] = true }
 			
@@ -931,8 +931,8 @@ class Tests
 			"3b" action { checklist["states x signals"] = true }
 			"4a" action { checklist["states x any"] = true }
 			"4b" action { checklist["states x any"] = true }
-			"5a" action { checklist["states x excepts"] = true }
-			"5b" action { checklist["states x excepts"] = true }
+			"5a" action { checklist["states x except"] = true }
+			"5b" action { checklist["states x except"] = true }
 			"6a" action { checklist["states x predicate"] = true }
 			"6b" action { checklist["states x predicate"] = true }
 			"7a" action { checklist["states x range"] = true }
@@ -942,17 +942,17 @@ class Tests
 			"2c" action { checklist["any x type"] = true }
 			"3c" action { checklist["any x signals"] = true }
 			"4c" action { checklist["any x any"] = true }
-			"5c" action { checklist["any x excepts"] = true }
+			"5c" action { checklist["any x except"] = true }
 			"6c" action { checklist["any x predicate"] = true }
 			"7c" action { checklist["any x range"] = true }
 			
-			"1d" action { checklist["excepts x signal"] = true }
-			"2d" action { checklist["excepts x type"] = true }
-			"3d" action { checklist["excepts x signals"] = true }
-			"4d" action { checklist["excepts x any"] = true }
-			"5d" action { checklist["excepts x excepts"] = true }
-			"6d" action { checklist["excepts x predicate"] = true }
-			"7d" action { checklist["excepts x range"] = true }
+			"1d" action { checklist["except x signal"] = true }
+			"2d" action { checklist["except x type"] = true }
+			"3d" action { checklist["except x signals"] = true }
+			"4d" action { checklist["except x any"] = true }
+			"5d" action { checklist["except x except"] = true }
+			"6d" action { checklist["except x predicate"] = true }
+			"7d" action { checklist["except x range"] = true }
 			
 			"0" x 0 %= "1"
 			"1" x Int::class %= "2"
@@ -1025,6 +1025,93 @@ class Tests
 			machine.input("4")
 			machine.input("5")
 			machine.input("6")
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `머신의 체인규칙이 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"signal" to false,
+			"type" to false,
+			"signals" to false,
+			"predicate" to false,
+			"range" to false,
+			"any" to false,
+			"except" to false
+		)
+		
+		KotlmataMachine("machine", 2) {
+			
+			"a" {}
+			"b" {}
+			"c" {
+				entry via 0 action {
+					checklist["signal"] = true
+				}
+				entry via Char::class action {
+					checklist["type"] = true
+				}
+				entry via "1" action {
+					checklist["signals"] = true
+				}
+				entry via { s: Int -> s in 1..4 } action {
+					checklist["predicate"] = true
+				}
+				entry via 5..9 action {
+					checklist["range"] = true
+				}
+			}
+			
+			"d" {}
+			"e" {}
+			"f" {
+				checklist["any"] = true
+			}
+			"g" {}
+			"h" {
+				checklist["except"] = true
+			}
+			
+			chain from "a" to "b" to "c" to "a" via 0
+			chain from "a" to "b" to "c" to "a" via Char::class
+			chain from "a" to "b" to "c" to "a" via ("0" OR "1" OR "2")
+			chain from "a" to "b" to "c" to "a" via { s: Int -> s in 1..4 }
+			chain from "a" to "b" to "c" to "d" via 5..9
+			
+			chain from "d" to "e" to "f" via any
+			chain from "f" to "g" to "h" via any(0, String::class, Char::class)
+			
+			start at "a"
+		}.also { machine ->
+			machine.input(0)
+			machine.input(0)
+			machine.input(0)
+			
+			machine.input('0')
+			machine.input('0')
+			machine.input('0')
+			
+			machine.input("0")
+			machine.input("1")
+			machine.input("2")
+			
+			machine.input(1)
+			machine.input(2)
+			machine.input(3)
+			
+			machine.input(5)
+			machine.input(6)
+			machine.input(7)
+			
+			machine.input("unknown")
+			machine.input(Any())
+			
+			machine.input(0)
+			machine.input("unknown")
+			machine.input('a')
 		}
 		
 		checklist.verify()
