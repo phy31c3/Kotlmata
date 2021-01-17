@@ -29,6 +29,7 @@ internal class Logs
 		const val DAEMON_ON_STOP = "Daemon[%s]:%s onStop(payload: %s)"
 		const val DAEMON_ON_RESUME = "Daemon[%s]:%s onResume(payload: %s)"
 		const val DAEMON_ON_FINISH = "Daemon[%s]: onFinish(payload: %s)"
+		const val DAEMON_ON_FINISH_TAB = "Daemon[%s]:     onFinish(payload: %s)"
 		const val DAEMON_ON_DESTROY = "Daemon[%s]: onDestroy()"
 		const val DAEMON_KEEP_REQUEST = "Daemon[%s]:     kept"
 		const val DAEMON_IGNORE_REQUEST = "Daemon[%s]:     ignored"

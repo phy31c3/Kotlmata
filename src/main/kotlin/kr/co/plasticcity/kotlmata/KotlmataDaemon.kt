@@ -430,7 +430,7 @@ private class KotlmataDaemonImpl(
 						{
 							logLevel.simple(name, terminateR.payload) {
 								if (terminateR.isExplicit)
-									suffix + DAEMON_ON_FINISH
+									DAEMON_ON_FINISH_TAB
 								else
 									DAEMON_ON_FINISH
 							}

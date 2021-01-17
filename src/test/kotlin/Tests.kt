@@ -4,6 +4,7 @@ import kr.co.plasticcity.kotlmata.*
 import org.junit.Before
 import org.junit.Test
 import java.lang.ref.WeakReference
+import java.util.concurrent.CountDownLatch
 
 class Tests
 {
@@ -1288,6 +1289,103 @@ class Tests
 			}
 			machine.input(0)
 		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `데몬의 모든 유형의 생성이 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"daemon" to false,
+			"daemon extends" to false,
+			"daemon lazy" to false,
+			"daemon lazy extends" to false,
+			"mutable daemon" to false,
+			"mutable daemon extends" to false,
+			"mutable daemon lazy" to false,
+			"mutable daemon lazy extends" to false
+		)
+		
+		val latch = CountDownLatch(8)
+		
+		val base: DaemonBase = { daemon ->
+			on destroy {
+				latch.countDown()
+			}
+			"state" action {
+				checklist[daemon.name] = true
+			}
+		}
+		
+		val d1 = KotlmataDaemon("daemon") { daemon ->
+			on destroy {
+				latch.countDown()
+			}
+			"state" action {
+				checklist[daemon.name] = true
+			}
+			start at "state"
+		}
+		val d2 = KotlmataDaemon("daemon extends") extends base by {
+			start at "state"
+		}
+		val d3 by KotlmataDaemon.lazy("daemon lazy") { daemon ->
+			on destroy {
+				latch.countDown()
+			}
+			"state" action {
+				checklist[daemon.name] = true
+			}
+			start at "state"
+		}
+		val d4 by KotlmataMutableDaemon.lazy("daemon lazy extends") extends base by {
+			start at "state"
+		}
+		val d5 = KotlmataMutableDaemon("mutable daemon") { daemon ->
+			on destroy {
+				latch.countDown()
+			}
+			"state" action {
+				checklist[daemon.name] = true
+			}
+			start at "state"
+		}
+		val d6 = KotlmataMutableDaemon("mutable daemon extends") extends base by {
+			start at "state"
+		}
+		val d7 by KotlmataMutableDaemon.lazy("mutable daemon lazy") { daemon ->
+			on destroy {
+				latch.countDown()
+			}
+			"state" action {
+				checklist[daemon.name] = true
+			}
+			start at "state"
+		}
+		val d8 by KotlmataMutableDaemon.lazy("mutable daemon lazy extends") extends base by {
+			start at "state"
+		}
+		
+		d1.run()
+		d2.run()
+		d3.run()
+		d4.run()
+		d5.run()
+		d6.run()
+		d7.run()
+		d8.run()
+		
+		d1.terminate()
+		d2.terminate()
+		d3.terminate()
+		d4.terminate()
+		d5.terminate()
+		d6.terminate()
+		d7.terminate()
+		d8.terminate()
+		
+		latch.await()
 		
 		checklist.verify()
 	}
