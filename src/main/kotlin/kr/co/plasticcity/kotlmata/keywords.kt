@@ -29,7 +29,7 @@ typealias SIGNAL = Any
  */
 object any
 {
-	override fun toString(): String = this::class.simpleName ?: "any"
+	override fun toString(): String = this::class.java.simpleName
 }
 
 /**
@@ -49,7 +49,7 @@ object any
  */
 object stay
 {
-	override fun toString(): String = this::class.simpleName ?: "stay"
+	override fun toString(): String = this::class.java.simpleName
 }
 
 /**
@@ -61,7 +61,7 @@ object stay
  */
 object self
 {
-	override fun toString(): String = this::class.simpleName ?: "self"
+	override fun toString(): String = this::class.java.simpleName
 }
 
 /**
@@ -128,7 +128,7 @@ interface FunctionDSL : ActionDSL
 	)
 	{
 		internal val typeString
-			get() = type?.let { "${type.simpleName}::class" } ?: "null"
+			get() = type?.let { "${type.java.simpleName}::class" }
 	}
 	
 	class ReturnWithoutPayload internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Return(signal, type)

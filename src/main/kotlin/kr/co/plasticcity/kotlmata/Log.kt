@@ -173,7 +173,7 @@ internal object Log
 						token = ""
 						when (val arg = args[cursor])
 						{
-							is KClass<*> -> args[cursor] = "${arg.simpleName}::class"
+							is KClass<*> -> args[cursor] = "${arg.java.simpleName}::class"
 							is String -> args[cursor] = "\"$arg\""
 							is Char -> args[cursor] = "'$arg'"
 						}
