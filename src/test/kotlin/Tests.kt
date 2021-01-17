@@ -1069,7 +1069,7 @@ class Tests
 				checklist["any"] = true
 			}
 			"g" {}
-			"h" action {
+			"h" via 2 action {
 				checklist["except"] = true
 			}
 			
@@ -1080,7 +1080,7 @@ class Tests
 			chain from "a" to "b" to "c" to "d" via 5..9
 			
 			chain from "d" to "e" to "f" via any
-			chain from "f" to "g" to "h" via any(0, String::class, Char::class)
+			chain from "f" to "g" to "h" via any(0, String::class)
 			
 			start at "a"
 		}.also { machine ->
@@ -1107,6 +1107,8 @@ class Tests
 			machine.input("unknown")
 			machine.input(Any())
 			
+			machine.input(0)
+			machine.input("0")
 			machine.input(1)
 			machine.input(2)
 		}
