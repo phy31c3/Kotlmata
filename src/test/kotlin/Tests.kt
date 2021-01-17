@@ -321,9 +321,9 @@ class Tests
 				}
 				input signal "a" function {
 					checklist["input signal"] = true
-					"b" `as` String::class
+					"b" `as` CharSequence::class
 				}
-				input signal String::class function {
+				input signal CharSequence::class function {
 					checklist["input type"] = true
 					"c"
 				}
@@ -348,9 +348,9 @@ class Tests
 				}
 				entry via "a" function {
 					checklist["entry signal"] = true
-					"b" `as` String::class
+					"b" `as` CharSequence::class
 				}
-				entry via String::class function {
+				entry via CharSequence::class function {
 					checklist["entry type"] = true
 					"c"
 				}
@@ -375,6 +375,7 @@ class Tests
 			
 			"input" x 1 %= "entry"
 			"entry" x String::class %= self
+			"entry" x CharSequence::class %= self
 			"entry" x 2 %= "finish"
 			
 			start at "input"
