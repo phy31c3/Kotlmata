@@ -389,7 +389,10 @@ private class KotlmataMachineImpl(
 	
 	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, block: (FunctionDSL.Return) -> Unit)
 	{
-		fun TransitionDef.call(from: STATE, signal: SIGNAL, to: STATE)
+		val from = currentTag
+		val currentState = currentState
+		
+		fun TransitionDef.call(to: STATE)
 		{
 			val transitionCount = transitionCounter++
 			try
@@ -428,52 +431,32 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		fun Except.has(from: STATE, signal: SIGNAL): Boolean
-		{
-			return exceptStates?.contains(from) == true
-				|| exceptSignals?.contains(signal) == true
-		}
-		
-		fun STATE.applyExcepts(from: STATE, signal: SIGNAL) = when
+		fun STATE.filterExcept() = when
 		{
 			this !is Except -> this
-			this.has(from, signal) -> null
+			exceptStates?.contains(from) == true -> null
+			exceptSignals == null -> this.to
+			exceptSignals.contains(signal) -> null
+			exceptSignals.contains(type) -> null
 			else -> this.to
 		}
 		
-		fun MutableMap<SIGNAL, STATE>.test(from: STATE, signal: SIGNAL): STATE?
-		{
-			return testerMap[from]?.test(signal)?.let { predicate ->
-				this[predicate]
-			}
-		}
-		
-		fun MutableMap<SIGNAL, STATE>.testAny(from: STATE, signal: SIGNAL): STATE?
+		fun MutableMap<SIGNAL, STATE>.predicateFilterExcept(): STATE?
 		{
 			testerMap[any]?.test(signal) { predicate ->
-				this[predicate]?.applyExcepts(from, signal)?.let { to ->
+				this[predicate]?.filterExcept()?.let { to ->
 					return to
 				}
 			}
 			return null
 		}
 		
-		fun next(from: STATE): STATE? = ruleMap[from]?.let { map2 ->
-			return map2[signal]
-				?: map2.test(from, signal)
-				?: map2[type]
-				?: map2[any]?.applyExcepts(from, signal)
+		fun MutableMap<SIGNAL, STATE>.predicate(): STATE?
+		{
+			return testerMap[from]?.test(signal)?.let { predicate ->
+				this[predicate]
+			}
 		}
-		
-		fun nextAny(from: STATE): STATE? = ruleMap[any]?.let { map2 ->
-			return map2[signal]?.applyExcepts(from, signal)
-				?: map2.testAny(from, signal)
-				?: map2[type]?.applyExcepts(from, signal)
-				?: map2[any]?.applyExcepts(from, signal)
-		}
-		
-		val from = currentTag
-		val currentState = currentState
 		
 		logLevel.normal(prefix, signal, payload) { MACHINE_INPUT }
 		runStateFunction {
@@ -484,7 +467,17 @@ private class KotlmataMachineImpl(
 			logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 			block(sync)
 		} ?: run {
-			next(from) ?: nextAny(from)
+			ruleMap[from]?.let { `from x` ->
+				`from x`[signal]
+					?: `from x`.predicate()
+					?: `from x`[type]
+					?: `from x`[any]?.filterExcept()
+			} ?: ruleMap[any]?.let { `any x` ->
+				`any x`[signal]?.filterExcept()
+					?: `any x`.predicateFilterExcept()
+					?: `any x`[type]?.filterExcept()
+					?: `any x`[any]?.filterExcept()
+			}
 		}?.let { to ->
 			when (to)
 			{
@@ -506,7 +499,7 @@ private class KotlmataMachineImpl(
 				else
 					MACHINE_TRANSITION
 			}
-			onTransition?.call(from, signal, to)
+			onTransition?.call(to)
 			currentTag = to
 			runStateFunction { nextState.entry(from, signal, type) }.convertToSync()?.also { sync ->
 				logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }

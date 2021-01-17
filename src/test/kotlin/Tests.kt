@@ -397,14 +397,11 @@ class Tests
 		KotlmataMachine("machine") {
 			"state1" {
 				input signal Int::class function {
-					"10" `as` String::class
+					"10" `as` CharSequence::class
 				}
 			}
 			"state2" {
-				entry via "10" function {
-					1 `as` Int::class with 1
-				}
-				entry via String::class function {
+				entry via CharSequence::class function {
 					checklist["input as"] = true
 					1 `as` Int::class with 1
 				}
@@ -420,7 +417,7 @@ class Tests
 				}
 			}
 			
-			"state1" x String::class %= "state2"
+			"state1" x CharSequence::class %= "state2"
 			
 			start at "state1"
 		}.also { machine ->
@@ -1067,11 +1064,11 @@ class Tests
 			
 			"d" {}
 			"e" {}
-			"f" {
+			"f" action {
 				checklist["any"] = true
 			}
 			"g" {}
-			"h" {
+			"h" action {
 				checklist["except"] = true
 			}
 			
@@ -1109,9 +1106,8 @@ class Tests
 			machine.input("unknown")
 			machine.input(Any())
 			
-			machine.input(0)
-			machine.input("unknown")
-			machine.input('a')
+			machine.input(1)
+			machine.input(2)
 		}
 		
 		checklist.verify()
