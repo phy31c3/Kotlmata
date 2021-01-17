@@ -104,14 +104,9 @@ interface KotlmataState<T : STATE>
 	
 	val tag: T
 	
-	fun entry(from: STATE, signal: SIGNAL): Any?
-	fun <T : SIGNAL> entry(from: STATE, signal: T, type: KClass<in T>): Any?
-	
-	fun input(signal: SIGNAL, payload: Any? = null): Any?
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null): Any?
-	
-	fun exit(signal: SIGNAL, to: STATE)
-	fun <T : SIGNAL> exit(signal: T, type: KClass<in T>, to: STATE)
+	fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>): Any?
+	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any? = null): Any?
+	fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, to: STATE)
 }
 
 interface KotlmataMutableState<T : STATE> : KotlmataState<T>
@@ -244,7 +239,7 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	override fun entry(from: STATE, signal: SIGNAL): Any?
+	override fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>): Any?
 	{
 		val entryDef = entryMap?.let { entryMap ->
 			entryMap[signal]?.also {
@@ -252,8 +247,8 @@ private class KotlmataStateImpl<T : STATE>(
 			} ?: entryTester?.test(signal)?.let { predicate ->
 				logLevel.normal(prefix, tag) { STATE_RUN_ENTRY_PREDICATE }
 				entryMap[predicate]
-			} ?: entryMap[signal::class]?.also {
-				logLevel.normal(prefix, tag, signal::class) { STATE_RUN_ENTRY_VIA }
+			} ?: entryMap[type]?.also {
+				logLevel.normal(prefix, tag, type) { STATE_RUN_ENTRY_VIA }
 			}
 		} ?: entry?.also {
 			logLevel.normal(prefix, tag) { STATE_RUN_ENTRY }
@@ -264,22 +259,7 @@ private class KotlmataStateImpl<T : STATE>(
 		return entryDef?.run(from, signal)
 	}
 	
-	override fun <T : SIGNAL> entry(from: STATE, signal: T, type: KClass<in T>): Any?
-	{
-		val entryDef = entryMap?.let { entryMap ->
-			entryMap[type]?.also {
-				logLevel.normal(prefix, tag, type) { STATE_RUN_ENTRY_VIA }
-			}
-		} ?: entry?.also {
-			logLevel.normal(prefix, tag) { STATE_RUN_ENTRY }
-		} ?: null.also {
-			logLevel.normal(prefix, tag, type) { STATE_NO_ENTRY }
-		}
-		
-		return entryDef?.run(from, signal)
-	}
-	
-	override fun input(signal: SIGNAL, payload: Any?): Any?
+	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?): Any?
 	{
 		val inputDef = inputMap?.let { inputMap ->
 			inputMap[signal]?.also {
@@ -287,8 +267,8 @@ private class KotlmataStateImpl<T : STATE>(
 			} ?: inputTester?.test(signal)?.let { predicate ->
 				logLevel.normal(prefix, tag) { STATE_RUN_INPUT_PREDICATE }
 				inputMap[predicate]
-			} ?: inputMap[signal::class]?.also {
-				logLevel.normal(prefix, tag, signal::class) { STATE_RUN_INPUT_SIGNAL }
+			} ?: inputMap[type]?.also {
+				logLevel.normal(prefix, tag, type) { STATE_RUN_INPUT_SIGNAL }
 			}
 		} ?: input?.also {
 			logLevel.normal(prefix, tag) { STATE_RUN_INPUT }
@@ -302,25 +282,7 @@ private class KotlmataStateImpl<T : STATE>(
 		return inputDef?.run(signal, payload)
 	}
 	
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?): Any?
-	{
-		val inputDef = inputMap?.let { inputMap ->
-			inputMap[type]?.also {
-				logLevel.normal(prefix, tag, type) { STATE_RUN_INPUT_SIGNAL }
-			}
-		} ?: input?.also {
-			logLevel.normal(prefix, tag) { STATE_RUN_INPUT }
-		} ?: null.also {
-			if (tag !== `Initial state for KotlmataDaemon`)
-			{
-				logLevel.normal(prefix, tag, type) { STATE_NO_INPUT }
-			}
-		}
-		
-		return inputDef?.run(signal, payload)
-	}
-	
-	override fun exit(signal: SIGNAL, to: STATE)
+	override fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, to: STATE)
 	{
 		val exitDef = exitMap?.let { exitMap ->
 			exitMap[signal]?.also {
@@ -328,25 +290,7 @@ private class KotlmataStateImpl<T : STATE>(
 			} ?: exitTester?.test(signal)?.let { predicate ->
 				logLevel.normal(prefix, tag) { STATE_RUN_EXIT_PREDICATE }
 				exitMap[predicate]
-			} ?: exitMap[signal::class]?.also {
-				logLevel.normal(prefix, tag, signal::class) { STATE_RUN_EXIT_VIA }
-			}
-		} ?: exit?.also {
-			logLevel.normal(prefix, tag) { STATE_RUN_EXIT }
-		} ?: null.also {
-			if (tag !== `Initial state for KotlmataDaemon`)
-			{
-				logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
-			}
-		}
-		
-		exitDef?.run(signal, to)
-	}
-	
-	override fun <T : SIGNAL> exit(signal: T, type: KClass<in T>, to: STATE)
-	{
-		val exitDef = exitMap?.let { exitMap ->
-			exitMap[type]?.also {
+			} ?: exitMap[type]?.also {
 				logLevel.normal(prefix, tag, type) { STATE_RUN_EXIT_VIA }
 			}
 		} ?: exit?.also {
@@ -354,7 +298,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: null.also {
 			if (tag !== `Initial state for KotlmataDaemon`)
 			{
-				logLevel.normal(prefix, tag, type) { STATE_NO_EXIT }
+				logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
 			}
 		}
 		

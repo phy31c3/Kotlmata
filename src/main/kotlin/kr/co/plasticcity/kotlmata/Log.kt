@@ -46,7 +46,6 @@ internal class Logs
 		const val MACHINE_DELETE_RULE = "%s     delete(rule: [%s] x (%s))"
 		const val MACHINE_DELETE_RULE_ALL = "%s     delete(rule: all)"
 		const val MACHINE_INPUT = "%s input(signal: (%s), payload: %s) {"
-		const val MACHINE_TYPED_INPUT = "%s input(signal: (%s), type: %s, payload: %s) {"
 		const val MACHINE_TRANSITION = "%s [%s] x (%s) -> [%s]"
 		const val MACHINE_TRANSITION_TAB = "%s     [%s] x (%s) -> [%s]"
 		const val MACHINE_RETURN_SYNC_INPUT = "%s     return(signal: (%s), type: %s, payload: %s)"

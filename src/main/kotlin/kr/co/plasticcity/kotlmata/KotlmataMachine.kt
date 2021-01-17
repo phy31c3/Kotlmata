@@ -238,11 +238,12 @@ interface KotlmataMachine
 	
 	val name: String
 	
-	fun input(signal: SIGNAL, payload: Any? = null)
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null)
+	@Suppress("UNCHECKED_CAST")
+	fun input(signal: SIGNAL, payload: Any? = null) = input(signal, signal::class as KClass<SIGNAL>, payload)
+	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any? = null)
 	
-	@Deprecated("KClass<T> type cannot be used as input.", level = DeprecationLevel.ERROR)
-	fun input(signal: KClass<out Any>, payload: Any? = null)
+	@Deprecated("KClass<*> type cannot be used as input.", level = DeprecationLevel.ERROR)
+	fun input(signal: KClass<*>, payload: Any? = null)
 }
 
 interface KotlmataMutableMachine : KotlmataMachine
@@ -333,11 +334,9 @@ interface KotlmataMutableMachine : KotlmataMachine
 
 internal interface KotlmataInternalMachine : KotlmataMutableMachine
 {
-	fun input(signal: SIGNAL, payload: Any? = null, block: (FunctionDSL.Sync) -> Unit)
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null, block: (FunctionDSL.Sync) -> Unit)
-	
-	@Deprecated("KClass<T> type cannot be used as input.", level = DeprecationLevel.ERROR)
-	fun input(signal: KClass<out Any>, payload: Any? = null, block: (FunctionDSL.Sync) -> Unit)
+	@Suppress("UNCHECKED_CAST")
+	fun input(signal: SIGNAL, payload: Any? = null, block: (FunctionDSL.Return) -> Unit) = input(signal, signal::class as KClass<SIGNAL>, payload, block)
+	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any? = null, block: (FunctionDSL.Return) -> Unit)
 }
 
 private class TransitionDef(val callback: TransitionCallback, val fallback: TransitionFallback? = null, val finally: TransitionCallback? = null)
@@ -373,9 +372,10 @@ private class KotlmataMachineImpl(
 		logLevel.normal(prefix) { MACHINE_END }
 	}
 	
-	private fun input(begin: FunctionDSL.Sync)
+	@Suppress("UNCHECKED_CAST")
+	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?)
 	{
-		var next: FunctionDSL.Sync? = begin
+		var next: FunctionDSL.Return? = FunctionDSL.Return(signal, type as KClass<SIGNAL>, payload)
 		while (next != null) next.also {
 			next = null
 			if (it.type == null) input(it.signal, it.payload) { sync ->
@@ -387,68 +387,60 @@ private class KotlmataMachineImpl(
 		}
 	}
 	
-	override fun input(signal: SIGNAL, payload: Any?)
+	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, block: (FunctionDSL.Return) -> Unit)
 	{
-		input(FunctionDSL.Sync(signal, null, payload))
-	}
-	
-	@Suppress("UNCHECKED_CAST")
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?)
-	{
-		input(FunctionDSL.Sync(signal, type as KClass<SIGNAL>, payload))
-	}
-	
-	private inline fun tryCatchReturn(block: () -> Any?): Any? = try
-	{
-		block()
-	}
-	catch (e: Throwable)
-	{
-		onError?.let { onError ->
-			ErrorActionReceiver(e).onError()
-		} ?: throw e
-	}
-	
-	private fun TransitionDef.call(from: STATE, signal: SIGNAL, to: STATE)
-	{
-		val transitionCount = transitionCounter++
-		try
+		fun TransitionDef.call(from: STATE, signal: SIGNAL, to: STATE)
 		{
-			callback.also { callback ->
-				TransitionActionReceiver(transitionCount).callback(from, signal, to)
+			val transitionCount = transitionCounter++
+			try
+			{
+				callback.also { callback ->
+					TransitionActionReceiver(transitionCount).callback(from, signal, to)
+				}
+			}
+			catch (e: Throwable)
+			{
+				fallback?.also { fallback ->
+					TransitionErrorActionReceiver(transitionCount, e).fallback(from, signal, to)
+				} ?: onError?.also { onError ->
+					ErrorActionReceiver(e).onError()
+				} ?: throw e
+			}
+			finally
+			{
+				finally?.also { finally ->
+					TransitionActionReceiver(transitionCount).finally(from, signal, to)
+				}
 			}
 		}
-		catch (e: Throwable)
+		
+		fun runStateFunction(block: () -> Any?): Any?
 		{
-			fallback?.also { fallback ->
-				TransitionErrorActionReceiver(transitionCount, e).fallback(from, signal, to)
-			} ?: onError?.also { onError ->
-				ErrorActionReceiver(e).onError()
-			} ?: throw e
-		}
-		finally
-		{
-			finally?.also { finally ->
-				TransitionActionReceiver(transitionCount).finally(from, signal, to)
+			return try
+			{
+				block()
+			}
+			catch (e: Throwable)
+			{
+				onError?.let { onError ->
+					ErrorActionReceiver(e).onError()
+				} ?: throw e
 			}
 		}
-	}
-	
-	private fun Except.has(from: STATE, signal: SIGNAL): Boolean
-	{
-		return exceptStates?.contains(from) == true
-			|| exceptSignals?.contains(signal) == true
-	}
-	
-	private fun STATE.applyExcepts(from: STATE, signal: SIGNAL) = when
-	{
-		this !is Except -> this
-		this.has(from, signal) -> null
-		else -> this.to
-	}
-	
-	override fun input(signal: SIGNAL, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
-	{
+		
+		fun Except.has(from: STATE, signal: SIGNAL): Boolean
+		{
+			return exceptStates?.contains(from) == true
+				|| exceptSignals?.contains(signal) == true
+		}
+		
+		fun STATE.applyExcepts(from: STATE, signal: SIGNAL) = when
+		{
+			this !is Except -> this
+			this.has(from, signal) -> null
+			else -> this.to
+		}
+		
 		fun MutableMap<SIGNAL, STATE>.test(from: STATE, signal: SIGNAL): STATE?
 		{
 			return testerMap[from]?.test(signal)?.let { predicate ->
@@ -469,14 +461,14 @@ private class KotlmataMachineImpl(
 		fun next(from: STATE): STATE? = ruleMap[from]?.let { map2 ->
 			return map2[signal]
 				?: map2.test(from, signal)
-				?: map2[signal::class]
+				?: map2[type]
 				?: map2[any]?.applyExcepts(from, signal)
 		}
 		
 		fun nextAny(from: STATE): STATE? = ruleMap[any]?.let { map2 ->
 			return map2[signal]?.applyExcepts(from, signal)
 				?: map2.testAny(from, signal)
-				?: map2[signal::class]?.applyExcepts(from, signal)
+				?: map2[type]?.applyExcepts(from, signal)
 				?: map2[any]?.applyExcepts(from, signal)
 		}
 		
@@ -484,8 +476,8 @@ private class KotlmataMachineImpl(
 		val currentState = currentState
 		
 		logLevel.normal(prefix, signal, payload) { MACHINE_INPUT }
-		tryCatchReturn {
-			currentState.input(signal, payload)
+		runStateFunction {
+			currentState.input(signal, type, payload)
 		}.also { inputReturn ->
 			if (inputReturn == stay) return
 		}.convertToSync()?.also { sync ->
@@ -507,7 +499,7 @@ private class KotlmataMachineImpl(
 			}
 		}?.also { nextState ->
 			val to = nextState.tag
-			tryCatchReturn { currentState.exit(signal, to) }
+			runStateFunction { currentState.exit(signal, type, to) }
 			logLevel.simple(prefix, from, signal, to) {
 				if (logLevel >= NORMAL)
 					MACHINE_TRANSITION_TAB
@@ -516,63 +508,7 @@ private class KotlmataMachineImpl(
 			}
 			onTransition?.call(from, signal, to)
 			currentTag = to
-			tryCatchReturn { nextState.entry(from, signal) }.convertToSync()?.also { sync ->
-				logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
-				block(sync)
-			}
-		}
-		logLevel.normal(prefix) { MACHINE_END }
-	}
-	
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
-	{
-		fun next(from: STATE): STATE? = ruleMap[from]?.let { map2 ->
-			return map2[type]
-				?: map2[any]?.applyExcepts(from, signal)
-		}
-		
-		fun nextAny(from: STATE): STATE? = ruleMap[any]?.let { map2 ->
-			return map2[type]?.applyExcepts(from, signal)
-				?: map2[any]?.applyExcepts(from, signal)
-		}
-		
-		val from = currentTag
-		val currentState = currentState
-		
-		logLevel.normal(prefix, signal, "${type.simpleName}::class", payload) { MACHINE_TYPED_INPUT }
-		tryCatchReturn {
-			currentState.input(signal, type, payload)
-		}.also { inputReturn ->
-			if (inputReturn == stay) return
-		}.convertToSync()?.also { sync ->
-			logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
-			block(sync)
-		} ?: run {
-			next(from) ?: nextAny(from)
-		}?.let { to ->
-			when (to)
-			{
-				is stay -> null
-				is self -> currentState
-				in stateMap -> stateMap[to]
-				else ->
-				{
-					Log.w(prefix.trimEnd(), from, type, to) { TRANSITION_FAILED }
-					null
-				}
-			}
-		}?.also { nextState ->
-			val to = nextState.tag
-			tryCatchReturn { currentState.exit(signal, type, to) }
-			logLevel.simple(prefix, from, type, to) {
-				if (logLevel > SIMPLE)
-					MACHINE_TRANSITION_TAB
-				else
-					MACHINE_TRANSITION
-			}
-			onTransition?.call(from, signal, to)
-			currentTag = to
-			tryCatchReturn { nextState.entry(from, signal, type) }.convertToSync()?.also { sync ->
+			runStateFunction { nextState.entry(from, signal, type) }.convertToSync()?.also { sync ->
 				logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 				block(sync)
 			}
@@ -581,15 +517,9 @@ private class KotlmataMachineImpl(
 	}
 	
 	@Suppress("OverridingDeprecatedMember")
-	override fun input(signal: KClass<out Any>, payload: Any?)
+	override fun input(signal: KClass<*>, payload: Any?)
 	{
-		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
-	}
-	
-	@Suppress("OverridingDeprecatedMember")
-	override fun input(signal: KClass<out Any>, payload: Any?, block: (FunctionDSL.Sync) -> Unit)
-	{
-		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
+		throw IllegalArgumentException("KClass<*> type cannot be used as input.")
 	}
 	
 	override fun update(block: Update.() -> Unit)

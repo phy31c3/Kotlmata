@@ -131,10 +131,10 @@ interface KotlmataDaemon
 	/**
 	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
 	 */
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null, priority: Int = 0)
+	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any? = null, priority: Int = 0)
 	
-	@Deprecated("KClass<T> type cannot be used as input.", level = DeprecationLevel.ERROR)
-	fun input(signal: KClass<out Any>, payload: Any? = null, priority: Int = 0)
+	@Deprecated("KClass<*> type cannot be used as input.", level = DeprecationLevel.ERROR)
+	fun input(signal: KClass<*>, payload: Any? = null, priority: Int = 0)
 }
 
 interface KotlmataMutableDaemon : KotlmataDaemon
@@ -281,7 +281,7 @@ private class KotlmataDaemonImpl(
 				logLevel.detail(name) { DAEMON_IGNORE_REQUEST }
 			}
 			
-			val postSync: (FunctionDSL.Sync) -> Unit = {
+			val postSync: (FunctionDSL.Return) -> Unit = {
 				val syncR = Sync(it.signal, it.type, it.payload)
 				queue!!.offer(syncR)
 			}
@@ -564,16 +564,16 @@ private class KotlmataDaemonImpl(
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, priority: Int)
+	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, priority: Int)
 	{
 		val typedR = TypedInput(signal, type as KClass<SIGNAL>, payload, priority)
 		queue?.offer(typedR)
 	}
 	
 	@Suppress("OverridingDeprecatedMember")
-	override fun input(signal: KClass<out Any>, payload: Any?, priority: Int)
+	override fun input(signal: KClass<*>, payload: Any?, priority: Int)
 	{
-		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
+		throw IllegalArgumentException("KClass<*> type cannot be used as input.")
 	}
 	
 	@Suppress("UNCHECKED_CAST")

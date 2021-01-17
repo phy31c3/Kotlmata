@@ -39,8 +39,8 @@ internal fun Any?.convertToSync() = when (this)
 	null -> null
 	is Unit -> null
 	is Nothing -> null
-	is FunctionDSL.Sync -> this
-	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
+	is FunctionDSL.Return -> this
+	else /* this is SIGNAL */ -> FunctionDSL.Return(this)
 }
 
 internal object SignalsDefinableImpl : SignalsDefinable

@@ -121,7 +121,7 @@ interface ActionDSL
 
 interface FunctionDSL : ActionDSL
 {
-	open class Sync internal constructor(
+	open class Return internal constructor(
 		val signal: SIGNAL,
 		val type: KClass<SIGNAL>? = null,
 		val payload: Any? = null
@@ -131,13 +131,13 @@ interface FunctionDSL : ActionDSL
 			get() = type?.let { "${type.simpleName}::class" } ?: "null"
 	}
 	
-	class TypedSync internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Sync(signal, type)
+	class ReturnWithoutPayload internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Return(signal, type)
 	
 	@Suppress("UNCHECKED_CAST")
-	infix fun <T : SIGNAL> T.`as`(type: KClass<in T>) = TypedSync(this, type as KClass<SIGNAL>)
+	infix fun <S : T, T : SIGNAL> S.`as`(type: KClass<T>) = ReturnWithoutPayload(this, type as KClass<SIGNAL>)
 	
-	infix fun <T : SIGNAL> T.with(payload: Any?) = Sync(this, null, payload)
-	infix fun TypedSync.with(payload: Any?) = Sync(signal, type, payload)
+	infix fun SIGNAL.with(payload: Any?) = Return(this, null, payload)
+	infix fun ReturnWithoutPayload.with(payload: Any?) = Return(signal, type, payload)
 }
 
 interface ErrorActionDSL : ErrorHolder, ActionDSL
