@@ -4,7 +4,6 @@ import kr.co.plasticcity.kotlmata.*
 import org.junit.Before
 import org.junit.Test
 import java.lang.ref.WeakReference
-import java.util.concurrent.PriorityBlockingQueue
 
 class Tests
 {
@@ -25,7 +24,7 @@ class Tests
 	}
 	
 	@Test
-	fun `모든 유형의 진입동작이 제대로 불리는가`()
+	fun `상태의 모든 유형의 진입동작이 제대로 불리는가`()
 	{
 		val checklist = mutableMapOf(
 			"entry" to false,
@@ -115,7 +114,7 @@ class Tests
 	}
 	
 	@Test
-	fun `모든 유형의 입력동작이 제대로 불리는가`()
+	fun `상태의 모든 유형의 입력동작이 제대로 불리는가`()
 	{
 		val checklist = mutableMapOf(
 			"input" to false,
@@ -205,7 +204,7 @@ class Tests
 	}
 	
 	@Test
-	fun `모든 유형의 퇴장동작이 제대로 불리는가`()
+	fun `상태의 모든 유형의 퇴장동작이 제대로 불리는가`()
 	{
 		val checklist = mutableMapOf(
 			"exit" to false,
@@ -692,7 +691,7 @@ class Tests
 	}
 	
 	@Test
-	fun `간략한 상태 정의가 잘 되는가`()
+	fun `머신의 간략한 상태 정의가 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"entry" to false,
@@ -735,7 +734,7 @@ class Tests
 	}
 	
 	@Test
-	fun `모든 유형의 머신 생성이 잘 되는가`()
+	fun `머신의 모든 유형의 생성이 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"machine" to false,
@@ -878,7 +877,7 @@ class Tests
 	}
 	
 	@Test
-	fun `모든 유형의 전이규칙이 잘 동작하는가`()
+	fun `머신의 모든 유형의 전이규칙이 잘 정의되는가`()
 	{
 		val checklist = mutableMapOf(
 			"state x signal" to false,
@@ -1041,7 +1040,7 @@ class Tests
 			"except" to false
 		)
 		
-		KotlmataMachine("machine", 2) {
+		KotlmataMachine("machine") {
 			
 			"a" {}
 			"b" {}
@@ -1117,112 +1116,182 @@ class Tests
 	}
 	
 	@Test
-	fun machineTest()
+	fun `머신 업데이트 시 현재 상태 체크가 잘 되는가`()
 	{
-		val base: MachineBase = {
-			on error {
-				println("템플릿에서 정의: on error")
+		val checklist = mutableMapOf(
+			"current is a" to false,
+			"current is b" to false
+		)
+		
+		KotlmataMutableMachine("machine") {
+			"a" {}
+			"b" {}
+			
+			"a" x 0 %= "b"
+			
+			start at "a"
+		}.also { machine ->
+			machine {
+				if (currentState == "a") checklist["current is a"] = true
 			}
-			on transition { from, signal, to ->
-				println("on transition : [$transitionCount] $from x $signal -> $to")
+			machine.input(0)
+			machine {
+				if (currentState == "b") checklist["current is b"] = true
 			}
 		}
 		
-		val machine by KotlmataMutableMachine.lazy("m1", 3) extends base by {
-			"state1" { state ->
-				entry function { println("$state: 기본 진입함수") }
-				input signal String::class function { s -> println("$state: String 타입 입력함수: $s") }
-				input signal "goToState2" function { println("state2로 이동") }
-				exit action { println("$state: 퇴장함수") }
-			}
-			
-			"state2" { state ->
-				entry function { println("$state: 기본 진입함수") }
-				input signal 5 function { s -> println("$state: Number 타입 입력함수: $s") }
-				input signal Number::class function { println("state3로 이동") }
-				exit action { println("$state: 퇴장함수") }
-			}
-			
-			"state3" { state ->
-				entry function { println("$state: 기본 진입함수") }
-				input signal String::class function { s -> println("$state: String 타입 입력함수: $s") }
-				input signal "error" function { throw RuntimeException() }
-				exit action { println("$state: 퇴장함수") }
-			}
-			
-			"state4" { state ->
-				entry via ("goToState4-1" OR "goToState4-2" OR "goToState4-3") function { signal ->
-					println("$state: 다중 신호 진입함수: $signal")
-				}
-				input signal ("3" OR 1 OR 2) function { signal ->
-					println("$state: 다중 신호 입력함수: $signal")
-				}
-			}
-			
-			"simple" via String::class function { state ->
-				println("$state: 간략한 상태 정의")
-				println("$state: 예외 발생")
-				throw Exception("예외")
-			} catch { throwable ->
-				println("simple: Fallback")
-				println(throwable)
-			}
-			
-			"state1" x "goToState2" %= "state2"
-			"state2" x Number::class %= "state3"
-			"state3" x "goToState1" %= "state1"
-			"state1" x ("goToState4-1" OR "goToState4-2" OR "goToState4-3") %= "state4"
-			"simple" x "goToSimple" %= "state1"
-			any("simple") x "goToSimple" %= "simple"
-			
-			start at "state1"
-		}
-		
-		machine.input("some string")
-		machine.input("goToState2")
-		machine.input(5)
-		machine.input(5, Number::class)
-		machine.input("error")
-		machine.input("goToState1")
-		machine.input("goToState4-3")
-		machine.input(1)
-		machine.input("3")
-		machine.input("goToSimple")
-		machine.input("goToSimple")
-		
-		println("-----------------------------------")
-		
-		machine {
-			if (has state "State1")
-			{
-				println("state1 있음")
-			}
-			else
-			{
-				println("state1 없음")
-			}
-			
-			"state1" update { state ->
-				input signal String::class function { s -> println("$state: 수정된 String 타입 입력함수: $s") }
-				delete action entry via { s: Int -> s < 10 }
-			}
-			
-			"state1" x "goToState3" %= "state3"
-		}
-		
-		machine.input("some string")
-		machine.input("goToState2")
-		
-		var update: KotlmataMutableMachine.Update? = null
-		machine {
-			println("현재 상태: $currentState")
-			update = this
-		}
-		
-		println("현재 상태를 외부에서 확인: ${update?.currentState}")
+		checklist.verify()
 	}
 	
 	@Test
+	fun `머신 업데이트 시 상태 'has' 체크가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"exists" to false,
+			"none" to false
+		)
+		
+		KotlmataMutableMachine("machine") {
+			"a" {}
+			start at "a"
+		}.also { machine ->
+			machine {
+				if (has state "a") checklist["exists"] = true
+				if (!(has state "b")) checklist["none"] = true
+			}
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `머신 업데이트 시 상태 삭제가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"exists" to false,
+			"deleted" to false
+		)
+		
+		KotlmataMutableMachine("machine") {
+			"a" {}
+			start at "a"
+		}.also { machine ->
+			machine {
+				if (has state "a") checklist["exists"] = true
+				delete state "a"
+				if (!(has state "a")) checklist["deleted"] = true
+			}
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `머신 업데이트 시 전이규칙 'has' 체크가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"state x signal" to false,
+			"state x type" to false,
+			"state x any" to false,
+			"state x predicate" to false,
+			"any x signal" to false,
+			"any x type" to false,
+			"any x any" to false,
+			"any x predicate" to false
+		)
+		
+		val predicate = { s: Int -> s == 0 }
+		
+		KotlmataMutableMachine("machine") {
+			"state" {}
+			
+			"state" x 0 %= self
+			"state" x Int::class %= self
+			"state" x any %= self
+			"state" x predicate %= self
+			any x 0 %= self
+			any x Int::class %= self
+			any x any %= self
+			any x predicate %= self
+			
+			start at "state"
+		}.also { machine ->
+			machine {
+				if (has rule ("state" x 0)) checklist["state x signal"] = true
+				if (has rule ("state" x Int::class)) checklist["state x type"] = true
+				if (has rule ("state" x any)) checklist["state x any"] = true
+				if (has rule ("state" x predicate)) checklist["state x predicate"] = true
+				if (has rule (any x 0)) checklist["any x signal"] = true
+				if (has rule (any x Int::class)) checklist["any x type"] = true
+				if (has rule (any x any)) checklist["any x any"] = true
+				if (has rule (any x predicate)) checklist["any x predicate"] = true
+			}
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `머신 업데이트 시 전이규칙 삭제가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"state x signal" to true,
+			"state x type" to true,
+			"state x any" to true,
+			"state x predicate" to true,
+			"any x signal" to true,
+			"any x type" to true,
+			"any x any" to true,
+			"any x predicate" to true
+		)
+		
+		val predicate = { s: Int -> s == 0 }
+		
+		KotlmataMutableMachine("machine") {
+			val template: StateTemplate<String> = { state ->
+				entry action {
+					checklist[state] = false
+				}
+			}
+			
+			"state" {}
+			"state x signal" extends template
+			"state x type" extends template
+			"state x any" extends template
+			"state x predicate" extends template
+			"any x signal" extends template
+			"any x type" extends template
+			"any x any" extends template
+			"any x predicate" extends template
+			
+			"state" x 0 %= "state x signal"
+			"state" x Int::class %= "state x type"
+			"state" x any %= "state x any"
+			"state" x predicate %= "state x predicate"
+			any x 0 %= "any x signal"
+			any x Int::class %= "any x type"
+			any x any %= "any x any"
+			any x predicate %= "any x predicate"
+			
+			start at "state"
+		}.also { machine ->
+			machine {
+				delete rule ("state" x 0)
+				delete rule ("state" x Int::class)
+				delete rule ("state" x any)
+				delete rule ("state" x predicate)
+				delete rule (any x 0)
+				delete rule (any x Int::class)
+				delete rule (any x any)
+				delete rule (any x predicate)
+			}
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
 	fun daemonTest()
 	{
 		var shouldGC: WeakReference<KotlmataState.Init>? = null
@@ -1600,22 +1669,5 @@ class Tests
 		System.gc()
 		println("과연 GC 되었을까: ${shouldGC?.get()}")
 		expire?.entry?.function {}
-	}
-	
-	@Test
-	fun commonTest()
-	{
-		val queue: PriorityBlockingQueue<Int> = PriorityBlockingQueue()
-		
-		Thread.currentThread().interrupt()
-		
-		queue.offer(0)
-		queue.offer(1)
-		queue.offer(2)
-		
-		println("이제 take 한다.")
-		println("${queue.take()}")
-		println("${queue.take()}")
-		println("${queue.take()}")
 	}
 }

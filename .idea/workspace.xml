@@ -34,7 +34,10 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="0.5.5" />
+    <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="0.5.5">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -109,7 +112,7 @@
       <recent name="D:\workspace\Kotlmata\src\test\kotlin" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.Tests.머신의 체인규칙이 잘 동작하는가">
+  <component name="RunManager">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method v="2">
@@ -137,50 +140,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Tests.머신의 체인규칙이 잘 동작하는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Kotlmata.test" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="Tests" />
-      <option name="METHOD_NAME" value="머신의 체인규칙이 잘 동작하는가" />
-      <option name="TEST_OBJECT" value="method" />
-      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Tests.상태의 'function'에서 타입지정과 payload 전달이 잘 되는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Kotlmata.test" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="Tests" />
-      <option name="METHOD_NAME" value="상태의 'function'에서 타입지정과 payload 전달이 잘 되는가" />
-      <option name="TEST_OBJECT" value="method" />
-      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Tests.모든 유형의 전이규칙이 잘 동작하는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Kotlmata.test" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="Tests" />
-      <option name="METHOD_NAME" value="모든 유형의 전이규칙이 잘 동작하는가" />
-      <option name="TEST_OBJECT" value="method" />
-      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Tests.daemonTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Kotlmata.test" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="Tests" />
-      <option name="METHOD_NAME" value="daemonTest" />
-      <option name="TEST_OBJECT" value="method" />
-      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration default="true" type="JUnit" factoryName="JUnit">
       <option name="TEST_OBJECT" value="class" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
@@ -197,20 +156,9 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <list>
-      <item itemvalue="JUnit.Tests.모든 유형의 전이규칙이 잘 동작하는가" />
-      <item itemvalue="JUnit.Tests" />
-      <item itemvalue="JUnit.Tests.머신의 체인규칙이 잘 동작하는가" />
-      <item itemvalue="JUnit.Tests.daemonTest" />
-      <item itemvalue="JUnit.Tests.상태의 'function'에서 타입지정과 payload 전달이 잘 되는가" />
-    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.Tests.머신의 체인규칙이 잘 동작하는가" />
         <item itemvalue="JUnit.Tests" />
-        <item itemvalue="JUnit.Tests.상태의 'function'에서 타입지정과 payload 전달이 잘 되는가" />
-        <item itemvalue="JUnit.Tests.모든 유형의 전이규칙이 잘 동작하는가" />
-        <item itemvalue="JUnit.Tests.daemonTest" />
       </list>
     </recent_temporary>
   </component>
