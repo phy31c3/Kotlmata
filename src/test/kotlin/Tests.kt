@@ -1294,7 +1294,79 @@ class Tests
 	}
 	
 	@Test
-	fun `#022 데몬의 모든 유형의 생성이 잘 되는가`()
+	fun `#022 머신의 동기입력이 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"input signal" to false,
+			"input signal type" to false,
+			"input signal payload" to false,
+			"input signal type payload" to false,
+			"entry signal" to false,
+			"entry signal type" to false,
+			"entry signal payload" to false,
+			"entry signal type payload" to false
+		)
+		
+		KotlmataMachine("#022", 0) {
+			"a" {
+				input signal "0" function {
+					"1"
+				}
+				input signal "1" function {
+					checklist["input signal"] = true
+					"2" `as` CharSequence::class
+				}
+				input signal CharSequence::class function {
+					checklist["input signal type"] = true
+					"3" with "4"
+				}
+				input signal "3" function {
+					checklist["input signal payload"] = true
+					payload as String `as` String::class with 0
+				}
+				input signal String::class function {
+					payload
+				}
+				entry via 0 action {
+					checklist["entry signal type payload"] = true
+				}
+			}
+			"b" {
+				entry via 0 function {
+					checklist["input signal type payload"] = true
+					"5"
+				}
+				entry via "5" function {
+					checklist["entry signal"] = true
+					"6" `as` CharSequence::class
+				}
+				entry via CharSequence::class function {
+					checklist["entry signal type"] = true
+					"7" with "8"
+				}
+				entry via "7" function {
+					checklist["entry signal payload"] = true
+					payload as String `as` String::class with 0
+				}
+				entry via String::class function {
+					payload
+				}
+			}
+			
+			"a" x 0 %= "b"
+			"b" x any %= "b"
+			"b" x 0 %= "a"
+			
+			start at "a"
+		}.also { machine ->
+			machine.input("0")
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `#023 데몬의 모든 유형의 생성이 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"daemon" to false,
@@ -1315,7 +1387,7 @@ class Tests
 			}
 		}
 		
-		val d1 = KotlmataDaemon("#022-1", 0) {
+		val d1 = KotlmataDaemon("#023-1", 0) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1324,13 +1396,13 @@ class Tests
 			}
 			start at "state"
 		}
-		val d2 = KotlmataDaemon("#022-2", 0) extends base by {
+		val d2 = KotlmataDaemon("#023-2", 0) extends base by {
 			"state" action {
 				checklist["daemon extends"] = true
 			}
 			start at "state"
 		}
-		val d3 by KotlmataDaemon.lazy("#022-3", 0) {
+		val d3 by KotlmataDaemon.lazy("#023-3", 0) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1339,13 +1411,13 @@ class Tests
 			}
 			start at "state"
 		}
-		val d4 by KotlmataDaemon.lazy("#022-4", 0) extends base by {
+		val d4 by KotlmataDaemon.lazy("#023-4", 0) extends base by {
 			"state" action {
 				checklist["daemon lazy extends"] = true
 			}
 			start at "state"
 		}
-		val d5 = KotlmataMutableDaemon("#022-5", 0) {
+		val d5 = KotlmataMutableDaemon("#023-5", 0) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1354,13 +1426,13 @@ class Tests
 			}
 			start at "state"
 		}
-		val d6 = KotlmataMutableDaemon("#022-6", 0) extends base by {
+		val d6 = KotlmataMutableDaemon("#023-6", 0) extends base by {
 			"state" action {
 				checklist["mutable daemon extends"] = true
 			}
 			start at "state"
 		}
-		val d7 by KotlmataMutableDaemon.lazy("#022-7", 0) {
+		val d7 by KotlmataMutableDaemon.lazy("#023-7", 0) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1369,7 +1441,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val d8 by KotlmataMutableDaemon.lazy("#022-8", 0) extends base by {
+		val d8 by KotlmataMutableDaemon.lazy("#023-8", 0) extends base by {
 			"state" action {
 				checklist["mutable daemon lazy extends"] = true
 			}
@@ -1400,7 +1472,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#023 데몬의 생명주기 콜백이 잘 호출 되는가`()
+	fun `#024 데몬의 생명주기 콜백이 잘 호출 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"on create" to false,
@@ -1429,7 +1501,7 @@ class Tests
 		
 		val latch = CountDownLatch(1)
 		
-		KotlmataDaemon("#023", 0) {
+		KotlmataDaemon("#024", 0) {
 			on create {
 				checklist["on create"] = true
 				throw Exception()
