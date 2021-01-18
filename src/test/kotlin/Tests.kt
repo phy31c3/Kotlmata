@@ -502,7 +502,7 @@ class Tests
 	}
 	
 	@Test
-	fun `S-007 상태의 'on error'가 제대로 호출 되는가`()
+	fun `S-007 상태의 'on error'가 제대로 호출되는가`()
 	{
 		val checklist = mutableMapOf(
 			"on error" to false
@@ -814,7 +814,7 @@ class Tests
 	}
 	
 	@Test
-	fun `M-003 머신의 'on transition'이 제대로 호출 되는가`()
+	fun `M-003 머신의 'on transition'이 제대로 호출되는가`()
 	{
 		val checklist = mutableMapOf(
 			"on transition" to false,
@@ -845,7 +845,7 @@ class Tests
 	}
 	
 	@Test
-	fun `M-004 머신의 'on error'가 제대로 호출 되는가`()
+	fun `M-004 머신의 'on error'가 제대로 호출되는가`()
 	{
 		val checklist = mutableMapOf(
 			"on error action" to false,
@@ -1499,7 +1499,7 @@ class Tests
 	}
 	
 	@Test
-	fun `D-002 데몬의 생명주기 콜백이 잘 호출 되는가`()
+	fun `D-002 데몬의 생명주기 콜백이 잘 호출되는가`()
 	{
 		val checklist = mutableMapOf(
 			"on create" to false,
@@ -1599,6 +1599,46 @@ class Tests
 			daemon.stop()
 			daemon.run()
 			daemon.terminate()
+		}
+		
+		latch.await()
+		checklist.verify()
+	}
+	
+	@Test
+	fun `D-003 데몬의 입력 우선순위가 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"priority 0" to false,
+			"priority 1" to true
+		)
+		
+		val latch = CountDownLatch(1)
+		
+		KotlmataDaemon("D-003", 0) { daemon ->
+			on destroy {
+				latch.countDown()
+			}
+			"a" {
+				input signal 0 action {
+					checklist["priority 0"] = true
+				}
+				input signal 1 action {
+					checklist["priority 1"] = !checklist["priority 1"]!!
+				}
+				input signal 2 action {
+					checklist["priority 1"] = !checklist["priority 1"]!!
+					daemon.terminate()
+				}
+			}
+			
+			start at "a"
+		}.also { daemon ->
+			daemon.pause()
+			daemon.input(1, priority = 1)
+			daemon.input(2, priority = 1)
+			daemon.input(0, priority = 0)
+			daemon.run()
 		}
 		
 		latch.await()
