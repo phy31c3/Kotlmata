@@ -334,7 +334,7 @@ private class KotlmataDaemonImpl(
 			}
 			"Running" {
 				entry via Run::class action { runR ->
-					when (previousState)
+					when (prevState)
 					{
 						"Paused", "Stopped" ->
 						{
@@ -424,7 +424,7 @@ private class KotlmataDaemonImpl(
 					{
 						Log.w(name) { DAEMON_INTERRUPTED }
 					}
-					when (previousState)
+					when (prevState)
 					{
 						"Running", "Paused", "Stopped" ->
 						{

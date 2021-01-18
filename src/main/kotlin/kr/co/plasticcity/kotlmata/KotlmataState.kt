@@ -104,9 +104,9 @@ interface KotlmataState<T : STATE>
 	
 	val tag: T
 	
-	fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>): Any?
+	fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>, payload: Any? = null): Any?
 	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any? = null): Any?
-	fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, to: STATE)
+	fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, payload: Any? = null, to: STATE)
 }
 
 interface KotlmataMutableState<T : STATE> : KotlmataState<T>
@@ -182,14 +182,14 @@ private class KotlmataStateImpl<T : STATE>(
 		UpdateImpl(block)
 	}
 	
-	private fun EntryDef.run(from: STATE, signal: SIGNAL): Any? = try
+	private fun EntryDef.run(from: STATE, signal: SIGNAL, payload: Any?): Any? = try
 	{
-		EntryFunctionReceiver(from).function(signal)
+		EntryFunctionReceiver(from, payload).function(signal)
 	}
 	catch (e: Throwable)
 	{
 		intercept?.let { intercept ->
-			EntryErrorFunctionReceiver(from, e).intercept(signal) ?: Unit
+			EntryErrorFunctionReceiver(from, payload, e).intercept(signal) ?: Unit
 		} ?: onError?.let { onError ->
 			ErrorActionReceiver(e).onError(signal)
 		} ?: throw e
@@ -197,7 +197,7 @@ private class KotlmataStateImpl<T : STATE>(
 	finally
 	{
 		finally?.let { finally ->
-			EntryActionReceiver(from).finally(signal)
+			EntryActionReceiver(from, payload).finally(signal)
 		}
 	}
 	
@@ -220,14 +220,14 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
-	private fun ExitDef.run(signal: SIGNAL, to: STATE) = try
+	private fun ExitDef.run(signal: SIGNAL, payload: Any?, to: STATE) = try
 	{
-		ExitActionReceiver(to).action(signal)
+		ExitActionReceiver(to, payload).action(signal)
 	}
 	catch (e: Throwable)
 	{
 		catch?.let { catch ->
-			ExitErrorActionReceiver(to, e).catch(signal)
+			ExitErrorActionReceiver(to, payload, e).catch(signal)
 		} ?: onError?.let { onError ->
 			ErrorActionReceiver(e).onError(signal)
 		} ?: throw e
@@ -235,11 +235,11 @@ private class KotlmataStateImpl<T : STATE>(
 	finally
 	{
 		finally?.let { finally ->
-			ExitActionReceiver(to).finally(signal)
+			ExitActionReceiver(to, payload).finally(signal)
 		}
 	}
 	
-	override fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>): Any?
+	override fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>, payload: Any?): Any?
 	{
 		val entryDef = entryMap?.let { entryMap ->
 			entryMap[signal]?.also {
@@ -256,7 +256,7 @@ private class KotlmataStateImpl<T : STATE>(
 			logLevel.normal(prefix, tag, signal) { STATE_NO_ENTRY }
 		}
 		
-		return entryDef?.run(from, signal)
+		return entryDef?.run(from, signal, payload)
 	}
 	
 	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?): Any?
@@ -282,7 +282,7 @@ private class KotlmataStateImpl<T : STATE>(
 		return inputDef?.run(signal, payload)
 	}
 	
-	override fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, to: STATE)
+	override fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, payload: Any?, to: STATE)
 	{
 		val exitDef = exitMap?.let { exitMap ->
 			exitMap[signal]?.also {
@@ -302,7 +302,7 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		}
 		
-		exitDef?.run(signal, to)
+		exitDef?.run(signal, payload, to)
 	}
 	
 	override fun update(block: Update.(T) -> Unit)

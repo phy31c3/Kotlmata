@@ -7,18 +7,63 @@ import kotlin.reflect.KClass
 @DslMarker
 internal annotation class KotlmataMarker
 
-internal class ErrorActionReceiver(override val throwable: Throwable) : ErrorActionDSL
-internal class EntryActionReceiver(override val previousState: STATE) : EntryActionDSL
-internal class EntryFunctionReceiver(override val previousState: STATE) : EntryFunctionDSL
-internal class EntryErrorFunctionReceiver(override val previousState: STATE, override val throwable: Throwable) : EntryErrorFunctionDSL
-internal class ExitActionReceiver(override val nextState: STATE) : ExitActionDSL
-internal class ExitErrorActionReceiver(override val nextState: STATE, override val throwable: Throwable) : ExitErrorActionDSL
-internal class PayloadActionReceiver(override val payload: Any?) : PayloadActionDSL
-internal class PayloadFunctionReceiver(override val payload: Any?) : PayloadFunctionDSL
-internal class PayloadErrorActionReceiver(override val payload: Any?, override val throwable: Throwable) : PayloadErrorActionDSL
-internal class PayloadErrorFunctionReceiver(override val payload: Any?, override val throwable: Throwable) : PayloadErrorFunctionDSL
-internal class TransitionActionReceiver(override val transitionCount: Long) : TransitionActionDSL
-internal class TransitionErrorActionReceiver(override val transitionCount: Long, override val throwable: Throwable) : TransitionErrorActionDSL
+internal class ErrorActionReceiver(
+	override val throwable: Throwable
+) : ErrorActionDSL
+
+internal class EntryActionReceiver(
+	override val prevState: STATE,
+	override val payload: Any?
+) : EntryActionDSL
+
+internal class EntryFunctionReceiver(
+	override val prevState: STATE,
+	override val payload: Any?
+) : EntryFunctionDSL
+
+internal class EntryErrorFunctionReceiver(
+	override val prevState: STATE,
+	override val payload: Any?,
+	override val throwable: Throwable
+) : EntryErrorFunctionDSL
+
+internal class ExitActionReceiver(
+	override val nextState: STATE,
+	override val payload: Any?
+) : ExitActionDSL
+
+internal class ExitErrorActionReceiver(
+	override val nextState: STATE,
+	override val payload: Any?,
+	override val throwable: Throwable
+) : ExitErrorActionDSL
+
+internal class PayloadActionReceiver(
+	override val payload: Any?
+) : PayloadActionDSL
+
+internal class PayloadFunctionReceiver(
+	override val payload: Any?
+) : PayloadFunctionDSL
+
+internal class PayloadErrorActionReceiver(
+	override val payload: Any?,
+	override val throwable: Throwable
+) : PayloadErrorActionDSL
+
+internal class PayloadErrorFunctionReceiver(
+	override val payload: Any?,
+	override val throwable: Throwable
+) : PayloadErrorFunctionDSL
+
+internal class TransitionActionReceiver(
+	override val transitionCount: Long
+) : TransitionActionDSL
+
+internal class TransitionErrorActionReceiver(
+	override val transitionCount: Long,
+	override val throwable: Throwable
+) : TransitionErrorActionDSL
 
 @Suppress("ClassName")
 internal object `Initial state for KotlmataDaemon`

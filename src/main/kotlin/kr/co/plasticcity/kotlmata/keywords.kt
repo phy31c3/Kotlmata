@@ -96,19 +96,19 @@ interface ErrorHolder
 	val throwable: Throwable
 }
 
-interface EntryHolder
-{
-	val previousState: STATE
-}
-
-interface ExitHolder
-{
-	val nextState: STATE
-}
-
 interface PayloadHolder
 {
 	val payload: Any?
+}
+
+interface EntryHolder : PayloadHolder
+{
+	val prevState: STATE
+}
+
+interface ExitHolder : PayloadHolder
+{
+	val nextState: STATE
 }
 
 interface TransitionHolder

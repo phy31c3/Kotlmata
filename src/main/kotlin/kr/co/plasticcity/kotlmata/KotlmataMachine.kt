@@ -492,7 +492,7 @@ private class KotlmataMachineImpl(
 			}
 		}?.also { nextState ->
 			val to = nextState.tag
-			runStateFunction { currentState.exit(signal, type, to) }
+			runStateFunction { currentState.exit(signal, type, payload, to) }
 			logLevel.simple(prefix, from, signal, to) {
 				if (logLevel >= NORMAL)
 					MACHINE_TRANSITION_TAB
@@ -501,7 +501,7 @@ private class KotlmataMachineImpl(
 			}
 			onTransition?.call(to)
 			currentTag = to
-			runStateFunction { nextState.entry(from, signal, type) }.convertToSync()?.also { sync ->
+			runStateFunction { nextState.entry(from, signal, type, payload) }.convertToSync()?.also { sync ->
 				logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 				block(sync)
 			}
