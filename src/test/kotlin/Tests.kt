@@ -25,7 +25,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#001 상태의 모든 유형의 진입동작이 제대로 불리는가`()
+	fun `S-001 상태의 모든 유형의 진입동작이 제대로 불리는가`()
 	{
 		val checklist = mutableMapOf(
 			"entry" to false,
@@ -47,7 +47,7 @@ class Tests
 			"entry range catch" to false,
 			"entry range final" to false
 		)
-		KotlmataMachine("#001", 0) {
+		KotlmataMachine("S-001", 0) {
 			"state" {
 				entry action {
 					checklist["entry"] = true
@@ -115,7 +115,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#002 상태의 모든 유형의 입력동작이 제대로 불리는가`()
+	fun `S-002 상태의 모든 유형의 입력동작이 제대로 불리는가`()
 	{
 		val checklist = mutableMapOf(
 			"input" to false,
@@ -137,7 +137,7 @@ class Tests
 			"input range catch" to false,
 			"input range final" to false
 		)
-		KotlmataMachine("#002", 0) {
+		KotlmataMachine("S-002", 0) {
 			"state" {
 				input action {
 					checklist["input"] = true
@@ -205,7 +205,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#003 상태의 모든 유형의 퇴장동작이 제대로 불리는가`()
+	fun `S-003 상태의 모든 유형의 퇴장동작이 제대로 불리는가`()
 	{
 		val checklist = mutableMapOf(
 			"exit" to false,
@@ -227,7 +227,7 @@ class Tests
 			"exit range catch" to false,
 			"exit range final" to false
 		)
-		KotlmataMachine("#003", 0) {
+		KotlmataMachine("S-003", 0) {
 			"state" {
 				exit action {
 					checklist["exit"] = true
@@ -295,7 +295,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#004 상태의 'function'이 제대로 동작하는가`()
+	fun `S-004 상태의 'function'이 제대로 동작하는가`()
 	{
 		val checklist = mutableMapOf(
 			"input" to false,
@@ -313,7 +313,7 @@ class Tests
 			"finish" to false
 		)
 		
-		KotlmataMachine("#004", 0) {
+		KotlmataMachine("S-004", 0) {
 			"input" {
 				input function {
 					checklist["input"] = true
@@ -387,7 +387,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#005 상태의 'function'에서 타입지정과 payload 전달이 잘 되는가`()
+	fun `S-005 상태의 'function'에서 타입지정과 payload 전달이 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"input as" to false,
@@ -395,7 +395,7 @@ class Tests
 			"input with" to false
 		)
 		
-		KotlmataMachine("#005", 0) {
+		KotlmataMachine("S-005", 0) {
 			"state1" {
 				input signal Int::class function {
 					"10" `as` CharSequence::class
@@ -429,7 +429,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#006 상태의 'intercept'가 제대로 동작하는가`()
+	fun `S-006 상태의 'intercept'가 제대로 동작하는가`()
 	{
 		val checklist = mutableMapOf(
 			"input" to false,
@@ -445,7 +445,7 @@ class Tests
 			"finish" to false
 		)
 		
-		KotlmataMachine("#006", 0) {
+		KotlmataMachine("S-006", 0) {
 			"input" {
 				input action {
 					checklist["input"] = true
@@ -502,13 +502,13 @@ class Tests
 	}
 	
 	@Test
-	fun `#007 상태의 'on error'가 제대로 호출 되는가`()
+	fun `S-007 상태의 'on error'가 제대로 호출 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"on error" to false
 		)
 		
-		KotlmataMachine("#007", 0) {
+		KotlmataMachine("S-007", 0) {
 			"state" {
 				input action {
 					throw Exception()
@@ -527,7 +527,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#008 상태 업데이트 시 상태동작이 잘 교체되는가`()
+	fun `S-008 상태 업데이트 시 상태동작이 잘 교체되는가`()
 	{
 		val checklist = mutableMapOf(
 			"input" to false,
@@ -537,7 +537,7 @@ class Tests
 		
 		val predicate = { s: Int -> s < 10 }
 		
-		KotlmataMutableMachine("#008", 0) {
+		KotlmataMutableMachine("S-008", 0) {
 			"state" {
 				entry via predicate action {
 					checklist["entry"] = false
@@ -574,7 +574,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#009 상태 업데이트 시 상태동작이 잘 삭제되는가`()
+	fun `S-009 상태 업데이트 시 상태동작이 잘 삭제되는가`()
 	{
 		val checklist = mutableMapOf(
 			"input" to true,
@@ -592,7 +592,7 @@ class Tests
 		
 		val predicate = { s: Int -> s in 0..1 }
 		
-		KotlmataMutableMachine("#009", 0) {
+		KotlmataMutableMachine("S-009", 0) {
 			"state1" {
 				input action {
 					checklist["input"] = false
@@ -662,14 +662,14 @@ class Tests
 	}
 	
 	@Test
-	fun `#010 상태 템플릿이 잘 적용되는가`()
+	fun `S-010 상태 템플릿이 잘 적용되는가`()
 	{
 		val checklist = mutableMapOf(
 			"input" to false,
 			"on error" to false
 		)
 		
-		KotlmataMachine("#010", 0) {
+		KotlmataMachine("S-010", 0) {
 			val template: StateTemplate<STATE> = {
 				on error {
 					checklist["on error"] = true
@@ -692,7 +692,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#011 머신의 간략한 상태 정의가 잘 되는가`()
+	fun `M-001 머신의 간략한 상태 정의가 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"entry" to false,
@@ -702,7 +702,7 @@ class Tests
 			"entry range" to false
 		)
 		
-		KotlmataMachine("#011", 0) {
+		KotlmataMachine("M-001", 0) {
 			"a" {}
 			"b" function {
 				checklist["entry"] = true
@@ -735,7 +735,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#012 머신의 모든 유형의 생성이 잘 되는가`()
+	fun `M-002 머신의 모든 유형의 생성이 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"machine" to false,
@@ -756,7 +756,7 @@ class Tests
 			}
 		}
 		
-		val m1 = KotlmataMachine("#012-1", 0) {
+		val m1 = KotlmataMachine("M-002-1", 0) {
 			"state" {
 				input action {
 					checklist["machine"] = true
@@ -764,10 +764,10 @@ class Tests
 			}
 			start at "state"
 		}
-		val m2 = KotlmataMachine("#012-2", 0) extends base("machine extends") by {
+		val m2 = KotlmataMachine("M-002-2", 0) extends base("machine extends") by {
 			start at "state"
 		}
-		val m3 by KotlmataMachine.lazy("#012-3", 0) {
+		val m3 by KotlmataMachine.lazy("M-002-3", 0) {
 			"state" {
 				input action {
 					checklist["machine lazy"] = true
@@ -775,10 +775,10 @@ class Tests
 			}
 			start at "state"
 		}
-		val m4 by KotlmataMachine.lazy("#012-4", 0) extends base("machine lazy extends") by {
+		val m4 by KotlmataMachine.lazy("M-002-4", 0) extends base("machine lazy extends") by {
 			start at "state"
 		}
-		val m5 = KotlmataMutableMachine("#012-5", 0) {
+		val m5 = KotlmataMutableMachine("M-002-5", 0) {
 			"state" {
 				input action {
 					checklist["mutable machine"] = true
@@ -786,10 +786,10 @@ class Tests
 			}
 			start at "state"
 		}
-		val m6 = KotlmataMutableMachine("#012-6", 0) extends base("mutable machine extends") by {
+		val m6 = KotlmataMutableMachine("M-002-6", 0) extends base("mutable machine extends") by {
 			start at "state"
 		}
-		val m7 by KotlmataMutableMachine.lazy("#012-7", 0) {
+		val m7 by KotlmataMutableMachine.lazy("M-002-7", 0) {
 			"state" {
 				input action {
 					checklist["mutable machine lazy"] = true
@@ -797,7 +797,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val m8 by KotlmataMutableMachine.lazy("#012-8", 0) extends base("mutable machine lazy extends") by {
+		val m8 by KotlmataMutableMachine.lazy("M-002-8", 0) extends base("mutable machine lazy extends") by {
 			start at "state"
 		}
 		
@@ -814,7 +814,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#013 머신의 'on transition'이 제대로 호출 되는가`()
+	fun `M-003 머신의 'on transition'이 제대로 호출 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"on transition" to false,
@@ -822,7 +822,7 @@ class Tests
 			"on transition final" to false
 		)
 		
-		KotlmataMachine("#013", 0) {
+		KotlmataMachine("M-003", 0) {
 			on transition { _, _, _ ->
 				checklist["on transition"] = true
 				throw Exception()
@@ -845,14 +845,14 @@ class Tests
 	}
 	
 	@Test
-	fun `#014 머신의 'on error'가 제대로 호출 되는가`()
+	fun `M-004 머신의 'on error'가 제대로 호출 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"on error action" to false,
 			"on error callback" to false
 		)
 		
-		KotlmataMachine("#014", 0) {
+		KotlmataMachine("M-004", 0) {
 			on transition { _, _, _ ->
 				throw Exception("on error callback")
 			}
@@ -878,7 +878,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#015 머신의 모든 유형의 전이규칙이 잘 정의되는가`()
+	fun `M-005 머신의 모든 유형의 전이규칙이 잘 정의되는가`()
 	{
 		val checklist = mutableMapOf(
 			"state x signal" to false,
@@ -911,7 +911,7 @@ class Tests
 			"except x range" to false
 		)
 		
-		KotlmataMutableMachine("#015", 0) {
+		KotlmataMutableMachine("M-005", 0) {
 			"0" {}
 			"1" action { checklist["state x signal"] = true }
 			"2" action { checklist["state x type"] = true }
@@ -1029,7 +1029,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#016 머신의 체인규칙이 잘 동작하는가`()
+	fun `M-006 머신의 체인규칙이 잘 동작하는가`()
 	{
 		val checklist = mutableMapOf(
 			"signal" to false,
@@ -1041,7 +1041,7 @@ class Tests
 			"except" to false
 		)
 		
-		KotlmataMachine("#016", 0) {
+		KotlmataMachine("M-006", 0) {
 			
 			"a" {}
 			"b" {}
@@ -1117,14 +1117,14 @@ class Tests
 	}
 	
 	@Test
-	fun `#017 머신 업데이트 시 현재 상태 체크가 잘 되는가`()
+	fun `M-007 머신 업데이트 시 현재 상태 체크가 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"current is a" to false,
 			"current is b" to false
 		)
 		
-		KotlmataMutableMachine("#017", 0) {
+		KotlmataMutableMachine("M-007", 0) {
 			"a" {}
 			"b" {}
 			
@@ -1145,14 +1145,14 @@ class Tests
 	}
 	
 	@Test
-	fun `#018 머신 업데이트 시 상태 'has' 체크가 잘 되는가`()
+	fun `M-008 머신 업데이트 시 상태 'has' 체크가 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"exists" to false,
 			"none" to false
 		)
 		
-		KotlmataMutableMachine("#018", 0) {
+		KotlmataMutableMachine("M-008", 0) {
 			"a" {}
 			start at "a"
 		}.also { machine ->
@@ -1166,14 +1166,14 @@ class Tests
 	}
 	
 	@Test
-	fun `#019 머신 업데이트 시 상태 삭제가 잘 되는가`()
+	fun `M-009 머신 업데이트 시 상태 삭제가 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"exists" to false,
 			"deleted" to false
 		)
 		
-		KotlmataMutableMachine("#019", 0) {
+		KotlmataMutableMachine("M-009", 0) {
 			"a" {}
 			start at "a"
 		}.also { machine ->
@@ -1188,7 +1188,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#020 머신 업데이트 시 전이규칙 'has' 체크가 잘 되는가`()
+	fun `M-010 머신 업데이트 시 전이규칙 'has' 체크가 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"state x signal" to false,
@@ -1203,7 +1203,7 @@ class Tests
 		
 		val predicate = { s: Int -> s == 0 }
 		
-		KotlmataMutableMachine("#020", 0) {
+		KotlmataMutableMachine("M-010", 0) {
 			"state" {}
 			
 			"state" x 0 %= self
@@ -1234,7 +1234,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#021 머신 업데이트 시 전이규칙 삭제가 잘 되는가`()
+	fun `M-011 머신 업데이트 시 전이규칙 삭제가 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"state x signal" to true,
@@ -1249,7 +1249,7 @@ class Tests
 		
 		val predicate = { s: Int -> s == 0 }
 		
-		KotlmataMutableMachine("#021", 0) {
+		KotlmataMutableMachine("M-011", 0) {
 			val template: StateTemplate<String> = { state ->
 				entry action {
 					checklist[state] = false
@@ -1294,7 +1294,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#022 머신의 동기입력이 잘 동작하는가`()
+	fun `M-012 머신의 동기입력이 잘 동작하는가`()
 	{
 		val checklist = mutableMapOf(
 			"input signal" to false,
@@ -1307,7 +1307,7 @@ class Tests
 			"entry signal type payload" to false
 		)
 		
-		KotlmataMachine("#022", 0) {
+		KotlmataMachine("M-012", 0) {
 			"a" {
 				input signal "0" function {
 					"1"
@@ -1366,7 +1366,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#023 데몬의 모든 유형의 생성이 잘 되는가`()
+	fun `D-001 데몬의 모든 유형의 생성이 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"daemon" to false,
@@ -1387,7 +1387,7 @@ class Tests
 			}
 		}
 		
-		val d1 = KotlmataDaemon("#023-1", 0) {
+		val d1 = KotlmataDaemon("D-001-1", 0) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1396,13 +1396,13 @@ class Tests
 			}
 			start at "state"
 		}
-		val d2 = KotlmataDaemon("#023-2", 0) extends base by {
+		val d2 = KotlmataDaemon("D-001-2", 0) extends base by {
 			"state" action {
 				checklist["daemon extends"] = true
 			}
 			start at "state"
 		}
-		val d3 by KotlmataDaemon.lazy("#023-3", 0) {
+		val d3 by KotlmataDaemon.lazy("D-001-3", 0) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1411,13 +1411,13 @@ class Tests
 			}
 			start at "state"
 		}
-		val d4 by KotlmataDaemon.lazy("#023-4", 0) extends base by {
+		val d4 by KotlmataDaemon.lazy("D-001-4", 0) extends base by {
 			"state" action {
 				checklist["daemon lazy extends"] = true
 			}
 			start at "state"
 		}
-		val d5 = KotlmataMutableDaemon("#023-5", 0) {
+		val d5 = KotlmataMutableDaemon("D-001-5", 0) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1426,13 +1426,13 @@ class Tests
 			}
 			start at "state"
 		}
-		val d6 = KotlmataMutableDaemon("#023-6", 0) extends base by {
+		val d6 = KotlmataMutableDaemon("D-001-6", 0) extends base by {
 			"state" action {
 				checklist["mutable daemon extends"] = true
 			}
 			start at "state"
 		}
-		val d7 by KotlmataMutableDaemon.lazy("#023-7", 0) {
+		val d7 by KotlmataMutableDaemon.lazy("D-001-7", 0) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1441,7 +1441,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val d8 by KotlmataMutableDaemon.lazy("#023-8", 0) extends base by {
+		val d8 by KotlmataMutableDaemon.lazy("D-001-8", 0) extends base by {
 			"state" action {
 				checklist["mutable daemon lazy extends"] = true
 			}
@@ -1472,7 +1472,7 @@ class Tests
 	}
 	
 	@Test
-	fun `#024 데몬의 생명주기 콜백이 잘 호출 되는가`()
+	fun `D-002 데몬의 생명주기 콜백이 잘 호출 되는가`()
 	{
 		val checklist = mutableMapOf(
 			"on create" to false,
@@ -1501,7 +1501,7 @@ class Tests
 		
 		val latch = CountDownLatch(1)
 		
-		KotlmataDaemon("#024", 0) {
+		KotlmataDaemon("D-002", 0) {
 			on create {
 				checklist["on create"] = true
 				throw Exception()
