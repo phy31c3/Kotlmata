@@ -1696,382 +1696,50 @@ class Tests
 		checklist.verify()
 	}
 	
-	fun daemonTest()
+	@Test
+	fun `D-005 데몬 소멸 시 자원 정리가 잘 되는가`()
 	{
-		var shouldGC: WeakReference<KotlmataState.Init>? = null
-		var expire: KotlmataMutableState.Update? = null
-		var thread: Thread? = null
+		val checklist = mutableMapOf(
+			"alive" to false,
+			"clear" to false
+		)
 		
-		val base: DaemonBase = {
-			on error {
-				println("템플릿에서 정의: $throwable")
-			}
-			on fatal {
-				println("치명적인 에러: $throwable")
-			}
-			
-			on transition { from, _, _ ->
-				if (from == "state1")
-				{
-					throw Exception("on transition 에러 발생!!")
-				}
-			} catch { _, _, _ ->
-				println("${throwable}: on transition catch 에서 해결")
-			}
-		}
+		val create = CountDownLatch(1)
+		val destroy = CountDownLatch(1)
 		
-		val daemon by KotlmataMutableDaemon.lazy("d1", 3) extends base by { daemon ->
+		lateinit var reference: WeakReference<Any>
+		
+		val daemon = KotlmataDaemon("D-005", 0) {
+			val resource = Any()
 			on create {
-				println("--------------------- 데몬이 생성됨")
-				thread = Thread.currentThread()
-			}
-			on start {
-				println("--------------------- 데몬이 시작됨")
-				throw Exception("onStart 에서 예외 발생")
-			} catch {
-				println("onStart Fallback: $throwable")
-			}
-			on pause {
-				println("--------------------- 데몬이 정지됨")
-			}
-			on stop {
-				println("--------------------- 데몬이 중지됨")
-			}
-			on resume {
-				println("--------------------- 데몬이 재개됨")
-			}
-			on finish {
-				println("--------------------- 데몬이 종료됨")
+				reference = WeakReference(resource)
+				create.countDown()
 			}
 			on destroy {
-				println("--------------------- 데몬이 소멸됨")
+				destroy.countDown()
 			}
+			"a" {}
 			
-			val defaultExit: StateTemplate<CharSequence> = {
-				exit action {
-					println("템플릿으로 정의된 퇴장함수 호출됨")
-				}
-			}
-			
-			val defaultEnter: (String, StateTemplate<String>) -> StateTemplate<String> = fun(msg: String, block: StateTemplate<String>): StateTemplate<String> = { state ->
-				entry function {
-					println(msg)
-				}
-				block(state)
-			}
-			
-			"state1" extends defaultExit with { state ->
-				entry action {
-					println("$state: 기본 진입함수")
-				}
-				input signal String::class function { s ->
-					println("$state: String 타입 입력함수: $s")
-					null
-				}
-				input signal "goToState2" function { println("state2로 이동") }
-				input signal "goToError" function {
-					throw Exception("에러1 발생")
-				}
-				input signal "payload" function { signal ->
-					println("$state: signal = $signal, payload = $payload")
-				}
-				shouldGC = WeakReference(this)
-			}
-			
-			"state2" { state ->
-				entry function { println("$state: 기본 진입함수") }
-				input signal Integer::class function { s -> println("$state: Number 타입 입력함수: $s") }
-				input signal 5 function { println("state3로 이동") }
-				input signal "error" function { throw Exception("state2에서 강제 예외 발생") }
-				exit action { println("$state: 퇴장함수") }
-			}
-			
-			"state3" { state ->
-				entry function {
-					println("$state: 기본 진입함수")
-					"entry sync"
-				}
-				input signal String::class function { s -> println("$state: String 타입 입력함수: $s") }
-				exit action { println("$state: 퇴장함수") }
-			}
-			
-			"state4" { state ->
-				entry function {
-					Thread.sleep(10)
-					println("$state: 기본 진입함수")
-					"goToState1" `as` Any::class with "It's a payload"
-				}
-				input signal Any::class function { signal ->
-					println("$state: Any 타입 입력함수: $signal, $payload")
-				}
-				exit action { println("$state: 퇴장함수") }
-			}
-			
-			"error" extends defaultEnter("템플릿으로 정의된 진입함수 호출됨") {
-				input signal "error" function {
-					throw Exception("에러2 발생")
-				}
-				on error {
-					println("상태 Fallback")
-					println(throwable)
-				}
-			}
-			
-			"errorSync" { state ->
-				entry function {
-					throw Exception("에러3 발생")
-				} intercept { signal ->
-					println("진입동작 Fallback")
-					println("$state: catch 진입: $signal")
-					println(throwable)
-					"goToState5"
-				}
-			}
-			
-			"state5" { state ->
-				entry function { println("$state: 기본 진입함수") }
-				input signal "sync" function {
-					println("sync 는 흡수되고 input sync 로 전이한다")
-					"input sync"
-				}
-			}
-			
-			"state6" { state ->
-				entry via String::class function {
-					println("$state: String::class 진입함수")
-				}
-				entry via "signal" function {
-					println("$state: 'signal' 진입함수")
-				}
-			}
-			
-			"state7" { state ->
-				entry action {
-					println("action 내부에서 파라미터 daemon 인스턴스에 입력하기")
-					daemon.input("goToState1")
-				}
-				exit action {
-					println("$state: 퇴장함수")
-				}
-			}
-			"state8" { state ->
-				entry via String::class function {
-					println("$state: String::class 진입함수")
-				}
-				entry via "signal" function {
-					println("$state: 'signal' 진입함수")
-				}
-			}
-			
-			val template: StateTemplate<String> = {
-				entry via String::class function {
-					println("템플릿으로 extends 된 문구")
-				}
-			}
-			
-			"state9" extends template with {
-				exit action {
-					println("템플릿으로 extends 후 추가 정의된 문구")
-				}
-			}
-			"state10" { state ->
-				entry via String::class function {
-					println("$state: String::class 진입함수")
-				}
-				input signal String::class action { signal ->
-					println("$state: $signal 입력됨")
-				}
-				exit action {
-					println("$state: 기본 퇴장함수")
-				}
-				exit via String::class action { signal ->
-					println("$state: $signal 신호를 통한 퇴장함수")
-				}
-			}
-			"state11" { state ->
-				entry via String::class function {
-					println("$state: String::class 진입함수")
-				}
-				input signal { signal: String -> signal.startsWith("return") } action { signal ->
-					println("$state: $signal 통해 논리신호로 들어옴")
-				}
-				input signal { signal: String -> signal.startsWith("retu") } action { signal ->
-					println("$state: $signal 통해 논리신호로 들어옴")
-				}
-				input signal { signal: String -> signal.startsWith("retur") } action { signal ->
-					println("$state: $signal 통해 논리신호로 들어옴. 여러 비슷한 조건 중 마지막에 정의한 조건에 들어옴.")
-				}
-				exit action {
-					println("$state: 기본 퇴장함수")
-				}
-				exit via { signal: String -> signal.startsWith("return") } action { signal ->
-					println("$state: $signal 통해 퇴장. 입력과 논리는 같으나 퇴장 신호는 여기에 걸림")
-				}
-			}
-			"state12" { state ->
-				entry via "a".."z" function { signal ->
-					println("$state: Predicate 진입함수. signal = $signal")
-				}
-				input signal 1..10 action { signal ->
-					println("$state: 1 <= $signal <= 10")
-				}
-			}
-			
-			"chain1" { state ->
-				entry function { println("$state: 기본 진입함수") }
-			}
-			"chain2" { state ->
-				entry function { println("$state: 기본 진입함수") }
-			}
-			"chain3" { state ->
-				entry function { println("$state: 기본 진입함수") }
-			}
-			
-			"state1" x "goToState2" %= "state2"
-			"state2" x 5 %= "state3"
-			"state3" x "goToState1" %= "state1"
-			"state3" x "goToState4" %= "state4"
-			"state4" x Any::class %= "state1"
-			"state1" x "goToError" %= "error"
-			"error" x "error" %= "errorSync"
-			"errorSync" x "goToState5" %= "state5"
-			"state5" x String::class %= "state1"
-			chain from "state1" to "chain1" to "chain2" to "chain3" via "next"
-			any("chain1", "chain2") x ("a" OR "b" OR "c") %= "state1"
-			"state1" x "signal" %= "state6"
-			"state6" x String::class %= self
-			"state6" x "goToState7" %= "state7"
-			"state7" x "goToState1" %= "state1"
-			("state1" AND "state2") x ("d" OR "e") %= "state8"
-			"state8" x "goToState9" %= "state9"
-			"state9" x "goToState10" %= "state10"
-			"state10" x "out" %= "state11"
-			"state11" x { signal: String -> signal.startsWith("return to") } %= "state12"
-			"state12" x 11..12 %= "state1"
-			
-			start at "state1"
+			start at "a"
 		}
 		
-		daemon.input("any1")
-		daemon.run()
-		daemon.input("우선순위 10", priority = 10)
-		daemon.input("우선순위 0", priority = 0)
-		daemon.input("우선순위 -10", priority = -10)
-		daemon.pause()
-		daemon.input("goToState2")
-		daemon.run()
-		
-		Thread.sleep(100)
-		
-		daemon.input("error")
-		daemon.input(3)
-		daemon.input(5)
-		daemon.stop()
-		daemon.input(100)
-		daemon.input(100)
-		daemon.run()
-		daemon.input(200)
-		daemon.stop()
-		daemon.input(4)
-		daemon.input(5)
-		
-		Thread.sleep(100)
-		
-		daemon.pause()
-		daemon.input(3)
-		daemon.input(5)
-		daemon.input("goToState1", String::class)
-		daemon.input("goToState1")
-		
-		Thread.sleep(100)
-		
-		daemon.run()
-		daemon {
-			"state1" x "goToState3" %= "state3"
-			
-			"state3" update { state ->
-				expire = this
-				entry function {
-					println("$state: 수정된 기본 진입함수")
-					"수정된 entry sync"
-				}
-			}
-		}
-		daemon.input("goToState3")
-		daemon.input("이거 출력되어야 하는데..")
-		
-		Thread.sleep(100)
-		
-		daemon.input("goToState4")
-		
-		Thread.sleep(5)
-		
-		daemon.pause()
-		daemon.input("pause 상태일 때 들어간 신호")
-		
-		Thread.sleep(100)
-		
-		daemon.stop()
-		daemon.input("stop 상태일 때 들어간 신호")
-		
-		Thread.sleep(100)
-		
-		daemon.input("run 직전에 들어간 신호")
-		daemon.run()
-		daemon.input("현재 상태는 state1이어야 함")
-		
-		Thread.sleep(100)
-		
-		daemon.input("goToError")
-		daemon.input("error")
-		daemon.input("sync")
-		
-		Thread.sleep(100)
-		
-		daemon.input("payload", "this is a payload")
-		
-		Thread.sleep(100)
-		
-		daemon.input("next")
-		daemon.input("next")
-		daemon.input("next")
-		daemon.input("next")
-		daemon.input("c")
-		
-		Thread.sleep(100)
-		
-		daemon.input("signal")
-		daemon.input("signal", String::class)
-		daemon.input("goToState7")
-		
-		Thread.sleep(100)
-		
-		daemon.input("d")
-		
-		Thread.sleep(100)
-		
-		daemon.input("goToState9")
-		daemon.input("goToState10")
-		daemon.input("string")
-		daemon.input("out")
-		
-		Thread.sleep(100)
-		
-		daemon.input("return")
-		daemon.input("return to")
-		daemon.input(0)
-		daemon.input(1)
-		daemon.input(10)
-		daemon.input(11)
-		
-		Thread.sleep(500)
-		
-		thread?.interrupt()
-		
-		Thread.sleep(500)
+		create.await()
 		
 		System.gc()
-		println("과연 GC 되었을까: ${shouldGC?.get()}")
-		expire?.entry?.function {}
+		if (reference.get() != null)
+		{
+			checklist["alive"] = true
+		}
+		
+		daemon.terminate()
+		destroy.await()
+		
+		System.gc()
+		if (reference.get() == null)
+		{
+			checklist["clear"] = true
+		}
+		
+		checklist.verify()
 	}
 }
