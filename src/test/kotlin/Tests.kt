@@ -1366,6 +1366,33 @@ class Tests
 	}
 	
 	@Test
+	fun `M-013 머신의 'stay' 리턴이 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"stay" to true
+		)
+		
+		KotlmataMachine("M-013", 0) {
+			"a" {
+				input function {
+					stay
+				}
+			}
+			"b" action {
+				checklist["stay"] = false
+			}
+			
+			"a" x any %= "b"
+			
+			start at "a"
+		}.also { machine ->
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
 	fun `D-001 데몬의 모든 유형의 생성이 잘 되는가`()
 	{
 		val checklist = mutableMapOf(

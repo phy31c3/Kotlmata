@@ -462,7 +462,10 @@ private class KotlmataMachineImpl(
 		runStateFunction {
 			currentState.input(signal, type, payload)
 		}.also { inputReturn ->
-			if (inputReturn == stay) return
+			if (inputReturn == stay) {
+				logLevel.normal(prefix) { MACHINE_END }
+				return
+			}
 		}.convertToSync()?.also { sync ->
 			logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 			block(sync)
