@@ -1,5 +1,7 @@
 package kr.co.plasticcity.kotlmata
 
+import kotlin.reflect.KClass
+
 internal class Logs
 {
 	companion object
@@ -10,13 +12,13 @@ internal class Logs
 		const val DAEMON_TERMINATE_THREAD = "Daemon[%s]: Daemon thread terminate. (name = %s, isDaemon = %s)"
 		const val DAEMON_START_CREATE = "Daemon[%s]: daemon(name: %s) {"
 		const val DAEMON_END_CREATE = "Daemon[%s]: }"
-		const val DAEMON_REGISTER_ON_CREATE = "Daemon[%s]:%s     on create registered"
-		const val DAEMON_REGISTER_ON_START = "Daemon[%s]:%s     on start registered"
-		const val DAEMON_REGISTER_ON_PAUSE = "Daemon[%s]:%s     on pause registered"
-		const val DAEMON_REGISTER_ON_STOP = "Daemon[%s]:%s     on stop registered"
-		const val DAEMON_REGISTER_ON_RESUME = "Daemon[%s]:%s     on resume registered"
-		const val DAEMON_REGISTER_ON_FINISH = "Daemon[%s]:%s     on finish registered"
-		const val DAEMON_REGISTER_ON_DESTROY = "Daemon[%s]:%s     on destroy registered"
+		const val DAEMON_SET_ON_CREATE = "Daemon[%s]:%s     set(on: create)"
+		const val DAEMON_SET_ON_START = "Daemon[%s]:%s     set(on: start)"
+		const val DAEMON_SET_ON_PAUSE = "Daemon[%s]:%s     set(on: pause)"
+		const val DAEMON_SET_ON_STOP = "Daemon[%s]:%s     set(on: stop)"
+		const val DAEMON_SET_ON_RESUME = "Daemon[%s]:%s     set(on: resume)"
+		const val DAEMON_SET_ON_FINISH = "Daemon[%s]:%s     set(on: finish)"
+		const val DAEMON_SET_ON_DESTROY = "Daemon[%s]:%s     set(on: destroy)"
 		const val DAEMON_START_REQUEST = "Daemon[%s]: %s(remain: %s) {"
 		const val DAEMON_END_REQUEST = "Daemon[%s]: }"
 		const val DAEMON_LIFECYCLE_CHANGED = "Daemon[%s]: lifecycle: %s -> %s"
@@ -27,34 +29,40 @@ internal class Logs
 		const val DAEMON_ON_STOP = "Daemon[%s]:%s onStop(payload: %s)"
 		const val DAEMON_ON_RESUME = "Daemon[%s]:%s onResume(payload: %s)"
 		const val DAEMON_ON_FINISH = "Daemon[%s]: onFinish(payload: %s)"
+		const val DAEMON_ON_FINISH_TAB = "Daemon[%s]:     onFinish(payload: %s)"
 		const val DAEMON_ON_DESTROY = "Daemon[%s]: onDestroy()"
 		const val DAEMON_KEEP_REQUEST = "Daemon[%s]:     kept"
 		const val DAEMON_IGNORE_REQUEST = "Daemon[%s]:     ignored"
 		
 		/* Machine */
 		const val MACHINE_BUILD = "%s machine(name: %s) {"
-		const val MACHINE_REGISTER_ON_TRANSITION = "%s     on transition registered"
-		const val MACHINE_REGISTER_ON_ERROR = "%s     on error registered"
-		const val MACHINE_UPDATE = "%s update(state: %s) {"
-		const val MACHINE_INPUT = "%s input(state: %s, signal: %s, payload: %s) {"
-		const val MACHINE_TYPED_INPUT = "%s input(state: %s, signal: %s, type: %s, payload: %s) {"
+		const val MACHINE_SET_ON_TRANSITION = "%s     set(on: transition)"
+		const val MACHINE_SET_ON_ERROR = "%s     set(on: error)"
+		const val MACHINE_UPDATE = "%s update(state: [%s]) {"
+		const val MACHINE_ADD_STATE = "%s     add(state: [%s])"
+		const val MACHINE_UPDATE_STATE = "%s     update(state: [%s])"
+		const val MACHINE_DELETE_STATE = "%s     delete(state: [%s])"
+		const val MACHINE_DELETE_STATE_ALL = "%s     delete(state: all)"
+		const val MACHINE_ADD_RULE = "%s     add(rule: [%s] x (%s) -> [%s])"
+		const val MACHINE_DELETE_RULE = "%s     delete(rule: [%s] x (%s))"
+		const val MACHINE_DELETE_RULE_ALL = "%s     delete(rule: all)"
+		const val MACHINE_INPUT = "%s input(signal: (%s), payload: %s) {"
 		const val MACHINE_TRANSITION = "%s [%s] x (%s) -> [%s]"
 		const val MACHINE_TRANSITION_TAB = "%s     [%s] x (%s) -> [%s]"
+		const val MACHINE_RETURN_SYNC_INPUT = "%s     return(signal: (%s), type: %s, payload: %s)"
 		const val MACHINE_START_AT = "%s     start at [%s]"
 		const val MACHINE_END = "%s }"
 		
 		/* State */
-		const val STATE_CREATED = "%s [%s] created"
-		const val STATE_UPDATED = "%s [%s] updated"
 		const val STATE_RUN_ENTRY = "%s [%s] entry action"
 		const val STATE_RUN_ENTRY_VIA = "%s [%s] entry via (%s) action"
-		const val STATE_RUN_ENTRY_PREDICATE = "%s [%s] entry via predicate action"
+		const val STATE_RUN_ENTRY_PREDICATE = "%s [%s] entry via predicate(or range) action"
 		const val STATE_RUN_INPUT = "%s [%s] input action"
 		const val STATE_RUN_INPUT_SIGNAL = "%s [%s] input signal (%s) action"
-		const val STATE_RUN_INPUT_PREDICATE = "%s [%s] input signal predicate action"
+		const val STATE_RUN_INPUT_PREDICATE = "%s [%s] input signal predicate(or range) action"
 		const val STATE_RUN_EXIT = "%s [%s] exit action"
 		const val STATE_RUN_EXIT_VIA = "%s [%s] exit via (%s) action"
-		const val STATE_RUN_EXIT_PREDICATE = "%s [%s] exit via predicate action"
+		const val STATE_RUN_EXIT_PREDICATE = "%s [%s] exit via predicate(or range) action"
 		const val STATE_NO_ENTRY = "%s [%s] no entry action for (%s)"
 		const val STATE_NO_INPUT = "%s [%s] no input action for (%s)"
 		const val STATE_NO_EXIT = "%s [%s] no exit action for (%s)"
@@ -65,7 +73,8 @@ internal class Logs
 		
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_OBJECT = "%s Use of expired object: The object is only available inside the 'init' or 'update' block."
-		const val UNDEFINED_START_STATE = "%s The start state '%s' is undefined."
+		const val UNDEFINED_START_STATE = "%s The start state [%s] is undefined."
+		const val FAILED_TO_GET_STATE = "%s Attempted to get state [%s] that does not exist. (Make sure that state [%s] wasn't deleted at this time.)"
 	}
 }
 
@@ -87,29 +96,93 @@ internal object Log
 	
 	fun Int.simple(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (this >= SIMPLE) debug?.invoke(Logs.log().format(*args))
+		if (this >= SIMPLE) debug?.invoke(log(Logs).apply(*args))
 	}
 	
 	fun Int.normal(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (this >= NORMAL) debug?.invoke(Logs.log().format(*args))
+		if (this >= NORMAL) debug?.invoke(log(Logs).apply(*args))
 	}
 	
 	fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (this >= DETAIL) debug?.invoke(Logs.log().format(*args))
+		if (this >= DETAIL) debug?.invoke(log(Logs).apply(*args))
 	}
 	
 	fun w(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		warn?.invoke(Logs.log().format(*args))
+		warn?.invoke(log(Logs).apply(*args))
 	}
 	
 	fun e(vararg args: Any?, log: Logs.Companion.() -> String): Nothing
 	{
-		Logs.log().format(*args).also { formatted ->
+		log(Logs).apply(*args).also { formatted ->
 			error(formatted)
 			throw IllegalStateException(formatted)
 		}
+	}
+	
+	private fun String.apply(vararg args: Any?): String
+	{
+		@Suppress("UNCHECKED_CAST")
+		args as Array<Any?>
+		
+		var cursor = -1
+		var token = ""
+		
+		this.forEach {
+			when (token)
+			{
+				"" ->
+				{
+					if (it == '%' || it == '(')
+					{
+						token += it
+					}
+				}
+				"%" ->
+				{
+					if (it == 's')
+					{
+						token = ""
+						++cursor
+					}
+					else token = ""
+				}
+				"(" ->
+				{
+					if (it == '%')
+					{
+						token += it
+					}
+					else token = ""
+				}
+				"(%" ->
+				{
+					if (it == 's')
+					{
+						token += it
+						++cursor
+					}
+					else token = ""
+				}
+				"(%s" ->
+				{
+					if (it == ')')
+					{
+						token = ""
+						when (val arg = args[cursor])
+						{
+							is KClass<*> -> args[cursor] = "${arg.java.simpleName}::class"
+							is String -> args[cursor] = "\"$arg\""
+							is Char -> args[cursor] = "'$arg'"
+						}
+					}
+					else token = ""
+				}
+			}
+		}
+		
+		return this.format(*args)
 	}
 }

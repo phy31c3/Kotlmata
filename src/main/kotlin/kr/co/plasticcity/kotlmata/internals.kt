@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package kr.co.plasticcity.kotlmata
 
 import kotlin.reflect.KClass
@@ -5,31 +7,74 @@ import kotlin.reflect.KClass
 @DslMarker
 internal annotation class KotlmataMarker
 
-internal typealias `STATE or SIGNAL` = Any
+internal class ErrorActionReceiver(
+	override val throwable: Throwable
+) : ErrorActionDSL
 
-internal class ErrorActionReceiver(override val throwable: Throwable) : ErrorActionDSL
-internal class EntryActionReceiver(override val previousState: STATE) : EntryActionDSL
-internal class EntryFunctionReceiver(override val previousState: STATE) : EntryFunctionDSL
-internal class EntryErrorFunctionReceiver(override val previousState: STATE, override val throwable: Throwable) : EntryErrorFunctionDSL
-internal class ExitActionReceiver(override val nextState: STATE) : ExitActionDSL
-internal class ExitErrorActionReceiver(override val nextState: STATE, override val throwable: Throwable) : ExitErrorActionDSL
-internal class PayloadActionReceiver(override val payload: Any?) : PayloadActionDSL
-internal class PayloadFunctionReceiver(override val payload: Any?) : PayloadFunctionDSL
-internal class PayloadErrorActionReceiver(override val payload: Any?, override val throwable: Throwable) : PayloadErrorActionDSL
-internal class PayloadErrorFunctionReceiver(override val payload: Any?, override val throwable: Throwable) : PayloadErrorFunctionDSL
-internal class TransitionActionReceiver(override val transitionCount: Long) : TransitionActionDSL
-internal class TransitionErrorActionReceiver(override val transitionCount: Long, override val throwable: Throwable) : TransitionErrorActionDSL
+internal class EntryActionReceiver(
+	override val prevState: STATE,
+	override val payload: Any?
+) : EntryActionDSL
+
+internal class EntryFunctionReceiver(
+	override val prevState: STATE,
+	override val payload: Any?
+) : EntryFunctionDSL
+
+internal class EntryErrorFunctionReceiver(
+	override val prevState: STATE,
+	override val payload: Any?,
+	override val throwable: Throwable
+) : EntryErrorFunctionDSL
+
+internal class ExitActionReceiver(
+	override val nextState: STATE,
+	override val payload: Any?
+) : ExitActionDSL
+
+internal class ExitErrorActionReceiver(
+	override val nextState: STATE,
+	override val payload: Any?,
+	override val throwable: Throwable
+) : ExitErrorActionDSL
+
+internal class PayloadActionReceiver(
+	override val payload: Any?
+) : PayloadActionDSL
+
+internal class PayloadFunctionReceiver(
+	override val payload: Any?
+) : PayloadFunctionDSL
+
+internal class PayloadErrorActionReceiver(
+	override val payload: Any?,
+	override val throwable: Throwable
+) : PayloadErrorActionDSL
+
+internal class PayloadErrorFunctionReceiver(
+	override val payload: Any?,
+	override val throwable: Throwable
+) : PayloadErrorFunctionDSL
+
+internal class TransitionActionReceiver(
+	override val transitionCount: Long
+) : TransitionActionDSL
+
+internal class TransitionErrorActionReceiver(
+	override val transitionCount: Long,
+	override val throwable: Throwable
+) : TransitionErrorActionDSL
 
 @Suppress("ClassName")
 internal object `Initial state for KotlmataDaemon`
 {
-	override fun toString(): String = this::class.simpleName ?: ""
+	override fun toString(): String = this::class.java.simpleName
 }
 
 @Suppress("ClassName")
 internal object `Start KotlmataDaemon`
 {
-	override fun toString(): String = this::class.simpleName ?: ""
+	override fun toString(): String = this::class.java.simpleName
 }
 
 internal const val tab: String = "    "
@@ -39,52 +84,37 @@ internal fun Any?.convertToSync() = when (this)
 	null -> null
 	is Unit -> null
 	is Nothing -> null
-	is FunctionDSL.Sync -> this
-	else /* this is SIGNAL */ -> FunctionDSL.Sync(this)
+	is FunctionDSL.Return -> this
+	else /* this is SIGNAL */ -> FunctionDSL.Return(this)
 }
 
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: T1, rhs: T2): StatesOrSignals<R>
+internal object SignalsDefinableImpl : SignalsDefinable
 {
-	shouldNotExpired()
-	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
-}
-
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: T1, rhs: KClass<T2>): StatesOrSignals<R>
-{
-	shouldNotExpired()
-	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	
+	override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
-}
-
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: KClass<T1>, rhs: T2): StatesOrSignals<R>
-{
-	shouldNotExpired()
-	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	
+	override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
-}
-
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: KClass<T1>, rhs: KClass<T2>): StatesOrSignals<R>
-{
-	shouldNotExpired()
-	return object : StatesOrSignals<R>, MutableList<SIGNAL> by mutableListOf(lhs, rhs)
+	
+	override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
-}
-
-@Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: StatesOrSignals<T1>, rhs: T2): StatesOrSignals<R>
-{
-	shouldNotExpired()
-	lhs.add(rhs)
-	return lhs as StatesOrSignals<R>
-}
-
-@Suppress("UNCHECKED_CAST")
-internal fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> Expirable.or(lhs: StatesOrSignals<T1>, rhs: KClass<T2>): StatesOrSignals<R>
-{
-	shouldNotExpired()
-	lhs.add(rhs)
-	return lhs as StatesOrSignals<R>
+	
+	@Suppress("UNCHECKED_CAST")
+	override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2): Signals<R>
+	{
+		add(signal)
+		return this as Signals<R>
+	}
+	
+	@Suppress("UNCHECKED_CAST")
+	override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>): Signals<R>
+	{
+		add(signal)
+		return this as Signals<R>
+	}
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing)
@@ -96,7 +126,7 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	
 	protected class Expired
 	
-	protected infix fun shouldNot(@Suppress("UNUSED_PARAMETER") keyword: Expired)
+	protected infix fun shouldNot(@Suppress("UNUSED_PARAMETER") expired: Expired)
 	{
 		if (expire)
 		{
@@ -104,7 +134,7 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 		}
 	}
 	
-	protected infix fun not(@Suppress("UNUSED_PARAMETER") keyword: Expired) = object : then
+	protected infix fun not(@Suppress("UNUSED_PARAMETER") expired: Expired) = object : then
 	{
 		override fun then(block: () -> Unit)
 		{
@@ -123,14 +153,6 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 	protected fun expire()
 	{
 		expire = true
-	}
-	
-	internal fun shouldNotExpired()
-	{
-		if (expire)
-		{
-			block()
-		}
 	}
 }
 
@@ -159,6 +181,23 @@ internal class Tester
 			catch (e: ClassCastException)
 			{
 				false
+			}
+		}
+	}
+	
+	inline fun test(signal: Any, onFind: ((Any) -> Boolean) -> Unit)
+	{
+		set.forEach { predicate ->
+			try
+			{
+				if (predicate(signal))
+				{
+					onFind(predicate)
+				}
+			}
+			catch (e: ClassCastException)
+			{
+				/* ignore */
 			}
 		}
 	}

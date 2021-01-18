@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package kr.co.plasticcity.kotlmata
 
 import kotlin.reflect.KClass
@@ -26,6 +28,9 @@ typealias SIGNAL = Any
  * ```
  */
 object any
+{
+	override fun toString(): String = this::class.java.simpleName
+}
 
 /**
  * In State:
@@ -43,6 +48,9 @@ object any
  * ```
  */
 object stay
+{
+	override fun toString(): String = this::class.java.simpleName
+}
 
 /**
  * In Machine:
@@ -52,6 +60,9 @@ object stay
  * ```
  */
 object self
+{
+	override fun toString(): String = this::class.java.simpleName
+}
 
 /**
  * In State:
@@ -69,15 +80,15 @@ object self
  */
 object all
 
-interface StatesOrSignals<T : `STATE or SIGNAL`> : MutableList<`STATE or SIGNAL`>
-interface StatesOrSignalsDefinable
+interface Signals<T : SIGNAL> : MutableList<SIGNAL>
+interface SignalsDefinable
 {
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: T2): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> T1.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> KClass<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: T2): StatesOrSignals<R>
-	infix fun <T1 : R, T2 : R, R : `STATE or SIGNAL`> StatesOrSignals<T1>.or(stateOrSignal: KClass<T2>): StatesOrSignals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2): Signals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>): Signals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2): Signals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>): Signals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2): Signals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>): Signals<R>
 }
 
 interface ErrorHolder
@@ -85,19 +96,19 @@ interface ErrorHolder
 	val throwable: Throwable
 }
 
-interface EntryHolder
-{
-	val previousState: STATE
-}
-
-interface ExitHolder
-{
-	val nextState: STATE
-}
-
 interface PayloadHolder
 {
 	val payload: Any?
+}
+
+interface EntryHolder : PayloadHolder
+{
+	val prevState: STATE
+}
+
+interface ExitHolder : PayloadHolder
+{
+	val nextState: STATE
 }
 
 interface TransitionHolder
@@ -110,14 +121,23 @@ interface ActionDSL
 
 interface FunctionDSL : ActionDSL
 {
-	open class Sync internal constructor(val signal: SIGNAL, val type: KClass<SIGNAL>? = null, val payload: Any? = null)
-	class TypedSync internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Sync(signal, type)
+	open class Return internal constructor(
+		val signal: SIGNAL,
+		val type: KClass<SIGNAL>? = null,
+		val payload: Any? = null
+	)
+	{
+		internal val typeString
+			get() = type?.let { "${type.java.simpleName}::class" }
+	}
+	
+	class ReturnWithoutPayload internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Return(signal, type)
 	
 	@Suppress("UNCHECKED_CAST")
-	infix fun <T : SIGNAL> T.`as`(type: KClass<in T>) = TypedSync(this, type as KClass<SIGNAL>)
+	infix fun <S : T, T : SIGNAL> S.`as`(type: KClass<T>) = ReturnWithoutPayload(this, type as KClass<SIGNAL>)
 	
-	infix fun <T : SIGNAL> T.with(payload: Any?) = Sync(this, null, payload)
-	infix fun TypedSync.with(payload: Any?) = Sync(signal, type, payload)
+	infix fun SIGNAL.with(payload: Any?) = Return(this, null, payload)
+	infix fun ReturnWithoutPayload.with(payload: Any?) = Return(signal, type, payload)
 }
 
 interface ErrorActionDSL : ErrorHolder, ActionDSL

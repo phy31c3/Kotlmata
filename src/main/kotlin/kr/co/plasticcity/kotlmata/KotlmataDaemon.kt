@@ -131,10 +131,10 @@ interface KotlmataDaemon
 	/**
 	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
 	 */
-	fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any? = null, priority: Int = 0)
+	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any? = null, priority: Int = 0)
 	
-	@Deprecated("KClass<T> type cannot be used as input.", level = DeprecationLevel.ERROR)
-	fun input(signal: KClass<out Any>, payload: Any? = null, priority: Int = 0)
+	@Deprecated("KClass<*> type cannot be used as input.", level = DeprecationLevel.ERROR)
+	fun input(signal: KClass<*>, payload: Any? = null, priority: Int = 0)
 }
 
 interface KotlmataMutableDaemon : KotlmataDaemon
@@ -268,7 +268,7 @@ private class KotlmataDaemonImpl(
 	init
 	{
 		val core = KotlmataMachine("$name@core") {
-			lateinit var machine: KotlmataMutableMachine
+			lateinit var machine: KotlmataInternalMachine
 			
 			val logLevel = logLevel
 			val suffix = if (logLevel >= DETAIL) tab else ""
@@ -281,7 +281,7 @@ private class KotlmataDaemonImpl(
 				logLevel.detail(name) { DAEMON_IGNORE_REQUEST }
 			}
 			
-			val postSync: (FunctionDSL.Sync) -> Unit = {
+			val postSync: (FunctionDSL.Return) -> Unit = {
 				val syncR = Sync(it.signal, it.type, it.payload)
 				queue!!.offer(syncR)
 			}
@@ -318,7 +318,7 @@ private class KotlmataDaemonImpl(
 						val init = InitImpl(block, this)
 						`Initial state for KotlmataDaemon` x any %= init.startAt
 						start at `Initial state for KotlmataDaemon`
-					}
+					} as KotlmataInternalMachine
 					logLevel.detail(name) { DAEMON_END_CREATE }
 				} finally {
 					logLevel.simple(name) { DAEMON_ON_CREATE }
@@ -334,7 +334,7 @@ private class KotlmataDaemonImpl(
 			}
 			"Running" {
 				entry via Run::class action { runR ->
-					when (previousState)
+					when (prevState)
 					{
 						"Paused", "Stopped" ->
 						{
@@ -424,13 +424,13 @@ private class KotlmataDaemonImpl(
 					{
 						Log.w(name) { DAEMON_INTERRUPTED }
 					}
-					when (previousState)
+					when (prevState)
 					{
 						"Running", "Paused", "Stopped" ->
 						{
 							logLevel.simple(name, terminateR.payload) {
 								if (terminateR.isExplicit)
-									suffix + DAEMON_ON_FINISH
+									DAEMON_ON_FINISH_TAB
 								else
 									DAEMON_ON_FINISH
 							}
@@ -448,17 +448,18 @@ private class KotlmataDaemonImpl(
 			"Destroyed" {
 				entry action {
 					logLevel.simple(name) { DAEMON_ON_DESTROY }
-					onDestroy?.call()
-				} finally {
+					queue = null
 					onCreate = null
 					onStart = null
 					onPause = null
 					onStop = null
 					onResume = null
 					onFinish = null
-					onDestroy = null
 					onError = null
-					queue = null
+					onFatal = null
+					onDestroy?.call()
+				} finally {
+					onDestroy = null
 					logLevel.simple(name, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
 				}
 			}
@@ -478,7 +479,7 @@ private class KotlmataDaemonImpl(
 			"Stopped" x Run::class %= "Running"
 			"Stopped" x Pause::class %= "Paused"
 			
-			any.except("Nil", "Terminated", "Destroyed") x Terminate::class %= "Terminated"
+			any("Nil", "Terminated", "Destroyed") x Terminate::class %= "Terminated"
 			
 			"Terminated" x "destroy" %= "Destroyed"
 			
@@ -498,13 +499,19 @@ private class KotlmataDaemonImpl(
 				while (true)
 				{
 					queue.take().also { request ->
-						logLevel.detail(name, request, queue.size) {
-							start = System.currentTimeMillis()
-							DAEMON_START_REQUEST
+						try
+						{
+							logLevel.detail(name, request, queue.size) {
+								start = System.currentTimeMillis()
+								DAEMON_START_REQUEST
+							}
+							core.input(request)
 						}
-						core.input(request)
-						logLevel.detail(name) {
-							DAEMON_END_REQUEST + " ${System.currentTimeMillis() - start}ms"
+						finally
+						{
+							logLevel.detail(name) {
+								DAEMON_END_REQUEST + " ${System.currentTimeMillis() - start}ms"
+							}
 						}
 					}
 				}
@@ -564,16 +571,16 @@ private class KotlmataDaemonImpl(
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun <T : SIGNAL> input(signal: T, type: KClass<in T>, payload: Any?, priority: Int)
+	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, priority: Int)
 	{
 		val typedR = TypedInput(signal, type as KClass<SIGNAL>, payload, priority)
 		queue?.offer(typedR)
 	}
 	
 	@Suppress("OverridingDeprecatedMember")
-	override fun input(signal: KClass<out Any>, payload: Any?, priority: Int)
+	override fun input(signal: KClass<*>, payload: Any?, priority: Int)
 	{
-		throw IllegalArgumentException("KClass<T> type cannot be used as input.")
+		throw IllegalArgumentException("KClass<*> type cannot be used as input.")
 	}
 	
 	@Suppress("UNCHECKED_CAST")
@@ -629,43 +636,43 @@ private class KotlmataDaemonImpl(
 			
 			override fun create(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_CREATE }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_CREATE }
 				return setLifecycleDef(callback) { onCreate = it }
 			}
 			
 			override fun start(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_START }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_START }
 				return setLifecycleDef(callback) { onStart = it }
 			}
 			
 			override fun pause(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_PAUSE }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_PAUSE }
 				return setLifecycleDef(callback) { onPause = it }
 			}
 			
 			override fun stop(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_STOP }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_STOP }
 				return setLifecycleDef(callback) { onStop = it }
 			}
 			
 			override fun resume(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_RESUME }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_RESUME }
 				return setLifecycleDef(callback) { onResume = it }
 			}
 			
 			override fun finish(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_FINISH }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_FINISH }
 				return setLifecycleDef(callback) { onFinish = it }
 			}
 			
 			override fun destroy(callback: DaemonCallback): Base.Catch
 			{
-				logLevel.normal(name, suffix) { DAEMON_REGISTER_ON_DESTROY }
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_DESTROY }
 				return setLifecycleDef(callback) { onDestroy = it }
 			}
 			
