@@ -448,17 +448,18 @@ private class KotlmataDaemonImpl(
 			"Destroyed" {
 				entry action {
 					logLevel.simple(name) { DAEMON_ON_DESTROY }
-					onDestroy?.call()
-				} finally {
+					queue = null
 					onCreate = null
 					onStart = null
 					onPause = null
 					onStop = null
 					onResume = null
 					onFinish = null
-					onDestroy = null
 					onError = null
-					queue = null
+					onFatal = null
+					onDestroy?.call()
+				} finally {
+					onDestroy = null
 					logLevel.simple(name, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
 				}
 			}
