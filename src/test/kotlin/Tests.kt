@@ -1639,6 +1639,57 @@ class Tests
 			daemon.input(2, priority = 1)
 			daemon.input(0, priority = 0)
 			daemon.run()
+			daemon.isTerminated
+		}
+		
+		latch.await()
+		checklist.verify()
+	}
+	
+	@Test
+	fun `D-004 데몬 'stop' 시 입력 삭제, 동기입력 유지 등이 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"should delete" to true,
+			"should ignore" to true,
+			"should alive" to false,
+			"sync" to false
+		)
+		
+		val latch = CountDownLatch(1)
+		
+		KotlmataDaemon("D-004", 0) { daemon ->
+			on destroy {
+				latch.countDown()
+			}
+			"a" {
+				input signal 0 function {
+					daemon.input("should delete")
+					daemon.stop()
+					daemon.input("should ignore")
+					daemon.run()
+					daemon.input("should alive")
+					"sync"
+				}
+				input signal "should delete" action { signal ->
+					checklist[signal] = false
+				}
+				input signal "should ignore" action { signal ->
+					checklist[signal] = false
+				}
+				input signal "sync" action { signal ->
+					checklist[signal] = true
+				}
+				input signal "should alive" action { signal ->
+					checklist[signal] = true
+					daemon.terminate()
+				}
+			}
+			
+			start at "a"
+		}.also { daemon ->
+			daemon.run()
+			daemon.input(0)
 		}
 		
 		latch.await()
