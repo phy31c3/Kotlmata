@@ -498,13 +498,19 @@ private class KotlmataDaemonImpl(
 				while (true)
 				{
 					queue.take().also { request ->
-						logLevel.detail(name, request, queue.size) {
-							start = System.currentTimeMillis()
-							DAEMON_START_REQUEST
+						try
+						{
+							logLevel.detail(name, request, queue.size) {
+								start = System.currentTimeMillis()
+								DAEMON_START_REQUEST
+							}
+							core.input(request)
 						}
-						core.input(request)
-						logLevel.detail(name) {
-							DAEMON_END_REQUEST + " ${System.currentTimeMillis() - start}ms"
+						finally
+						{
+							logLevel.detail(name) {
+								DAEMON_END_REQUEST + " ${System.currentTimeMillis() - start}ms"
+							}
 						}
 					}
 				}

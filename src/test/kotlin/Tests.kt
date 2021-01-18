@@ -1399,6 +1399,113 @@ class Tests
 		checklist.verify()
 	}
 	
+	@Test
+	fun `#023 데몬의 생명주기 콜백이 잘 호출 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on create" to false,
+			"on create catch" to false,
+			"on create final" to false,
+			"on start" to false,
+			"on start catch" to false,
+			"on start final" to false,
+			"on pause" to false,
+			"on pause catch" to false,
+			"on pause final" to false,
+			"on stop" to false,
+			"on stop catch" to false,
+			"on stop final" to false,
+			"on resume" to false,
+			"on resume catch" to false,
+			"on resume final" to false,
+			"on finish" to false,
+			"on finish catch" to false,
+			"on finish final" to false,
+			"on destroy" to false,
+			"on destroy catch" to false,
+			"on destroy final" to false,
+			"on fatal" to false
+		)
+		
+		val latch = CountDownLatch(1)
+		
+		KotlmataDaemon("#023", 0) {
+			on create {
+				checklist["on create"] = true
+				throw Exception()
+			} catch {
+				checklist["on create catch"] = true
+			} finally {
+				checklist["on create final"] = true
+			}
+			on start {
+				checklist["on start"] = true
+				throw Exception()
+			} catch {
+				checklist["on start catch"] = true
+			} finally {
+				checklist["on start final"] = true
+			}
+			on pause {
+				checklist["on pause"] = true
+				throw Exception()
+			} catch {
+				checklist["on pause catch"] = true
+			} finally {
+				checklist["on pause final"] = true
+			}
+			on stop {
+				checklist["on stop"] = true
+				throw Exception()
+			} catch {
+				checklist["on stop catch"] = true
+			} finally {
+				checklist["on stop final"] = true
+			}
+			on resume {
+				checklist["on resume"] = true
+				throw Exception()
+			} catch {
+				checklist["on resume catch"] = true
+			} finally {
+				checklist["on resume final"] = true
+			}
+			on finish {
+				checklist["on finish"] = true
+				throw Exception()
+			} catch {
+				checklist["on finish catch"] = true
+			} finally {
+				checklist["on finish final"] = true
+				throw Exception()
+			}
+			on destroy {
+				checklist["on destroy"] = true
+				throw Exception()
+			} catch {
+				checklist["on destroy catch"] = true
+			} finally {
+				checklist["on destroy final"] = true
+				latch.countDown()
+			}
+			on fatal {
+				checklist["on fatal"] = true
+			}
+			
+			"a" {}
+			
+			start at "a"
+		}.also { daemon ->
+			daemon.pause()
+			daemon.stop()
+			daemon.run()
+			daemon.terminate()
+		}
+		
+		latch.await()
+		checklist.verify()
+	}
+	
 	fun daemonTest()
 	{
 		var shouldGC: WeakReference<KotlmataState.Init>? = null
