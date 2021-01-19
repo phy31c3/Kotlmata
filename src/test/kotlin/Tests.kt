@@ -692,6 +692,36 @@ class Tests
 	}
 	
 	@Test
+	fun `S-011 상태동작의 'prevState' 및 'nextState' 프로퍼티가 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"next state" to false,
+			"prev state" to false
+		)
+		
+		KotlmataMachine("S-011", 0) {
+			"a" {
+				exit action {
+					checklist["next state"] = nextState == "b"
+				}
+			}
+			"b" {
+				entry action {
+					checklist["prev state"] = prevState == "a"
+				}
+			}
+			
+			"a" x any %= "b"
+			
+			start at "a"
+		}.also { machine ->
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
 	fun `M-001 머신의 간략한 상태 정의가 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
