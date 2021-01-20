@@ -31,7 +31,7 @@ implementation 'kr.co.plasticcity:kotlmata:0.5.5'
 #### 기본형
 ```kotlin
 val machine = KotlmataMachine("sample"/* 로그에 출력되는 머신의 이름 */, 2/* 로그레벨 */) {
-	// 머신 정의
+    // 머신 정의
 }
 ```
 #### Lazy형
@@ -87,7 +87,7 @@ val machine = KotlmataMachine("sample") {
     "A" x 10 %= "A" // 재귀도 가능함
     "A" x String::class %= "B" // String 타입의 객체가 신호로 입력되면 "B"로 전이 (타입 신호)
     "A" x String::class %= "A" // 동일한 좌변을 중복해서 정의하면 기존 규칙을 덮어씀
-
+    
     start at "A"
 }
 ```
@@ -341,7 +341,7 @@ machine.input("S", String::class, "payload") // 신호, 타입, 페이로드 순
 
 ### 머신 및 상태 업데이트
 
-#### KotlmataMutableMachine
+#### 수정 가능한 머신 - KotlmataMutableMachine
 ```kotlin
 // KotlmataMachine은 생성되면 수정이 불가능
 // KotlmataMutableMachine은 생성 후 수정(업데이트) 가능함
@@ -638,7 +638,7 @@ val daemon = KotlmataDaemon("sample") {
     "A" {
         // 상태 정의
     }
-
+    
     start at "A"
 }
 ```
@@ -690,13 +690,13 @@ daemon.terminate() // 데몬을 종료함
 #### 요청 큐 예시 1 - 일반적인 입력
 ```kotlin
 val daemon = KotlmataMutableDaemon("sample") {
-	"A" {
-		input signal 1 function {
-			// 오래 걸리는 작업
-			5 // 동기입력 리턴
-		}
-	}
-	start at "A"
+    "A" {
+        input signal 1 function {
+            // 오래 걸리는 작업
+            5 // 동기입력 리턴
+        }
+    }
+    start at "A"
 }
 
 daemon.input(1, priority = 10)
@@ -705,26 +705,26 @@ daemon.input(3, priority = 10)
 ```
 | 5 | 4 | 3 | 2 | 1 | 0 | 작업중 |
 |--|--|--|--|--|--|--|
-|  |  |  |  | **3** | **2** | **1** |
+|  |  |  |  | *3 | *2 | *1 |
 #### 요청 큐 예시 2 - 우선순위가 높은 신호 입력
 ```kotlin
 daemon.input(4, priority = 1)
 ```
 | 5 | 4 | 3 | 2 | 1 | 0 | 작업중 |
 |--|--|--|--|--|--|--|
-|  |  |  | 3 | 2 | **4** | 1 |
+|  |  |  | 3 | 2 | *4 | 1 |
 #### 요청 큐 예시 3 - pause 요청
 ```kotlin
 daemon.pause()
 ```
 | 5 | 4 | 3 | 2 | 1 | 0 | 작업중 |
 |--|--|--|--|--|--|--|
-|  |  | 3 | 2 | 4 | **pause** | 1 |
+|  |  | 3 | 2 | 4 | *pause | 1 |
 #### 요청 큐 예시 4 - 동기입력
 신호 1에 대한 입력함수가 끝나고 동기입력 5가 입력됨
 | 5 | 4 | 3 | 2 | 1 | 0 | 작업중 |
 |--|--|--|--|--|--|--|
-|  |  | 3 | 2 | 4 | **5** | pause |
+|  |  | 3 | 2 | 4 | *5 | pause |
 #### 요청 큐 예시 5 - pause 상태에서 요청
 pause 상태일 때 요청이 들어오면 그대로 큐에 쌓임
 ```kotlin
@@ -732,7 +732,7 @@ daemon.input(6, priority = 5)
 ```
 | 5 | 4 | 3 | 2 | 1 | 0 | 작업중 |
 |--|--|--|--|--|--|--|
-|  | 3 | 2 | **6** | 4 | 5 | pause |
+|  | 3 | 2 | *6 | 4 | 5 | pause |
 #### 요청 큐 예시 6 - stop 요청
 데몬이 stop 되면 큐에서 신호입력이 모두 제거되고 추가적인 신호입력도 받지 않음  
 동기입력, 업데이트, 머신제어 요청은 그대로 유지됨
@@ -742,7 +742,7 @@ daemon.input(7)
 ```
 | 5 | 4 | 3 | 2 | 1 | 0 | 작업중 |
 |--|--|--|--|--|--|--|
-|  |  |  |  |  | 5 | **stop** |
+|  |  |  |  |  | 5 | *stop |
 #### 요청 큐 예시 6 - 재개
 ```kotlin
 daemon.run()
@@ -751,7 +751,7 @@ daemon.input(9)
 ```
 | 5 | 4 | 3 | 2 | 1 | 0 | 작업중 |
 |--|--|--|--|--|--|--|
-|  |  |  |  | **9** | **8** | **5** |
+|  |  |  |  | *9 | *8 | *5 |
 
 # License
 
