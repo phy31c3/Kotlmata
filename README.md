@@ -8,7 +8,7 @@ Automata-based programming library for Kotlin.
 ### Gradle
 
 ```
-implementation 'kr.co.plasticcity:kotlmata:0.5.5'
+implementation 'kr.co.plasticcity:kotlmata:1.0.0'
 ```
 
 ### Maven
@@ -17,7 +17,7 @@ implementation 'kr.co.plasticcity:kotlmata:0.5.5'
 <dependency>
   <groupId>kr.co.plasticcity</groupId>
   <artifactId>kotlmata</artifactId>
-  <version>0.5.5</version>
+  <version>1.0.0</version>
   <type>pom</type>
 </dependency>
 ```
