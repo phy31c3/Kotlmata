@@ -8,7 +8,7 @@ buildscript {
 }
 
 plugins {
-	id 'org.jetbrains.kotlin.jvm' version '1.3.72'
+	id 'org.jetbrains.kotlin.jvm' version '1.4.21'
 }
 
 apply plugin: 'com.novoda.bintray-release'
@@ -34,7 +34,7 @@ publish {
 	userOrg = 'phy31c3'
 	groupId = 'kr.co.plasticcity'
 	artifactId = 'kotlmata'
-	publishVersion = '0.5.5'
+	publishVersion = '1.0.0'
 	desc = 'Kotlin State-based Programming Library'
 	website = 'https://github.com/phy31c3/Kotlmata'
 	repository = "${website}.git"

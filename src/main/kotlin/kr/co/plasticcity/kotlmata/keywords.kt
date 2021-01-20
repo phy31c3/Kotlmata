@@ -1,6 +1,68 @@
+@file:Suppress("FunctionName")
+
 package kr.co.plasticcity.kotlmata
 
 import kotlin.reflect.KClass
+
+/**
+ * Supertype of KotlmataState tag
+ */
+typealias STATE = Any
+
+/**
+ * Supertype of Kotlmata signal
+ */
+typealias SIGNAL = Any
+
+/**
+ * In Machine:
+ * ```
+ * "state1" x any %= "state2"
+ * any x "signal" %= "state2"
+ * any x any %= "state2"
+ * any.of("state1", "state2") x "signal" %= "state3"
+ * any.of("state1", "state2") x any.of("signal1", "signal2") %= "state3"
+ * any.except("state1") x "signal" %= "state2"
+ * "state1" x any.of("signal1", "signal2") %= "state2"
+ * "state1" x any.except("signal1", "signal2") %= "state2"
+ * ```
+ */
+object any
+{
+	override fun toString(): String = this::class.java.simpleName
+}
+
+/**
+ * In State:
+ * ```
+ * input signal String::class function { signal ->
+ *     if (signal == "A") stay // do not transition
+ *     else Unit // transition if rule exists
+ * }
+ * ```
+ *
+ * In Machine:
+ * ```
+ * "state" x "signal" %= stay
+ * any x "signal" %= stay
+ * ```
+ */
+object stay
+{
+	override fun toString(): String = this::class.java.simpleName
+}
+
+/**
+ * In Machine:
+ * ```
+ * "state" x "signal" %= self
+ * any x "signal" %= self
+ * ```
+ */
+object self
+{
+	override fun toString(): String = this::class.java.simpleName
+}
 
 /**
  * In State:
@@ -18,93 +80,120 @@ import kotlin.reflect.KClass
  */
 object all
 
-/**
- * In Machine:
- * ```
- * "state1" x any %= "state2"
- * any x "signal" %= "state2"
- * any x any %= "state2"
- * any.of("state1", "state2") x "signal" %= "state3"
- * any.of("state1", "state2") x any.of("signal1", "signal2") %= "state3"
- * any.except("state1") x "signal" %= "state2"
- * "state1" x any.of("signal1", "signal2") %= "state2"
- * "state1" x any.except("signal1", "signal2") %= "state2"
- * ```
- */
-object any
+interface Signals<T : SIGNAL> : MutableList<SIGNAL>
+interface SignalsDefinable
+{
+	infix fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2): Signals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>): Signals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2): Signals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>): Signals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2): Signals<R>
+	infix fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>): Signals<R>
+}
 
-/**
- * In Machine:
- * ```
- * delete rule of state "state1"
- * ```
- */
-object of
+interface ErrorHolder
+{
+	val throwable: Throwable
+}
 
-/**
- * In Machine:
- * ```
- * "state" x "signal" %= self
- * any x "signal" %= self
- * ```
- */
-object self
+interface PayloadHolder
+{
+	val payload: Any?
+}
+
+interface EntryHolder : PayloadHolder
+{
+	val prevState: STATE
+}
+
+interface ExitHolder : PayloadHolder
+{
+	val nextState: STATE
+}
+
+interface TransitionHolder
+{
+	val transitionCount: Long
+}
 
 @KotlmataMarker
 interface ActionDSL
 
 interface FunctionDSL : ActionDSL
 {
-	open class Sync internal constructor(val signal: SIGNAL, val type: KClass<SIGNAL>? = null, val payload: Any? = null)
-	class TypedSync internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Sync(signal, type)
+	open class Return internal constructor(
+		val signal: SIGNAL,
+		val type: KClass<SIGNAL>? = null,
+		val payload: Any? = null
+	)
+	{
+		internal val typeString
+			get() = type?.let { "${type.java.simpleName}::class" }
+	}
+	
+	class ReturnWithoutPayload internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Return(signal, type)
 	
 	@Suppress("UNCHECKED_CAST")
-	infix fun <T : SIGNAL> T.`as`(type: KClass<in T>) = TypedSync(this, type as KClass<SIGNAL>)
+	infix fun <S : T, T : SIGNAL> S.`as`(type: KClass<T>) = ReturnWithoutPayload(this, type as KClass<SIGNAL>)
 	
-	infix fun <T : SIGNAL> T.with(payload: Any?) = Sync(this, null, payload)
-	infix fun TypedSync.with(payload: Any?) = Sync(signal, type, payload)
+	infix fun SIGNAL.with(payload: Any?) = Return(this, null, payload)
+	infix fun ReturnWithoutPayload.with(payload: Any?) = Return(signal, type, payload)
 }
 
-interface ErrorDSL : ActionDSL
-{
-	val throwable: Throwable
-}
+interface ErrorActionDSL : ErrorHolder, ActionDSL
+interface ErrorFunctionDSL : ErrorActionDSL, FunctionDSL
 
-interface TransitionDSL : ActionDSL
-{
-	val count: Int
-}
+interface EntryActionDSL : EntryHolder, ActionDSL
+interface EntryFunctionDSL : EntryActionDSL, FunctionDSL
+interface EntryErrorActionDSL : EntryActionDSL, ErrorActionDSL
+interface EntryErrorFunctionDSL : EntryErrorActionDSL, EntryFunctionDSL, ErrorFunctionDSL
 
-interface PayloadDSL : ActionDSL
-{
-	val payload: Any?
-}
+interface ExitActionDSL : ExitHolder, ActionDSL
+interface ExitErrorActionDSL : ExitActionDSL, ErrorActionDSL
 
-interface PayloadFunctionDSL : PayloadDSL, FunctionDSL
-interface ErrorFunctionDSL : ErrorDSL, FunctionDSL
-interface ErrorPayloadDSL : ErrorDSL, PayloadDSL
-interface ErrorPayloadFunctionDSL : ErrorPayloadDSL, FunctionDSL
+interface PayloadActionDSL : PayloadHolder, ActionDSL
+interface PayloadFunctionDSL : PayloadActionDSL, FunctionDSL
+interface PayloadErrorActionDSL : PayloadActionDSL, ErrorActionDSL
+interface PayloadErrorFunctionDSL : PayloadErrorActionDSL, PayloadFunctionDSL, ErrorFunctionDSL
 
-typealias EntryAction<T> = ActionDSL.(signal: T) -> Unit
-typealias EntryFunction<T> = FunctionDSL.(signal: T) -> Any?
-typealias EntryError<T> = ErrorDSL.(signal: T) -> Unit
-typealias EntryErrorFunction<T> = ErrorFunctionDSL.(signal: T) -> Any?
-typealias InputAction<T> = PayloadDSL.(signal: T) -> Unit
+interface TransitionActionDSL : TransitionHolder, ActionDSL
+interface TransitionErrorActionDSL : TransitionActionDSL, ErrorActionDSL
+
+/*###################################################################################################################################
+ * typealias for action
+ *###################################################################################################################################*/
+
+typealias EntryAction<T> = EntryActionDSL.(signal: T) -> Unit
+typealias EntryFunction<T> = EntryFunctionDSL.(signal: T) -> Any?
+typealias EntryErrorAction<T> = EntryErrorActionDSL.(signal: T) -> Unit
+typealias EntryErrorFunction<T> = EntryErrorFunctionDSL.(signal: T) -> Any?
+
+typealias InputAction<T> = PayloadActionDSL.(signal: T) -> Unit
 typealias InputFunction<T> = PayloadFunctionDSL.(signal: T) -> Any?
-typealias InputError<T> = ErrorPayloadDSL.(signal: T) -> Unit
-typealias InputErrorFunction<T> = ErrorPayloadFunctionDSL.(signal: T) -> Any?
-typealias ExitAction = ActionDSL.(signal: SIGNAL) -> Unit
-typealias ExitError = ErrorDSL.(signal: SIGNAL) -> Unit
+typealias InputErrorAction<T> = PayloadErrorActionDSL.(signal: T) -> Unit
+typealias InputErrorFunction<T> = PayloadErrorFunctionDSL.(signal: T) -> Any?
 
-typealias StateError = ErrorDSL.(signal: SIGNAL) -> Unit
-typealias MachineError = ErrorDSL.() -> Unit
+typealias ExitAction<T> = ExitActionDSL.(signal: T) -> Unit
+typealias ExitErrorAction<T> = ExitErrorActionDSL.(signal: T) -> Unit
 
-typealias TransitionCallback = TransitionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
+typealias StateErrorCallback = ErrorActionDSL.(signal: SIGNAL) -> Unit
 
-typealias DaemonCallback = PayloadDSL.() -> Unit
-typealias DaemonFallback = ErrorPayloadDSL.() -> Unit
+typealias TransitionCallback = TransitionActionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
+typealias TransitionFallback = TransitionErrorActionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
 
-typealias StateTemplate<T> = KotlmataState.Init.(tag: T) -> Unit
-typealias MachineTemplate<T> = KotlmataMachine.Init.(tag: T) -> KotlmataMachine.Init.End
-typealias DaemonTemplate<T> = KotlmataDaemon.Init.(tag: T, daemon: KotlmataDaemon<T>) -> KotlmataMachine.Init.End
-typealias ForkTemplate<T> = KotlmataDaemon.Init.(tag: T) -> KotlmataMachine.Init.End
+typealias MachineErrorCallback = ErrorActionDSL.() -> Unit
+
+typealias DaemonCallback = PayloadActionDSL.() -> Unit
+typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
+
+/*###################################################################################################################################
+ * typealias for template
+ *###################################################################################################################################*/
+
+typealias StateTemplate<T> = KotlmataState.Init.(state: T) -> Unit
+
+typealias MachineBase = KotlmataMachine.Base.(machine: KotlmataMachine) -> Unit
+typealias MachineTemplate = KotlmataMachine.Init.(machine: KotlmataMachine) -> KotlmataMachine.Init.End
+
+typealias DaemonBase = KotlmataDaemon.Base.(daemon: KotlmataDaemon) -> Unit
+typealias DaemonTemplate = KotlmataDaemon.Init.(daemon: KotlmataDaemon) -> KotlmataMachine.Init.End
