@@ -8,7 +8,7 @@ Automata-based programming library for Kotlin.
 ### Gradle
 
 ```
-implementation 'kr.co.plasticcity:kotlmata:1.0.0'
+implementation 'kr.co.plasticcity:kotlmata:1.0.1'
 ```
 
 ### Maven
@@ -17,7 +17,7 @@ implementation 'kr.co.plasticcity:kotlmata:1.0.0'
 <dependency>
   <groupId>kr.co.plasticcity</groupId>
   <artifactId>kotlmata</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <type>pom</type>
 </dependency>
 ```
@@ -257,7 +257,7 @@ val machine = KotlmataMachine("sample") {
 ```kotlin
 val machine = KotlmataMachine("sample") {
     // 상태들의 공통 정의를 미리 템플릿으로 만들어 놓음
-    val template: StateTemplate<String>/* 상태 태그의 타입 */ {
+    val template: StateTemplate<String/* 상태 태그의 타입 */> = {
         on error { s ->
             println(throwable.message)
         }
@@ -642,7 +642,7 @@ val daemon = KotlmataDaemon("sample") {
     "A" {
         // 상태 정의
     }
-
+    
     start at "A"
 }
 ```
