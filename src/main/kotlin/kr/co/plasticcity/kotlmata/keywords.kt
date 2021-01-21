@@ -194,8 +194,8 @@ typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 
 typealias StateTemplate<T> = KotlmataState.Init.(state: T) -> Unit
 
-typealias MachineBase = KotlmataMachine.Base.(machine: KotlmataMachine) -> Unit
-typealias MachineTemplate = KotlmataMachine.Init.(machine: KotlmataMachine) -> KotlmataMachine.Init.End
+typealias MachineTemplate = KotlmataMachine.Base.(machine: KotlmataMachine) -> Unit
+typealias MachineDefine = KotlmataMachine.Init.(machine: KotlmataMachine) -> KotlmataMachine.Init.End
 
-typealias DaemonBase = KotlmataDaemon.Base.(daemon: KotlmataDaemon) -> Unit
-typealias DaemonTemplate = KotlmataDaemon.Init.(daemon: KotlmataDaemon) -> KotlmataMachine.Init.End
+typealias DaemonTemplate = KotlmataDaemon.Base.(daemon: KotlmataDaemon) -> Unit
+typealias DaemonDefine = KotlmataDaemon.Init.(daemon: KotlmataDaemon) -> KotlmataMachine.Init.End
