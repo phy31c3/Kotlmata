@@ -308,16 +308,16 @@ private class KotlmataDaemonImpl(
 				val onStart: InputAction<Control> = { controlR ->
 					logLevel.simple(name, suffix, controlR.payload) { DAEMON_ON_START }
 					onStart?.call(controlR.payload)
-					machine.input(controlR.payload/* as? SIGNAL */ ?: `Start KotlmataDaemon`, block = postSync)
+					machine.input(controlR.payload/* as? SIGNAL */ ?: Start_KotlmataDaemon, block = postSync)
 				}
 				
 				entry action {
 					logLevel.detail(name, name) { DAEMON_START_CREATE }
 					machine = KotlmataMutableMachine.create(name, logLevel, "Daemon[$name]:$suffix") {
-						`Initial state for KotlmataDaemon` { /* for creating state */ }
+						Initial_state_for_KotlmataDaemon { /* for creating state */ }
 						val init = InitImpl(block, this)
-						`Initial state for KotlmataDaemon` x any %= init.startAt
-						start at `Initial state for KotlmataDaemon`
+						Initial_state_for_KotlmataDaemon x any %= init.startAt
+						start at Initial_state_for_KotlmataDaemon
 					} as KotlmataInternalMachine
 					logLevel.detail(name) { DAEMON_END_CREATE }
 				} finally {

@@ -582,7 +582,7 @@ private class KotlmataMachineImpl(
 				
 				stateMap[state]?.also {
 					currentTag = state
-					if (state !== `Initial state for KotlmataDaemon`)
+					if (state !== Initial_state_for_KotlmataDaemon)
 					{
 						logLevel.normal(prefix, state) { MACHINE_START_AT }
 					}
@@ -596,7 +596,7 @@ private class KotlmataMachineImpl(
 		{
 			this@UpdateImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this, logLevel, "$prefix$tab", block)
-			if (this !== `Initial state for KotlmataDaemon`)
+			if (this !== Initial_state_for_KotlmataDaemon)
 			{
 				logLevel.normal(prefix, this) { MACHINE_ADD_STATE }
 			}
@@ -611,7 +611,7 @@ private class KotlmataMachineImpl(
 				this@UpdateImpl shouldNot expired
 				state = KotlmataMutableState(this@extends, logLevel, "$prefix$tab", template)
 				stateMap[this@extends] = state
-				if (this@extends !== `Initial state for KotlmataDaemon`)
+				if (this@extends !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, this@extends) { MACHINE_ADD_STATE }
 				}
@@ -639,7 +639,7 @@ private class KotlmataMachineImpl(
 				entry function function
 			}
 			stateMap[this] = state
-			if (this !== `Initial state for KotlmataDaemon`)
+			if (this !== Initial_state_for_KotlmataDaemon)
 			{
 				logLevel.normal(prefix, this) { MACHINE_ADD_STATE }
 			}
@@ -680,7 +680,7 @@ private class KotlmataMachineImpl(
 					entry via signal function function
 				}
 				stateMap[this@via] = state
-				if (this@via !== `Initial state for KotlmataDaemon`)
+				if (this@via !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
 				}
@@ -724,7 +724,7 @@ private class KotlmataMachineImpl(
 					entry via signal function function
 				}
 				stateMap[this@via] = state
-				if (this@via !== `Initial state for KotlmataDaemon`)
+				if (this@via !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
 				}
@@ -768,7 +768,7 @@ private class KotlmataMachineImpl(
 					entry via signals function function
 				}
 				stateMap[this@via] = state
-				if (this@via !== `Initial state for KotlmataDaemon`)
+				if (this@via !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
 				}
@@ -812,7 +812,7 @@ private class KotlmataMachineImpl(
 					entry via predicate function function
 				}
 				stateMap[this@via] = state
-				if (this@via !== `Initial state for KotlmataDaemon`)
+				if (this@via !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
 				}
@@ -870,7 +870,7 @@ private class KotlmataMachineImpl(
 			{
 				this@UpdateImpl shouldNot expired
 				ruleMap[from, signal] = to
-				if (from !== `Initial state for KotlmataDaemon`)
+				if (from !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, from, signal, to) { MACHINE_ADD_RULE }
 				}

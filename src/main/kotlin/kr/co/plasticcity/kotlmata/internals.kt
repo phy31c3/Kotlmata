@@ -66,13 +66,13 @@ internal class TransitionErrorActionReceiver(
 ) : TransitionErrorActionDSL
 
 @Suppress("ClassName")
-internal object `Initial state for KotlmataDaemon`
+internal object Initial_state_for_KotlmataDaemon
 {
 	override fun toString(): String = this::class.java.simpleName
 }
 
 @Suppress("ClassName")
-internal object `Start KotlmataDaemon`
+internal object Start_KotlmataDaemon
 {
 	override fun toString(): String = this::class.java.simpleName
 }

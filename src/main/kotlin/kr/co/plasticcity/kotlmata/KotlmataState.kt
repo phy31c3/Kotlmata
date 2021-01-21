@@ -235,7 +235,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: input?.also {
 			logLevel.normal(prefix, tag) { STATE_RUN_INPUT }
 		} ?: null.also {
-			if (tag !== `Initial state for KotlmataDaemon`)
+			if (tag !== Initial_state_for_KotlmataDaemon)
 			{
 				logLevel.normal(prefix, tag, signal) { STATE_NO_INPUT }
 			}
@@ -277,7 +277,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: exit?.also {
 			logLevel.normal(prefix, tag) { STATE_RUN_EXIT }
 		} ?: null.also {
-			if (tag !== `Initial state for KotlmataDaemon`)
+			if (tag !== Initial_state_for_KotlmataDaemon)
 			{
 				logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
 			}
