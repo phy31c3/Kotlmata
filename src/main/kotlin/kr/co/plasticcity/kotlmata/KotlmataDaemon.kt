@@ -99,7 +99,7 @@ interface KotlmataDaemon
 			infix fun resume(callback: DaemonCallback): Catch
 			infix fun finish(callback: DaemonCallback): Catch
 			infix fun destroy(callback: DaemonCallback): Catch
-			infix fun fatal(block: MachineErrorCallback)
+			infix fun fatal(block: MachineFallback)
 		}
 		
 		interface Catch : Finally
@@ -232,8 +232,8 @@ private class KotlmataDaemonImpl(
 	private var onResume: LifecycleDef? = null
 	private var onFinish: LifecycleDef? = null
 	private var onDestroy: LifecycleDef? = null
-	private var onError: MachineErrorCallback? = null
-	private var onFatal: MachineErrorCallback? = null
+	private var onError: MachineFallback? = null
+	private var onFatal: MachineFallback? = null
 	
 	@Volatile
 	private var queue: PriorityBlockingQueue<Request>? = PriorityBlockingQueue()
@@ -704,14 +704,14 @@ private class KotlmataDaemonImpl(
 				}
 			}
 			
-			override fun error(block: MachineErrorCallback)
+			override fun error(block: MachineFallback)
 			{
 				this@InitImpl shouldNot expired
 				onError = block
 				init.on error block
 			}
 			
-			override fun fatal(block: MachineErrorCallback)
+			override fun fatal(block: MachineFallback)
 			{
 				this@InitImpl shouldNot expired
 				onFatal = block
