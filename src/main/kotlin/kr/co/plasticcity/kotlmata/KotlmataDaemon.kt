@@ -92,24 +92,24 @@ interface KotlmataDaemon
 		
 		interface On : KotlmataMachine.Base.On
 		{
-			infix fun create(callback: DaemonCallback): Catch
-			infix fun start(callback: DaemonCallback): Catch
-			infix fun pause(callback: DaemonCallback): Catch
-			infix fun stop(callback: DaemonCallback): Catch
-			infix fun resume(callback: DaemonCallback): Catch
-			infix fun finish(callback: DaemonCallback): Catch
-			infix fun destroy(callback: DaemonCallback): Catch
+			infix fun create(callback: DaemonSimpleCallback): Catch<DaemonSimpleCallback, DaemonSimpleFallback>
+			infix fun start(callback: DaemonCallback): Catch<DaemonCallback, DaemonFallback>
+			infix fun pause(callback: DaemonCallback): Catch<DaemonCallback, DaemonFallback>
+			infix fun stop(callback: DaemonCallback): Catch<DaemonCallback, DaemonFallback>
+			infix fun resume(callback: DaemonCallback): Catch<DaemonCallback, DaemonFallback>
+			infix fun finish(callback: DaemonCallback): Catch<DaemonCallback, DaemonFallback>
+			infix fun destroy(callback: DaemonSimpleCallback): Catch<DaemonSimpleCallback, DaemonSimpleFallback>
 			infix fun fatal(block: MachineFallback)
 		}
 		
-		interface Catch : Finally
+		interface Catch<in C, in F> : Finally<C>
 		{
-			infix fun catch(fallback: DaemonFallback): Finally
+			infix fun catch(fallback: F): Finally<C>
 		}
 		
-		interface Finally
+		interface Finally<in C>
 		{
-			infix fun finally(finally: DaemonCallback)
+			infix fun finally(finally: C)
 		}
 	}
 	
@@ -604,17 +604,17 @@ private class KotlmataDaemonImpl(
 		
 		override val on = object : Base.On
 		{
-			private fun setLifecycle(callback: DaemonCallback, set: (LifecycleCallback) -> Unit): Base.Catch
+			private fun setLifecycle(callback: DaemonCallback, set: (LifecycleCallback) -> Unit): Base.Catch<DaemonCallback, DaemonFallback>
 			{
 				this@InitImpl shouldNot expired
 				set(LifecycleCallback(callback))
-				return object : Base.Catch
+				return object : Base.Catch<DaemonCallback, DaemonFallback>
 				{
-					override fun catch(fallback: DaemonFallback): Base.Finally
+					override fun catch(fallback: DaemonFallback): Base.Finally<DaemonCallback>
 					{
 						this@InitImpl shouldNot expired
 						set(LifecycleCallback(callback, fallback))
-						return object : Base.Finally
+						return object : Base.Finally<DaemonCallback>
 						{
 							override fun finally(finally: DaemonCallback)
 							{
@@ -634,43 +634,43 @@ private class KotlmataDaemonImpl(
 			
 			private val suffix = if (logLevel >= DETAIL) tab else ""
 			
-			override fun create(callback: DaemonCallback): Base.Catch
+			override fun create(callback: DaemonSimpleCallback): Base.Catch<DaemonSimpleCallback, DaemonSimpleFallback>
 			{
 				logLevel.normal(name, suffix) { DAEMON_SET_ON_CREATE }
 				return setLifecycle(callback) { onCreate = it }
 			}
 			
-			override fun start(callback: DaemonCallback): Base.Catch
+			override fun start(callback: DaemonCallback): Base.Catch<DaemonCallback, DaemonFallback>
 			{
 				logLevel.normal(name, suffix) { DAEMON_SET_ON_START }
 				return setLifecycle(callback) { onStart = it }
 			}
 			
-			override fun pause(callback: DaemonCallback): Base.Catch
+			override fun pause(callback: DaemonCallback): Base.Catch<DaemonCallback, DaemonFallback>
 			{
 				logLevel.normal(name, suffix) { DAEMON_SET_ON_PAUSE }
 				return setLifecycle(callback) { onPause = it }
 			}
 			
-			override fun stop(callback: DaemonCallback): Base.Catch
+			override fun stop(callback: DaemonCallback): Base.Catch<DaemonCallback, DaemonFallback>
 			{
 				logLevel.normal(name, suffix) { DAEMON_SET_ON_STOP }
 				return setLifecycle(callback) { onStop = it }
 			}
 			
-			override fun resume(callback: DaemonCallback): Base.Catch
+			override fun resume(callback: DaemonCallback): Base.Catch<DaemonCallback, DaemonFallback>
 			{
 				logLevel.normal(name, suffix) { DAEMON_SET_ON_RESUME }
 				return setLifecycle(callback) { onResume = it }
 			}
 			
-			override fun finish(callback: DaemonCallback): Base.Catch
+			override fun finish(callback: DaemonCallback): Base.Catch<DaemonCallback, DaemonFallback>
 			{
 				logLevel.normal(name, suffix) { DAEMON_SET_ON_FINISH }
 				return setLifecycle(callback) { onFinish = it }
 			}
 			
-			override fun destroy(callback: DaemonCallback): Base.Catch
+			override fun destroy(callback: DaemonSimpleCallback): Base.Catch<DaemonSimpleCallback, DaemonSimpleFallback>
 			{
 				logLevel.normal(name, suffix) { DAEMON_SET_ON_DESTROY }
 				return setLifecycle(callback) { onDestroy = it }

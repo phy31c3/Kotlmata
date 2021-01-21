@@ -183,6 +183,8 @@ typealias TransitionFallback = TransitionErrorActionDSL.(from: STATE, signal: SI
 
 typealias MachineFallback = ErrorActionDSL.() -> Unit
 
+typealias DaemonSimpleCallback = ActionDSL.() -> Unit
+typealias DaemonSimpleFallback = ErrorActionDSL.() -> Unit
 typealias DaemonCallback = PayloadActionDSL.() -> Unit
 typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 
