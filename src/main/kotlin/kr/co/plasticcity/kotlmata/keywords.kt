@@ -176,13 +176,15 @@ typealias InputErrorFunction<T> = PayloadErrorFunctionDSL.(signal: T) -> Any?
 typealias ExitAction<T> = ExitActionDSL.(signal: T) -> Unit
 typealias ExitErrorAction<T> = ExitErrorActionDSL.(signal: T) -> Unit
 
-typealias StateErrorCallback = ErrorActionDSL.(signal: SIGNAL) -> Unit
+typealias StateFallback = ErrorActionDSL.(signal: SIGNAL) -> Unit
 
 typealias TransitionCallback = TransitionActionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
 typealias TransitionFallback = TransitionErrorActionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
 
-typealias MachineErrorCallback = ErrorActionDSL.() -> Unit
+typealias MachineFallback = ErrorActionDSL.() -> Unit
 
+typealias DaemonSimpleCallback = ActionDSL.() -> Unit
+typealias DaemonSimpleFallback = ErrorActionDSL.() -> Unit
 typealias DaemonCallback = PayloadActionDSL.() -> Unit
 typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 

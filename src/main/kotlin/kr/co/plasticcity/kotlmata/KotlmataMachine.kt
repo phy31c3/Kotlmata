@@ -84,7 +84,7 @@ interface KotlmataMachine
 		interface On
 		{
 			infix fun transition(callback: TransitionCallback): Catch
-			infix fun error(block: MachineErrorCallback)
+			infix fun error(block: MachineFallback)
 		}
 		
 		interface Catch : Finally
@@ -357,7 +357,7 @@ private class KotlmataMachineImpl(
 	private val testerMap: MutableMap<STATE, Tester> = HashMap()
 	
 	private var onTransition: TransitionDef? = null
-	private var onError: MachineErrorCallback? = null
+	private var onError: MachineFallback? = null
 	
 	private var transitionCounter: Long = 0
 	
@@ -566,7 +566,7 @@ private class KotlmataMachineImpl(
 				}
 			}
 			
-			override fun error(block: MachineErrorCallback)
+			override fun error(block: MachineFallback)
 			{
 				this@UpdateImpl shouldNot expired
 				onError = block

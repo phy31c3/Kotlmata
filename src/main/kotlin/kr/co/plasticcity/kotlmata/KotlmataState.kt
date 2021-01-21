@@ -17,7 +17,7 @@ interface KotlmataState<T : STATE>
 		
 		interface On
 		{
-			infix fun error(block: StateErrorCallback)
+			infix fun error(block: StateFallback)
 		}
 	}
 	
@@ -171,7 +171,7 @@ private class KotlmataStateImpl<T : STATE>(
 	private var entryMap: MutableMap<SIGNAL, EntryDef>? = null
 	private var inputMap: MutableMap<SIGNAL, InputDef>? = null
 	private var exitMap: MutableMap<SIGNAL, ExitDef>? = null
-	private var onError: StateErrorCallback? = null
+	private var onError: StateFallback? = null
 	
 	private var entryTester: Tester? = null
 	private var inputTester: Tester? = null
@@ -859,7 +859,7 @@ private class KotlmataStateImpl<T : STATE>(
 		
 		override val on = object : Init.On
 		{
-			override fun error(block: StateErrorCallback)
+			override fun error(block: StateFallback)
 			{
 				this@UpdateImpl shouldNot expired
 				this@KotlmataStateImpl.onError = block
