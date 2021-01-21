@@ -1568,44 +1568,59 @@ class Tests
 				checklist["on create final"] = true
 			}
 			on start {
-				checklist["on start"] = true
+				if (payload == 0)
+					checklist["on start"] = true
 				throw Exception()
 			} catch {
-				checklist["on start catch"] = true
+				if (payload == 0)
+					checklist["on start catch"] = true
 			} finally {
-				checklist["on start final"] = true
+				if (payload == 0)
+					checklist["on start final"] = true
 			}
 			on pause {
-				checklist["on pause"] = true
+				if (payload == 0)
+					checklist["on pause"] = true
 				throw Exception()
 			} catch {
-				checklist["on pause catch"] = true
+				if (payload == 0)
+					checklist["on pause catch"] = true
 			} finally {
-				checklist["on pause final"] = true
+				if (payload == 0)
+					checklist["on pause final"] = true
 			}
 			on stop {
-				checklist["on stop"] = true
+				if (payload == 1)
+					checklist["on stop"] = true
 				throw Exception()
 			} catch {
-				checklist["on stop catch"] = true
+				if (payload == 1)
+					checklist["on stop catch"] = true
 			} finally {
-				checklist["on stop final"] = true
+				if (payload == 1)
+					checklist["on stop final"] = true
 			}
 			on resume {
-				checklist["on resume"] = true
+				if (payload == 2)
+					checklist["on resume"] = true
 				throw Exception()
 			} catch {
-				checklist["on resume catch"] = true
+				if (payload == 2)
+					checklist["on resume catch"] = true
 			} finally {
-				checklist["on resume final"] = true
+				if (payload == 2)
+					checklist["on resume final"] = true
 			}
 			on finish {
-				checklist["on finish"] = true
+				if (payload == 3)
+					checklist["on finish"] = true
 				throw Exception()
 			} catch {
-				checklist["on finish catch"] = true
+				if (payload == 3)
+					checklist["on finish catch"] = true
 			} finally {
-				checklist["on finish final"] = true
+				if (payload == 3)
+					checklist["on finish final"] = true
 				throw Exception()
 			}
 			on destroy {
@@ -1625,10 +1640,10 @@ class Tests
 			
 			start at "a"
 		}.also { daemon ->
-			daemon.pause()
-			daemon.stop()
-			daemon.run()
-			daemon.terminate()
+			daemon.pause(0)
+			daemon.stop(1)
+			daemon.run(2)
+			daemon.terminate(3)
 		}
 		
 		latch.await()
