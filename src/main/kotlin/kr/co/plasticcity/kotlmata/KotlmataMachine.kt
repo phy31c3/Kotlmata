@@ -21,29 +21,29 @@ interface KotlmataMachine
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG,
-			block: MachineTemplate
+			block: MachineDefine
 		): KotlmataMachine = KotlmataMachineImpl(name, logLevel, block = block)
 		
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineBase, MachineTemplate, KotlmataMachine>
+		) = object : Extends<MachineTemplate, MachineDefine, KotlmataMachine>
 		{
-			override fun extends(base: MachineBase) = object : By<MachineTemplate, KotlmataMachine>
+			override fun extends(template: MachineTemplate) = object : By<MachineDefine, KotlmataMachine>
 			{
-				override fun by(template: MachineTemplate) = invoke(name, logLevel) { machine ->
-					base(machine)
+				override fun by(define: MachineDefine) = invoke(name, logLevel) { machine ->
 					template(machine)
+					define(machine)
 				}
 			}
 			
-			override fun by(template: MachineTemplate) = invoke(name, logLevel, template)
+			override fun by(define: MachineDefine) = invoke(name, logLevel, define)
 		}
 		
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG,
-			block: MachineTemplate
+			block: MachineDefine
 		) = lazy {
 			invoke(name, logLevel, block)
 		}
@@ -51,28 +51,28 @@ interface KotlmataMachine
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineBase, MachineTemplate, Lazy<KotlmataMachine>>
+		) = object : Extends<MachineTemplate, MachineDefine, Lazy<KotlmataMachine>>
 		{
-			override fun extends(base: MachineBase) = object : By<MachineTemplate, Lazy<KotlmataMachine>>
+			override fun extends(template: MachineTemplate) = object : By<MachineDefine, Lazy<KotlmataMachine>>
 			{
-				override fun by(template: MachineTemplate) = lazy {
-					invoke(name, logLevel) extends base by template
+				override fun by(define: MachineDefine) = lazy {
+					invoke(name, logLevel) extends template by define
 				}
 			}
 			
-			override fun by(template: MachineTemplate) = lazy {
-				invoke(name, logLevel, template)
+			override fun by(define: MachineDefine) = lazy {
+				invoke(name, logLevel, define)
 			}
 		}
 		
 		interface Extends<B, T, R> : By<T, R>
 		{
-			infix fun extends(base: B): By<T, R>
+			infix fun extends(template: B): By<T, R>
 		}
 		
 		interface By<T, R>
 		{
-			infix fun by(template: T): R
+			infix fun by(define: T): R
 		}
 	}
 	
@@ -84,7 +84,7 @@ interface KotlmataMachine
 		interface On
 		{
 			infix fun transition(callback: TransitionCallback): Catch
-			infix fun error(block: MachineErrorCallback)
+			infix fun error(block: MachineFallback)
 		}
 		
 		interface Catch : Finally
@@ -253,29 +253,29 @@ interface KotlmataMutableMachine : KotlmataMachine
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG,
-			block: MachineTemplate
+			block: MachineDefine
 		): KotlmataMutableMachine = KotlmataMachineImpl(name, logLevel, block = block)
 		
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineBase, MachineTemplate, KotlmataMutableMachine>
+		) = object : Extends<MachineTemplate, MachineDefine, KotlmataMutableMachine>
 		{
-			override fun extends(base: MachineBase) = object : By<MachineTemplate, KotlmataMutableMachine>
+			override fun extends(template: MachineTemplate) = object : By<MachineDefine, KotlmataMutableMachine>
 			{
-				override fun by(template: MachineTemplate) = invoke(name, logLevel) { machine ->
-					base(machine)
+				override fun by(define: MachineDefine) = invoke(name, logLevel) { machine ->
 					template(machine)
+					define(machine)
 				}
 			}
 			
-			override fun by(template: MachineTemplate) = invoke(name, logLevel, template)
+			override fun by(define: MachineDefine) = invoke(name, logLevel, define)
 		}
 		
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG,
-			block: MachineTemplate
+			block: MachineDefine
 		) = lazy {
 			invoke(name, logLevel, block)
 		}
@@ -283,17 +283,17 @@ interface KotlmataMutableMachine : KotlmataMachine
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineBase, MachineTemplate, Lazy<KotlmataMutableMachine>>
+		) = object : Extends<MachineTemplate, MachineDefine, Lazy<KotlmataMutableMachine>>
 		{
-			override fun extends(base: MachineBase) = object : By<MachineTemplate, Lazy<KotlmataMutableMachine>>
+			override fun extends(template: MachineTemplate) = object : By<MachineDefine, Lazy<KotlmataMutableMachine>>
 			{
-				override fun by(template: MachineTemplate) = lazy {
-					invoke(name, logLevel) extends base by template
+				override fun by(define: MachineDefine) = lazy {
+					invoke(name, logLevel) extends template by define
 				}
 			}
 			
-			override fun by(template: MachineTemplate) = lazy {
-				invoke(name, logLevel, template)
+			override fun by(define: MachineDefine) = lazy {
+				invoke(name, logLevel, define)
 			}
 		}
 		
@@ -301,7 +301,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 			name: String,
 			logLevel: Int,
 			prefix: String,
-			block: MachineTemplate
+			block: MachineDefine
 		): KotlmataMutableMachine = KotlmataMachineImpl(name, logLevel, prefix, block)
 	}
 	
@@ -349,7 +349,7 @@ private class KotlmataMachineImpl(
 	override val name: String,
 	val logLevel: Int,
 	val prefix: String = "Machine[$name]:",
-	block: MachineTemplate
+	block: MachineDefine
 ) : KotlmataInternalMachine
 {
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
@@ -357,7 +357,7 @@ private class KotlmataMachineImpl(
 	private val testerMap: MutableMap<STATE, Tester> = HashMap()
 	
 	private var onTransition: TransitionDef? = null
-	private var onError: MachineErrorCallback? = null
+	private var onError: MachineFallback? = null
 	
 	private var transitionCounter: Long = 0
 	
@@ -531,7 +531,7 @@ private class KotlmataMachineImpl(
 	}
 	
 	private inner class UpdateImpl(
-		init: (MachineTemplate)? = null,
+		init: (MachineDefine)? = null,
 		update: (Update.() -> Unit)? = null
 	) : Init, Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
 	{
@@ -566,7 +566,7 @@ private class KotlmataMachineImpl(
 				}
 			}
 			
-			override fun error(block: MachineErrorCallback)
+			override fun error(block: MachineFallback)
 			{
 				this@UpdateImpl shouldNot expired
 				onError = block
@@ -582,7 +582,7 @@ private class KotlmataMachineImpl(
 				
 				stateMap[state]?.also {
 					currentTag = state
-					if (state !== `Initial state for KotlmataDaemon`)
+					if (state !== Initial_state_for_KotlmataDaemon)
 					{
 						logLevel.normal(prefix, state) { MACHINE_START_AT }
 					}
@@ -596,7 +596,7 @@ private class KotlmataMachineImpl(
 		{
 			this@UpdateImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this, logLevel, "$prefix$tab", block)
-			if (this !== `Initial state for KotlmataDaemon`)
+			if (this !== Initial_state_for_KotlmataDaemon)
 			{
 				logLevel.normal(prefix, this) { MACHINE_ADD_STATE }
 			}
@@ -611,7 +611,7 @@ private class KotlmataMachineImpl(
 				this@UpdateImpl shouldNot expired
 				state = KotlmataMutableState(this@extends, logLevel, "$prefix$tab", template)
 				stateMap[this@extends] = state
-				if (this@extends !== `Initial state for KotlmataDaemon`)
+				if (this@extends !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, this@extends) { MACHINE_ADD_STATE }
 				}
@@ -639,7 +639,7 @@ private class KotlmataMachineImpl(
 				entry function function
 			}
 			stateMap[this] = state
-			if (this !== `Initial state for KotlmataDaemon`)
+			if (this !== Initial_state_for_KotlmataDaemon)
 			{
 				logLevel.normal(prefix, this) { MACHINE_ADD_STATE }
 			}
@@ -680,7 +680,7 @@ private class KotlmataMachineImpl(
 					entry via signal function function
 				}
 				stateMap[this@via] = state
-				if (this@via !== `Initial state for KotlmataDaemon`)
+				if (this@via !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
 				}
@@ -724,7 +724,7 @@ private class KotlmataMachineImpl(
 					entry via signal function function
 				}
 				stateMap[this@via] = state
-				if (this@via !== `Initial state for KotlmataDaemon`)
+				if (this@via !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
 				}
@@ -768,7 +768,7 @@ private class KotlmataMachineImpl(
 					entry via signals function function
 				}
 				stateMap[this@via] = state
-				if (this@via !== `Initial state for KotlmataDaemon`)
+				if (this@via !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
 				}
@@ -812,7 +812,7 @@ private class KotlmataMachineImpl(
 					entry via predicate function function
 				}
 				stateMap[this@via] = state
-				if (this@via !== `Initial state for KotlmataDaemon`)
+				if (this@via !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, this@via) { MACHINE_ADD_STATE }
 				}
@@ -870,7 +870,7 @@ private class KotlmataMachineImpl(
 			{
 				this@UpdateImpl shouldNot expired
 				ruleMap[from, signal] = to
-				if (from !== `Initial state for KotlmataDaemon`)
+				if (from !== Initial_state_for_KotlmataDaemon)
 				{
 					logLevel.normal(prefix, from, signal, to) { MACHINE_ADD_RULE }
 				}

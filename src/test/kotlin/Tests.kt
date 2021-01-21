@@ -778,7 +778,7 @@ class Tests
 			"mutable machine lazy extends" to false
 		)
 		
-		fun base(check: String): MachineBase = {
+		fun template(check: String): MachineTemplate = {
 			"state" {
 				input action {
 					checklist[check] = true
@@ -794,7 +794,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val m2 = KotlmataMachine("M-002-2", 0) extends base("machine extends") by {
+		val m2 = KotlmataMachine("M-002-2", 0) extends template("machine extends") by {
 			start at "state"
 		}
 		val m3 by KotlmataMachine.lazy("M-002-3", 0) {
@@ -805,7 +805,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val m4 by KotlmataMachine.lazy("M-002-4", 0) extends base("machine lazy extends") by {
+		val m4 by KotlmataMachine.lazy("M-002-4", 0) extends template("machine lazy extends") by {
 			start at "state"
 		}
 		val m5 = KotlmataMutableMachine("M-002-5", 0) {
@@ -816,7 +816,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val m6 = KotlmataMutableMachine("M-002-6", 0) extends base("mutable machine extends") by {
+		val m6 = KotlmataMutableMachine("M-002-6", 0) extends template("mutable machine extends") by {
 			start at "state"
 		}
 		val m7 by KotlmataMutableMachine.lazy("M-002-7", 0) {
@@ -827,7 +827,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val m8 by KotlmataMutableMachine.lazy("M-002-8", 0) extends base("mutable machine lazy extends") by {
+		val m8 by KotlmataMutableMachine.lazy("M-002-8", 0) extends template("mutable machine lazy extends") by {
 			start at "state"
 		}
 		
@@ -1438,7 +1438,7 @@ class Tests
 		
 		val latch = CountDownLatch(8)
 		
-		val base: DaemonBase = {
+		val template: DaemonTemplate = {
 			on destroy {
 				latch.countDown()
 			}
@@ -1453,7 +1453,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val d2 = KotlmataDaemon("D-001-2", 0) extends base by {
+		val d2 = KotlmataDaemon("D-001-2", 0) extends template by {
 			"state" action {
 				checklist["daemon extends"] = true
 			}
@@ -1468,7 +1468,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val d4 by KotlmataDaemon.lazy("D-001-4", 0) extends base by {
+		val d4 by KotlmataDaemon.lazy("D-001-4", 0) extends template by {
 			"state" action {
 				checklist["daemon lazy extends"] = true
 			}
@@ -1483,7 +1483,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val d6 = KotlmataMutableDaemon("D-001-6", 0) extends base by {
+		val d6 = KotlmataMutableDaemon("D-001-6", 0) extends template by {
 			"state" action {
 				checklist["mutable daemon extends"] = true
 			}
@@ -1498,7 +1498,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val d8 by KotlmataMutableDaemon.lazy("D-001-8", 0) extends base by {
+		val d8 by KotlmataMutableDaemon.lazy("D-001-8", 0) extends template by {
 			"state" action {
 				checklist["mutable daemon lazy extends"] = true
 			}
@@ -1568,44 +1568,59 @@ class Tests
 				checklist["on create final"] = true
 			}
 			on start {
-				checklist["on start"] = true
+				if (payload == 0)
+					checklist["on start"] = true
 				throw Exception()
 			} catch {
-				checklist["on start catch"] = true
+				if (payload == 0)
+					checklist["on start catch"] = true
 			} finally {
-				checklist["on start final"] = true
+				if (payload == 0)
+					checklist["on start final"] = true
 			}
 			on pause {
-				checklist["on pause"] = true
+				if (payload == 0)
+					checklist["on pause"] = true
 				throw Exception()
 			} catch {
-				checklist["on pause catch"] = true
+				if (payload == 0)
+					checklist["on pause catch"] = true
 			} finally {
-				checklist["on pause final"] = true
+				if (payload == 0)
+					checklist["on pause final"] = true
 			}
 			on stop {
-				checklist["on stop"] = true
+				if (payload == 1)
+					checklist["on stop"] = true
 				throw Exception()
 			} catch {
-				checklist["on stop catch"] = true
+				if (payload == 1)
+					checklist["on stop catch"] = true
 			} finally {
-				checklist["on stop final"] = true
+				if (payload == 1)
+					checklist["on stop final"] = true
 			}
 			on resume {
-				checklist["on resume"] = true
+				if (payload == 2)
+					checklist["on resume"] = true
 				throw Exception()
 			} catch {
-				checklist["on resume catch"] = true
+				if (payload == 2)
+					checklist["on resume catch"] = true
 			} finally {
-				checklist["on resume final"] = true
+				if (payload == 2)
+					checklist["on resume final"] = true
 			}
 			on finish {
-				checklist["on finish"] = true
+				if (payload == 3)
+					checklist["on finish"] = true
 				throw Exception()
 			} catch {
-				checklist["on finish catch"] = true
+				if (payload == 3)
+					checklist["on finish catch"] = true
 			} finally {
-				checklist["on finish final"] = true
+				if (payload == 3)
+					checklist["on finish final"] = true
 				throw Exception()
 			}
 			on destroy {
@@ -1625,10 +1640,10 @@ class Tests
 			
 			start at "a"
 		}.also { daemon ->
-			daemon.pause()
-			daemon.stop()
-			daemon.run()
-			daemon.terminate()
+			daemon.pause(0)
+			daemon.stop(1)
+			daemon.run(2)
+			daemon.terminate(3)
 		}
 		
 		latch.await()

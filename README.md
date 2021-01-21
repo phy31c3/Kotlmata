@@ -8,7 +8,7 @@ Automata-based programming library for Kotlin.
 ### Gradle
 
 ```
-implementation 'kr.co.plasticcity:kotlmata:1.0.0'
+implementation 'kr.co.plasticcity:kotlmata:1.0.1'
 ```
 
 ### Maven
@@ -17,7 +17,7 @@ implementation 'kr.co.plasticcity:kotlmata:1.0.0'
 <dependency>
   <groupId>kr.co.plasticcity</groupId>
   <artifactId>kotlmata</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <type>pom</type>
 </dependency>
 ```
@@ -40,20 +40,20 @@ val machine by KotlmataMachine.lazy("sample") {
     // 머신 정의
 }
 ```
+#### 미리 정의된 머신이 있는 경우
+```kotlin
+val define: MachineDefine = {
+    // 머신 정의
+}
+val machine = KotlmataMachine("sample") by define
+```
 #### 미리 정의된 템플릿이 있는 경우
 ```kotlin
 val template: MachineTemplate = {
     // 머신 정의
-}
-val machine = KotlmataMachine("sample") by template
-```
-#### 미리 정의된 베이스가 있는 경우
-```kotlin
-val base: MachineBase = {
-    // 머신 정의
     // 시작 상태는 정의할 수 없음
 }
-val machine = KotlmataMachine("sample") extends base by {
+val machine = KotlmataMachine("sample") extends template by {
     // 추가 머신 정의
 }
 ```
@@ -87,7 +87,7 @@ val machine = KotlmataMachine("sample") {
     "A" x 10 %= "A" // 재귀도 가능함
     "A" x String::class %= "B" // String 타입의 객체가 신호로 입력되면 "B"로 전이 (타입 신호)
     "A" x String::class %= "A" // 동일한 좌변을 중복해서 정의하면 기존 규칙을 덮어씀
-    
+
     start at "A"
 }
 ```
@@ -257,7 +257,7 @@ val machine = KotlmataMachine("sample") {
 ```kotlin
 val machine = KotlmataMachine("sample") {
     // 상태들의 공통 정의를 미리 템플릿으로 만들어 놓음
-    val template: StateTemplate<String>/* 상태 태그의 타입 */ {
+    val template: StateTemplate<String/* 상태 태그의 타입 */> = {
         on error { s ->
             println(throwable.message)
         }
@@ -568,20 +568,20 @@ val daemon by KotlmataDaemon.lazy("sample") {
     // 데몬 정의
 }
 ```
+#### 미리 정의된 데몬이 있는 경우
+```kotlin
+val define: DaemonDefine = {
+    // 데몬 정의
+}
+val daemon = KotlmataDaemon("sample") by define
+```
 #### 미리 정의된 템플릿이 있는 경우
 ```kotlin
 val template: DaemonTemplate = {
     // 데몬 정의
-}
-val daemon = KotlmataDaemon("sample") by template
-```
-#### 미리 정의된 베이스가 있는 경우
-```kotlin
-val base: DaemonBase = {
-    // 데몬 정의
     // 시작 상태는 정의할 수 없음
 }
-val daemon = KotlmataDaemon("sample") extends base by {
+val daemon = KotlmataDaemon("sample") extends template by {
     // 추가 데몬 정의
 }
 ```
@@ -592,32 +592,36 @@ val daemon = KotlmataDaemon("sample") extends base by {
 ```kotlin
 val daemon = KotlmataDaemon("sample") {
     // 머신에서 할 수 있는 모든 정의에 추가로 생명주기 관련 정의를 할 수 있음
-    on create { payload ->
+    on create {
         // 데몬 생성 시 실행
-        // payload 파라미터는 데몬 제어함수 호출 시 전달한 payload
-    } catch { payload ->
+    } catch {
         // 위 블럭에서 예외 발생 시 여기로 빠짐
         println(throwable.message) // throwable 프로퍼티를 통해 예외를 얻을 수 있음
-    } finally { payload ->
+    } finally {
         // try-catch-finally 구문의 finally와 동일
         // 예외가 발생하든 안하든 무조건 실행됨
         // catch-finally 인터페이스는 아래의 나머지 생명주기 정의도 모두 동일
     }
     on start {
         // 데몬 시작 시 실행
+        println(payload) // 제어함수를 통해 전달받은 페이로드
     }
     on pause {
         // 데몬 일시정지 시 실행
+        println(payload) // 제어함수를 통해 전달받은 페이로드
     }
     on stop {
         // 데몬 정지 시 실행
+        println(payload) // 제어함수를 통해 전달받은 페이로드
     }
     on resume {
         // 데몬 재개(일시정지 혹은 정지 상태에서 다시 시작) 시 실행
+        println(payload) // 제어함수를 통해 전달받은 페이로드
     }
     on finish {
         // 데몬 종료 시 실행
         // on start와 짝을 이룸
+        println(payload) // 제어함수를 통해 전달받은 페이로드
     }
     on destroy {
         // 데몬 소멸 시 실행

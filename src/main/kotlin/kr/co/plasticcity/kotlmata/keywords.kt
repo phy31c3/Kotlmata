@@ -176,13 +176,15 @@ typealias InputErrorFunction<T> = PayloadErrorFunctionDSL.(signal: T) -> Any?
 typealias ExitAction<T> = ExitActionDSL.(signal: T) -> Unit
 typealias ExitErrorAction<T> = ExitErrorActionDSL.(signal: T) -> Unit
 
-typealias StateErrorCallback = ErrorActionDSL.(signal: SIGNAL) -> Unit
+typealias StateFallback = ErrorActionDSL.(signal: SIGNAL) -> Unit
 
 typealias TransitionCallback = TransitionActionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
 typealias TransitionFallback = TransitionErrorActionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
 
-typealias MachineErrorCallback = ErrorActionDSL.() -> Unit
+typealias MachineFallback = ErrorActionDSL.() -> Unit
 
+typealias DaemonSimpleCallback = ActionDSL.() -> Unit
+typealias DaemonSimpleFallback = ErrorActionDSL.() -> Unit
 typealias DaemonCallback = PayloadActionDSL.() -> Unit
 typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 
@@ -192,8 +194,8 @@ typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 
 typealias StateTemplate<T> = KotlmataState.Init.(state: T) -> Unit
 
-typealias MachineBase = KotlmataMachine.Base.(machine: KotlmataMachine) -> Unit
-typealias MachineTemplate = KotlmataMachine.Init.(machine: KotlmataMachine) -> KotlmataMachine.Init.End
+typealias MachineTemplate = KotlmataMachine.Base.(machine: KotlmataMachine) -> Unit
+typealias MachineDefine = KotlmataMachine.Init.(machine: KotlmataMachine) -> KotlmataMachine.Init.End
 
-typealias DaemonBase = KotlmataDaemon.Base.(daemon: KotlmataDaemon) -> Unit
-typealias DaemonTemplate = KotlmataDaemon.Init.(daemon: KotlmataDaemon) -> KotlmataMachine.Init.End
+typealias DaemonTemplate = KotlmataDaemon.Base.(daemon: KotlmataDaemon) -> Unit
+typealias DaemonDefine = KotlmataDaemon.Init.(daemon: KotlmataDaemon) -> KotlmataMachine.Init.End
