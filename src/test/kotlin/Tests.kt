@@ -1423,6 +1423,49 @@ class Tests
 	}
 	
 	@Test
+	fun `M-014 머신의 'transitionCount'가 잘 전달되는가`()
+	{
+		val checklist = mutableMapOf(
+			"input" to false,
+			"exit" to false,
+			"entry" to false
+		)
+		
+		KotlmataMachine("M-014", 0) {
+			"a" {
+				input action {
+					if (transitionCount == 0L)
+					{
+						checklist["input"] = true
+					}
+				}
+				exit action {
+					if (transitionCount == 0L)
+					{
+						checklist["exit"] = true
+					}
+				}
+			}
+			"b" {
+				entry action {
+					if (transitionCount == 1L)
+					{
+						checklist["entry"] = true
+					}
+				}
+			}
+			
+			"a" x 0 %= "b"
+			
+			start at "a"
+		}.also { machine ->
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
 	fun `D-001 데몬의 모든 유형의 생성이 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
