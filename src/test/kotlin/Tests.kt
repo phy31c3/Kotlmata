@@ -1684,7 +1684,6 @@ class Tests
 			daemon.input(2, priority = 1)
 			daemon.input(0, priority = 0)
 			daemon.run()
-			daemon.isTerminated
 		}
 		
 		latch.await()
