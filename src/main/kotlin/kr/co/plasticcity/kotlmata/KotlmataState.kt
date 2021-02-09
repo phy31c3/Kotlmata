@@ -104,9 +104,9 @@ interface KotlmataState<T : STATE>
 	
 	val tag: T
 	
-	fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>, payload: Any? = null): Any?
-	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any? = null): Any?
-	fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, payload: Any? = null, to: STATE)
+	fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>, transitionCount: Long, payload: Any? = null): Any?
+	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, transitionCount: Long, payload: Any? = null): Any?
+	fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, transitionCount: Long, payload: Any? = null, to: STATE)
 }
 
 interface KotlmataMutableState<T : STATE> : KotlmataState<T>
@@ -182,7 +182,7 @@ private class KotlmataStateImpl<T : STATE>(
 		UpdateImpl(block)
 	}
 	
-	override fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>, payload: Any?): Any?
+	override fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>, transitionCount: Long, payload: Any?): Any?
 	{
 		val entryDef = entryMap?.let { entryMap ->
 			entryMap[signal]?.also {
@@ -202,12 +202,12 @@ private class KotlmataStateImpl<T : STATE>(
 		return entryDef?.run {
 			try
 			{
-				EntryFunctionReceiver(from, payload).function(signal)
+				EntryFunctionReceiver(from, transitionCount, payload).function(signal)
 			}
 			catch (e: Throwable)
 			{
 				intercept?.let { intercept ->
-					EntryErrorFunctionReceiver(from, payload, e).intercept(signal) ?: Unit
+					EntryErrorFunctionReceiver(from, transitionCount, payload, e).intercept(signal) ?: Unit
 				} ?: onError?.let { onError ->
 					ErrorActionReceiver(e).onError(signal)
 				} ?: throw e
@@ -215,13 +215,13 @@ private class KotlmataStateImpl<T : STATE>(
 			finally
 			{
 				finally?.let { finally ->
-					EntryActionReceiver(from, payload).finally(signal)
+					EntryActionReceiver(from, transitionCount, payload).finally(signal)
 				}
 			}
 		}
 	}
 	
-	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?): Any?
+	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, transitionCount: Long, payload: Any?): Any?
 	{
 		val inputDef = inputMap?.let { inputMap ->
 			inputMap[signal]?.also {
@@ -244,12 +244,12 @@ private class KotlmataStateImpl<T : STATE>(
 		return inputDef?.run {
 			try
 			{
-				InputFunctionReceiver(payload).function(signal)
+				InputFunctionReceiver(transitionCount, payload).function(signal)
 			}
 			catch (e: Throwable)
 			{
 				intercept?.let { intercept ->
-					InputErrorFunctionReceiver(payload, e).intercept(signal) ?: Unit
+					InputErrorFunctionReceiver(transitionCount, payload, e).intercept(signal) ?: Unit
 				} ?: onError?.let { onError ->
 					ErrorActionReceiver(e).onError(signal)
 				} ?: throw e
@@ -257,13 +257,13 @@ private class KotlmataStateImpl<T : STATE>(
 			finally
 			{
 				finally?.let { finally ->
-					InputActionReceiver(payload).finally(signal)
+					InputActionReceiver(transitionCount, payload).finally(signal)
 				}
 			}
 		}
 	}
 	
-	override fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, payload: Any?, to: STATE)
+	override fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, transitionCount: Long, payload: Any?, to: STATE)
 	{
 		val exitDef = exitMap?.let { exitMap ->
 			exitMap[signal]?.also {
@@ -286,12 +286,12 @@ private class KotlmataStateImpl<T : STATE>(
 		exitDef?.apply {
 			try
 			{
-				ExitActionReceiver(to, payload).action(signal)
+				ExitActionReceiver(to, transitionCount, payload).action(signal)
 			}
 			catch (e: Throwable)
 			{
 				catch?.let { catch ->
-					ExitErrorActionReceiver(to, payload, e).catch(signal)
+					ExitErrorActionReceiver(to, transitionCount, payload, e).catch(signal)
 				} ?: onError?.let { onError ->
 					ErrorActionReceiver(e).onError(signal)
 				} ?: throw e
@@ -299,7 +299,7 @@ private class KotlmataStateImpl<T : STATE>(
 			finally
 			{
 				finally?.let { finally ->
-					ExitActionReceiver(to, payload).finally(signal)
+					ExitActionReceiver(to, transitionCount, payload).finally(signal)
 				}
 			}
 		}

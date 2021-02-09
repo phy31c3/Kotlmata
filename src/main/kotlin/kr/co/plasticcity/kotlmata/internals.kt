@@ -13,52 +13,51 @@ internal class ErrorActionReceiver(
 
 internal class EntryActionReceiver(
 	override val prevState: STATE,
+	override val transitionCount: Long,
 	override val payload: Any?
 ) : EntryActionDSL
 
 internal class EntryFunctionReceiver(
 	override val prevState: STATE,
+	override val transitionCount: Long,
 	override val payload: Any?
 ) : EntryFunctionDSL
 
 internal class EntryErrorFunctionReceiver(
 	override val prevState: STATE,
+	override val transitionCount: Long,
 	override val payload: Any?,
 	override val throwable: Throwable
 ) : EntryErrorFunctionDSL
 
 internal class InputActionReceiver(
+	override val transitionCount: Long,
 	override val payload: Any?
 ) : InputActionDSL
 
 internal class InputFunctionReceiver(
+	override val transitionCount: Long,
 	override val payload: Any?
 ) : InputFunctionDSL
 
 internal class InputErrorFunctionReceiver(
+	override val transitionCount: Long,
 	override val payload: Any?,
 	override val throwable: Throwable
 ) : InputErrorFunctionDSL
 
 internal class ExitActionReceiver(
 	override val nextState: STATE,
+	override val transitionCount: Long,
 	override val payload: Any?
 ) : ExitActionDSL
 
 internal class ExitErrorActionReceiver(
 	override val nextState: STATE,
+	override val transitionCount: Long,
 	override val payload: Any?,
 	override val throwable: Throwable
 ) : ExitErrorActionDSL
-
-internal class PayloadActionReceiver(
-	override val payload: Any?
-) : PayloadActionDSL
-
-internal class PayloadErrorActionReceiver(
-	override val payload: Any?,
-	override val throwable: Throwable
-) : PayloadErrorActionDSL
 
 internal class TransitionActionReceiver(
 	override val transitionCount: Long
@@ -68,6 +67,15 @@ internal class TransitionErrorActionReceiver(
 	override val transitionCount: Long,
 	override val throwable: Throwable
 ) : TransitionErrorActionDSL
+
+internal class PayloadActionReceiver(
+	override val payload: Any?
+) : PayloadActionDSL
+
+internal class PayloadErrorActionReceiver(
+	override val payload: Any?,
+	override val throwable: Throwable
+) : PayloadErrorActionDSL
 
 @Suppress("ClassName")
 internal object Initial_state_for_KotlmataDaemon

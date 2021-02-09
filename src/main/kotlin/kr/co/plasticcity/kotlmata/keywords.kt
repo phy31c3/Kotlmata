@@ -96,17 +96,12 @@ interface ErrorHolder
 	val throwable: Throwable
 }
 
-interface PayloadHolder
-{
-	val payload: Any?
-}
-
-interface EntryHolder : PayloadHolder
+interface PrevHolder
 {
 	val prevState: STATE
 }
 
-interface ExitHolder : PayloadHolder
+interface NextHolder
 {
 	val nextState: STATE
 }
@@ -114,6 +109,11 @@ interface ExitHolder : PayloadHolder
 interface TransitionHolder
 {
 	val transitionCount: Long
+}
+
+interface PayloadHolder
+{
+	val payload: Any?
 }
 
 @KotlmataMarker
@@ -143,24 +143,24 @@ interface FunctionDSL : ActionDSL
 interface ErrorActionDSL : ErrorHolder, ActionDSL
 interface ErrorFunctionDSL : ErrorActionDSL, FunctionDSL
 
-interface EntryActionDSL : EntryHolder, ActionDSL
+interface EntryActionDSL : PrevHolder, TransitionHolder, PayloadHolder, ActionDSL
 interface EntryFunctionDSL : EntryActionDSL, FunctionDSL
 interface EntryErrorActionDSL : EntryActionDSL, ErrorActionDSL
 interface EntryErrorFunctionDSL : EntryErrorActionDSL, EntryFunctionDSL, ErrorFunctionDSL
 
-interface InputActionDSL : PayloadHolder, ActionDSL
+interface InputActionDSL : TransitionHolder, PayloadHolder, ActionDSL
 interface InputFunctionDSL : InputActionDSL, FunctionDSL
 interface InputErrorActionDSL : InputActionDSL, ErrorActionDSL
 interface InputErrorFunctionDSL : InputErrorActionDSL, InputFunctionDSL, ErrorFunctionDSL
 
-interface ExitActionDSL : ExitHolder, ActionDSL
+interface ExitActionDSL : NextHolder, TransitionHolder, PayloadHolder, ActionDSL
 interface ExitErrorActionDSL : ExitActionDSL, ErrorActionDSL
-
-interface PayloadActionDSL : PayloadHolder, ActionDSL
-interface PayloadErrorActionDSL : PayloadActionDSL, ErrorActionDSL
 
 interface TransitionActionDSL : TransitionHolder, ActionDSL
 interface TransitionErrorActionDSL : TransitionActionDSL, ErrorActionDSL
+
+interface PayloadActionDSL : PayloadHolder, ActionDSL
+interface PayloadErrorActionDSL : PayloadActionDSL, ErrorActionDSL
 
 /*###################################################################################################################################
  * typealias for action
