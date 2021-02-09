@@ -244,12 +244,12 @@ private class KotlmataStateImpl<T : STATE>(
 		return inputDef?.run {
 			try
 			{
-				PayloadFunctionReceiver(payload).function(signal)
+				InputFunctionReceiver(payload).function(signal)
 			}
 			catch (e: Throwable)
 			{
 				intercept?.let { intercept ->
-					PayloadErrorFunctionReceiver(payload, e).intercept(signal) ?: Unit
+					InputErrorFunctionReceiver(payload, e).intercept(signal) ?: Unit
 				} ?: onError?.let { onError ->
 					ErrorActionReceiver(e).onError(signal)
 				} ?: throw e
@@ -257,7 +257,7 @@ private class KotlmataStateImpl<T : STATE>(
 			finally
 			{
 				finally?.let { finally ->
-					PayloadActionReceiver(payload).finally(signal)
+					InputActionReceiver(payload).finally(signal)
 				}
 			}
 		}

@@ -148,13 +148,16 @@ interface EntryFunctionDSL : EntryActionDSL, FunctionDSL
 interface EntryErrorActionDSL : EntryActionDSL, ErrorActionDSL
 interface EntryErrorFunctionDSL : EntryErrorActionDSL, EntryFunctionDSL, ErrorFunctionDSL
 
+interface InputActionDSL : PayloadHolder, ActionDSL
+interface InputFunctionDSL : InputActionDSL, FunctionDSL
+interface InputErrorActionDSL : InputActionDSL, ErrorActionDSL
+interface InputErrorFunctionDSL : InputErrorActionDSL, InputFunctionDSL, ErrorFunctionDSL
+
 interface ExitActionDSL : ExitHolder, ActionDSL
 interface ExitErrorActionDSL : ExitActionDSL, ErrorActionDSL
 
 interface PayloadActionDSL : PayloadHolder, ActionDSL
-interface PayloadFunctionDSL : PayloadActionDSL, FunctionDSL
 interface PayloadErrorActionDSL : PayloadActionDSL, ErrorActionDSL
-interface PayloadErrorFunctionDSL : PayloadErrorActionDSL, PayloadFunctionDSL, ErrorFunctionDSL
 
 interface TransitionActionDSL : TransitionHolder, ActionDSL
 interface TransitionErrorActionDSL : TransitionActionDSL, ErrorActionDSL
@@ -168,10 +171,10 @@ typealias EntryFunction<T> = EntryFunctionDSL.(signal: T) -> Any?
 typealias EntryErrorAction<T> = EntryErrorActionDSL.(signal: T) -> Unit
 typealias EntryErrorFunction<T> = EntryErrorFunctionDSL.(signal: T) -> Any?
 
-typealias InputAction<T> = PayloadActionDSL.(signal: T) -> Unit
-typealias InputFunction<T> = PayloadFunctionDSL.(signal: T) -> Any?
-typealias InputErrorAction<T> = PayloadErrorActionDSL.(signal: T) -> Unit
-typealias InputErrorFunction<T> = PayloadErrorFunctionDSL.(signal: T) -> Any?
+typealias InputAction<T> = InputActionDSL.(signal: T) -> Unit
+typealias InputFunction<T> = InputFunctionDSL.(signal: T) -> Any?
+typealias InputErrorAction<T> = InputErrorActionDSL.(signal: T) -> Unit
+typealias InputErrorFunction<T> = InputErrorFunctionDSL.(signal: T) -> Any?
 
 typealias ExitAction<T> = ExitActionDSL.(signal: T) -> Unit
 typealias ExitErrorAction<T> = ExitErrorActionDSL.(signal: T) -> Unit

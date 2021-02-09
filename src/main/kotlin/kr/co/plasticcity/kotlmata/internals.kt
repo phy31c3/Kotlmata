@@ -27,6 +27,19 @@ internal class EntryErrorFunctionReceiver(
 	override val throwable: Throwable
 ) : EntryErrorFunctionDSL
 
+internal class InputActionReceiver(
+	override val payload: Any?
+) : InputActionDSL
+
+internal class InputFunctionReceiver(
+	override val payload: Any?
+) : InputFunctionDSL
+
+internal class InputErrorFunctionReceiver(
+	override val payload: Any?,
+	override val throwable: Throwable
+) : InputErrorFunctionDSL
+
 internal class ExitActionReceiver(
 	override val nextState: STATE,
 	override val payload: Any?
@@ -42,19 +55,10 @@ internal class PayloadActionReceiver(
 	override val payload: Any?
 ) : PayloadActionDSL
 
-internal class PayloadFunctionReceiver(
-	override val payload: Any?
-) : PayloadFunctionDSL
-
 internal class PayloadErrorActionReceiver(
 	override val payload: Any?,
 	override val throwable: Throwable
 ) : PayloadErrorActionDSL
-
-internal class PayloadErrorFunctionReceiver(
-	override val payload: Any?,
-	override val throwable: Throwable
-) : PayloadErrorFunctionDSL
 
 internal class TransitionActionReceiver(
 	override val transitionCount: Long
