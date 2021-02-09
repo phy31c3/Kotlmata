@@ -362,8 +362,6 @@ private class KotlmataMachineImpl(
 	private var transitionCounter: Long = 0
 	
 	private lateinit var currentTag: STATE
-	private val currentState: KotlmataState<out STATE>
-		get() = stateMap[currentTag] ?: Log.e(prefix.trimEnd(), currentTag, currentTag) { FAILED_TO_GET_STATE }
 	
 	init
 	{
@@ -390,21 +388,20 @@ private class KotlmataMachineImpl(
 	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, block: (FunctionDSL.Return) -> Unit)
 	{
 		val from = currentTag
-		val currentState = currentState
+		val currentState = stateMap[currentTag] ?: Log.e(prefix.trimEnd(), currentTag, currentTag) { FAILED_TO_GET_STATE }
 		
 		fun TransitionDef.call(to: STATE)
 		{
-			val transitionCount = transitionCounter++
 			try
 			{
 				callback.also { callback ->
-					TransitionActionReceiver(transitionCount).callback(from, signal, to)
+					TransitionActionReceiver(transitionCounter).callback(from, signal, to)
 				}
 			}
 			catch (e: Throwable)
 			{
 				fallback?.also { fallback ->
-					TransitionErrorActionReceiver(transitionCount, e).fallback(from, signal, to)
+					TransitionErrorActionReceiver(transitionCounter, e).fallback(from, signal, to)
 				} ?: onError?.also { onError ->
 					ErrorActionReceiver(e).onError()
 				} ?: throw e
@@ -412,7 +409,7 @@ private class KotlmataMachineImpl(
 			finally
 			{
 				finally?.also { finally ->
-					TransitionActionReceiver(transitionCount).finally(from, signal, to)
+					TransitionActionReceiver(transitionCounter).finally(from, signal, to)
 				}
 			}
 		}
@@ -460,7 +457,7 @@ private class KotlmataMachineImpl(
 		
 		logLevel.normal(prefix, signal, payload) { MACHINE_INPUT }
 		runStateFunction {
-			currentState.input(signal, type, payload)
+			currentState.input(signal, type, transitionCounter, payload)
 		}.also { inputReturn ->
 			if (inputReturn == stay)
 			{
@@ -496,16 +493,17 @@ private class KotlmataMachineImpl(
 			}
 		}?.also { nextState ->
 			val to = nextState.tag
-			runStateFunction { currentState.exit(signal, type, payload, to) }
+			runStateFunction { currentState.exit(signal, type, transitionCounter, payload, to) }
 			logLevel.simple(prefix, from, signal, to) {
 				if (logLevel >= NORMAL)
 					MACHINE_TRANSITION_TAB
 				else
 					MACHINE_TRANSITION
 			}
-			onTransition?.call(to)
 			currentTag = to
-			runStateFunction { nextState.entry(from, signal, type, payload) }.convertToSync()?.also { sync ->
+			++transitionCounter
+			onTransition?.call(to)
+			runStateFunction { nextState.entry(from, signal, type, transitionCounter, payload) }.convertToSync()?.also { sync ->
 				logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 				block(sync)
 			}

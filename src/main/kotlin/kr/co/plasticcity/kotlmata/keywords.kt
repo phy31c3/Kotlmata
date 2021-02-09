@@ -96,17 +96,12 @@ interface ErrorHolder
 	val throwable: Throwable
 }
 
-interface PayloadHolder
-{
-	val payload: Any?
-}
-
-interface EntryHolder : PayloadHolder
+interface PrevHolder
 {
 	val prevState: STATE
 }
 
-interface ExitHolder : PayloadHolder
+interface NextHolder
 {
 	val nextState: STATE
 }
@@ -114,6 +109,11 @@ interface ExitHolder : PayloadHolder
 interface TransitionHolder
 {
 	val transitionCount: Long
+}
+
+interface PayloadHolder
+{
+	val payload: Any?
 }
 
 @KotlmataMarker
@@ -143,21 +143,24 @@ interface FunctionDSL : ActionDSL
 interface ErrorActionDSL : ErrorHolder, ActionDSL
 interface ErrorFunctionDSL : ErrorActionDSL, FunctionDSL
 
-interface EntryActionDSL : EntryHolder, ActionDSL
+interface EntryActionDSL : PrevHolder, TransitionHolder, PayloadHolder, ActionDSL
 interface EntryFunctionDSL : EntryActionDSL, FunctionDSL
 interface EntryErrorActionDSL : EntryActionDSL, ErrorActionDSL
 interface EntryErrorFunctionDSL : EntryErrorActionDSL, EntryFunctionDSL, ErrorFunctionDSL
 
-interface ExitActionDSL : ExitHolder, ActionDSL
-interface ExitErrorActionDSL : ExitActionDSL, ErrorActionDSL
+interface InputActionDSL : TransitionHolder, PayloadHolder, ActionDSL
+interface InputFunctionDSL : InputActionDSL, FunctionDSL
+interface InputErrorActionDSL : InputActionDSL, ErrorActionDSL
+interface InputErrorFunctionDSL : InputErrorActionDSL, InputFunctionDSL, ErrorFunctionDSL
 
-interface PayloadActionDSL : PayloadHolder, ActionDSL
-interface PayloadFunctionDSL : PayloadActionDSL, FunctionDSL
-interface PayloadErrorActionDSL : PayloadActionDSL, ErrorActionDSL
-interface PayloadErrorFunctionDSL : PayloadErrorActionDSL, PayloadFunctionDSL, ErrorFunctionDSL
+interface ExitActionDSL : NextHolder, TransitionHolder, PayloadHolder, ActionDSL
+interface ExitErrorActionDSL : ExitActionDSL, ErrorActionDSL
 
 interface TransitionActionDSL : TransitionHolder, ActionDSL
 interface TransitionErrorActionDSL : TransitionActionDSL, ErrorActionDSL
+
+interface PayloadActionDSL : PayloadHolder, ActionDSL
+interface PayloadErrorActionDSL : PayloadActionDSL, ErrorActionDSL
 
 /*###################################################################################################################################
  * typealias for action
@@ -168,10 +171,10 @@ typealias EntryFunction<T> = EntryFunctionDSL.(signal: T) -> Any?
 typealias EntryErrorAction<T> = EntryErrorActionDSL.(signal: T) -> Unit
 typealias EntryErrorFunction<T> = EntryErrorFunctionDSL.(signal: T) -> Any?
 
-typealias InputAction<T> = PayloadActionDSL.(signal: T) -> Unit
-typealias InputFunction<T> = PayloadFunctionDSL.(signal: T) -> Any?
-typealias InputErrorAction<T> = PayloadErrorActionDSL.(signal: T) -> Unit
-typealias InputErrorFunction<T> = PayloadErrorFunctionDSL.(signal: T) -> Any?
+typealias InputAction<T> = InputActionDSL.(signal: T) -> Unit
+typealias InputFunction<T> = InputFunctionDSL.(signal: T) -> Any?
+typealias InputErrorAction<T> = InputErrorActionDSL.(signal: T) -> Unit
+typealias InputErrorFunction<T> = InputErrorFunctionDSL.(signal: T) -> Any?
 
 typealias ExitAction<T> = ExitActionDSL.(signal: T) -> Unit
 typealias ExitErrorAction<T> = ExitErrorActionDSL.(signal: T) -> Unit
