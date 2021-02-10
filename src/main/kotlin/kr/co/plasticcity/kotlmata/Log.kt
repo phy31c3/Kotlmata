@@ -18,6 +18,7 @@ internal class Logs
 		const val STATE_RUN_EXIT = "%s [%s] exit action"
 		const val STATE_RUN_EXIT_VIA = "%s [%s] exit via (%s) action"
 		const val STATE_RUN_EXIT_PREDICATE = "%s [%s] exit via predicate(or range) action"
+		const val STATE_ON_CLEAR = "%s [%s] on clear"
 		const val STATE_NO_ENTRY = "%s [%s] no entry action"
 		const val STATE_NO_INPUT = "%s [%s] no input action"
 		const val STATE_NO_EXIT = "%s [%s] no exit action"
@@ -39,6 +40,8 @@ internal class Logs
 		const val MACHINE_TRANSITION_TAB = "%s     [%s] x (%s) -> [%s]"
 		const val MACHINE_RETURN_SYNC_INPUT = "%s     return(signal: (%s), type: %s, payload: %s)"
 		const val MACHINE_START_AT = "%s     start at [%s]"
+		const val MACHINE_RELEASE = "%s release {"
+		const val MACHINE_DONE = "%s     done"
 		const val MACHINE_END = "%s }"
 		
 		/* Daemon */
@@ -71,6 +74,7 @@ internal class Logs
 		
 		/*########################## WARN ##########################*/
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. [%s] x (%s) -> [%s]"
+		const val USING_RELEASED_MACHINE = "%s Attempt to use a released machine. Please check the 'machine.isReleased' property."
 		const val DAEMON_INTERRUPTED = "Daemon[%s]: Daemon thread is unexpectedly interrupted."
 		const val DAEMON_UNHANDLED_ERROR = "Daemon[%s]: An unhandled error occurred. (%s)"
 		

@@ -8,6 +8,8 @@ import kotlin.reflect.KClass
 @DslMarker
 internal annotation class KotlmataMarker
 
+internal object ActionReceiver : ActionDSL
+
 internal class ErrorActionReceiver(
 	override val throwable: Throwable
 ) : ErrorActionDSL

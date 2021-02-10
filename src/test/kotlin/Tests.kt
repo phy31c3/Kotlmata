@@ -1479,6 +1479,63 @@ class Tests
 	}
 	
 	@Test
+	fun `M-015 머신 해제가 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"input" to false,
+			"update" to false,
+			"clear" to false,
+			"alive" to false,
+			"released" to false
+		)
+		
+		lateinit var reference: WeakReference<Any>
+		
+		KotlmataMutableMachine("M-015", logLevel) {
+			val resource = Any()
+			
+			"a" {
+				input signal 0 action {
+					reference = WeakReference(resource)
+					checklist["input"] = true
+				}
+				input signal 1 action {
+					checklist["input"] = false
+				}
+				on clear {
+					checklist["clear"] = true
+				}
+			}
+			
+			start at "a"
+		}.also { machine ->
+			machine.input(0)
+			machine {
+				checklist["update"] = true
+			}
+			System.gc()
+			if (reference.get() != null)
+			{
+				checklist["alive"] = true
+			}
+			
+			machine.release()
+			
+			machine.input(1)
+			machine {
+				checklist["update"] = false
+			}
+			System.gc()
+			if (reference.get() == null)
+			{
+				checklist["released"] = true
+			}
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
 	fun `D-001 데몬의 모든 유형의 생성이 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
@@ -1818,6 +1875,7 @@ class Tests
 		
 		val daemon = KotlmataDaemon("D-005", logLevel) {
 			val resource = Any()
+			
 			on create {
 				reference = WeakReference(resource)
 				create.countDown()

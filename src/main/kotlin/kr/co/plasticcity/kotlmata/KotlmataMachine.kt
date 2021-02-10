@@ -237,6 +237,9 @@ interface KotlmataMachine
 	}
 	
 	val name: String
+	val isReleased: Boolean
+	
+	fun release()
 	
 	@Suppress("UNCHECKED_CAST")
 	fun input(signal: SIGNAL, payload: Any? = null) = input(signal, signal::class as KClass<SIGNAL>, payload)
@@ -339,6 +342,7 @@ internal interface KotlmataInternalMachine : KotlmataMutableMachine
 	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any? = null, block: (FunctionDSL.Return) -> Unit)
 }
 
+private object Released
 private class TransitionDef(val callback: TransitionCallback, val fallback: TransitionFallback? = null, val finally: TransitionCallback? = null)
 private class Except(val exceptStates: List<STATE>?, val exceptSignals: List<SIGNAL>?, val to: STATE)
 {
@@ -363,6 +367,9 @@ private class KotlmataMachineImpl(
 	
 	private lateinit var currentTag: STATE
 	
+	override val isReleased: Boolean
+		get() = currentTag == Released
+	
 	init
 	{
 		try
@@ -375,6 +382,52 @@ private class KotlmataMachineImpl(
 		finally
 		{
 			logLevel.normal(prefix) { MACHINE_END }
+		}
+	}
+	
+	private inline fun ifReleased(block: () -> Unit)
+	{
+		if (currentTag == Released)
+		{
+			Log.w(prefix) { USING_RELEASED_MACHINE }
+			block()
+		}
+	}
+	
+	private inline fun runStateFunction(block: () -> Any?): Any?
+	{
+		return try
+		{
+			block()
+		}
+		catch (e: Throwable)
+		{
+			onError?.let { onError ->
+				ErrorActionReceiver(e).onError()
+			} ?: throw e
+		}
+	}
+	
+	override fun release()
+	{
+		if (currentTag != Released)
+		{
+			try
+			{
+				logLevel.normal(prefix) { MACHINE_RELEASE }
+				runStateFunction { stateMap[currentTag]?.clear() }
+			}
+			finally
+			{
+				stateMap.clear()
+				ruleMap.clear()
+				testerMap.clear()
+				onTransition = null
+				onError = null
+				currentTag = Released
+				logLevel.normal(prefix) { MACHINE_DONE }
+				logLevel.normal(prefix) { MACHINE_END }
+			}
 		}
 	}
 	
@@ -395,6 +448,8 @@ private class KotlmataMachineImpl(
 	
 	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, block: (FunctionDSL.Return) -> Unit)
 	{
+		ifReleased { return }
+		
 		val from = currentTag
 		val currentState = stateMap[currentTag] ?: Log.e(prefix.trimEnd(), currentTag, currentTag) { FAILED_TO_GET_STATE }
 		
@@ -419,20 +474,6 @@ private class KotlmataMachineImpl(
 				finally?.also { finally ->
 					TransitionActionReceiver(transitionCounter).finally(from, signal, to)
 				}
-			}
-		}
-		
-		fun runStateFunction(block: () -> Any?): Any?
-		{
-			return try
-			{
-				block()
-			}
-			catch (e: Throwable)
-			{
-				onError?.let { onError ->
-					ErrorActionReceiver(e).onError()
-				} ?: throw e
 			}
 		}
 		
@@ -503,6 +544,7 @@ private class KotlmataMachineImpl(
 			}?.also { nextState ->
 				val to = nextState.tag
 				runStateFunction { currentState.exit(signal, type, transitionCounter, payload, to) }
+				runStateFunction { currentState.clear() }
 				logLevel.simple(prefix, from, signal, to) {
 					if (logLevel >= NORMAL)
 						MACHINE_TRANSITION_TAB
@@ -532,6 +574,8 @@ private class KotlmataMachineImpl(
 	
 	override fun update(block: Update.() -> Unit)
 	{
+		ifReleased { return }
+		
 		try
 		{
 			logLevel.normal(prefix, currentTag) { MACHINE_UPDATE }
@@ -541,6 +585,7 @@ private class KotlmataMachineImpl(
 		}
 		finally
 		{
+			logLevel.normal(prefix) { MACHINE_DONE }
 			logLevel.normal(prefix) { MACHINE_END }
 		}
 	}

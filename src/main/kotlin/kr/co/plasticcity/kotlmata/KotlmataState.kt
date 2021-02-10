@@ -17,6 +17,7 @@ interface KotlmataState<T : STATE>
 		
 		interface On
 		{
+			infix fun clear(block: StateCallback)
 			infix fun error(block: StateFallback)
 		}
 	}
@@ -107,6 +108,7 @@ interface KotlmataState<T : STATE>
 	fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>, transitionCount: Long, payload: Any? = null): Any?
 	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, transitionCount: Long, payload: Any? = null): Any?
 	fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, transitionCount: Long, payload: Any? = null, to: STATE)
+	fun clear()
 }
 
 interface KotlmataMutableState<T : STATE> : KotlmataState<T>
@@ -171,6 +173,7 @@ private class KotlmataStateImpl<T : STATE>(
 	private var entryMap: MutableMap<SIGNAL, EntryDef>? = null
 	private var inputMap: MutableMap<SIGNAL, InputDef>? = null
 	private var exitMap: MutableMap<SIGNAL, ExitDef>? = null
+	private var onClear: StateCallback? = null
 	private var onError: StateFallback? = null
 	
 	private var entryTester: Tester? = null
@@ -304,6 +307,14 @@ private class KotlmataStateImpl<T : STATE>(
 					ExitActionReceiver(to, transitionCount, payload).finally(signal)
 				}
 			}
+		}
+	}
+	
+	override fun clear()
+	{
+		onClear?.also { onClear ->
+			logLevel.normal(prefix, tag) { STATE_ON_CLEAR }
+			ActionReceiver.onClear()
 		}
 	}
 	
@@ -861,6 +872,12 @@ private class KotlmataStateImpl<T : STATE>(
 		
 		override val on = object : Init.On
 		{
+			override fun clear(block: StateCallback)
+			{
+				this@UpdateImpl shouldNot expired
+				this@KotlmataStateImpl.onClear = block
+			}
+			
 			override fun error(block: StateFallback)
 			{
 				this@UpdateImpl shouldNot expired
