@@ -1,26 +1,39 @@
 @file:Suppress("NonAsciiCharacters")
 
 import kr.co.plasticcity.kotlmata.*
-import org.junit.Before
+import org.junit.After
+import org.junit.BeforeClass
 import org.junit.Test
 import java.lang.ref.WeakReference
 import java.util.concurrent.CountDownLatch
 
 class Tests
 {
-	private fun Map<String, Boolean>.verify() = forEach { (key, pass) ->
-		assert(pass) {
-			"\"$key\" failed"
+	companion object
+	{
+		const val logLevel = 3
+		
+		@BeforeClass
+		@JvmStatic
+		fun init()
+		{
+			KotlmataConfig {
+				print debug ::println
+				print warn ::println
+				print error ::error
+			}
 		}
 	}
 	
-	@Before
-	fun init()
+	@After
+	fun divider()
 	{
-		KotlmataConfig {
-			print debug ::println
-			print warn ::println
-			print error ::error
+		println("---------------------------------------------- end ----------------------------------------------")
+	}
+	
+	private fun Map<String, Boolean>.verify() = forEach { (key, pass) ->
+		assert(pass) {
+			"\"$key\" failed"
 		}
 	}
 	
@@ -47,7 +60,7 @@ class Tests
 			"entry range catch" to false,
 			"entry range final" to false
 		)
-		KotlmataMachine("S-001", 0) {
+		KotlmataMachine("S-001", logLevel) {
 			"state" {
 				entry action {
 					checklist["entry"] = true
@@ -137,7 +150,7 @@ class Tests
 			"input range catch" to false,
 			"input range final" to false
 		)
-		KotlmataMachine("S-002", 0) {
+		KotlmataMachine("S-002", logLevel) {
 			"state" {
 				input action {
 					checklist["input"] = true
@@ -227,7 +240,7 @@ class Tests
 			"exit range catch" to false,
 			"exit range final" to false
 		)
-		KotlmataMachine("S-003", 0) {
+		KotlmataMachine("S-003", logLevel) {
 			"state" {
 				exit action {
 					checklist["exit"] = true
@@ -313,7 +326,7 @@ class Tests
 			"finish" to false
 		)
 		
-		KotlmataMachine("S-004", 0) {
+		KotlmataMachine("S-004", logLevel) {
 			"input" {
 				input function {
 					checklist["input"] = true
@@ -395,7 +408,7 @@ class Tests
 			"input with" to false
 		)
 		
-		KotlmataMachine("S-005", 0) {
+		KotlmataMachine("S-005", logLevel) {
 			"state1" {
 				input signal Int::class function {
 					"10" `as` CharSequence::class
@@ -445,7 +458,7 @@ class Tests
 			"finish" to false
 		)
 		
-		KotlmataMachine("S-006", 0) {
+		KotlmataMachine("S-006", logLevel) {
 			"input" {
 				input action {
 					checklist["input"] = true
@@ -508,7 +521,7 @@ class Tests
 			"on error" to false
 		)
 		
-		KotlmataMachine("S-007", 0) {
+		KotlmataMachine("S-007", logLevel) {
 			"state" {
 				input action {
 					throw Exception()
@@ -537,7 +550,7 @@ class Tests
 		
 		val predicate = { s: Int -> s < 10 }
 		
-		KotlmataMutableMachine("S-008", 0) {
+		KotlmataMutableMachine("S-008", logLevel) {
 			"state" {
 				entry via predicate action {
 					checklist["entry"] = false
@@ -592,7 +605,7 @@ class Tests
 		
 		val predicate = { s: Int -> s in 0..1 }
 		
-		KotlmataMutableMachine("S-009", 0) {
+		KotlmataMutableMachine("S-009", logLevel) {
 			"state1" {
 				input action {
 					checklist["input"] = false
@@ -669,7 +682,7 @@ class Tests
 			"on error" to false
 		)
 		
-		KotlmataMachine("S-010", 0) {
+		KotlmataMachine("S-010", logLevel) {
 			val template: StateTemplate<STATE> = {
 				on error {
 					checklist["on error"] = true
@@ -699,7 +712,7 @@ class Tests
 			"prev state" to false
 		)
 		
-		KotlmataMachine("S-011", 0) {
+		KotlmataMachine("S-011", logLevel) {
 			"a" {
 				exit action {
 					checklist["next state"] = nextState == "b"
@@ -732,7 +745,7 @@ class Tests
 			"entry range" to false
 		)
 		
-		KotlmataMachine("M-001", 0) {
+		KotlmataMachine("M-001", logLevel) {
 			"a" {}
 			"b" function {
 				checklist["entry"] = true
@@ -786,7 +799,7 @@ class Tests
 			}
 		}
 		
-		val m1 = KotlmataMachine("M-002-1", 0) {
+		val m1 = KotlmataMachine("M-002-1", logLevel) {
 			"state" {
 				input action {
 					checklist["machine"] = true
@@ -794,10 +807,10 @@ class Tests
 			}
 			start at "state"
 		}
-		val m2 = KotlmataMachine("M-002-2", 0) extends template("machine extends") by {
+		val m2 = KotlmataMachine("M-002-2", logLevel) extends template("machine extends") by {
 			start at "state"
 		}
-		val m3 by KotlmataMachine.lazy("M-002-3", 0) {
+		val m3 by KotlmataMachine.lazy("M-002-3", logLevel) {
 			"state" {
 				input action {
 					checklist["machine lazy"] = true
@@ -805,10 +818,10 @@ class Tests
 			}
 			start at "state"
 		}
-		val m4 by KotlmataMachine.lazy("M-002-4", 0) extends template("machine lazy extends") by {
+		val m4 by KotlmataMachine.lazy("M-002-4", logLevel) extends template("machine lazy extends") by {
 			start at "state"
 		}
-		val m5 = KotlmataMutableMachine("M-002-5", 0) {
+		val m5 = KotlmataMutableMachine("M-002-5", logLevel) {
 			"state" {
 				input action {
 					checklist["mutable machine"] = true
@@ -816,10 +829,10 @@ class Tests
 			}
 			start at "state"
 		}
-		val m6 = KotlmataMutableMachine("M-002-6", 0) extends template("mutable machine extends") by {
+		val m6 = KotlmataMutableMachine("M-002-6", logLevel) extends template("mutable machine extends") by {
 			start at "state"
 		}
-		val m7 by KotlmataMutableMachine.lazy("M-002-7", 0) {
+		val m7 by KotlmataMutableMachine.lazy("M-002-7", logLevel) {
 			"state" {
 				input action {
 					checklist["mutable machine lazy"] = true
@@ -827,7 +840,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val m8 by KotlmataMutableMachine.lazy("M-002-8", 0) extends template("mutable machine lazy extends") by {
+		val m8 by KotlmataMutableMachine.lazy("M-002-8", logLevel) extends template("mutable machine lazy extends") by {
 			start at "state"
 		}
 		
@@ -852,7 +865,7 @@ class Tests
 			"on transition final" to false
 		)
 		
-		KotlmataMachine("M-003", 0) {
+		KotlmataMachine("M-003", logLevel) {
 			on transition { _, _, _ ->
 				checklist["on transition"] = true
 				throw Exception()
@@ -882,7 +895,7 @@ class Tests
 			"on error callback" to false
 		)
 		
-		KotlmataMachine("M-004", 0) {
+		KotlmataMachine("M-004", logLevel) {
 			on transition { _, _, _ ->
 				throw Exception("on error callback")
 			}
@@ -941,7 +954,7 @@ class Tests
 			"except x range" to false
 		)
 		
-		KotlmataMutableMachine("M-005", 0) {
+		KotlmataMutableMachine("M-005", logLevel) {
 			"0" {}
 			"1" action { checklist["state x signal"] = true }
 			"2" action { checklist["state x type"] = true }
@@ -1071,7 +1084,7 @@ class Tests
 			"except" to false
 		)
 		
-		KotlmataMachine("M-006", 0) {
+		KotlmataMachine("M-006", logLevel) {
 			
 			"a" {}
 			"b" {}
@@ -1154,7 +1167,7 @@ class Tests
 			"current is b" to false
 		)
 		
-		KotlmataMutableMachine("M-007", 0) {
+		KotlmataMutableMachine("M-007", logLevel) {
 			"a" {}
 			"b" {}
 			
@@ -1182,7 +1195,7 @@ class Tests
 			"none" to false
 		)
 		
-		KotlmataMutableMachine("M-008", 0) {
+		KotlmataMutableMachine("M-008", logLevel) {
 			"a" {}
 			start at "a"
 		}.also { machine ->
@@ -1203,7 +1216,7 @@ class Tests
 			"deleted" to false
 		)
 		
-		KotlmataMutableMachine("M-009", 0) {
+		KotlmataMutableMachine("M-009", logLevel) {
 			"a" {}
 			start at "a"
 		}.also { machine ->
@@ -1233,7 +1246,7 @@ class Tests
 		
 		val predicate = { s: Int -> s == 0 }
 		
-		KotlmataMutableMachine("M-010", 0) {
+		KotlmataMutableMachine("M-010", logLevel) {
 			"state" {}
 			
 			"state" x 0 %= self
@@ -1279,7 +1292,7 @@ class Tests
 		
 		val predicate = { s: Int -> s == 0 }
 		
-		KotlmataMutableMachine("M-011", 0) {
+		KotlmataMutableMachine("M-011", logLevel) {
 			val template: StateTemplate<String> = { state ->
 				entry action {
 					checklist[state] = false
@@ -1337,7 +1350,7 @@ class Tests
 			"entry signal type payload" to false
 		)
 		
-		KotlmataMachine("M-012", 0) {
+		KotlmataMachine("M-012", logLevel) {
 			"a" {
 				input signal "0" function {
 					"1"
@@ -1402,7 +1415,7 @@ class Tests
 			"stay" to true
 		)
 		
-		KotlmataMachine("M-013", 0) {
+		KotlmataMachine("M-013", logLevel) {
 			"a" {
 				input function {
 					stay
@@ -1431,7 +1444,7 @@ class Tests
 			"entry" to false
 		)
 		
-		KotlmataMachine("M-014", 0) {
+		KotlmataMachine("M-014", logLevel) {
 			"a" {
 				input action {
 					if (transitionCount == 0L)
@@ -1487,7 +1500,7 @@ class Tests
 			}
 		}
 		
-		val d1 = KotlmataDaemon("D-001-1", 0) {
+		val d1 = KotlmataDaemon("D-001-1", logLevel) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1496,13 +1509,13 @@ class Tests
 			}
 			start at "state"
 		}
-		val d2 = KotlmataDaemon("D-001-2", 0) extends template by {
+		val d2 = KotlmataDaemon("D-001-2", logLevel) extends template by {
 			"state" action {
 				checklist["daemon extends"] = true
 			}
 			start at "state"
 		}
-		val d3 by KotlmataDaemon.lazy("D-001-3", 0) {
+		val d3 by KotlmataDaemon.lazy("D-001-3", logLevel) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1511,13 +1524,13 @@ class Tests
 			}
 			start at "state"
 		}
-		val d4 by KotlmataDaemon.lazy("D-001-4", 0) extends template by {
+		val d4 by KotlmataDaemon.lazy("D-001-4", logLevel) extends template by {
 			"state" action {
 				checklist["daemon lazy extends"] = true
 			}
 			start at "state"
 		}
-		val d5 = KotlmataMutableDaemon("D-001-5", 0) {
+		val d5 = KotlmataMutableDaemon("D-001-5", logLevel) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1526,13 +1539,13 @@ class Tests
 			}
 			start at "state"
 		}
-		val d6 = KotlmataMutableDaemon("D-001-6", 0) extends template by {
+		val d6 = KotlmataMutableDaemon("D-001-6", logLevel) extends template by {
 			"state" action {
 				checklist["mutable daemon extends"] = true
 			}
 			start at "state"
 		}
-		val d7 by KotlmataMutableDaemon.lazy("D-001-7", 0) {
+		val d7 by KotlmataMutableDaemon.lazy("D-001-7", logLevel) {
 			on destroy {
 				latch.countDown()
 			}
@@ -1541,7 +1554,7 @@ class Tests
 			}
 			start at "state"
 		}
-		val d8 by KotlmataMutableDaemon.lazy("D-001-8", 0) extends template by {
+		val d8 by KotlmataMutableDaemon.lazy("D-001-8", logLevel) extends template by {
 			"state" action {
 				checklist["mutable daemon lazy extends"] = true
 			}
@@ -1601,7 +1614,7 @@ class Tests
 		
 		val latch = CountDownLatch(1)
 		
-		KotlmataDaemon("D-002", 0) {
+		KotlmataDaemon("D-002", logLevel) {
 			on create {
 				checklist["on create"] = true
 				throw Exception()
@@ -1703,7 +1716,7 @@ class Tests
 		
 		val latch = CountDownLatch(1)
 		
-		KotlmataDaemon("D-003", 0) { daemon ->
+		KotlmataDaemon("D-003", logLevel) { daemon ->
 			on destroy {
 				latch.countDown()
 			}
@@ -1745,7 +1758,7 @@ class Tests
 		
 		val latch = CountDownLatch(1)
 		
-		KotlmataDaemon("D-004", 0) { daemon ->
+		KotlmataDaemon("D-004", logLevel) { daemon ->
 			on destroy {
 				latch.countDown()
 			}
@@ -1796,7 +1809,7 @@ class Tests
 		
 		lateinit var reference: WeakReference<Any>
 		
-		val daemon = KotlmataDaemon("D-005", 0) {
+		val daemon = KotlmataDaemon("D-005", logLevel) {
 			val resource = Any()
 			on create {
 				reference = WeakReference(resource)
