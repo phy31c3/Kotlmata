@@ -63,9 +63,9 @@ internal class Logs
 		const val STATE_RUN_EXIT = "%s [%s] exit action"
 		const val STATE_RUN_EXIT_VIA = "%s [%s] exit via (%s) action"
 		const val STATE_RUN_EXIT_PREDICATE = "%s [%s] exit via predicate(or range) action"
-		const val STATE_NO_ENTRY = "%s [%s] no entry action for (%s)"
-		const val STATE_NO_INPUT = "%s [%s] no input action for (%s)"
-		const val STATE_NO_EXIT = "%s [%s] no exit action for (%s)"
+		const val STATE_NO_ENTRY = "%s [%s] no entry action"
+		const val STATE_NO_INPUT = "%s [%s] no input action"
+		const val STATE_NO_EXIT = "%s [%s] no exit action"
 		
 		/*########################## WARN ##########################*/
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. [%s] x (%s) -> [%s]"

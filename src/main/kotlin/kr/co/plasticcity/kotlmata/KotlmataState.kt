@@ -196,7 +196,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: entry?.also {
 			logLevel.normal(prefix, tag) { STATE_RUN_ENTRY }
 		} ?: null.also {
-			logLevel.normal(prefix, tag, signal) { STATE_NO_ENTRY }
+			logLevel.normal(prefix, tag) { STATE_NO_ENTRY }
 		}
 		
 		return entryDef?.run {
@@ -237,7 +237,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: null.also {
 			if (tag !== Initial_state_for_KotlmataDaemon)
 			{
-				logLevel.normal(prefix, tag, signal) { STATE_NO_INPUT }
+				logLevel.normal(prefix, tag) { STATE_NO_INPUT }
 			}
 		}
 		
@@ -279,7 +279,7 @@ private class KotlmataStateImpl<T : STATE>(
 		} ?: null.also {
 			if (tag !== Initial_state_for_KotlmataDaemon)
 			{
-				logLevel.normal(prefix, tag, signal) { STATE_NO_EXIT }
+				logLevel.normal(prefix, tag) { STATE_NO_EXIT }
 			}
 		}
 		
