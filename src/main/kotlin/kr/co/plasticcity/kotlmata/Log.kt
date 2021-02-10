@@ -53,6 +53,7 @@ internal class Logs
 		const val DAEMON_SET_ON_RESUME = "Daemon[%s]:%s     set(on: resume)"
 		const val DAEMON_SET_ON_FINISH = "Daemon[%s]:%s     set(on: finish)"
 		const val DAEMON_SET_ON_DESTROY = "Daemon[%s]:%s     set(on: destroy)"
+		const val DAEMON_SET_ON_FATAL = "Daemon[%s]:%s     set(on: fatal)"
 		const val DAEMON_START_REQUEST = "Daemon[%s]: %s(remain: %s) {"
 		const val DAEMON_END_REQUEST = "Daemon[%s]: }"
 		const val DAEMON_LIFECYCLE_CHANGED = "Daemon[%s]: lifecycle: %s -> %s"

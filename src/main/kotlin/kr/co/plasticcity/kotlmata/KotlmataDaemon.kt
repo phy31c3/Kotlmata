@@ -681,6 +681,13 @@ private class KotlmataDaemonImpl(
 				return setLifecycle(callback) { onDestroy = it }
 			}
 			
+			override fun fatal(block: MachineFallback)
+			{
+				this@InitImpl shouldNot expired
+				logLevel.normal(name, suffix) { DAEMON_SET_ON_FATAL }
+				onFatal = block
+			}
+			
 			override fun transition(callback: TransitionCallback): KotlmataMachine.Base.Catch
 			{
 				this@InitImpl shouldNot expired
@@ -714,12 +721,6 @@ private class KotlmataDaemonImpl(
 				this@InitImpl shouldNot expired
 				onError = block
 				init.on error block
-			}
-			
-			override fun fatal(block: MachineFallback)
-			{
-				this@InitImpl shouldNot expired
-				onFatal = block
 			}
 		}
 		
