@@ -214,7 +214,9 @@ internal class Tester
 	}
 }
 
-internal class Mutable2DMap<K1, K2, V>(private val map: MutableMap<K1, MutableMap<K2, V>> = HashMap()) : MutableMap<K1, MutableMap<K2, V>> by map
+internal class Mutable2DMap<K1, K2, V>(
+	private val map: MutableMap<K1, MutableMap<K2, V>> = HashMap()
+) : MutableMap<K1, MutableMap<K2, V>> by map
 {
 	operator fun get(key1: K1, key2: K2): V?
 	{

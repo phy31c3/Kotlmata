@@ -393,7 +393,7 @@ private class KotlmataMachineImpl(
 		}
 	}
 	
-	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, block: (FunctionDSL.Return) -> Unit) = try
+	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, block: (FunctionDSL.Return) -> Unit)
 	{
 		val from = currentTag
 		val currentState = stateMap[currentTag] ?: Log.e(prefix.trimEnd(), currentTag, currentTag) { FAILED_TO_GET_STATE }
@@ -463,63 +463,65 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		logLevel.normal(prefix, signal, payload) { MACHINE_INPUT }
-		runStateFunction {
-			currentState.input(signal, type, transitionCounter, payload)
-		}.also { inputReturn ->
-			if (inputReturn == stay)
-			{
-				return
-			}
-		}.convertToSync()?.also { sync ->
-			logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
-			block(sync)
-		} ?: run {
-			ruleMap[from]?.let { `from x` ->
-				`from x`[signal]
-					?: `from x`.predicate()
-					?: `from x`[type]
-					?: `from x`[any]?.filterExcept()
-			} ?: ruleMap[any]?.let { `any x` ->
-				`any x`[signal]?.filterExcept()
-					?: `any x`.predicateFilterExcept()
-					?: `any x`[type]?.filterExcept()
-					?: `any x`[any]?.filterExcept()
-			}
-		}?.let { to ->
-			when (to)
-			{
-				is stay -> null
-				is self -> currentState
-				in stateMap -> stateMap[to]
-				else ->
+		try
+		{
+			logLevel.normal(prefix, signal, payload) { MACHINE_INPUT }
+			runStateFunction {
+				currentState.input(signal, type, transitionCounter, payload)
+			}.also { inputReturn ->
+				if (inputReturn == stay)
 				{
-					Log.w(prefix.trimEnd(), from, signal, to) { TRANSITION_FAILED }
-					null
+					return
 				}
-			}
-		}?.also { nextState ->
-			val to = nextState.tag
-			runStateFunction { currentState.exit(signal, type, transitionCounter, payload, to) }
-			logLevel.simple(prefix, from, signal, to) {
-				if (logLevel >= NORMAL)
-					MACHINE_TRANSITION_TAB
-				else
-					MACHINE_TRANSITION
-			}
-			currentTag = to
-			++transitionCounter
-			onTransition?.call(to)
-			runStateFunction { nextState.entry(from, signal, type, transitionCounter, payload) }.convertToSync()?.also { sync ->
+			}.convertToSync()?.also { sync ->
 				logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 				block(sync)
+			} ?: run {
+				ruleMap[from]?.let { `from x` ->
+					`from x`[signal]
+						?: `from x`.predicate()
+						?: `from x`[type]
+						?: `from x`[any]?.filterExcept()
+				} ?: ruleMap[any]?.let { `any x` ->
+					`any x`[signal]?.filterExcept()
+						?: `any x`.predicateFilterExcept()
+						?: `any x`[type]?.filterExcept()
+						?: `any x`[any]?.filterExcept()
+				}
+			}?.let { to ->
+				when (to)
+				{
+					is stay -> null
+					is self -> currentState
+					in stateMap -> stateMap[to]
+					else ->
+					{
+						Log.w(prefix.trimEnd(), from, signal, to) { TRANSITION_FAILED }
+						null
+					}
+				}
+			}?.also { nextState ->
+				val to = nextState.tag
+				runStateFunction { currentState.exit(signal, type, transitionCounter, payload, to) }
+				logLevel.simple(prefix, from, signal, to) {
+					if (logLevel >= NORMAL)
+						MACHINE_TRANSITION_TAB
+					else
+						MACHINE_TRANSITION
+				}
+				currentTag = to
+				++transitionCounter
+				onTransition?.call(to)
+				runStateFunction { nextState.entry(from, signal, type, transitionCounter, payload) }.convertToSync()?.also { sync ->
+					logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
+					block(sync)
+				}
 			}
 		}
-		Unit
-	}
-	finally
-	{
-		logLevel.normal(prefix) { MACHINE_END }
+		finally
+		{
+			logLevel.normal(prefix) { MACHINE_END }
+		}
 	}
 	
 	@Suppress("OverridingDeprecatedMember")
@@ -528,16 +530,19 @@ private class KotlmataMachineImpl(
 		throw IllegalArgumentException("KClass<*> type cannot be used as input.")
 	}
 	
-	override fun update(block: Update.() -> Unit) = try
+	override fun update(block: Update.() -> Unit)
 	{
-		logLevel.normal(prefix, currentTag) { MACHINE_UPDATE }
-		UpdateImpl().use {
-			it.block()
+		try
+		{
+			logLevel.normal(prefix, currentTag) { MACHINE_UPDATE }
+			UpdateImpl().use {
+				it.block()
+			}
 		}
-	}
-	finally
-	{
-		logLevel.normal(prefix) { MACHINE_END }
+		finally
+		{
+			logLevel.normal(prefix) { MACHINE_END }
+		}
 	}
 	
 	override fun toString(): String
