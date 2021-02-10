@@ -365,11 +365,17 @@ private class KotlmataMachineImpl(
 	
 	init
 	{
-		logLevel.normal(prefix, name) { MACHINE_BUILD }
-		UpdateImpl().use {
-			it.block(this)
+		try
+		{
+			logLevel.normal(prefix, name) { MACHINE_BUILD }
+			UpdateImpl().use {
+				it.block(this)
+			}
 		}
-		logLevel.normal(prefix) { MACHINE_END }
+		finally
+		{
+			logLevel.normal(prefix) { MACHINE_END }
+		}
 	}
 	
 	@Suppress("UNCHECKED_CAST")
@@ -387,7 +393,7 @@ private class KotlmataMachineImpl(
 		}
 	}
 	
-	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, block: (FunctionDSL.Return) -> Unit)
+	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, block: (FunctionDSL.Return) -> Unit) = try
 	{
 		val from = currentTag
 		val currentState = stateMap[currentTag] ?: Log.e(prefix.trimEnd(), currentTag, currentTag) { FAILED_TO_GET_STATE }
@@ -463,7 +469,6 @@ private class KotlmataMachineImpl(
 		}.also { inputReturn ->
 			if (inputReturn == stay)
 			{
-				logLevel.normal(prefix) { MACHINE_END }
 				return
 			}
 		}.convertToSync()?.also { sync ->
@@ -510,6 +515,10 @@ private class KotlmataMachineImpl(
 				block(sync)
 			}
 		}
+		Unit
+	}
+	finally
+	{
 		logLevel.normal(prefix) { MACHINE_END }
 	}
 	
@@ -519,12 +528,15 @@ private class KotlmataMachineImpl(
 		throw IllegalArgumentException("KClass<*> type cannot be used as input.")
 	}
 	
-	override fun update(block: Update.() -> Unit)
+	override fun update(block: Update.() -> Unit) = try
 	{
 		logLevel.normal(prefix, currentTag) { MACHINE_UPDATE }
 		UpdateImpl().use {
 			it.block()
 		}
+	}
+	finally
+	{
 		logLevel.normal(prefix) { MACHINE_END }
 	}
 	

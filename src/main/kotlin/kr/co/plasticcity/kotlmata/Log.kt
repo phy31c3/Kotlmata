@@ -7,6 +7,40 @@ internal class Logs
 	companion object
 	{
 		/*########################## DEBUG ##########################*/
+		
+		/* State */
+		const val STATE_RUN_ENTRY = "%s [%s] entry action"
+		const val STATE_RUN_ENTRY_VIA = "%s [%s] entry via (%s) action"
+		const val STATE_RUN_ENTRY_PREDICATE = "%s [%s] entry via predicate(or range) action"
+		const val STATE_RUN_INPUT = "%s [%s] input action"
+		const val STATE_RUN_INPUT_SIGNAL = "%s [%s] input signal (%s) action"
+		const val STATE_RUN_INPUT_PREDICATE = "%s [%s] input signal predicate(or range) action"
+		const val STATE_RUN_EXIT = "%s [%s] exit action"
+		const val STATE_RUN_EXIT_VIA = "%s [%s] exit via (%s) action"
+		const val STATE_RUN_EXIT_PREDICATE = "%s [%s] exit via predicate(or range) action"
+		const val STATE_NO_ENTRY = "%s [%s] no entry action"
+		const val STATE_NO_INPUT = "%s [%s] no input action"
+		const val STATE_NO_EXIT = "%s [%s] no exit action"
+		
+		/* Machine */
+		const val MACHINE_BUILD = "%s machine(name: %s) {"
+		const val MACHINE_SET_ON_TRANSITION = "%s     set(on: transition)"
+		const val MACHINE_SET_ON_ERROR = "%s     set(on: error)"
+		const val MACHINE_UPDATE = "%s update(state: [%s]) {"
+		const val MACHINE_ADD_STATE = "%s     add(state: [%s])"
+		const val MACHINE_UPDATE_STATE = "%s     update(state: [%s])"
+		const val MACHINE_DELETE_STATE = "%s     delete(state: [%s])"
+		const val MACHINE_DELETE_STATE_ALL = "%s     delete(state: all)"
+		const val MACHINE_ADD_RULE = "%s     add(rule: [%s] x (%s) -> [%s])"
+		const val MACHINE_DELETE_RULE = "%s     delete(rule: [%s] x (%s))"
+		const val MACHINE_DELETE_RULE_ALL = "%s     delete(rule: all)"
+		const val MACHINE_INPUT = "%s input(signal: (%s), payload: %s) {"
+		const val MACHINE_TRANSITION = "%s [%s] x (%s) -> [%s]"
+		const val MACHINE_TRANSITION_TAB = "%s     [%s] x (%s) -> [%s]"
+		const val MACHINE_RETURN_SYNC_INPUT = "%s     return(signal: (%s), type: %s, payload: %s)"
+		const val MACHINE_START_AT = "%s     start at [%s]"
+		const val MACHINE_END = "%s }"
+		
 		/* Daemon */
 		const val DAEMON_START_THREAD = "Daemon[%s]: Daemon thread is started. (name = %s, isDaemon = %s)"
 		const val DAEMON_TERMINATE_THREAD = "Daemon[%s]: Daemon thread terminate. (name = %s, isDaemon = %s)"
@@ -33,39 +67,6 @@ internal class Logs
 		const val DAEMON_ON_DESTROY = "Daemon[%s]: onDestroy()"
 		const val DAEMON_KEEP_REQUEST = "Daemon[%s]:     kept"
 		const val DAEMON_IGNORE_REQUEST = "Daemon[%s]:     ignored"
-		
-		/* Machine */
-		const val MACHINE_BUILD = "%s machine(name: %s) {"
-		const val MACHINE_SET_ON_TRANSITION = "%s     set(on: transition)"
-		const val MACHINE_SET_ON_ERROR = "%s     set(on: error)"
-		const val MACHINE_UPDATE = "%s update(state: [%s]) {"
-		const val MACHINE_ADD_STATE = "%s     add(state: [%s])"
-		const val MACHINE_UPDATE_STATE = "%s     update(state: [%s])"
-		const val MACHINE_DELETE_STATE = "%s     delete(state: [%s])"
-		const val MACHINE_DELETE_STATE_ALL = "%s     delete(state: all)"
-		const val MACHINE_ADD_RULE = "%s     add(rule: [%s] x (%s) -> [%s])"
-		const val MACHINE_DELETE_RULE = "%s     delete(rule: [%s] x (%s))"
-		const val MACHINE_DELETE_RULE_ALL = "%s     delete(rule: all)"
-		const val MACHINE_INPUT = "%s input(signal: (%s), payload: %s) {"
-		const val MACHINE_TRANSITION = "%s [%s] x (%s) -> [%s]"
-		const val MACHINE_TRANSITION_TAB = "%s     [%s] x (%s) -> [%s]"
-		const val MACHINE_RETURN_SYNC_INPUT = "%s     return(signal: (%s), type: %s, payload: %s)"
-		const val MACHINE_START_AT = "%s     start at [%s]"
-		const val MACHINE_END = "%s }"
-		
-		/* State */
-		const val STATE_RUN_ENTRY = "%s [%s] entry action"
-		const val STATE_RUN_ENTRY_VIA = "%s [%s] entry via (%s) action"
-		const val STATE_RUN_ENTRY_PREDICATE = "%s [%s] entry via predicate(or range) action"
-		const val STATE_RUN_INPUT = "%s [%s] input action"
-		const val STATE_RUN_INPUT_SIGNAL = "%s [%s] input signal (%s) action"
-		const val STATE_RUN_INPUT_PREDICATE = "%s [%s] input signal predicate(or range) action"
-		const val STATE_RUN_EXIT = "%s [%s] exit action"
-		const val STATE_RUN_EXIT_VIA = "%s [%s] exit via (%s) action"
-		const val STATE_RUN_EXIT_PREDICATE = "%s [%s] exit via predicate(or range) action"
-		const val STATE_NO_ENTRY = "%s [%s] no entry action"
-		const val STATE_NO_INPUT = "%s [%s] no input action"
-		const val STATE_NO_EXIT = "%s [%s] no exit action"
 		
 		/*########################## WARN ##########################*/
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. [%s] x (%s) -> [%s]"
