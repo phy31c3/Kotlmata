@@ -72,6 +72,7 @@ internal class Logs
 		/*########################## WARN ##########################*/
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. [%s] x (%s) -> [%s]"
 		const val DAEMON_INTERRUPTED = "Daemon[%s]: Daemon thread is unexpectedly interrupted."
+		const val DAEMON_UNHANDLED_ERROR = "Daemon[%s]: An unhandled error occurred. (%s)"
 		
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_OBJECT = "%s Use of expired object: The object is only available inside the 'init' or 'update' block."

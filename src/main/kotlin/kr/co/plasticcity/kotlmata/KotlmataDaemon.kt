@@ -530,6 +530,7 @@ private class KotlmataDaemonImpl(
 			{
 				try
 				{
+					Log.w(name, e) { DAEMON_UNHANDLED_ERROR }
 					onFatal?.also { onFatal ->
 						ErrorActionReceiver(e).onFatal()
 					} ?: throw e

@@ -9,7 +9,7 @@ import java.util.concurrent.CountDownLatch
 
 class Tests
 {
-	private val logLevel = 2
+	private val logLevel = 3
 	
 	companion object
 	{
@@ -18,9 +18,9 @@ class Tests
 		fun init()
 		{
 			KotlmataConfig {
-				print debug ::println
-				print warn ::println
-				print error ::error
+				print debug System.out::println
+				print warn System.err::println
+				print error System.err::println
 			}
 		}
 	}
@@ -1848,6 +1848,291 @@ class Tests
 		{
 			checklist["clear"] = true
 		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `D-006 데몬 초기화 도중 에러 발생 시 처리가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on create" to true,
+			"on destroy" to true,
+			"on error" to true,
+			"on fatal" to false,
+		)
+		
+		val latch = CountDownLatch(1)
+		
+		KotlmataDaemon("D-006", logLevel) {
+			on create {
+				checklist["on create"] = false
+			}
+			on destroy {
+				checklist["on destroy"] = false
+			}
+			on error {
+				checklist["on error"] = false
+			}
+			on fatal {
+				checklist["on fatal"] = true
+				latch.countDown()
+			}
+			
+			throw Exception("D-006 데몬 초기화 도중 예외 발생")
+		}.also { daemon ->
+			daemon.run()
+		}
+		
+		latch.await()
+		Thread.sleep(10)
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `D-007 데몬 'on create'에서 에러 발생 시 처리가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on create" to false,
+			"on start" to true,
+			"on finish" to true,
+			"on destroy" to false,
+			"on fatal" to false
+		)
+		
+		val latch = CountDownLatch(1)
+		
+		KotlmataDaemon("D-007", logLevel) {
+			on create {
+				checklist["on create"] = true
+				throw Exception("D-007 on create 예외 발생")
+			}
+			on start {
+				checklist["on start"] = false
+			}
+			on finish {
+				checklist["on finish"] = false
+			}
+			on destroy {
+				checklist["on destroy"] = true
+				latch.countDown()
+			}
+			on fatal {
+				checklist["on fatal"] = true
+			}
+			
+			"a" { /* empty */ }
+			
+			start at "a"
+		}.also { daemon ->
+			daemon.run()
+		}
+		
+		latch.await()
+		Thread.sleep(1)
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `D-008 데몬 'on start'에서 에러 발생 시 처리가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on create" to false,
+			"on start" to false,
+			"on finish" to true,
+			"on destroy" to false,
+			"on fatal" to false
+		)
+		
+		val latch = CountDownLatch(1)
+		
+		KotlmataDaemon("D-008", logLevel) {
+			on create {
+				checklist["on create"] = true
+			}
+			on start {
+				checklist["on start"] = true
+				throw Exception("D-008 on start 예외 발생")
+			}
+			on finish {
+				checklist["on finish"] = false
+			}
+			on destroy {
+				checklist["on destroy"] = true
+				latch.countDown()
+			}
+			on fatal {
+				checklist["on fatal"] = true
+			}
+			
+			"a" { /* empty */ }
+			
+			start at "a"
+		}.also { daemon ->
+			daemon.run()
+		}
+		
+		latch.await()
+		Thread.sleep(1)
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `D-009 데몬 'on finish'에서 에러 발생 시 처리가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on create" to false,
+			"on start" to false,
+			"on finish" to false,
+			"on destroy" to false,
+			"on fatal" to false
+		)
+		
+		val latch = CountDownLatch(1)
+		
+		KotlmataDaemon("D-009", logLevel) {
+			on create {
+				checklist["on create"] = true
+			}
+			on start {
+				checklist["on start"] = true
+			}
+			on finish {
+				checklist["on finish"] = true
+				throw Exception("D-009 on finish 예외 발생")
+			}
+			on destroy {
+				checklist["on destroy"] = true
+				latch.countDown()
+			}
+			on fatal {
+				checklist["on fatal"] = true
+			}
+			
+			"a" { /* empty */ }
+			
+			start at "a"
+		}.also { daemon ->
+			daemon.run()
+			daemon.terminate()
+		}
+		
+		latch.await()
+		Thread.sleep(1)
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `D-010 데몬의 상태동작에서 에러 발생 시 처리가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on create" to false,
+			"on start" to false,
+			"on finish" to false,
+			"on destroy" to false,
+			"on fatal" to false
+		)
+		
+		val latch = CountDownLatch(1)
+		
+		KotlmataDaemon("D-010", logLevel) {
+			on create {
+				checklist["on create"] = true
+			}
+			on start {
+				checklist["on start"] = true
+			}
+			on finish {
+				checklist["on finish"] = true
+			}
+			on destroy {
+				checklist["on destroy"] = true
+				latch.countDown()
+			}
+			on fatal {
+				checklist["on fatal"] = true
+			}
+			
+			"a" {
+				input action {
+					throw Exception("D-010 상태동작에서 예외 발생")
+				}
+			}
+			"b" { /* empty */ }
+			
+			"a" x any %= "b"
+			
+			start at "a"
+		}.also { daemon ->
+			daemon.run()
+			daemon.input(0)
+		}
+		
+		latch.await()
+		Thread.sleep(1)
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `D-011 데몬 인터럽트 시 처리가 잘 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on create" to false,
+			"on start" to false,
+			"on finish" to false,
+			"on destroy" to false,
+			"on fatal" to true
+		)
+		
+		val started = CountDownLatch(1)
+		val destroy = CountDownLatch(1)
+		
+		lateinit var thread: Thread
+		
+		KotlmataDaemon("D-011", logLevel) {
+			thread = Thread.currentThread()
+			
+			on create {
+				checklist["on create"] = true
+			}
+			on start {
+				checklist["on start"] = true
+				started.countDown()
+			}
+			on finish {
+				checklist["on finish"] = true
+			}
+			on destroy {
+				checklist["on destroy"] = true
+				destroy.countDown()
+			}
+			on fatal {
+				checklist["on fatal"] = false
+			}
+			
+			"a" { /* empty */ }
+			
+			start at "a"
+		}.also { daemon ->
+			daemon.run()
+			daemon.input(0)
+			daemon.input(1)
+			daemon.input(2)
+			daemon.input(3)
+		}
+		
+		started.await()
+		Thread.sleep(2)
+		
+		thread.interrupt()
+		
+		destroy.await()
+		Thread.sleep(1)
 		
 		checklist.verify()
 	}
