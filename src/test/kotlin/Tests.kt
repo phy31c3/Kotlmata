@@ -1580,6 +1580,7 @@ class Tests
 		d8.terminate()
 		
 		latch.await()
+		Thread.sleep(1)
 		
 		checklist.verify()
 	}
@@ -1703,6 +1704,8 @@ class Tests
 		}
 		
 		latch.await()
+		Thread.sleep(1)
+		
 		checklist.verify()
 	}
 	
@@ -1743,6 +1746,8 @@ class Tests
 		}
 		
 		latch.await()
+		Thread.sleep(1)
+		
 		checklist.verify()
 	}
 	
@@ -1793,6 +1798,8 @@ class Tests
 		}
 		
 		latch.await()
+		Thread.sleep(1)
+		
 		checklist.verify()
 	}
 	
@@ -1832,7 +1839,9 @@ class Tests
 		}
 		
 		daemon.terminate()
+		
 		destroy.await()
+		Thread.sleep(1)
 		
 		System.gc()
 		if (reference.get() == null)
