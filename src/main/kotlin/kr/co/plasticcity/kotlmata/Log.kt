@@ -43,7 +43,7 @@ internal class Logs
 		
 		/* Daemon */
 		const val DAEMON_START_THREAD = "Daemon[%s]: Daemon thread is started. (name = %s, isDaemon = %s)"
-		const val DAEMON_TERMINATE_THREAD = "Daemon[%s]: Daemon thread terminate. (name = %s, isDaemon = %s)"
+		const val DAEMON_TERMINATE_THREAD = "Daemon[%s]: Daemon thread is terminated. (name = %s, isDaemon = %s)"
 		const val DAEMON_START_CREATE = "Daemon[%s]: daemon(name: %s) {"
 		const val DAEMON_END_CREATE = "Daemon[%s]: }"
 		const val DAEMON_SET_ON_CREATE = "Daemon[%s]:%s     set(on: create)"

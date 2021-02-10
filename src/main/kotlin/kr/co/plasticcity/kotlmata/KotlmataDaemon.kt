@@ -3,6 +3,7 @@ package kr.co.plasticcity.kotlmata
 import kr.co.plasticcity.kotlmata.KotlmataDaemon.Base
 import kr.co.plasticcity.kotlmata.KotlmataDaemon.Init
 import kr.co.plasticcity.kotlmata.KotlmataDaemonImpl.Request.*
+import kr.co.plasticcity.kotlmata.KotlmataDaemonImpl.Request.Terminate.Type.*
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
 import kr.co.plasticcity.kotlmata.Log.detail
@@ -291,7 +292,7 @@ private class KotlmataDaemonImpl(
 					when (to as String)
 					{
 						"Created", "Terminated", "Destroyed" ->
-							if (signal is Terminate && signal.isExplicit)
+							if (signal is Terminate && signal.type == EXPLICIT)
 								DAEMON_LIFECYCLE_CHANGED_TAB
 							else
 								DAEMON_LIFECYCLE_CHANGED
@@ -423,7 +424,12 @@ private class KotlmataDaemonImpl(
 			}
 			"Terminated" {
 				entry via Terminate::class action { terminateR ->
-					if (terminateR.isInterrupted)
+					isTerminated = true
+					if (terminateR.type == EXPLICIT)
+					{
+						Thread.currentThread().interrupt()
+					}
+					else if (terminateR.type == INTERRUPTED)
 					{
 						Log.w(name) { DAEMON_INTERRUPTED }
 					}
@@ -432,19 +438,13 @@ private class KotlmataDaemonImpl(
 						"Running", "Paused", "Stopped" ->
 						{
 							logLevel.simple(name, terminateR.payload) {
-								if (logLevel >= DETAIL && terminateR.isExplicit)
+								if (logLevel >= DETAIL && terminateR.type == EXPLICIT)
 									DAEMON_ON_FINISH_TAB
 								else
 									DAEMON_ON_FINISH
 							}
 							onFinish?.call(terminateR.payload)
 						}
-					}
-				} finally { terminateR ->
-					isTerminated = true
-					if (terminateR.isExplicit)
-					{
-						Thread.currentThread().interrupt()
 					}
 				}
 			}
@@ -524,7 +524,7 @@ private class KotlmataDaemonImpl(
 			}
 			catch (e: InterruptedException)
 			{
-				core.input(Terminate(null, isExplicit = false, isInterrupted = true))
+				core.input(Terminate(null, INTERRUPTED))
 			}
 			catch (e: Throwable)
 			{
@@ -536,7 +536,7 @@ private class KotlmataDaemonImpl(
 				}
 				finally
 				{
-					core.input(Terminate(null, isExplicit = false, isInterrupted = false))
+					core.input(Terminate(null, ERROR))
 				}
 			}
 			finally
@@ -566,7 +566,7 @@ private class KotlmataDaemonImpl(
 	
 	override fun terminate(payload: Any?)
 	{
-		val terminateR = Terminate(payload)
+		val terminateR = Terminate(payload, EXPLICIT)
 		queue?.offer(terminateR)
 	}
 	
@@ -753,7 +753,15 @@ private class KotlmataDaemonImpl(
 		class Run(payload: Any?) : Control(payload, "run")
 		class Pause(payload: Any?) : Control(payload, "pause")
 		class Stop(payload: Any?) : Control(payload, "stop")
-		class Terminate(payload: Any?, val isExplicit: Boolean = true, val isInterrupted: Boolean = false) : Control(payload, "terminate")
+		class Terminate(payload: Any?, val type: Type) : Control(payload, "terminate")
+		{
+			enum class Type
+			{
+				EXPLICIT,
+				INTERRUPTED,
+				ERROR
+			}
+		}
 		
 		class Update(val block: KotlmataMutableMachine.Update.() -> Unit) : Request(UPDATE, "update")
 		
