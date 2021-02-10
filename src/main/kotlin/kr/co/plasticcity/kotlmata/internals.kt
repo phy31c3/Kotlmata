@@ -1,4 +1,4 @@
-@file:Suppress("FunctionName")
+@file:Suppress("FunctionName", "ClassName")
 
 package kr.co.plasticcity.kotlmata
 
@@ -77,13 +77,11 @@ internal class PayloadErrorActionReceiver(
 	override val throwable: Throwable
 ) : PayloadErrorActionDSL
 
-@Suppress("ClassName")
 internal object Initial_state_for_KotlmataDaemon
 {
 	override fun toString(): String = this::class.java.simpleName
 }
 
-@Suppress("ClassName")
 internal object Start_KotlmataDaemon
 {
 	override fun toString(): String = this::class.java.simpleName

@@ -302,7 +302,17 @@ private class KotlmataDaemonImpl(
 			}
 			
 			"Nil" {
-				/* nothing */
+				input signal Create action {
+					logLevel.detail(name, name) { DAEMON_START_CREATE }
+					machine = KotlmataMutableMachine.create(name, logLevel, "Daemon[$name]:$suffix") {
+						Initial_state_for_KotlmataDaemon { /* for creating state */ }
+						val init = InitImpl(block, this)
+						Initial_state_for_KotlmataDaemon x any %= init.startAt
+						start at Initial_state_for_KotlmataDaemon
+					} as KotlmataInternalMachine
+				} finally {
+					logLevel.detail(name) { DAEMON_END_CREATE }
+				}
 			}
 			"Created" {
 				val onStart: InputAction<Control> = { controlR ->
@@ -312,15 +322,6 @@ private class KotlmataDaemonImpl(
 				}
 				
 				entry action {
-					logLevel.detail(name, name) { DAEMON_START_CREATE }
-					machine = KotlmataMutableMachine.create(name, logLevel, "Daemon[$name]:$suffix") {
-						Initial_state_for_KotlmataDaemon { /* for creating state */ }
-						val init = InitImpl(block, this)
-						Initial_state_for_KotlmataDaemon x any %= init.startAt
-						start at Initial_state_for_KotlmataDaemon
-					} as KotlmataInternalMachine
-					logLevel.detail(name) { DAEMON_END_CREATE }
-				} finally {
 					logLevel.simple(name) { DAEMON_ON_CREATE }
 					onCreate?.call()
 				}
@@ -447,8 +448,6 @@ private class KotlmataDaemonImpl(
 			}
 			"Destroyed" {
 				entry action {
-					logLevel.simple(name) { DAEMON_ON_DESTROY }
-					queue = null
 					onCreate = null
 					onStart = null
 					onPause = null
@@ -457,14 +456,20 @@ private class KotlmataDaemonImpl(
 					onFinish = null
 					onError = null
 					onFatal = null
-					onDestroy?.call()
+					queue = null
+					isTerminated = true
+					if (prevState == "Terminated")
+					{
+						logLevel.simple(name) { DAEMON_ON_DESTROY }
+						onDestroy?.call()
+					}
 				} finally {
 					onDestroy = null
 					logLevel.simple(name, threadName, isDaemon) { DAEMON_TERMINATE_THREAD }
 				}
 			}
 			
-			"Nil" x "create" %= "Created"
+			"Nil" x Create %= "Created"
 			
 			"Created" x Run::class %= "Running"
 			"Created" x Pause::class %= "Paused"
@@ -480,8 +485,7 @@ private class KotlmataDaemonImpl(
 			"Stopped" x Pause::class %= "Paused"
 			
 			any("Nil", "Terminated", "Destroyed") x Terminate::class %= "Terminated"
-			
-			"Terminated" x "destroy" %= "Destroyed"
+			("Nil" AND "Terminated") x Destroy %= "Destroyed"
 			
 			start at "Nil"
 		}
@@ -495,7 +499,7 @@ private class KotlmataDaemonImpl(
 			try
 			{
 				logLevel.simple(name, threadName, isDaemon) { DAEMON_START_THREAD }
-				core.input("create")
+				core.input(Create)
 				while (true)
 				{
 					queue.take().also { request ->
@@ -535,7 +539,7 @@ private class KotlmataDaemonImpl(
 			}
 			finally
 			{
-				core.input("destroy")
+				core.input(Destroy)
 			}
 		}
 	}
@@ -738,6 +742,9 @@ private class KotlmataDaemonImpl(
 			expire()
 		}
 	}
+	
+	private object Create
+	private object Destroy
 	
 	private sealed class Request(val priority: Int, val desc: String) : Comparable<Request>
 	{
