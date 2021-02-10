@@ -173,25 +173,25 @@ interface KotlmataMachine
 		infix fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean): RuleAssignable
 		infix fun <T> AnyExcept.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(signal: SIGNAL)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(signal: KClass<out SIGNAL>)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(signals: Signals<*>)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(any: any)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(anyExcept: AnyExcept)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun <T : SIGNAL> Signals<*>.x(predicate: (T) -> Boolean)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun <T> Signals<*>.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T>
 		
 		/**
@@ -1021,43 +1021,43 @@ private class KotlmataMachineImpl(
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(signal: SIGNAL)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(signal: KClass<out SIGNAL>)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(signals: Signals<*>)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(any: any)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(anyExcept: AnyExcept)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun <T : SIGNAL> Signals<*>.x(predicate: (T) -> Boolean)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun <T> Signals<*>.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T>
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		/*###################################################################################################################################
