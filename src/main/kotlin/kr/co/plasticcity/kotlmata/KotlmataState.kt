@@ -179,7 +179,9 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	init
 	{
-		UpdateImpl(block)
+		UpdateImpl().use {
+			it.block(tag)
+		}
 	}
 	
 	override fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>, transitionCount: Long, payload: Any?): Any?
@@ -307,7 +309,9 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	override fun update(block: Update.(T) -> Unit)
 	{
-		UpdateImpl(block)
+		UpdateImpl().use {
+			it.block(tag)
+		}
 	}
 	
 	override fun toString(): String
@@ -315,9 +319,7 @@ private class KotlmataStateImpl<T : STATE>(
 		return "KotlmataState[$tag]{${hashCode().toString(16)}}"
 	}
 	
-	private inner class UpdateImpl(
-		block: Update.(T) -> Unit
-	) : Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
+	private inner class UpdateImpl : Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
 	{
 		private val entryMap: MutableMap<SIGNAL, EntryDef>
 			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, EntryDef>().also {
@@ -1007,12 +1009,6 @@ private class KotlmataStateImpl<T : STATE>(
 				this@KotlmataStateImpl.inputTester = null
 				this@KotlmataStateImpl.exitTester = null
 			}
-		}
-		
-		init
-		{
-			block(tag)
-			expire()
 		}
 	}
 }

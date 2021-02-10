@@ -366,7 +366,9 @@ private class KotlmataMachineImpl(
 	init
 	{
 		logLevel.normal(prefix, name) { MACHINE_BUILD }
-		UpdateImpl(init = block)
+		UpdateImpl().use {
+			it.block(this)
+		}
 		logLevel.normal(prefix) { MACHINE_END }
 	}
 	
@@ -520,7 +522,9 @@ private class KotlmataMachineImpl(
 	override fun update(block: Update.() -> Unit)
 	{
 		logLevel.normal(prefix, currentTag) { MACHINE_UPDATE }
-		UpdateImpl(update = block)
+		UpdateImpl().use {
+			it.block()
+		}
 		logLevel.normal(prefix) { MACHINE_END }
 	}
 	
@@ -529,10 +533,7 @@ private class KotlmataMachineImpl(
 		return "KotlmataMachine[$name]{${hashCode().toString(16)}}"
 	}
 	
-	private inner class UpdateImpl(
-		init: (MachineDefine)? = null,
-		update: (Update.() -> Unit)? = null
-	) : Init, Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
+	private inner class UpdateImpl : Init, Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
 	{
 		override val on = object : Base.On
 		{
@@ -1176,12 +1177,6 @@ private class KotlmataMachineImpl(
 				testerMap.clear()
 				logLevel.normal(prefix) { MACHINE_DELETE_RULE_ALL }
 			}
-		}
-		
-		init
-		{
-			init?.also { it(this@KotlmataMachineImpl) } ?: update?.also { it() }
-			expire()
 		}
 	}
 }

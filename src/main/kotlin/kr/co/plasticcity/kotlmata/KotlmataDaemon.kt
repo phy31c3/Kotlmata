@@ -305,9 +305,11 @@ private class KotlmataDaemonImpl(
 				input signal Create action {
 					logLevel.detail(name, name) { DAEMON_START_CREATE }
 					machine = KotlmataMutableMachine.create(name, logLevel, "Daemon[$name]:$suffix") {
-						Initial_state_for_KotlmataDaemon { /* for creating state */ }
-						val init = InitImpl(block, this)
-						Initial_state_for_KotlmataDaemon x any %= init.startAt
+						Initial_state_for_KotlmataDaemon { /* empty */ }
+						InitImpl(this).use {
+							it.block(this@KotlmataDaemonImpl)
+							Initial_state_for_KotlmataDaemon x any %= it.startState
+						}
 						start at Initial_state_for_KotlmataDaemon
 					} as KotlmataInternalMachine
 				} finally {
@@ -430,7 +432,7 @@ private class KotlmataDaemonImpl(
 						"Running", "Paused", "Stopped" ->
 						{
 							logLevel.simple(name, terminateR.payload) {
-								if (terminateR.isExplicit)
+								if (logLevel >= DETAIL && terminateR.isExplicit)
 									DAEMON_ON_FINISH_TAB
 								else
 									DAEMON_ON_FINISH
@@ -600,11 +602,10 @@ private class KotlmataDaemonImpl(
 	}
 	
 	private inner class InitImpl(
-		block: DaemonDefine,
 		init: KotlmataMachine.Init
 	) : Init, KotlmataMachine.Init by init, Expirable({ Log.e("Daemon[$name]:") { EXPIRED_OBJECT } })
 	{
-		lateinit var startAt: STATE
+		lateinit var startState: STATE
 		
 		override val on = object : Base.On
 		{
@@ -731,15 +732,9 @@ private class KotlmataDaemonImpl(
 				/* For checking undefined initial state. */
 				init.start at state
 				
-				startAt = state
+				startState = state
 				return KotlmataMachine.Init.End()
 			}
-		}
-		
-		init
-		{
-			block(this@KotlmataDaemonImpl)
-			expire()
 		}
 	}
 	

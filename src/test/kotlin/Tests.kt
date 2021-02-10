@@ -9,10 +9,10 @@ import java.util.concurrent.CountDownLatch
 
 class Tests
 {
+	private val logLevel = 2
+	
 	companion object
 	{
-		const val logLevel = 3
-		
 		@BeforeClass
 		@JvmStatic
 		fun init()

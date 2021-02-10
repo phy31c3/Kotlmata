@@ -2,6 +2,7 @@
 
 package kr.co.plasticcity.kotlmata
 
+import java.io.Closeable
 import kotlin.reflect.KClass
 
 @DslMarker
@@ -127,7 +128,7 @@ internal object SignalsDefinableImpl : SignalsDefinable
 	}
 }
 
-internal open class Expirable internal constructor(private val block: () -> Nothing)
+internal open class Expirable internal constructor(private val block: () -> Nothing) : Closeable
 {
 	@Volatile
 	private var expire = false
@@ -160,7 +161,7 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 		infix fun then(block: () -> Unit)
 	}
 	
-	protected fun expire()
+	override fun close()
 	{
 		expire = true
 	}
