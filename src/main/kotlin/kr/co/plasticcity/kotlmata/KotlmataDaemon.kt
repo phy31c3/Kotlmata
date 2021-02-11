@@ -314,7 +314,7 @@ private class KotlmataDaemonImpl(
 						start at Initial_state_for_KotlmataDaemon
 					} as KotlmataInternalMachine
 				} finally {
-					logLevel.detail(name) { DAEMON_END_CREATE }
+					logLevel.detail(name) { DAEMON_END }
 				}
 			}
 			"Created" {
@@ -429,21 +429,37 @@ private class KotlmataDaemonImpl(
 					{
 						Thread.currentThread().interrupt()
 					}
-					else if (terminateR.type == INTERRUPTED)
+					else
 					{
-						Log.w(name) { DAEMON_INTERRUPTED }
+						Log.w(name, terminateR.type) { DAEMON_UNINTENDED_TERMINATION }
 					}
 					when (prevState)
 					{
 						"Running", "Paused", "Stopped" ->
 						{
-							logLevel.simple(name, terminateR.payload) {
-								if (logLevel >= DETAIL && terminateR.type == EXPLICIT)
-									DAEMON_ON_FINISH_TAB
-								else
-									DAEMON_ON_FINISH
+							try
+							{
+								if (terminateR.type != EXPLICIT)
+								{
+									logLevel.detail(name, terminateR.type) { DAEMON_TERMINATE }
+								}
+								machine.release()
 							}
-							onFinish?.call(terminateR.payload)
+							finally
+							{
+								try
+								{
+									logLevel.simple(name, suffix, terminateR.payload) { DAEMON_ON_FINISH }
+									onFinish?.call(terminateR.payload)
+								}
+								finally
+								{
+									if (terminateR.type != EXPLICIT)
+									{
+										logLevel.detail(name) { DAEMON_END }
+									}
+								}
+							}
 						}
 					}
 				}
@@ -516,7 +532,7 @@ private class KotlmataDaemonImpl(
 						finally
 						{
 							logLevel.detail(name) {
-								DAEMON_END_REQUEST + " ${System.currentTimeMillis() - start}ms"
+								DAEMON_END + " ${System.currentTimeMillis() - start}ms"
 							}
 						}
 					}
@@ -528,16 +544,19 @@ private class KotlmataDaemonImpl(
 			}
 			catch (e: Throwable)
 			{
-				try
+				Log.w(name, e) { DAEMON_UNHANDLED_ERROR }
+				if (!isTerminated)
 				{
-					Log.w(name, e) { DAEMON_UNHANDLED_ERROR }
-					onFatal?.also { onFatal ->
-						ErrorActionReceiver(e).onFatal()
-					} ?: throw e
-				}
-				finally
-				{
-					core.input(Terminate(null, ERROR))
+					try
+					{
+						onFatal?.also { onFatal ->
+							ErrorActionReceiver(e).onFatal()
+						} ?: throw e
+					}
+					finally
+					{
+						core.input(Terminate(null, ERROR))
+					}
 				}
 			}
 			finally

@@ -48,7 +48,8 @@ internal class Logs
 		const val DAEMON_START_THREAD = "Daemon[%s]: Daemon thread is started. (name = %s, isDaemon = %s)"
 		const val DAEMON_TERMINATE_THREAD = "Daemon[%s]: Daemon thread is terminated. (name = %s, isDaemon = %s)"
 		const val DAEMON_START_CREATE = "Daemon[%s]: daemon(name: %s) {"
-		const val DAEMON_END_CREATE = "Daemon[%s]: }"
+		const val DAEMON_START_REQUEST = "Daemon[%s]: %s(remain: %s) {"
+		const val DAEMON_TERMINATE = "Daemon[%s]: terminate(reason: %s) {"
 		const val DAEMON_SET_ON_CREATE = "Daemon[%s]:%s     set(on: create)"
 		const val DAEMON_SET_ON_START = "Daemon[%s]:%s     set(on: start)"
 		const val DAEMON_SET_ON_PAUSE = "Daemon[%s]:%s     set(on: pause)"
@@ -57,8 +58,6 @@ internal class Logs
 		const val DAEMON_SET_ON_FINISH = "Daemon[%s]:%s     set(on: finish)"
 		const val DAEMON_SET_ON_DESTROY = "Daemon[%s]:%s     set(on: destroy)"
 		const val DAEMON_SET_ON_FATAL = "Daemon[%s]:%s     set(on: fatal)"
-		const val DAEMON_START_REQUEST = "Daemon[%s]: %s(remain: %s) {"
-		const val DAEMON_END_REQUEST = "Daemon[%s]: }"
 		const val DAEMON_LIFECYCLE_CHANGED = "Daemon[%s]: lifecycle: %s -> %s"
 		const val DAEMON_LIFECYCLE_CHANGED_TAB = "Daemon[%s]:     lifecycle: %s -> %s"
 		const val DAEMON_ON_CREATE = "Daemon[%s]: onCreate()"
@@ -66,16 +65,16 @@ internal class Logs
 		const val DAEMON_ON_PAUSE = "Daemon[%s]:%s onPause(payload: %s)"
 		const val DAEMON_ON_STOP = "Daemon[%s]:%s onStop(payload: %s)"
 		const val DAEMON_ON_RESUME = "Daemon[%s]:%s onResume(payload: %s)"
-		const val DAEMON_ON_FINISH = "Daemon[%s]: onFinish(payload: %s)"
-		const val DAEMON_ON_FINISH_TAB = "Daemon[%s]:     onFinish(payload: %s)"
+		const val DAEMON_ON_FINISH = "Daemon[%s]:%s onFinish(payload: %s)"
 		const val DAEMON_ON_DESTROY = "Daemon[%s]: onDestroy()"
 		const val DAEMON_KEEP_REQUEST = "Daemon[%s]:     kept"
 		const val DAEMON_IGNORE_REQUEST = "Daemon[%s]:     ignored"
+		const val DAEMON_END = "Daemon[%s]: }"
 		
 		/*########################## WARN ##########################*/
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. [%s] x (%s) -> [%s]"
 		const val USING_RELEASED_MACHINE = "%s Attempt to use a released machine. Please check the 'machine.isReleased' property."
-		const val DAEMON_INTERRUPTED = "Daemon[%s]: Daemon thread is unexpectedly interrupted."
+		const val DAEMON_UNINTENDED_TERMINATION = "Daemon[%s]: Unintended termination occurred. (reason: %s)"
 		const val DAEMON_UNHANDLED_ERROR = "Daemon[%s]: An unhandled error occurred. (%s)"
 		
 		/*########################## ERROR ##########################*/

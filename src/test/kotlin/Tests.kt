@@ -1667,7 +1667,7 @@ class Tests
 			"on destroy" to false,
 			"on destroy catch" to false,
 			"on destroy final" to false,
-			"on fatal" to false
+			"on fatal" to true
 		)
 		
 		val latch = CountDownLatch(1)
@@ -1747,7 +1747,7 @@ class Tests
 				latch.countDown()
 			}
 			on fatal {
-				checklist["on fatal"] = true
+				checklist["on fatal"] = false
 			}
 			
 			"a" {}
@@ -2046,7 +2046,7 @@ class Tests
 			"on start" to false,
 			"on finish" to false,
 			"on destroy" to false,
-			"on fatal" to false
+			"on fatal" to true
 		)
 		
 		val latch = CountDownLatch(1)
@@ -2067,7 +2067,7 @@ class Tests
 				latch.countDown()
 			}
 			on fatal {
-				checklist["on fatal"] = true
+				checklist["on fatal"] = false
 			}
 			
 			"a" { /* empty */ }
