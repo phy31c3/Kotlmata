@@ -216,7 +216,11 @@ interface KotlmataMutableDaemon : KotlmataDaemon
 	infix fun update(block: KotlmataMutableMachine.Update.() -> Unit)
 }
 
-private class LifecycleCallback(val callback: DaemonCallback, val fallback: DaemonFallback? = null, val finally: DaemonCallback? = null)
+private class LifecycleCallback(
+	val callback: DaemonCallback,
+	val fallback: DaemonFallback? = null,
+	val finally: DaemonCallback? = null
+)
 
 private class KotlmataDaemonImpl(
 	override val name: String,

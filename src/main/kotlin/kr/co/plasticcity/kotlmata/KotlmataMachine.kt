@@ -343,8 +343,18 @@ internal interface KotlmataInternalMachine : KotlmataMutableMachine
 }
 
 private object Released
-private class TransitionDef(val callback: TransitionCallback, val fallback: TransitionFallback? = null, val finally: TransitionCallback? = null)
-private class Except(val exceptStates: List<STATE>?, val exceptSignals: List<SIGNAL>?, val to: STATE)
+
+private class TransitionDef(
+	val callback: TransitionCallback,
+	val fallback: TransitionFallback? = null,
+	val finally: TransitionCallback? = null
+)
+
+private class Except(
+	val exceptStates: List<STATE>?,
+	val exceptSignals: List<SIGNAL>?,
+	val to: STATE
+)
 {
 	override fun toString() = to.toString()
 }
