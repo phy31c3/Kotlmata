@@ -14,11 +14,6 @@ interface KotlmataState<T : STATE>
 		val input: Input
 		val exit: Exit
 		val on: On
-		
-		interface On
-		{
-			infix fun error(block: StateFallback)
-		}
 	}
 	
 	interface Entry
@@ -102,11 +97,28 @@ interface KotlmataState<T : STATE>
 		}
 	}
 	
+	interface On
+	{
+		infix fun clear(callback: StateSimpleCallback): Catch
+		infix fun error(fallback: StateFallback)
+		
+		interface Catch : Finally
+		{
+			infix fun catch(catch: StateSimpleFallback): Finally
+		}
+		
+		interface Finally
+		{
+			infix fun finally(finally: StateSimpleCallback)
+		}
+	}
+	
 	val tag: T
 	
 	fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>, transitionCount: Long, payload: Any? = null): Any?
 	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, transitionCount: Long, payload: Any? = null): Any?
 	fun <S : T, T : SIGNAL> exit(signal: S, type: KClass<T>, transitionCount: Long, payload: Any? = null, to: STATE)
+	fun clear()
 }
 
 interface KotlmataMutableState<T : STATE> : KotlmataState<T>
@@ -154,9 +166,29 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 	infix fun update(block: Update.(state: T) -> Unit)
 }
 
-private class EntryDef(val function: EntryFunction<SIGNAL>, val intercept: EntryErrorFunction<SIGNAL>? = null, val finally: EntryAction<SIGNAL>? = null)
-private class InputDef(val function: InputFunction<SIGNAL>, val intercept: InputErrorFunction<SIGNAL>? = null, val finally: InputAction<SIGNAL>? = null)
-private class ExitDef(val action: ExitAction<SIGNAL>, val catch: ExitErrorAction<SIGNAL>? = null, val finally: ExitAction<SIGNAL>? = null)
+private class EntryDef(
+	val function: EntryFunction<SIGNAL>,
+	val intercept: EntryErrorFunction<SIGNAL>? = null,
+	val finally: EntryAction<SIGNAL>? = null
+)
+
+private class InputDef(
+	val function: InputFunction<SIGNAL>,
+	val intercept: InputErrorFunction<SIGNAL>? = null,
+	val finally: InputAction<SIGNAL>? = null
+)
+
+private class ExitDef(
+	val action: ExitAction<SIGNAL>,
+	val catch: ExitErrorAction<SIGNAL>? = null,
+	val finally: ExitAction<SIGNAL>? = null
+)
+
+private class SimpleCallbackDef(
+	val callback: StateSimpleCallback,
+	val catch: StateSimpleFallback? = null,
+	val finally: StateSimpleCallback? = null
+)
 
 private class KotlmataStateImpl<T : STATE>(
 	override val tag: T,
@@ -171,6 +203,7 @@ private class KotlmataStateImpl<T : STATE>(
 	private var entryMap: MutableMap<SIGNAL, EntryDef>? = null
 	private var inputMap: MutableMap<SIGNAL, InputDef>? = null
 	private var exitMap: MutableMap<SIGNAL, ExitDef>? = null
+	private var onClear: SimpleCallbackDef? = null
 	private var onError: StateFallback? = null
 	
 	private var entryTester: Tester? = null
@@ -179,7 +212,9 @@ private class KotlmataStateImpl<T : STATE>(
 	
 	init
 	{
-		UpdateImpl(block)
+		UpdateImpl().use {
+			it.block(tag)
+		}
 	}
 	
 	override fun <S : T, T : SIGNAL> entry(from: STATE, signal: S, type: KClass<T>, transitionCount: Long, payload: Any?): Any?
@@ -305,9 +340,36 @@ private class KotlmataStateImpl<T : STATE>(
 		}
 	}
 	
+	override fun clear()
+	{
+		onClear?.apply {
+			logLevel.normal(prefix, tag) { STATE_ON_CLEAR }
+			try
+			{
+				ActionReceiver.callback()
+			}
+			catch (e: Throwable)
+			{
+				catch?.let { catch ->
+					ErrorActionReceiver(e).catch()
+				} ?: onError?.let { onError ->
+					ErrorActionReceiver(e).onError(null)
+				} ?: throw e
+			}
+			finally
+			{
+				finally?.let { finally ->
+					ActionReceiver.finally()
+				}
+			}
+		}
+	}
+	
 	override fun update(block: Update.(T) -> Unit)
 	{
-		UpdateImpl(block)
+		UpdateImpl().use {
+			it.block(tag)
+		}
 	}
 	
 	override fun toString(): String
@@ -315,9 +377,7 @@ private class KotlmataStateImpl<T : STATE>(
 		return "KotlmataState[$tag]{${hashCode().toString(16)}}"
 	}
 	
-	private inner class UpdateImpl(
-		block: Update.(T) -> Unit
-	) : Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
+	private inner class UpdateImpl : Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
 	{
 		private val entryMap: MutableMap<SIGNAL, EntryDef>
 			get() = this@KotlmataStateImpl.entryMap ?: HashMap<SIGNAL, EntryDef>().also {
@@ -857,12 +917,40 @@ private class KotlmataStateImpl<T : STATE>(
 			}
 		}
 		
-		override val on = object : Init.On
+		override val on = object : On
 		{
-			override fun error(block: StateFallback)
+			override fun clear(callback: StateSimpleCallback): On.Catch
 			{
 				this@UpdateImpl shouldNot expired
-				this@KotlmataStateImpl.onError = block
+				onClear = SimpleCallbackDef(callback, null, null)
+				return object : On.Catch
+				{
+					override fun catch(catch: StateSimpleFallback): On.Finally
+					{
+						this@UpdateImpl shouldNot expired
+						onClear = SimpleCallbackDef(callback, catch, null)
+						return object : On.Finally
+						{
+							override fun finally(finally: StateSimpleCallback)
+							{
+								this@UpdateImpl shouldNot expired
+								onClear = SimpleCallbackDef(callback, catch, finally)
+							}
+						}
+					}
+					
+					override fun finally(finally: StateSimpleCallback)
+					{
+						this@UpdateImpl shouldNot expired
+						onClear = SimpleCallbackDef(callback, null, finally)
+					}
+				}
+			}
+			
+			override fun error(fallback: StateFallback)
+			{
+				this@UpdateImpl shouldNot expired
+				this@KotlmataStateImpl.onError = fallback
 			}
 		}
 		
@@ -1007,12 +1095,6 @@ private class KotlmataStateImpl<T : STATE>(
 				this@KotlmataStateImpl.inputTester = null
 				this@KotlmataStateImpl.exitTester = null
 			}
-		}
-		
-		init
-		{
-			block(tag)
-			expire()
 		}
 	}
 }

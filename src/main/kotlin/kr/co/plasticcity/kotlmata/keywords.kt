@@ -179,7 +179,9 @@ typealias InputErrorFunction<T> = InputErrorFunctionDSL.(signal: T) -> Any?
 typealias ExitAction<T> = ExitActionDSL.(signal: T) -> Unit
 typealias ExitErrorAction<T> = ExitErrorActionDSL.(signal: T) -> Unit
 
-typealias StateFallback = ErrorActionDSL.(signal: SIGNAL) -> Unit
+typealias StateSimpleCallback = ActionDSL.() -> Unit
+typealias StateSimpleFallback = ErrorActionDSL.() -> Unit
+typealias StateFallback = ErrorActionDSL.(signal: SIGNAL?) -> Unit
 
 typealias TransitionCallback = TransitionActionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit
 typealias TransitionFallback = TransitionErrorActionDSL.(from: STATE, signal: SIGNAL, to: STATE) -> Unit

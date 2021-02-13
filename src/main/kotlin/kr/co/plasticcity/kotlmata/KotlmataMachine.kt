@@ -173,25 +173,25 @@ interface KotlmataMachine
 		infix fun <T : SIGNAL> AnyExcept.x(predicate: (T) -> Boolean): RuleAssignable
 		infix fun <T> AnyExcept.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = this x { t: T -> range.contains(t) }
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(signal: SIGNAL)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(signal: KClass<out SIGNAL>)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(signals: Signals<*>)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(any: any)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun Signals<*>.x(anyExcept: AnyExcept)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun <T : SIGNAL> Signals<*>.x(predicate: (T) -> Boolean)
 		
-		@Deprecated("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).", level = DeprecationLevel.ERROR)
+		@Deprecated("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).", level = DeprecationLevel.ERROR)
 		infix fun <T> Signals<*>.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T>
 		
 		/**
@@ -237,6 +237,9 @@ interface KotlmataMachine
 	}
 	
 	val name: String
+	val isReleased: Boolean
+	
+	fun release()
 	
 	@Suppress("UNCHECKED_CAST")
 	fun input(signal: SIGNAL, payload: Any? = null) = input(signal, signal::class as KClass<SIGNAL>, payload)
@@ -339,8 +342,19 @@ internal interface KotlmataInternalMachine : KotlmataMutableMachine
 	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any? = null, block: (FunctionDSL.Return) -> Unit)
 }
 
-private class TransitionDef(val callback: TransitionCallback, val fallback: TransitionFallback? = null, val finally: TransitionCallback? = null)
-private class Except(val exceptStates: List<STATE>?, val exceptSignals: List<SIGNAL>?, val to: STATE)
+private object Released
+
+private class TransitionDef(
+	val callback: TransitionCallback,
+	val fallback: TransitionFallback? = null,
+	val finally: TransitionCallback? = null
+)
+
+private class Except(
+	val exceptStates: List<STATE>?,
+	val exceptSignals: List<SIGNAL>?,
+	val to: STATE
+)
 {
 	override fun toString() = to.toString()
 }
@@ -363,11 +377,68 @@ private class KotlmataMachineImpl(
 	
 	private lateinit var currentTag: STATE
 	
+	override val isReleased: Boolean
+		get() = currentTag == Released
+	
 	init
 	{
-		logLevel.normal(prefix, name) { MACHINE_BUILD }
-		UpdateImpl(init = block)
-		logLevel.normal(prefix) { MACHINE_END }
+		try
+		{
+			logLevel.normal(prefix, name) { MACHINE_BUILD }
+			UpdateImpl().use {
+				it.block(this)
+			}
+		}
+		finally
+		{
+			logLevel.normal(prefix) { MACHINE_END }
+		}
+	}
+	
+	private inline fun ifReleased(block: () -> Unit)
+	{
+		if (currentTag == Released)
+		{
+			Log.w(prefix) { USING_RELEASED_MACHINE }
+			block()
+		}
+	}
+	
+	private inline fun runStateFunction(block: () -> Any?): Any?
+	{
+		return try
+		{
+			block()
+		}
+		catch (e: Throwable)
+		{
+			onError?.let { onError ->
+				ErrorActionReceiver(e).onError()
+			} ?: throw e
+		}
+	}
+	
+	override fun release()
+	{
+		if (currentTag != Released)
+		{
+			try
+			{
+				logLevel.normal(prefix) { MACHINE_RELEASE }
+				runStateFunction { stateMap[currentTag]?.clear() }
+			}
+			finally
+			{
+				stateMap.clear()
+				ruleMap.clear()
+				testerMap.clear()
+				onTransition = null
+				onError = null
+				currentTag = Released
+				logLevel.normal(prefix) { MACHINE_DONE }
+				logLevel.normal(prefix) { MACHINE_END }
+			}
+		}
 	}
 	
 	@Suppress("UNCHECKED_CAST")
@@ -387,6 +458,8 @@ private class KotlmataMachineImpl(
 	
 	override fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any?, block: (FunctionDSL.Return) -> Unit)
 	{
+		ifReleased { return }
+		
 		val from = currentTag
 		val currentState = stateMap[currentTag] ?: Log.e(prefix.trimEnd(), currentTag, currentTag) { FAILED_TO_GET_STATE }
 		
@@ -411,20 +484,6 @@ private class KotlmataMachineImpl(
 				finally?.also { finally ->
 					TransitionActionReceiver(transitionCounter).finally(from, signal, to)
 				}
-			}
-		}
-		
-		fun runStateFunction(block: () -> Any?): Any?
-		{
-			return try
-			{
-				block()
-			}
-			catch (e: Throwable)
-			{
-				onError?.let { onError ->
-					ErrorActionReceiver(e).onError()
-				} ?: throw e
 			}
 		}
 		
@@ -455,60 +514,66 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		logLevel.normal(prefix, signal, payload) { MACHINE_INPUT }
-		runStateFunction {
-			currentState.input(signal, type, transitionCounter, payload)
-		}.also { inputReturn ->
-			if (inputReturn == stay)
-			{
-				logLevel.normal(prefix) { MACHINE_END }
-				return
-			}
-		}.convertToSync()?.also { sync ->
-			logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
-			block(sync)
-		} ?: run {
-			ruleMap[from]?.let { `from x` ->
-				`from x`[signal]
-					?: `from x`.predicate()
-					?: `from x`[type]
-					?: `from x`[any]?.filterExcept()
-			} ?: ruleMap[any]?.let { `any x` ->
-				`any x`[signal]?.filterExcept()
-					?: `any x`.predicateFilterExcept()
-					?: `any x`[type]?.filterExcept()
-					?: `any x`[any]?.filterExcept()
-			}
-		}?.let { to ->
-			when (to)
-			{
-				is stay -> null
-				is self -> currentState
-				in stateMap -> stateMap[to]
-				else ->
+		try
+		{
+			logLevel.normal(prefix, signal, payload) { MACHINE_INPUT }
+			runStateFunction {
+				currentState.input(signal, type, transitionCounter, payload)
+			}.also { inputReturn ->
+				if (inputReturn == stay)
 				{
-					Log.w(prefix.trimEnd(), from, signal, to) { TRANSITION_FAILED }
-					null
+					return
 				}
-			}
-		}?.also { nextState ->
-			val to = nextState.tag
-			runStateFunction { currentState.exit(signal, type, transitionCounter, payload, to) }
-			logLevel.simple(prefix, from, signal, to) {
-				if (logLevel >= NORMAL)
-					MACHINE_TRANSITION_TAB
-				else
-					MACHINE_TRANSITION
-			}
-			currentTag = to
-			++transitionCounter
-			onTransition?.call(to)
-			runStateFunction { nextState.entry(from, signal, type, transitionCounter, payload) }.convertToSync()?.also { sync ->
+			}.convertToSync()?.also { sync ->
 				logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 				block(sync)
+			} ?: run {
+				ruleMap[from]?.let { `from x` ->
+					`from x`[signal]
+						?: `from x`.predicate()
+						?: `from x`[type]
+						?: `from x`[any]?.filterExcept()
+				} ?: ruleMap[any]?.let { `any x` ->
+					`any x`[signal]?.filterExcept()
+						?: `any x`.predicateFilterExcept()
+						?: `any x`[type]?.filterExcept()
+						?: `any x`[any]?.filterExcept()
+				}
+			}?.let { to ->
+				when (to)
+				{
+					is stay -> null
+					is self -> currentState
+					in stateMap -> stateMap[to]
+					else ->
+					{
+						Log.w(prefix.trimEnd(), from, signal, to) { TRANSITION_FAILED }
+						null
+					}
+				}
+			}?.also { nextState ->
+				val to = nextState.tag
+				runStateFunction { currentState.exit(signal, type, transitionCounter, payload, to) }
+				runStateFunction { currentState.clear() }
+				logLevel.simple(prefix, from, signal, to) {
+					if (logLevel >= NORMAL)
+						MACHINE_TRANSITION_TAB
+					else
+						MACHINE_TRANSITION
+				}
+				currentTag = to
+				++transitionCounter
+				onTransition?.call(to)
+				runStateFunction { nextState.entry(from, signal, type, transitionCounter, payload) }.convertToSync()?.also { sync ->
+					logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
+					block(sync)
+				}
 			}
 		}
-		logLevel.normal(prefix) { MACHINE_END }
+		finally
+		{
+			logLevel.normal(prefix) { MACHINE_END }
+		}
 	}
 	
 	@Suppress("OverridingDeprecatedMember")
@@ -519,9 +584,20 @@ private class KotlmataMachineImpl(
 	
 	override fun update(block: Update.() -> Unit)
 	{
-		logLevel.normal(prefix, currentTag) { MACHINE_UPDATE }
-		UpdateImpl(update = block)
-		logLevel.normal(prefix) { MACHINE_END }
+		ifReleased { return }
+		
+		try
+		{
+			logLevel.normal(prefix, currentTag) { MACHINE_UPDATE }
+			UpdateImpl().use {
+				it.block()
+			}
+		}
+		finally
+		{
+			logLevel.normal(prefix) { MACHINE_DONE }
+			logLevel.normal(prefix) { MACHINE_END }
+		}
 	}
 	
 	override fun toString(): String
@@ -529,10 +605,7 @@ private class KotlmataMachineImpl(
 		return "KotlmataMachine[$name]{${hashCode().toString(16)}}"
 	}
 	
-	private inner class UpdateImpl(
-		init: (MachineDefine)? = null,
-		update: (Update.() -> Unit)? = null
-	) : Init, Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
+	private inner class UpdateImpl : Init, Update, SignalsDefinable by SignalsDefinableImpl, Expirable({ Log.e(prefix.trimEnd()) { EXPIRED_OBJECT } })
 	{
 		override val on = object : Base.On
 		{
@@ -1021,43 +1094,43 @@ private class KotlmataMachineImpl(
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(signal: SIGNAL)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(signal: KClass<out SIGNAL>)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(signals: Signals<*>)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(any: any)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun Signals<*>.x(anyExcept: AnyExcept)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun <T : SIGNAL> Signals<*>.x(predicate: (T) -> Boolean)
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		@Suppress("OverridingDeprecatedMember")
 		override fun <T> Signals<*>.x(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T>
 		{
-			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use States(a AND b) instead of Signals(a OR b).")
+			throw IllegalArgumentException("Signals cannot be used as lhs of transition rule. Use (a AND b) instead of (a OR b).")
 		}
 		
 		/*###################################################################################################################################
@@ -1176,12 +1249,6 @@ private class KotlmataMachineImpl(
 				testerMap.clear()
 				logLevel.normal(prefix) { MACHINE_DELETE_RULE_ALL }
 			}
-		}
-		
-		init
-		{
-			init?.also { it(this@KotlmataMachineImpl) } ?: update?.also { it() }
-			expire()
 		}
 	}
 }
