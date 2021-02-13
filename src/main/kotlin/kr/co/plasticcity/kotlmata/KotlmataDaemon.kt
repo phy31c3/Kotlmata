@@ -437,31 +437,27 @@ private class KotlmataDaemonImpl(
 					{
 						Log.w(name, terminateR.type) { DAEMON_UNINTENDED_TERMINATION }
 					}
-					when (prevState)
-					{
-						"Running", "Paused", "Stopped" ->
+					prevState.ifOneOf("Running", "Paused", "Stopped") {
+						try
+						{
+							if (terminateR.type != EXPLICIT)
+							{
+								logLevel.detail(name, terminateR.type) { DAEMON_TERMINATE }
+							}
+							machine.release()
+						}
+						finally
 						{
 							try
 							{
-								if (terminateR.type != EXPLICIT)
-								{
-									logLevel.detail(name, terminateR.type) { DAEMON_TERMINATE }
-								}
-								machine.release()
+								logLevel.simple(name, suffix, terminateR.payload) { DAEMON_ON_FINISH }
+								onFinish?.call(terminateR.payload)
 							}
 							finally
 							{
-								try
+								if (terminateR.type != EXPLICIT)
 								{
-									logLevel.simple(name, suffix, terminateR.payload) { DAEMON_ON_FINISH }
-									onFinish?.call(terminateR.payload)
-								}
-								finally
-								{
-									if (terminateR.type != EXPLICIT)
-									{
-										logLevel.detail(name) { DAEMON_END }
-									}
+									logLevel.detail(name) { DAEMON_END }
 								}
 							}
 						}

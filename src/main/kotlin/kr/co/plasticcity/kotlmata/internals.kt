@@ -101,6 +101,14 @@ internal fun Any?.convertToSync() = when (this)
 	else /* this is SIGNAL */ -> FunctionDSL.Return(this)
 }
 
+internal inline fun <T> T.ifOneOf(vararg args: T, block: () -> Unit)
+{
+	if (this in args)
+	{
+		block()
+	}
+}
+
 internal object SignalsDefinableImpl : SignalsDefinable
 {
 	override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
