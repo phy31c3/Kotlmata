@@ -2194,4 +2194,42 @@ class Tests
 		
 		checklist.verify()
 	}
+	
+	@Test
+	fun `D-012 데몬 종료 시 상태의 'on clear'가 잘 호출되는가`()
+	{
+		val checklist = mutableMapOf(
+			"on clear" to false,
+			"on clear catch" to false,
+			"on clear final" to false
+		)
+		
+		val latch = CountDownLatch(1)
+		
+		KotlmataDaemon("D-012", logLevel) {
+			on destroy {
+				latch.countDown()
+			}
+			"a" {
+				on clear {
+					checklist["on clear"] = true
+					throw Exception("D-012 on clear 호출")
+				} catch {
+					checklist["on clear catch"] = true
+				} finally {
+					checklist["on clear final"] = true
+				}
+			}
+			
+			start at "a"
+		}.also { daemon ->
+			daemon.run()
+			daemon.terminate()
+		}
+		
+		latch.await()
+		Thread.sleep(1)
+		
+		checklist.verify()
+	}
 }

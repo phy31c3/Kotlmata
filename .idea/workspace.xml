@@ -36,11 +36,6 @@
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="0.5.5">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataState.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/Log.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/internals.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/internals.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -118,7 +113,7 @@
       <recent name="D:\workspace\Kotlmata\src\test\kotlin" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.Tests">
+  <component name="RunManager" selected="JUnit.Tests.D-012 데몬 종료 시 상태의 'on clear'가 잘 호출되는가">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method v="2">
@@ -131,17 +126,6 @@
       <option name="MAIN_CLASS_NAME" value="Tests" />
       <option name="METHOD_NAME" value="" />
       <option name="TEST_OBJECT" value="class" />
-      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Tests.D-009 데몬 'on finish'에서 에러 발생 시 처리가 잘 되는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Kotlmata.test" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="Tests" />
-      <option name="METHOD_NAME" value="D-009 데몬 'on finish'에서 에러 발생 시 처리가 잘 되는가" />
-      <option name="TEST_OBJECT" value="method" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -163,6 +147,17 @@
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="Tests" />
       <option name="METHOD_NAME" value="D-011 데몬 인터럽트 시 처리가 잘 되는가" />
+      <option name="TEST_OBJECT" value="method" />
+      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Tests.D-012 데몬 종료 시 상태의 'on clear'가 잘 호출되는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Kotlmata.test" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="Tests" />
+      <option name="METHOD_NAME" value="D-012 데몬 종료 시 상태의 'on clear'가 잘 호출되는가" />
       <option name="TEST_OBJECT" value="method" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
       <method v="2">
@@ -199,17 +194,17 @@
     <list>
       <item itemvalue="JUnit.Tests" />
       <item itemvalue="JUnit.Tests.D-010 데몬의 상태동작에서 에러 발생 시 처리가 잘 되는가" />
-      <item itemvalue="JUnit.Tests.D-009 데몬 'on finish'에서 에러 발생 시 처리가 잘 되는가" />
       <item itemvalue="JUnit.Tests.D-011 데몬 인터럽트 시 처리가 잘 되는가" />
       <item itemvalue="JUnit.Tests.M-015 머신 해제가 잘 동작하는가" />
+      <item itemvalue="JUnit.Tests.D-012 데몬 종료 시 상태의 'on clear'가 잘 호출되는가" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.Tests.D-012 데몬 종료 시 상태의 'on clear'가 잘 호출되는가" />
         <item itemvalue="JUnit.Tests" />
         <item itemvalue="JUnit.Tests.M-015 머신 해제가 잘 동작하는가" />
         <item itemvalue="JUnit.Tests.D-011 데몬 인터럽트 시 처리가 잘 되는가" />
         <item itemvalue="JUnit.Tests.D-010 데몬의 상태동작에서 에러 발생 시 처리가 잘 되는가" />
-        <item itemvalue="JUnit.Tests.D-009 데몬 'on finish'에서 에러 발생 시 처리가 잘 되는가" />
       </list>
     </recent_temporary>
   </component>
