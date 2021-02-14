@@ -1,11 +1,14 @@
-@file:Suppress("FunctionName")
+@file:Suppress("FunctionName", "ClassName")
 
 package kr.co.plasticcity.kotlmata
 
+import java.io.Closeable
 import kotlin.reflect.KClass
 
 @DslMarker
 internal annotation class KotlmataMarker
+
+internal object ActionReceiver : ActionDSL
 
 internal class ErrorActionReceiver(
 	override val throwable: Throwable
@@ -13,48 +16,51 @@ internal class ErrorActionReceiver(
 
 internal class EntryActionReceiver(
 	override val prevState: STATE,
+	override val transitionCount: Long,
 	override val payload: Any?
 ) : EntryActionDSL
 
 internal class EntryFunctionReceiver(
 	override val prevState: STATE,
+	override val transitionCount: Long,
 	override val payload: Any?
 ) : EntryFunctionDSL
 
 internal class EntryErrorFunctionReceiver(
 	override val prevState: STATE,
+	override val transitionCount: Long,
 	override val payload: Any?,
 	override val throwable: Throwable
 ) : EntryErrorFunctionDSL
 
+internal class InputActionReceiver(
+	override val transitionCount: Long,
+	override val payload: Any?
+) : InputActionDSL
+
+internal class InputFunctionReceiver(
+	override val transitionCount: Long,
+	override val payload: Any?
+) : InputFunctionDSL
+
+internal class InputErrorFunctionReceiver(
+	override val transitionCount: Long,
+	override val payload: Any?,
+	override val throwable: Throwable
+) : InputErrorFunctionDSL
+
 internal class ExitActionReceiver(
 	override val nextState: STATE,
+	override val transitionCount: Long,
 	override val payload: Any?
 ) : ExitActionDSL
 
 internal class ExitErrorActionReceiver(
 	override val nextState: STATE,
+	override val transitionCount: Long,
 	override val payload: Any?,
 	override val throwable: Throwable
 ) : ExitErrorActionDSL
-
-internal class PayloadActionReceiver(
-	override val payload: Any?
-) : PayloadActionDSL
-
-internal class PayloadFunctionReceiver(
-	override val payload: Any?
-) : PayloadFunctionDSL
-
-internal class PayloadErrorActionReceiver(
-	override val payload: Any?,
-	override val throwable: Throwable
-) : PayloadErrorActionDSL
-
-internal class PayloadErrorFunctionReceiver(
-	override val payload: Any?,
-	override val throwable: Throwable
-) : PayloadErrorFunctionDSL
 
 internal class TransitionActionReceiver(
 	override val transitionCount: Long
@@ -65,19 +71,27 @@ internal class TransitionErrorActionReceiver(
 	override val throwable: Throwable
 ) : TransitionErrorActionDSL
 
-@Suppress("ClassName")
+internal class PayloadActionReceiver(
+	override val payload: Any?
+) : PayloadActionDSL
+
+internal class PayloadErrorActionReceiver(
+	override val payload: Any?,
+	override val throwable: Throwable
+) : PayloadErrorActionDSL
+
 internal object Initial_state_for_KotlmataDaemon
 {
 	override fun toString(): String = this::class.java.simpleName
 }
 
-@Suppress("ClassName")
 internal object Start_KotlmataDaemon
 {
 	override fun toString(): String = this::class.java.simpleName
 }
 
 internal const val tab: String = "    "
+internal val KClass<*>.string get() = "${this.java.simpleName}::class"
 
 internal fun Any?.convertToSync() = when (this)
 {
@@ -86,6 +100,14 @@ internal fun Any?.convertToSync() = when (this)
 	is Nothing -> null
 	is FunctionDSL.Return -> this
 	else /* this is SIGNAL */ -> FunctionDSL.Return(this)
+}
+
+internal inline fun <T> T.ifOneOf(vararg args: T, block: () -> Unit)
+{
+	if (this in args)
+	{
+		block()
+	}
 }
 
 internal object SignalsDefinableImpl : SignalsDefinable
@@ -117,7 +139,7 @@ internal object SignalsDefinableImpl : SignalsDefinable
 	}
 }
 
-internal open class Expirable internal constructor(private val block: () -> Nothing)
+internal open class Expirable internal constructor(private val block: () -> Nothing) : Closeable
 {
 	@Volatile
 	private var expire = false
@@ -150,7 +172,7 @@ internal open class Expirable internal constructor(private val block: () -> Noth
 		infix fun then(block: () -> Unit)
 	}
 	
-	protected fun expire()
+	override fun close()
 	{
 		expire = true
 	}
@@ -203,7 +225,9 @@ internal class Tester
 	}
 }
 
-internal class Mutable2DMap<K1, K2, V>(private val map: MutableMap<K1, MutableMap<K2, V>> = HashMap()) : MutableMap<K1, MutableMap<K2, V>> by map
+internal class Mutable2DMap<K1, K2, V>(
+	private val map: MutableMap<K1, MutableMap<K2, V>> = HashMap()
+) : MutableMap<K1, MutableMap<K2, V>> by map
 {
 	operator fun get(key1: K1, key2: K2): V?
 	{
