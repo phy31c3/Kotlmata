@@ -447,10 +447,7 @@ private class KotlmataMachineImpl(
 		var next: FunctionDSL.Return? = FunctionDSL.Return(signal, type as KClass<SIGNAL>, payload)
 		while (next != null) next.also {
 			next = null
-			if (it.type == null) input(it.signal, it.payload) { sync ->
-				next = sync
-			}
-			else input(it.signal, it.type, it.payload) { sync ->
+			input(it.signal, it.type, it.payload) { sync ->
 				next = sync
 			}
 		}
@@ -516,7 +513,7 @@ private class KotlmataMachineImpl(
 		
 		try
 		{
-			logLevel.normal(prefix, signal, payload) { MACHINE_INPUT }
+			logLevel.normal(prefix, signal, type.string, payload) { MACHINE_INPUT }
 			runStateFunction {
 				currentState.input(signal, type, transitionCounter, payload)
 			}.also { inputReturn ->
@@ -525,7 +522,7 @@ private class KotlmataMachineImpl(
 					return
 				}
 			}.convertToSync()?.also { sync ->
-				logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
+				logLevel.normal(prefix, sync.signal, sync.type.string, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 				block(sync)
 			} ?: run {
 				ruleMap[from]?.let { `from x` ->
@@ -565,7 +562,7 @@ private class KotlmataMachineImpl(
 				++transitionCounter
 				onTransition?.call(to)
 				runStateFunction { nextState.entry(from, signal, type, transitionCounter, payload) }.convertToSync()?.also { sync ->
-					logLevel.normal(prefix, sync.signal, sync.typeString, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
+					logLevel.normal(prefix, sync.signal, sync.type.string, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 					block(sync)
 				}
 			}
