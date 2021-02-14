@@ -619,7 +619,7 @@ machine.input(0)
 machine.input(1)
 ```
 로그는 아래와 같음
-```kotlin
+```
 0: A input signal 0
 0: A exit via 0
 1: A x 0 -> B
