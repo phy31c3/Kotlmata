@@ -8,7 +8,7 @@ Automata-based programming library for Kotlin.
 ### Gradle
 
 ```
-implementation 'kr.co.plasticcity:kotlmata:1.0.2'
+implementation 'kr.co.plasticcity:kotlmata:1.0.3'
 ```
 
 ### Maven
@@ -17,7 +17,7 @@ implementation 'kr.co.plasticcity:kotlmata:1.0.2'
 <dependency>
   <groupId>kr.co.plasticcity</groupId>
   <artifactId>kotlmata</artifactId>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
   <type>pom</type>
 </dependency>
 ```
@@ -63,7 +63,7 @@ val machine = KotlmataMachine("sample") extends template by {
 #### 상태 추가 및 시작 상태 지정
 ```kotlin
 val machine = KotlmataMachine("sample") {
-    "A" /* 상태의 태그(식별자) */ {
+    "A" /* 상태의 태그(식별자) */ { state /* 상태 태그는 파라미터를 통해 얻을 수 있음 */ ->
         // 상태 정의
     } // 머신에 "A" 상태가 추가(생성) 됨
     10 /* 상태 태그는 어떤 타입으로 해도 상관 없음 */ {
@@ -154,10 +154,12 @@ val machine = KotlmataMachine("sample") {
         input action { s ->
             // 머신의 현재 상태가 "A"일 때 신호가 입력되면 실행됨
             // 만약 "S"라는 신호가 입력 되었다면 파라미터 s는 "S"
+            println(transitionCount) // 동작 진입 시점의 transitionCount를 얻을 수 있음
         }
         exit action { s ->
             // "A" 상태에서 다른 상태로 전이(퇴장) 시 실행됨
             println(nextState) // nextState 프로퍼티를 통해 다음 상태가 무엇인지 알 수 있음
+            println(transitionCount) // 퇴장동작 또한 transitionCount 참조 가능
         }
         exit action { s ->
             // 동일한 동작을 중복해서 정의할 경우 기존 동작을 덮어씀
@@ -169,6 +171,7 @@ val machine = KotlmataMachine("sample") {
             // 다른 상태에서 "B" 상태로 전이(진입) 시 실행됨
             // 파라미터 s는 상태 전이를 유발한 신호
             println(prevState) // prevState 프로퍼티를 통해 이전 상태가 무엇인지 알 수 있음
+            println(transitionCount) // 진입동작 또한 transitionCount 참조 가능
         }
     }
     
@@ -253,6 +256,24 @@ val machine = KotlmataMachine("sample") {
     start at "A"
 }
 ```
+#### 상태의 정리
+```kotlin
+val machine = KotlmataMachine("sample") {
+    "A" {
+        lateinit var resource: SomeResource // 진입동작에서 할당할 것이 자명하므로 lateinit 사용
+        entry action { s ->
+            resource = SomeResource()
+        }
+        on clear {
+            // 상태 전이 시 퇴장동작 이후 최종적으로 실행됨
+            // 머신 해제 시에도 호출됨
+            resource.clear() // 할당한 자원을 해제해줌
+        }
+    }
+    
+    start at "A"
+}
+```
 #### 미리 정의된 상태 템플릿 활용
 ```kotlin
 val machine = KotlmataMachine("sample") {
@@ -301,6 +322,12 @@ machine.input(10) // 머신에 신호 10을 입력. 머신의 상태는 A에서 
 ```kotlin
 val machine = KotlmataMachine("sample") {
     "A" {
+        input signal "signal1" action { s ->
+            println("$s is signal1")
+        }
+        input signal String::class action { s ->
+            println("$s is String")
+        }
         input signal CharSequence::class action { s ->
             println("$s is CharSequence")
         }
@@ -309,9 +336,10 @@ val machine = KotlmataMachine("sample") {
     start at "A"
 }
 
-machine.input("signal") // 아무것도 실행 안됨. 타입 지정 상태동작(전이규칙) 선택 시 신호의 런타임 타입만을 가지고 판단함.
-machine.input("signal", CharSequence::class) // "signal is CharSequence"가 찍힘
-// 신호의 상위 타입만 지정 가능
+machine.input("signal1") // "signal1 is signal1" 출력
+machine.input("signal2") // "signal2 is String" 출력
+machine.input("signal2", CharSequence::class) // "signal2 is CharSequence" 출력
+// 타입 지정은 신호의 상위 타입만 지정 가능
 ```
 #### 페이로드 전달
 ```kotlin
@@ -337,6 +365,22 @@ val machine = KotlmataMachine("sample") {
 
 machine.input(0, "payload")
 machine.input("S", String::class, "payload") // 신호, 타입, 페이로드 순
+```
+#### 머신 해제
+```kotlin
+val machine = KotlmataMachine("sample") {
+    "A" {
+        on clear {
+            println("상태 A 정리")
+        }
+    }
+    
+    start at "A"
+}
+
+machine.release() // 머신을 해제함. "상태 A 정리" 출력
+// 머신 해제는 머신이 val로 할당되어 null을 대입할 수 없는 경우에
+// 머신이 참조하는 자원을 해제하고 싶을 경우 유용함
 ```
 
 ### 머신 및 상태 업데이트
@@ -533,6 +577,57 @@ any x 10 %= "B" // 다섯 번째
 any x 0..10 %= "B" // 여섯 번째
 any x Int::class %= "B" // 일곱 번째
 any x any %= "B" // 여덟 번째. 가장 우선순위가 낮음
+```
+
+### 머신 기타
+
+#### 상태 전이와 TransitionCount 증가
+```kotlin
+val machine = KotlmataMachine("sample") {
+    on transition { from, signal, to ->
+        println("$transitionCount: $from x $signal -> $to")
+    }
+    "A" { state ->
+        entry action { signal ->
+            println("$transitionCount: $state entry via $signal")
+        }
+        input action { signal ->
+            println("$transitionCount: $state input signal $signal")
+        }
+        exit action { signal ->
+            println("$transitionCount: $state exit via $signal")
+        }
+    }
+    "B" { state ->
+       entry action { signal ->
+            println("$transitionCount: $state entry via $signal")
+        }
+        input action { signal ->
+            println("$transitionCount: $state input signal $signal")
+        }
+        exit action { signal ->
+            println("$transitionCount: $state exit via $signal")
+        }
+    }
+
+    "A" x any %= "B"
+    "B" x any %= "A"
+    
+    start at "A"
+}
+machine.input(0)
+machine.input(1)
+```
+로그는 아래와 같음
+```kotlin
+0: A input signal 0
+0: A exit via 0
+1: A x 0 -> B
+1: B entry via 0
+1: B input signal 1
+1: B exit via 1
+2: B x 1 -> A
+2: A entry via 1
 ```
 
 ## KotlmataDaemon
