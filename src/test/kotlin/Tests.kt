@@ -11,6 +11,37 @@ class Tests
 {
 	private val logLevel = 3
 	
+	private fun Map<String, Boolean>.verify() = forEach { (key, pass) ->
+		assert(pass) {
+			"\"$key\" failed"
+		}
+	}
+	
+	private class Latch(private val count: Int)
+	{
+		private val latch = CountDownLatch(count)
+		private val threads = mutableListOf<Thread>()
+		
+		operator fun invoke() = Thread.currentThread().let { thread ->
+			if (threads.size >= count)
+			{
+				throw Exception("Latch overflow")
+			}
+			else if (threads.contains(thread))
+			{
+				throw Exception("Latch thread duplicated")
+			}
+			threads += Thread.currentThread()
+			latch.countDown()
+		}
+		
+		fun await()
+		{
+			latch.await()
+			threads.forEach { it.join() }
+		}
+	}
+	
 	companion object
 	{
 		@BeforeClass
@@ -29,12 +60,6 @@ class Tests
 	fun divider()
 	{
 		println("---------------------------------------------- end ----------------------------------------------")
-	}
-	
-	private fun Map<String, Boolean>.verify() = forEach { (key, pass) ->
-		assert(pass) {
-			"\"$key\" failed"
-		}
 	}
 	
 	@Test
@@ -1549,18 +1574,14 @@ class Tests
 			"mutable daemon lazy extends" to false
 		)
 		
-		val latch = CountDownLatch(8)
+		val latch = Latch(8)
 		
 		val template: DaemonTemplate = {
-			on destroy {
-				latch.countDown()
-			}
+			latch()
 		}
 		
 		val d1 = KotlmataDaemon("D-001-1", logLevel) {
-			on destroy {
-				latch.countDown()
-			}
+			latch()
 			"state" action {
 				checklist["daemon"] = true
 			}
@@ -1573,9 +1594,7 @@ class Tests
 			start at "state"
 		}
 		val d3 by KotlmataDaemon.lazy("D-001-3", logLevel) {
-			on destroy {
-				latch.countDown()
-			}
+			latch()
 			"state" action {
 				checklist["daemon lazy"] = true
 			}
@@ -1588,9 +1607,7 @@ class Tests
 			start at "state"
 		}
 		val d5 = KotlmataMutableDaemon("D-001-5", logLevel) {
-			on destroy {
-				latch.countDown()
-			}
+			latch()
 			"state" action {
 				checklist["mutable daemon"] = true
 			}
@@ -1603,9 +1620,7 @@ class Tests
 			start at "state"
 		}
 		val d7 by KotlmataMutableDaemon.lazy("D-001-7", logLevel) {
-			on destroy {
-				latch.countDown()
-			}
+			latch()
 			"state" action {
 				checklist["mutable daemon lazy"] = true
 			}
@@ -1637,8 +1652,6 @@ class Tests
 		d8.terminate()
 		
 		latch.await()
-		Thread.sleep(1)
-		
 		checklist.verify()
 	}
 	
@@ -1670,9 +1683,10 @@ class Tests
 			"on fatal" to true
 		)
 		
-		val latch = CountDownLatch(1)
+		val latch = Latch(1)
 		
 		KotlmataDaemon("D-002", logLevel) {
+			latch()
 			on create {
 				checklist["on create"] = true
 				throw Exception()
@@ -1744,7 +1758,6 @@ class Tests
 				checklist["on destroy catch"] = true
 			} finally {
 				checklist["on destroy final"] = true
-				latch.countDown()
 			}
 			on fatal {
 				checklist["on fatal"] = false
@@ -1761,8 +1774,6 @@ class Tests
 		}
 		
 		latch.await()
-		Thread.sleep(1)
-		
 		checklist.verify()
 	}
 	
@@ -1774,12 +1785,10 @@ class Tests
 			"priority 1" to true
 		)
 		
-		val latch = CountDownLatch(1)
+		val latch = Latch(1)
 		
 		KotlmataDaemon("D-003", logLevel) { daemon ->
-			on destroy {
-				latch.countDown()
-			}
+			latch()
 			"a" {
 				input signal 0 action {
 					checklist["priority 0"] = true
@@ -1803,8 +1812,6 @@ class Tests
 		}
 		
 		latch.await()
-		Thread.sleep(1)
-		
 		checklist.verify()
 	}
 	
@@ -1818,12 +1825,10 @@ class Tests
 			"sync" to false
 		)
 		
-		val latch = CountDownLatch(1)
+		val latch = Latch(1)
 		
 		KotlmataDaemon("D-004", logLevel) { daemon ->
-			on destroy {
-				latch.countDown()
-			}
+			latch()
 			"a" {
 				input signal 0 function {
 					daemon.input("should delete")
@@ -1855,8 +1860,6 @@ class Tests
 		}
 		
 		latch.await()
-		Thread.sleep(1)
-		
 		checklist.verify()
 	}
 	
@@ -1868,12 +1871,14 @@ class Tests
 			"clear" to false
 		)
 		
+		val latch = Latch(1)
 		val create = CountDownLatch(1)
 		val destroy = CountDownLatch(1)
 		
 		lateinit var reference: WeakReference<Any>
 		
 		val daemon = KotlmataDaemon("D-005", logLevel) {
+			latch()
 			val resource = Any()
 			
 			on create {
@@ -1899,7 +1904,6 @@ class Tests
 		daemon.terminate()
 		
 		destroy.await()
-		Thread.sleep(1)
 		
 		System.gc()
 		if (reference.get() == null)
@@ -1907,6 +1911,7 @@ class Tests
 			checklist["clear"] = true
 		}
 		
+		latch.await()
 		checklist.verify()
 	}
 	
@@ -1920,9 +1925,10 @@ class Tests
 			"on fatal" to false,
 		)
 		
-		val latch = CountDownLatch(1)
+		val latch = Latch(1)
 		
 		KotlmataDaemon("D-006", logLevel) {
+			latch()
 			on create {
 				checklist["on create"] = false
 			}
@@ -1934,7 +1940,6 @@ class Tests
 			}
 			on fatal {
 				checklist["on fatal"] = true
-				latch.countDown()
 			}
 			
 			throw Exception("D-006 데몬 초기화 도중 예외 발생")
@@ -1943,8 +1948,6 @@ class Tests
 		}
 		
 		latch.await()
-		Thread.sleep(10)
-		
 		checklist.verify()
 	}
 	
@@ -1959,9 +1962,10 @@ class Tests
 			"on fatal" to false
 		)
 		
-		val latch = CountDownLatch(1)
+		val latch = Latch(1)
 		
 		KotlmataDaemon("D-007", logLevel) {
+			latch()
 			on create {
 				checklist["on create"] = true
 				throw Exception("D-007 on create 예외 발생")
@@ -1974,7 +1978,6 @@ class Tests
 			}
 			on destroy {
 				checklist["on destroy"] = true
-				latch.countDown()
 			}
 			on fatal {
 				checklist["on fatal"] = true
@@ -1988,8 +1991,6 @@ class Tests
 		}
 		
 		latch.await()
-		Thread.sleep(1)
-		
 		checklist.verify()
 	}
 	
@@ -2004,9 +2005,10 @@ class Tests
 			"on fatal" to false
 		)
 		
-		val latch = CountDownLatch(1)
+		val latch = Latch(1)
 		
 		KotlmataDaemon("D-008", logLevel) {
+			latch()
 			on create {
 				checklist["on create"] = true
 			}
@@ -2019,7 +2021,6 @@ class Tests
 			}
 			on destroy {
 				checklist["on destroy"] = true
-				latch.countDown()
 			}
 			on fatal {
 				checklist["on fatal"] = true
@@ -2033,8 +2034,6 @@ class Tests
 		}
 		
 		latch.await()
-		Thread.sleep(1)
-		
 		checklist.verify()
 	}
 	
@@ -2049,9 +2048,10 @@ class Tests
 			"on fatal" to true
 		)
 		
-		val latch = CountDownLatch(1)
+		val latch = Latch(1)
 		
 		KotlmataDaemon("D-009", logLevel) {
+			latch()
 			on create {
 				checklist["on create"] = true
 			}
@@ -2064,7 +2064,6 @@ class Tests
 			}
 			on destroy {
 				checklist["on destroy"] = true
-				latch.countDown()
 			}
 			on fatal {
 				checklist["on fatal"] = false
@@ -2079,8 +2078,6 @@ class Tests
 		}
 		
 		latch.await()
-		Thread.sleep(1)
-		
 		checklist.verify()
 	}
 	
@@ -2095,9 +2092,10 @@ class Tests
 			"on fatal" to false
 		)
 		
-		val latch = CountDownLatch(1)
+		val latch = Latch(1)
 		
 		KotlmataDaemon("D-010", logLevel) {
+			latch()
 			on create {
 				checklist["on create"] = true
 			}
@@ -2109,7 +2107,6 @@ class Tests
 			}
 			on destroy {
 				checklist["on destroy"] = true
-				latch.countDown()
 			}
 			on fatal {
 				checklist["on fatal"] = true
@@ -2131,8 +2128,6 @@ class Tests
 		}
 		
 		latch.await()
-		Thread.sleep(1)
-		
 		checklist.verify()
 	}
 	
@@ -2147,12 +2142,13 @@ class Tests
 			"on fatal" to true
 		)
 		
+		val latch = Latch(1)
 		val started = CountDownLatch(1)
-		val destroy = CountDownLatch(1)
 		
 		lateinit var thread: Thread
 		
 		KotlmataDaemon("D-011", logLevel) {
+			latch()
 			thread = Thread.currentThread()
 			
 			on create {
@@ -2160,20 +2156,22 @@ class Tests
 			}
 			on start {
 				checklist["on start"] = true
-				started.countDown()
 			}
 			on finish {
 				checklist["on finish"] = true
 			}
 			on destroy {
 				checklist["on destroy"] = true
-				destroy.countDown()
 			}
 			on fatal {
 				checklist["on fatal"] = false
 			}
 			
-			"a" { /* empty */ }
+			"a" {
+				input signal 1 action {
+					started.countDown()
+				}
+			}
 			
 			start at "a"
 		}.also { daemon ->
@@ -2185,13 +2183,10 @@ class Tests
 		}
 		
 		started.await()
-		Thread.sleep(2)
 		
 		thread.interrupt()
 		
-		destroy.await()
-		Thread.sleep(1)
-		
+		latch.await()
 		checklist.verify()
 	}
 	
@@ -2204,12 +2199,10 @@ class Tests
 			"on clear final" to false
 		)
 		
-		val latch = CountDownLatch(1)
+		val latch = Latch(1)
 		
 		KotlmataDaemon("D-012", logLevel) {
-			on destroy {
-				latch.countDown()
-			}
+			latch()
 			"a" {
 				on clear {
 					checklist["on clear"] = true
@@ -2228,8 +2221,6 @@ class Tests
 		}
 		
 		latch.await()
-		Thread.sleep(1)
-		
 		checklist.verify()
 	}
 }
