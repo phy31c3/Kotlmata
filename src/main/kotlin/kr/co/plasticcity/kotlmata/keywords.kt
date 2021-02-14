@@ -121,22 +121,19 @@ interface ActionDSL
 
 interface FunctionDSL : ActionDSL
 {
+	@Suppress("UNCHECKED_CAST")
 	open class Return internal constructor(
 		val signal: SIGNAL,
-		val type: KClass<SIGNAL>? = null,
+		val type: KClass<SIGNAL> = signal::class as KClass<SIGNAL>,
 		val payload: Any? = null
 	)
-	{
-		internal val typeString
-			get() = type?.let { "${type.java.simpleName}::class" }
-	}
 	
 	class ReturnWithoutPayload internal constructor(signal: SIGNAL, type: KClass<SIGNAL>) : Return(signal, type)
 	
 	@Suppress("UNCHECKED_CAST")
 	infix fun <S : T, T : SIGNAL> S.`as`(type: KClass<T>) = ReturnWithoutPayload(this, type as KClass<SIGNAL>)
 	
-	infix fun SIGNAL.with(payload: Any?) = Return(this, null, payload)
+	infix fun SIGNAL.with(payload: Any?) = Return(this, payload = payload)
 	infix fun ReturnWithoutPayload.with(payload: Any?) = Return(signal, type, payload)
 }
 

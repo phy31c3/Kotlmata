@@ -35,7 +35,7 @@ internal class Logs
 		const val MACHINE_ADD_RULE = "%s     add(rule: [%s] x (%s) -> [%s])"
 		const val MACHINE_DELETE_RULE = "%s     delete(rule: [%s] x (%s))"
 		const val MACHINE_DELETE_RULE_ALL = "%s     delete(rule: all)"
-		const val MACHINE_INPUT = "%s input(signal: (%s), payload: %s) {"
+		const val MACHINE_INPUT = "%s input(signal: (%s), type: %s, payload: %s) {"
 		const val MACHINE_TRANSITION = "%s [%s] x (%s) -> [%s]"
 		const val MACHINE_TRANSITION_TAB = "%s     [%s] x (%s) -> [%s]"
 		const val MACHINE_RETURN_SYNC_INPUT = "%s     return(signal: (%s), type: %s, payload: %s)"
@@ -102,33 +102,33 @@ internal object Log
 	
 	fun Int.simple(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (this >= SIMPLE) debug?.invoke(log(Logs).apply(*args))
+		if (this >= SIMPLE) debug?.invoke(log(Logs).reformat(*args))
 	}
 	
 	fun Int.normal(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (this >= NORMAL) debug?.invoke(log(Logs).apply(*args))
+		if (this >= NORMAL) debug?.invoke(log(Logs).reformat(*args))
 	}
 	
 	fun Int.detail(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		if (this >= DETAIL) debug?.invoke(log(Logs).apply(*args))
+		if (this >= DETAIL) debug?.invoke(log(Logs).reformat(*args))
 	}
 	
 	fun w(vararg args: Any?, log: Logs.Companion.() -> String)
 	{
-		warn?.invoke(log(Logs).apply(*args))
+		warn?.invoke(log(Logs).reformat(*args))
 	}
 	
 	fun e(vararg args: Any?, log: Logs.Companion.() -> String): Nothing
 	{
-		log(Logs).apply(*args).also { formatted ->
+		log(Logs).reformat(*args).also { formatted ->
 			error(formatted)
 			throw IllegalStateException(formatted)
 		}
 	}
 	
-	private fun String.apply(vararg args: Any?): String
+	private fun String.reformat(vararg args: Any?): String
 	{
 		@Suppress("UNCHECKED_CAST")
 		args as Array<Any?>
