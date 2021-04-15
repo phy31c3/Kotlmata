@@ -1942,7 +1942,7 @@ class Tests
 				checklist["on fatal"] = true
 			}
 			
-			throw Exception("D-006 데몬 초기화 도중 예외 발생")
+			start at "a"
 		}.also { daemon ->
 			daemon.run()
 		}

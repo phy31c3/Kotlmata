@@ -75,7 +75,7 @@ internal class Logs
 		const val TRANSITION_FAILED = "%s Attempt transition to a non-existent state. [%s] x (%s) -> [%s]"
 		const val USING_RELEASED_MACHINE = "%s Attempt to use a released machine. Please check the 'machine.isReleased' property."
 		const val DAEMON_UNINTENDED_TERMINATION = "Daemon[%s]: Unintended termination occurred. (reason: %s)"
-		const val DAEMON_UNHANDLED_ERROR = "Daemon[%s]: An unhandled error occurred. (%s)"
+		const val DAEMON_UNHANDLED_ERROR = "Daemon[%s]: Fatal error occurred. (%s)"
 		
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_OBJECT = "%s Use of expired object: The object is only available inside the 'init' or 'update' block."
