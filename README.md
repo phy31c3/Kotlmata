@@ -774,7 +774,7 @@ daemon.stop() // 데몬을 정지함
 daemon.terminate() // 데몬을 종료함
 ```
 #### 생명주기 그래프
-![enter image description here](https://user-images.githubusercontent.com/3992883/105116267-bdaf0b00-5b0d-11eb-8b8e-4766714ba1d2.png)
+![enter image description here](https://user-images.githubusercontent.com/3992883/107477321-e1b8b600-6bba-11eb-96d9-85c450ce42ae.png)
 > "create"와 "destroy"는 데몬 내부적으로 사용하는 신호
 
 ### 요청 큐와 우선순위
