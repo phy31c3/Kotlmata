@@ -1243,12 +1243,13 @@ class Tests
 		
 		KotlmataMutableMachine("M-009", logLevel) {
 			"a" {}
+			"b" {}
 			start at "a"
 		}.also { machine ->
 			machine {
-				if (has state "a") checklist["exists"] = true
-				delete state "a"
-				if (!(has state "a")) checklist["deleted"] = true
+				if (has state "b") checklist["exists"] = true
+				delete state "b"
+				if (!(has state "b")) checklist["deleted"] = true
 			}
 		}
 		
@@ -1555,6 +1556,32 @@ class Tests
 			{
 				checklist["released"] = true
 			}
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `M-016 머신 업데이트 시 현재 상태 삭제 불가가 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"a" to true
+		)
+		
+		KotlmataMutableMachine("M-016", logLevel) {
+			"a" {
+				input signal 0 action {
+					checklist["a"] = true
+				}
+			}
+			
+			start at "a"
+		}.also { machine ->
+			machine {
+				delete state "a"
+				delete state all
+			}
+			machine.input(0)
 		}
 		
 		checklist.verify()

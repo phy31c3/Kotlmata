@@ -7,11 +7,10 @@ import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.*
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update
-import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.*
+import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.Delete
+import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.Has
 import kr.co.plasticcity.kotlmata.Log.normal
 import kr.co.plasticcity.kotlmata.Log.simple
-import java.util.*
-import kotlin.collections.HashMap
 import kotlin.reflect.KClass
 
 interface KotlmataMachine
@@ -323,7 +322,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 		
 		interface Delete
 		{
-			infix fun state(from: STATE)
+			infix fun state(state: STATE)
 			infix fun state(all: all)
 			
 			infix fun rule(ruleLeft: RuleLeft)
@@ -366,6 +365,8 @@ private class KotlmataMachineImpl(
 	block: MachineDefine
 ) : KotlmataInternalMachine
 {
+	private val prefixWithTab = if (logLevel < NORMAL) prefix else prefix + tab
+	
 	private val stateMap: MutableMap<STATE, KotlmataMutableState<out STATE>> = HashMap()
 	private val ruleMap: Mutable2DMap<STATE, SIGNAL, STATE> = Mutable2DMap()
 	private val testerMap: MutableMap<STATE, Tester> = HashMap()
@@ -399,7 +400,7 @@ private class KotlmataMachineImpl(
 	{
 		if (currentTag == Released)
 		{
-			Log.w(prefix) { USING_RELEASED_MACHINE }
+			Log.w(prefix) { MACHINE_USING_RELEASED_MACHINE }
 			block()
 		}
 	}
@@ -544,7 +545,7 @@ private class KotlmataMachineImpl(
 					in stateMap -> stateMap[to]
 					else ->
 					{
-						Log.w(prefix.trimEnd(), from, signal, to) { TRANSITION_FAILED }
+						Log.w(prefixWithTab, from, signal, to) { MACHINE_TRANSITION_FAILED }
 						null
 					}
 				}
@@ -552,12 +553,7 @@ private class KotlmataMachineImpl(
 				val to = nextState.tag
 				runStateFunction { currentState.exit(signal, type, transitionCounter, payload, to) }
 				runStateFunction { currentState.clear() }
-				logLevel.simple(prefix, from, signal, to) {
-					if (logLevel >= NORMAL)
-						MACHINE_TRANSITION_TAB
-					else
-						MACHINE_TRANSITION
-				}
+				logLevel.simple(prefixWithTab, from, signal, to) { MACHINE_TRANSITION }
 				currentTag = to
 				++transitionCounter
 				onTransition?.call(to)
@@ -1216,18 +1212,28 @@ private class KotlmataMachineImpl(
 		
 		override val delete = object : Delete
 		{
-			override fun state(from: STATE)
+			override fun state(state: STATE)
 			{
 				this@UpdateImpl shouldNot expired
-				stateMap -= from
-				logLevel.normal(prefix, from) { MACHINE_DELETE_STATE }
+				if (state == currentTag)
+				{
+					Log.w(prefixWithTab, state) { MACHINE_CANNOT_DELETE_CURRENT_STATE }
+				}
+				else
+				{
+					stateMap -= state
+					logLevel.normal(prefix, state) { MACHINE_DELETE_STATE }
+				}
 			}
 			
 			override fun state(all: all)
 			{
 				this@UpdateImpl shouldNot expired
-				stateMap.clear()
-				logLevel.normal(prefix) { MACHINE_DELETE_STATE_ALL }
+				stateMap[currentTag]?.also { currentState ->
+					stateMap.clear()
+					stateMap[currentTag] = currentState
+					logLevel.normal(prefix) { MACHINE_DELETE_STATE_ALL }
+				} ?: Log.e(prefix.trimEnd(), currentTag, currentTag) { FAILED_TO_GET_STATE }
 			}
 			
 			override fun rule(ruleLeft: RuleLeft) = ruleLeft.run {
