@@ -90,7 +90,6 @@ internal object Start_KotlmataDaemon
 	override fun toString(): String = this::class.java.simpleName
 }
 
-internal const val tab: String = "    "
 internal val KClass<*>.string get() = "${this.java.simpleName}::class"
 
 internal fun Any?.convertToSync() = when (this)
