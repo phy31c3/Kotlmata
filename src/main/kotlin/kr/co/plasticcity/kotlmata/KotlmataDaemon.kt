@@ -9,7 +9,6 @@ import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
 import kr.co.plasticcity.kotlmata.Log.detail
 import kr.co.plasticcity.kotlmata.Log.normal
 import kr.co.plasticcity.kotlmata.Log.simple
-import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
@@ -629,31 +628,33 @@ private class KotlmataDaemonImpl(
 		
 		override val on = object : Base.On
 		{
-			private fun setLifecycle(callback: DaemonCallback, set: (LifecycleCallback) -> Unit): Base.Catch<DaemonCallback, DaemonFallback>
+			private fun setLifecycle(callback: DaemonCallback, set: (LifecycleCallback) -> Unit) = object : Base.Catch<DaemonCallback, DaemonFallback>
 			{
-				this@InitImpl shouldNot expired
-				set(LifecycleCallback(callback))
-				return object : Base.Catch<DaemonCallback, DaemonFallback>
+				init
 				{
-					override fun catch(fallback: DaemonFallback): Base.Finally<DaemonCallback>
+					this@InitImpl shouldNot expired
+					set(LifecycleCallback(callback))
+				}
+				
+				override fun catch(fallback: DaemonFallback) = object : Base.Finally<DaemonCallback>
+				{
+					init
 					{
 						this@InitImpl shouldNot expired
 						set(LifecycleCallback(callback, fallback))
-						return object : Base.Finally<DaemonCallback>
-						{
-							override fun finally(finally: DaemonCallback)
-							{
-								this@InitImpl shouldNot expired
-								set(LifecycleCallback(callback, fallback, finally))
-							}
-						}
 					}
 					
 					override fun finally(finally: DaemonCallback)
 					{
 						this@InitImpl shouldNot expired
-						set(LifecycleCallback(callback, null, finally))
+						set(LifecycleCallback(callback, fallback, finally))
 					}
+				}
+				
+				override fun finally(finally: DaemonCallback)
+				{
+					this@InitImpl shouldNot expired
+					set(LifecycleCallback(callback, null, finally))
 				}
 			}
 			
@@ -708,31 +709,31 @@ private class KotlmataDaemonImpl(
 				onFatal = block
 			}
 			
-			override fun transition(callback: TransitionCallback): KotlmataMachine.Base.Catch
+			override fun transition(callback: TransitionCallback) = object : KotlmataMachine.Base.Catch
 			{
-				this@InitImpl shouldNot expired
-				val transition = init.on transition callback
-				return object : KotlmataMachine.Base.Catch
+				val transition = run {
+					this@InitImpl shouldNot expired
+					init.on transition callback
+				}
+				
+				override fun catch(fallback: TransitionFallback) = object : KotlmataMachine.Base.Finally
 				{
-					override fun catch(fallback: TransitionFallback): KotlmataMachine.Base.Finally
-					{
+					val catch = run {
 						this@InitImpl shouldNot expired
-						val catch = transition catch fallback
-						return object : KotlmataMachine.Base.Finally
-						{
-							override fun finally(finally: TransitionCallback)
-							{
-								this@InitImpl shouldNot expired
-								catch finally finally
-							}
-						}
+						transition catch fallback
 					}
 					
 					override fun finally(finally: TransitionCallback)
 					{
 						this@InitImpl shouldNot expired
-						transition finally finally
+						catch finally finally
 					}
+				}
+				
+				override fun finally(finally: TransitionCallback)
+				{
+					this@InitImpl shouldNot expired
+					transition finally finally
 				}
 			}
 			
