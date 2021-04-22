@@ -75,7 +75,7 @@ internal class Logs
 		const val MACHINE_USING_RELEASED_MACHINE = "%s Attempt to use a released machine. Please check the 'machine.isReleased' property."
 		const val MACHINE_CANNOT_DELETE_CURRENT_STATE = "%s The current state cannot be deleted. (state: [%s])"
 		const val DAEMON_UNINTENDED_TERMINATION = "Daemon[%s]: Unintended termination occurred. (reason: %s)"
-		const val DAEMON_UNHANDLED_ERROR = "Daemon[%s]: Fatal error occurred. (%s)"
+		const val DAEMON_FATAL_ERROR = "Daemon[%s]: Fatal error occurred. (%s)"
 		
 		/*########################## ERROR ##########################*/
 		const val EXPIRED_OBJECT = "%s Use of expired object: The object is only available inside the 'init' or 'update' block."
@@ -126,7 +126,7 @@ internal object Log
 	{
 		log(Logs).reformat(*args).also { formatted ->
 			error(formatted)
-			throw IllegalStateException(formatted)
+			throw IllegalStateException(formatted.replace(" +".toRegex(), " "))
 		}
 	}
 	

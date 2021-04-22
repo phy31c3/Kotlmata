@@ -543,7 +543,7 @@ private class KotlmataDaemonImpl(
 			}
 			catch (e: Throwable)
 			{
-				Log.w(name, e) { DAEMON_UNHANDLED_ERROR }
+				Log.w(name, e) { DAEMON_FATAL_ERROR }
 				if (!isTerminated)
 				{
 					try
