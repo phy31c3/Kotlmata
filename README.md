@@ -87,7 +87,7 @@ val machine = KotlmataMachine("sample") {
     "A" x 10 %= "A" // 재귀도 가능함
     "A" x String::class %= "B" // String 타입의 객체가 신호로 입력되면 "B"로 전이 (타입 신호)
     "A" x String::class %= "A" // 동일한 좌변을 중복해서 정의하면 기존 규칙을 덮어씀
-
+    
     start at "A"
 }
 ```
@@ -287,7 +287,7 @@ val machine = KotlmataMachine("sample") {
         }
     }
     
-    "A" extends template with {
+    "A" extends template by {
         on error { s -> // 템플릿의 on error가 덮어써짐
             println(s)
         }
@@ -303,14 +303,14 @@ val machine = KotlmataMachine("sample") {
 
 #### 신호 입력
 ```kotlin
-val machine = KotlmataMachine("sample") { 
+val machine = KotlmataMachine("sample") {
     "A" {}
     "B" {
         entry action { s ->
             // 아래의 입력에 의해 s == 10
         }
     }
-
+    
     "A" x 0 %= "B"
     
     start at "A"
@@ -357,7 +357,7 @@ val machine = KotlmataMachine("sample") {
             println(payload) // 상태 전이 시 최종적으로 entry까지 전달됨
         }
     }
-
+    
     "A" x 0 %= "B"
     
     start at "A"
@@ -389,10 +389,10 @@ machine.release() // 머신을 해제함. "상태 A 정리" 출력
 ```kotlin
 // KotlmataMachine은 생성되면 수정이 불가능
 // KotlmataMutableMachine은 생성 후 수정(업데이트) 가능함
-val machine = KotlmataMutableMachine("sample") { 
+val machine = KotlmataMutableMachine("sample") {
     "A" {}
     "B" {}
-
+    
     "A" x 0 %= "B"
     
     start at "A"
@@ -425,15 +425,15 @@ machine {
 #### 머신 업데이트 3 - 상태 및 전이규칙 삭제
 ```kotlin
 machine {
-    delete state "A" // 머신에서 "A" 상태 삭제
-    delete state all // 머신의 모든 상태 삭제
+    delete state "A" // 머신에서 상태 "A" 삭제 ("A"가 현재 상태일 경우 삭제 불가)
+    delete state all // 현재 상태를 제외한 머신의 모든 상태 삭제
     delete rule ("A" x "S") // 좌변이 "A" x "S"인 전이규칙 삭제
     delete rule all // 머신의 모든 전이규칙 삭제
 }
 ```
 #### 상태 업데이트 1 - update 함수
 ```kotlin
-val machine = KotlmataMutableMachine("sample") { 
+val machine = KotlmataMutableMachine("sample") {
     "A" {
         entry action { s ->
             println(s)
@@ -512,7 +512,7 @@ val machine = KotlmataMachine("sample") {
     }
     "B" {}
     "C" {}
-
+    
     "A" x 1 %= "B"
     "B" x 1 %= "C"
     "A" x 10 %= "C"
@@ -599,7 +599,7 @@ val machine = KotlmataMachine("sample") {
         }
     }
     "B" { state ->
-       entry action { signal ->
+        entry action { signal ->
             println("$transitionCount: $state entry via $signal")
         }
         input action { signal ->
@@ -609,7 +609,7 @@ val machine = KotlmataMachine("sample") {
             println("$transitionCount: $state exit via $signal")
         }
     }
-
+    
     "A" x any %= "B"
     "B" x any %= "A"
     

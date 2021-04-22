@@ -714,7 +714,7 @@ class Tests
 				}
 			}
 			
-			"state" extends template with {
+			"state" extends template by {
 				input action {
 					checklist["input"] = true
 					throw Exception()

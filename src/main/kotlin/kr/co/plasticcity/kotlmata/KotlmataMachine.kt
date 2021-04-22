@@ -113,12 +113,12 @@ interface KotlmataMachine
 	{
 		operator fun <S : STATE> S.invoke(block: StateDefine<S>)
 		infix fun <S : STATE> S.with(block: StateDefine<S>) = invoke(block)
-		infix fun <S : STATE> S.extends(template: StateTemplate): With<S>
+		infix fun <S : STATE> S.extends(template: StateTemplate): By<S>
 		infix fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
 		
-		interface With<S : STATE>
+		interface By<S : STATE>
 		{
-			infix fun with(block: StateDefine<S>)
+			infix fun by(block: StateDefine<S>)
 		}
 		
 		infix fun <S : STATE> S.action(action: EntryAction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL> = function(action)
@@ -671,7 +671,7 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override fun <S : STATE> S.extends(template: StateTemplate) = object : StateDefinable.With<S>
+		override fun <S : STATE> S.extends(template: StateTemplate) = object : StateDefinable.By<S>
 		{
 			val state: KotlmataMutableState<S>
 			
@@ -686,7 +686,7 @@ private class KotlmataMachineImpl(
 				}
 			}
 			
-			override fun with(block: StateDefine<S>)
+			override fun by(block: StateDefine<S>)
 			{
 				this@UpdateImpl shouldNot expired
 				state.update(block)
