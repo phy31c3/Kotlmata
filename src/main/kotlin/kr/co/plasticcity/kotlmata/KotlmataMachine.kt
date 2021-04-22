@@ -459,7 +459,6 @@ private class KotlmataMachineImpl(
 		ifReleased { return }
 		
 		val from = currentTag
-		val currentState = stateMap[currentTag] ?: Log.e(prefix.trimEnd(), currentTag, currentTag) { FAILED_TO_GET_STATE }
 		
 		fun TransitionDef.call(to: STATE)
 		{
@@ -515,53 +514,55 @@ private class KotlmataMachineImpl(
 		try
 		{
 			logLevel.normal(prefix, signal, type.string, payload) { MACHINE_INPUT }
-			runStateFunction {
-				currentState.input(signal, type, transitionCounter, payload)
-			}.also { inputReturn ->
-				if (inputReturn == stay)
-				{
-					return
-				}
-			}.convertToSync()?.also { sync ->
-				logLevel.normal(prefix, sync.signal, sync.type.string, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
-				block(sync)
-			} ?: run {
-				ruleMap[from]?.let { `from x` ->
-					`from x`[signal]
-						?: `from x`.predicate()
-						?: `from x`[type]
-						?: `from x`[any]?.filterExcept()
-				} ?: ruleMap[any]?.let { `any x` ->
-					`any x`[signal]?.filterExcept()
-						?: `any x`.predicateFilterExcept()
-						?: `any x`[type]?.filterExcept()
-						?: `any x`[any]?.filterExcept()
-				}
-			}?.let { to ->
-				when (to)
-				{
-					is stay -> null
-					is self -> currentState
-					in stateMap -> stateMap[to]
-					else ->
+			stateMap[from]?.also { currentState ->
+				runStateFunction {
+					currentState.input(signal, type, transitionCounter, payload)
+				}.also { inputReturn ->
+					if (inputReturn == stay)
 					{
-						Log.w(prefixWithTab, from, signal, to) { MACHINE_TRANSITION_FAILED }
-						null
+						return
 					}
-				}
-			}?.also { nextState ->
-				val to = nextState.tag
-				runStateFunction { currentState.exit(signal, type, transitionCounter, payload, to) }
-				runStateFunction { currentState.clear() }
-				logLevel.simple(prefixWithTab, from, signal, to) { MACHINE_TRANSITION }
-				currentTag = to
-				++transitionCounter
-				onTransition?.call(to)
-				runStateFunction { nextState.entry(from, signal, type, transitionCounter, payload) }.convertToSync()?.also { sync ->
+				}.convertToSync()?.also { sync ->
 					logLevel.normal(prefix, sync.signal, sync.type.string, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
 					block(sync)
+				} ?: run {
+					ruleMap[from]?.let { `from x` ->
+						`from x`[signal]
+							?: `from x`.predicate()
+							?: `from x`[type]
+							?: `from x`[any]?.filterExcept()
+					} ?: ruleMap[any]?.let { `any x` ->
+						`any x`[signal]?.filterExcept()
+							?: `any x`.predicateFilterExcept()
+							?: `any x`[type]?.filterExcept()
+							?: `any x`[any]?.filterExcept()
+					}
+				}?.let { to ->
+					when (to)
+					{
+						is stay -> null
+						is self -> currentState
+						in stateMap -> stateMap[to]
+						else ->
+						{
+							Log.w(prefixWithTab, from, signal, to) { MACHINE_TRANSITION_FAILED }
+							null
+						}
+					}
+				}?.also { nextState ->
+					val to = nextState.tag
+					runStateFunction { currentState.exit(signal, type, transitionCounter, payload, to) }
+					runStateFunction { currentState.clear() }
+					logLevel.simple(prefixWithTab, from, signal, to) { MACHINE_TRANSITION }
+					currentTag = to
+					++transitionCounter
+					onTransition?.call(to)
+					runStateFunction { nextState.entry(from, signal, type, transitionCounter, payload) }.convertToSync()?.also { sync ->
+						logLevel.normal(prefix, sync.signal, sync.type.string, sync.payload) { MACHINE_RETURN_SYNC_INPUT }
+						block(sync)
+					}
 				}
-			}
+			} ?: Log.e(prefixWithTab, from, from) { FAILED_TO_GET_STATE }
 		}
 		finally
 		{
@@ -1251,7 +1252,7 @@ private class KotlmataMachineImpl(
 					stateMap.clear()
 					stateMap[currentTag] = currentState
 					logLevel.normal(prefix) { MACHINE_DELETE_STATE_ALL }
-				} ?: Log.e(prefix.trimEnd(), currentTag, currentTag) { FAILED_TO_GET_STATE }
+				} ?: Log.e(prefixWithTab, currentTag, currentTag) { FAILED_TO_GET_STATE }
 			}
 			
 			override fun rule(ruleLeft: RuleLeft) = ruleLeft.run {
