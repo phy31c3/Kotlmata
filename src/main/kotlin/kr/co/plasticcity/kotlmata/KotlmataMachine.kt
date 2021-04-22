@@ -653,7 +653,7 @@ private class KotlmataMachineImpl(
 					{
 						logLevel.normal(prefix, state) { MACHINE_START_AT }
 					}
-				} ?: Log.e(prefix.trimEnd(), state) { UNDEFINED_START_STATE }
+				} ?: Log.e(prefixWithTab, state) { UNDEFINED_START_STATE }
 				
 				return Init.End()
 			}

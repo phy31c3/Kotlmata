@@ -126,7 +126,7 @@ internal object Log
 	{
 		log(Logs).reformat(*args).also { formatted ->
 			error(formatted)
-			throw IllegalStateException(formatted)
+			throw IllegalStateException(formatted.replace(" +".toRegex(), " "))
 		}
 	}
 	
