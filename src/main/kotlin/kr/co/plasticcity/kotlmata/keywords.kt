@@ -1,4 +1,4 @@
-@file:Suppress("FunctionName")
+@file:Suppress("FunctionName", "ClassName")
 
 package kr.co.plasticcity.kotlmata
 
@@ -83,12 +83,12 @@ object all
 interface Signals<T : SIGNAL> : MutableList<SIGNAL>
 interface SignalsDefinable
 {
-	infix fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2): Signals<R>
-	infix fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>): Signals<R>
-	infix fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2): Signals<R>
-	infix fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>): Signals<R>
-	infix fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2): Signals<R>
-	infix fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> T.OR(signal: U): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> T.OR(signal: KClass<U>): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: U): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: KClass<U>): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: U): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: KClass<U>): Signals<R>
 }
 
 interface ErrorHolder

@@ -117,27 +117,27 @@ internal class PayloadErrorActionReceiver(
  *###################################################################################################################################*/
 internal object SignalsDefinableImpl : SignalsDefinable
 {
-	override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> T.OR(signal: U): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
 	
-	override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> T.OR(signal: KClass<U>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
 	
-	override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: U): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
 	
-	override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: KClass<U>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
 	{ /* empty */ }
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2): Signals<R>
+	override fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: U): Signals<R>
 	{
 		add(signal)
 		return this as Signals<R>
 	}
 	
 	@Suppress("UNCHECKED_CAST")
-	override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>): Signals<R>
+	override fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: KClass<U>): Signals<R>
 	{
 		add(signal)
 		return this as Signals<R>
