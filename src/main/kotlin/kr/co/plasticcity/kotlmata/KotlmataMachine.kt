@@ -123,7 +123,7 @@ interface KotlmataMachine
 			infix fun by(block: StateDefine<S>)
 		}
 		
-		interface StateTemplates : MutableList<StateTemplate>
+		interface StateTemplates : List<StateTemplate>
 		
 		operator fun StateTemplate.plus(template: StateTemplate): StateTemplates
 		operator fun StateTemplates.plus(template: StateTemplate): StateTemplates
@@ -139,7 +139,7 @@ interface KotlmataMachine
 	
 	interface RuleDefinable : SignalsDefinable
 	{
-		interface States : MutableList<STATE>
+		interface States : List<STATE>
 		
 		infix fun STATE.AND(state: STATE): States
 		infix fun States.AND(state: STATE): States
@@ -726,12 +726,11 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override fun StateTemplate.plus(template: StateTemplate): StateTemplates = object : StateTemplates, MutableList<StateTemplate> by mutableListOf(this, template)
+		override fun StateTemplate.plus(template: StateTemplate): StateTemplates = object : StateTemplates, List<StateTemplate> by listOf(this, template)
 		{ /* empty */ }
 		
-		override fun StateTemplates.plus(template: StateTemplate): StateTemplates = this.apply {
-			add(template)
-		}
+		override fun StateTemplates.plus(template: StateTemplate): StateTemplates = object : StateTemplates, List<StateTemplate> by (this as List<StateTemplate>) + template
+		{ /* empty */ }
 		
 		@Suppress("UNCHECKED_CAST")
 		override fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
@@ -976,12 +975,11 @@ private class KotlmataMachineImpl(
 		/*###################################################################################################################################
 		 * Transition rules
 		 *###################################################################################################################################*/
-		override fun STATE.AND(state: STATE): States = object : States, MutableList<SIGNAL> by mutableListOf(this, state)
+		override fun STATE.AND(state: STATE): States = object : States, List<SIGNAL> by listOf(this, state)
 		{ /* empty */ }
 		
-		override fun States.AND(state: STATE): States = this.apply {
-			add(state)
-		}
+		override fun States.AND(state: STATE): States = object : States, List<SIGNAL> by this + state
+		{ /* empty */ }
 		
 		override fun any.invoke(vararg except: SIGNAL): AnyExcept = object : AnyExcept, List<SIGNAL> by listOf(*except)
 		{ /* empty */ }

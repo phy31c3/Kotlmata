@@ -366,7 +366,7 @@ private class KotlmataDaemonImpl(
 			}
 			"Paused" {
 				var sync: Sync? = null
-				val stash: MutableList<Request> = ArrayList()
+				val stash: MutableList<Request> = mutableListOf()
 				val keep: InputAction<Request> = { request ->
 					stash += request
 					logLevel.detail(name) { DAEMON_KEEP_REQUEST }

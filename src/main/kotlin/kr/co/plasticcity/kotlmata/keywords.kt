@@ -80,7 +80,7 @@ object self
  */
 object all
 
-interface Signals<T : SIGNAL> : MutableList<SIGNAL>
+interface Signals<T : SIGNAL> : List<SIGNAL>
 interface SignalsDefinable
 {
 	infix fun <T : R, U : R, R : SIGNAL> T.OR(signal: U): Signals<R>

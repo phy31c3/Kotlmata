@@ -117,31 +117,23 @@ internal class PayloadErrorActionReceiver(
  *###################################################################################################################################*/
 internal object SignalsDefinableImpl : SignalsDefinable
 {
-	override fun <T : R, U : R, R : SIGNAL> T.OR(signal: U): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> T.OR(signal: U): Signals<R> = object : Signals<R>, List<SIGNAL> by listOf(this, signal)
 	{ /* empty */ }
 	
-	override fun <T : R, U : R, R : SIGNAL> T.OR(signal: KClass<U>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> T.OR(signal: KClass<U>): Signals<R> = object : Signals<R>, List<SIGNAL> by listOf(this, signal)
 	{ /* empty */ }
 	
-	override fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: U): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: U): Signals<R> = object : Signals<R>, List<SIGNAL> by listOf(this, signal)
 	{ /* empty */ }
 	
-	override fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: KClass<U>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: KClass<U>): Signals<R> = object : Signals<R>, List<SIGNAL> by listOf(this, signal)
 	{ /* empty */ }
 	
-	@Suppress("UNCHECKED_CAST")
-	override fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: U): Signals<R>
-	{
-		add(signal)
-		return this as Signals<R>
-	}
+	override fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: U): Signals<R> = object : Signals<R>, List<SIGNAL> by this + signal
+	{ /* empty */ }
 	
-	@Suppress("UNCHECKED_CAST")
-	override fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: KClass<U>): Signals<R>
-	{
-		add(signal)
-		return this as Signals<R>
-	}
+	override fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: KClass<U>): Signals<R> = object : Signals<R>, List<SIGNAL> by this + signal
+	{ /* empty */ }
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing) : Closeable
