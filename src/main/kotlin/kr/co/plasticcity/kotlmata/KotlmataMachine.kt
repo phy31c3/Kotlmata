@@ -112,7 +112,7 @@ interface KotlmataMachine
 	interface StateDefinable
 	{
 		operator fun <S : STATE> S.invoke(block: StateDefine<S>)
-		infix fun <S : STATE> S.with(block: StateDefine<S>) = invoke(block)
+		infix fun <S : STATE> S.by(block: StateDefine<S>) = invoke(block)
 		infix fun <S : STATE> S.extends(template: StateTemplate): By<S>
 		infix fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
 		
