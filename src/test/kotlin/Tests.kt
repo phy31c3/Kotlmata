@@ -708,7 +708,7 @@ class Tests
 		)
 		
 		KotlmataMachine("S-010", logLevel) {
-			val template: StateTemplate<STATE> = {
+			val template: StateTemplate = {
 				on error {
 					checklist["on error"] = true
 				}
@@ -1319,21 +1319,21 @@ class Tests
 		val predicate = { s: Int -> s == 0 }
 		
 		KotlmataMutableMachine("M-011", logLevel) {
-			val template: StateTemplate<String> = { state ->
+			val define: StateDefine<String> = { state ->
 				entry action {
 					checklist[state] = false
 				}
 			}
 			
 			"state" {}
-			"state x signal" extends template
-			"state x type" extends template
-			"state x any" extends template
-			"state x predicate" extends template
-			"any x signal" extends template
-			"any x type" extends template
-			"any x any" extends template
-			"any x predicate" extends template
+			"state x signal" with define
+			"state x type" with define
+			"state x any" with define
+			"state x predicate" with define
+			"any x signal" with define
+			"any x type" with define
+			"any x any" with define
+			"any x predicate" with define
 			
 			"state" x 0 %= "state x signal"
 			"state" x Int::class %= "state x type"
