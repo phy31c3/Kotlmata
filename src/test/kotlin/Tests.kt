@@ -760,6 +760,52 @@ class Tests
 	}
 	
 	@Test
+	fun `S-012 다중 상태 템플릿이 잘 적용되는가`()
+	{
+		val checklist = mutableMapOf(
+			"a" to false,
+			"b" to false,
+			"define" to false,
+		)
+		
+		KotlmataMachine("S-012", logLevel) {
+			val a: StateTemplate = {
+				input action {
+					checklist["a"] = false
+				}
+				input signal "a" action {
+					checklist["a"] = true
+				}
+			}
+			
+			val b: StateTemplate = {
+				input action {
+					checklist["b"] = false
+				}
+				input signal "b" action {
+					checklist["b"] = true
+				}
+			}
+			
+			val define: StateDefine<String> = { state ->
+				input action {
+					checklist[state] = true
+				}
+			}
+			
+			"define" extends (a + b) by define
+			
+			start at "define"
+		}.also { machine ->
+			machine.input("a")
+			machine.input("b")
+			machine.input("c")
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
 	fun `M-001 머신의 간략한 상태 정의가 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
@@ -1326,14 +1372,14 @@ class Tests
 			}
 			
 			"state" {}
-			"state x signal" with define
-			"state x type" with define
-			"state x any" with define
-			"state x predicate" with define
-			"any x signal" with define
-			"any x type" with define
-			"any x any" with define
-			"any x predicate" with define
+			"state x signal" by define
+			"state x type" by define
+			"state x any" by define
+			"state x predicate" by define
+			"any x signal" by define
+			"any x type" by define
+			"any x any" by define
+			"any x predicate" by define
 			
 			"state" x 0 %= "state x signal"
 			"state" x Int::class %= "state x type"

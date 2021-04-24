@@ -6,6 +6,7 @@ import kr.co.plasticcity.kotlmata.KotlmataMachine.*
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefinable.*
+import kr.co.plasticcity.kotlmata.KotlmataMachine.StateDefinable.StateTemplates
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.Delete
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.Has
@@ -114,12 +115,18 @@ interface KotlmataMachine
 		operator fun <S : STATE> S.invoke(block: StateDefine<S>)
 		infix fun <S : STATE> S.by(block: StateDefine<S>) = invoke(block)
 		infix fun <S : STATE> S.extends(template: StateTemplate): By<S>
+		infix fun <S : STATE> S.extends(templates: StateTemplates): By<S>
 		infix fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
 		
 		interface By<S : STATE>
 		{
 			infix fun by(block: StateDefine<S>)
 		}
+		
+		interface StateTemplates : MutableList<StateTemplate>
+		
+		operator fun StateTemplate.plus(template: StateTemplate): StateTemplates
+		operator fun StateTemplates.plus(template: StateTemplate): StateTemplates
 		
 		infix fun <S : STATE> S.action(action: EntryAction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL> = function(action)
 		infix fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
@@ -691,6 +698,39 @@ private class KotlmataMachineImpl(
 				this@UpdateImpl shouldNot expired
 				state.update(block)
 			}
+		}
+		
+		override fun <S : STATE> S.extends(templates: StateTemplates) = object : StateDefinable.By<S>
+		{
+			val state: KotlmataMutableState<S>
+			
+			init
+			{
+				this@UpdateImpl shouldNot expired
+				state = KotlmataMutableState(this@extends, logLevel, "$prefix$tab", templates[0])
+				stateMap[this@extends] = state
+				if (this@extends !== Initial_state_for_KotlmataDaemon)
+				{
+					logLevel.normal(prefix, this@extends) { MACHINE_ADD_STATE }
+				}
+				for (i in 1..templates.lastIndex)
+				{
+					state.update(templates[i])
+				}
+			}
+			
+			override fun by(block: StateDefine<S>)
+			{
+				this@UpdateImpl shouldNot expired
+				state.update(block)
+			}
+		}
+		
+		override fun StateTemplate.plus(template: StateTemplate): StateTemplates = object : StateTemplates, MutableList<StateTemplate> by mutableListOf(this, template)
+		{ /* empty */ }
+		
+		override fun StateTemplates.plus(template: StateTemplate): StateTemplates = this.apply {
+			add(template)
 		}
 		
 		@Suppress("UNCHECKED_CAST")

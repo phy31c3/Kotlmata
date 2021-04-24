@@ -35,7 +35,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="0.5.5">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,6 +77,9 @@
         <option value="Kotlin Class" />
       </list>
     </option>
+  </component>
+  <component name="Git.Rebase.Settings">
+    <option name="NEW_BASE" value="develop" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -141,17 +146,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Tests.D-007 데몬 'on create'에서 에러 발생 시 처리가 잘 되는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Kotlmata.test" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="Tests" />
-      <option name="METHOD_NAME" value="D-007 데몬 'on create'에서 에러 발생 시 처리가 잘 되는가" />
-      <option name="TEST_OBJECT" value="method" />
-      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Tests.M-016 머신 업데이트 시 현재 상태 삭제 불가가 잘 동작하는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Kotlmata.test" />
       <option name="PACKAGE_NAME" value="" />
@@ -168,6 +162,17 @@
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="Tests" />
       <option name="METHOD_NAME" value="S-006 상태의 'intercept'가 제대로 동작하는가" />
+      <option name="TEST_OBJECT" value="method" />
+      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Tests.S-012 다중 상태 템플릿이 잘 적용되는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Kotlmata.test" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="Tests" />
+      <option name="METHOD_NAME" value="S-012 다중 상태 템플릿이 잘 적용되는가" />
       <option name="TEST_OBJECT" value="method" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
       <method v="2">
@@ -192,18 +197,18 @@
     </configuration>
     <list>
       <item itemvalue="JUnit.Tests" />
-      <item itemvalue="JUnit.Tests.D-007 데몬 'on create'에서 에러 발생 시 처리가 잘 되는가" />
       <item itemvalue="JUnit.Tests.S-006 상태의 'intercept'가 제대로 동작하는가" />
       <item itemvalue="JUnit.Tests.D-006 데몬 초기화 도중 에러 발생 시 처리가 잘 되는가" />
       <item itemvalue="JUnit.Tests.M-016 머신 업데이트 시 현재 상태 삭제 불가가 잘 동작하는가" />
+      <item itemvalue="JUnit.Tests.S-012 다중 상태 템플릿이 잘 적용되는가" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.Tests.S-012 다중 상태 템플릿이 잘 적용되는가" />
         <item itemvalue="JUnit.Tests" />
         <item itemvalue="JUnit.Tests.M-016 머신 업데이트 시 현재 상태 삭제 불가가 잘 동작하는가" />
         <item itemvalue="JUnit.Tests.D-006 데몬 초기화 도중 에러 발생 시 처리가 잘 되는가" />
         <item itemvalue="JUnit.Tests.S-006 상태의 'intercept'가 제대로 동작하는가" />
-        <item itemvalue="JUnit.Tests.D-007 데몬 'on create'에서 에러 발생 시 처리가 잘 되는가" />
       </list>
     </recent_temporary>
   </component>
