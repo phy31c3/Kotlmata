@@ -765,6 +765,7 @@ class Tests
 		val checklist = mutableMapOf(
 			"a" to false,
 			"b" to false,
+			"c" to false,
 			"define" to false,
 		)
 		
@@ -787,19 +788,29 @@ class Tests
 				}
 			}
 			
+			val c: StateTemplate = {
+				input action {
+					checklist["c"] = false
+				}
+				input signal "c" action {
+					checklist["c"] = true
+				}
+			}
+			
 			val define: StateDefine<String> = { state ->
 				input action {
 					checklist[state] = true
 				}
 			}
 			
-			"define" extends (a + b) by define
+			"define" extends (a + b + c) by define
 			
 			start at "define"
 		}.also { machine ->
 			machine.input("a")
 			machine.input("b")
 			machine.input("c")
+			machine.input(0)
 		}
 		
 		checklist.verify()
@@ -1628,6 +1639,91 @@ class Tests
 				delete state all
 			}
 			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `M-017 머신의 모든 유형의 다중 상태 및 다중 신호 전이규칙이 잘 정의 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"3AND1" to false,
+			"3AND2" to false,
+			"3AND3" to false,
+			"signal OR signal" to false,
+			"signal OR type" to false,
+			"type OR signal" to false,
+			"type OR type" to false,
+			"signals OR signal" to false,
+			"signals OR type" to false,
+		)
+		
+		class A
+		class B
+		class C
+		class D
+		class E
+		class F
+		class G
+		
+		KotlmataMachine("M-017", logLevel) {
+			"a" {
+				entry via 2 action {
+					checklist["3AND3"] = true
+				}
+				entry via B::class action {
+					checklist["type OR signal"] = true
+				}
+				entry via G::class action {
+					checklist["signals OR type"] = true
+				}
+			}
+			"b" {
+				entry via 0 action {
+					checklist["3AND1"] = true
+				}
+				entry via 4 action {
+					checklist["signal OR signal"] = true
+				}
+				entry via D::class action {
+					checklist["type OR type"] = true
+				}
+			}
+			"c" {
+				entry via 1 action {
+					checklist["3AND2"] = true
+				}
+				entry via A::class action {
+					checklist["signal OR type"] = true
+				}
+				entry via 9 action {
+					checklist["signals OR signal"] = true
+				}
+			}
+			
+			("a" AND "b" AND "c") x 0 %= "b"
+			("a" AND "b" AND "c") x 1 %= "c"
+			("a" AND "b" AND "c") x 2 %= "a"
+			
+			"a" x (3 OR 4) %= "b"
+			"b" x (5 OR A::class) %= "c"
+			"c" x (B::class OR 6) %= "a"
+			"a" x (C::class OR D::class) %= "b"
+			"b" x (E::class OR 8 OR 9) %= "c"
+			"c" x (10 OR F::class OR G::class) %= "a"
+			
+			start at "a"
+		}.also { machine ->
+			machine.input(0)
+			machine.input(1)
+			machine.input(2)
+			machine.input(4)
+			machine.input(A())
+			machine.input(B())
+			machine.input(D())
+			machine.input(9)
+			machine.input(G())
 		}
 		
 		checklist.verify()
