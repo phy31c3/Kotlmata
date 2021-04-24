@@ -162,7 +162,6 @@ interface PayloadErrorActionDSL : PayloadActionDSL, ErrorActionDSL
 /*###################################################################################################################################
  * typealias for action
  *###################################################################################################################################*/
-
 typealias EntryAction<T> = EntryActionDSL.(signal: T) -> Unit
 typealias EntryFunction<T> = EntryFunctionDSL.(signal: T) -> Any?
 typealias EntryErrorAction<T> = EntryErrorActionDSL.(signal: T) -> Unit
@@ -193,8 +192,8 @@ typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 /*###################################################################################################################################
  * typealias for template
  *###################################################################################################################################*/
-
-typealias StateTemplate<T> = KotlmataState.Init.(state: T) -> Unit
+typealias StateTemplate = StateDefine<STATE>
+typealias StateDefine<T> = KotlmataState.Init.(state: T) -> Unit
 
 typealias MachineTemplate = KotlmataMachine.Base.(machine: KotlmataMachine) -> Unit
 typealias MachineDefine = KotlmataMachine.Init.(machine: KotlmataMachine) -> KotlmataMachine.Init.End

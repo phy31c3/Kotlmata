@@ -130,7 +130,7 @@ interface KotlmataMutableState<T : STATE> : KotlmataState<T>
 			tag: T,
 			logLevel: Int,
 			prefix: String,
-			block: StateTemplate<T>
+			block: StateDefine<T>
 		): KotlmataMutableState<T> = KotlmataStateImpl(tag, logLevel, prefix, block)
 	}
 	
@@ -195,7 +195,7 @@ private class KotlmataStateImpl<T : STATE>(
 	override val tag: T,
 	val logLevel: Int = NO_LOG,
 	val prefix: String = "State[$tag]:",
-	block: (StateTemplate<T>)
+	block: StateDefine<T>
 ) : KotlmataMutableState<T>
 {
 	private var entry: EntryDef? = null

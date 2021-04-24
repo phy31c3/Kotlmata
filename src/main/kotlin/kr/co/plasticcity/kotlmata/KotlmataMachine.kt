@@ -5,7 +5,7 @@ package kr.co.plasticcity.kotlmata
 import kr.co.plasticcity.kotlmata.KotlmataMachine.*
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
-import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefine.*
+import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefinable.*
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.Delete
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.Has
@@ -76,7 +76,7 @@ interface KotlmataMachine
 	}
 	
 	@KotlmataMarker
-	interface Base : StateDefine, RuleDefine
+	interface Base : StateDefinable, RuleDefinable
 	{
 		val on: On
 		
@@ -109,15 +109,16 @@ interface KotlmataMachine
 		class End internal constructor()
 	}
 	
-	interface StateDefine
+	interface StateDefinable
 	{
-		operator fun <S : STATE> S.invoke(block: StateTemplate<S>)
-		infix fun <S : T, T : STATE> S.extends(template: StateTemplate<T>): With<S>
-		infix fun <S : T, T : STATE> S.update(block: KotlmataMutableState.Update.(state: T) -> Unit)
+		operator fun <S : STATE> S.invoke(block: StateDefine<S>)
+		infix fun <S : STATE> S.with(block: StateDefine<S>) = invoke(block)
+		infix fun <S : STATE> S.extends(template: StateTemplate): With<S>
+		infix fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
 		
 		interface With<S : STATE>
 		{
-			infix fun with(block: StateTemplate<S>)
+			infix fun with(block: StateDefine<S>)
 		}
 		
 		infix fun <S : STATE> S.action(action: EntryAction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL> = function(action)
@@ -129,7 +130,7 @@ interface KotlmataMachine
 		infix fun <S : STATE, T> S.via(range: ClosedRange<T>) where T : SIGNAL, T : Comparable<T> = via { t: T -> range.contains(t) }
 	}
 	
-	interface RuleDefine : SignalsDefinable
+	interface RuleDefinable : SignalsDefinable
 	{
 		interface States : MutableList<STATE>
 		
@@ -308,7 +309,7 @@ interface KotlmataMutableMachine : KotlmataMachine
 	}
 	
 	@KotlmataMarker
-	interface Update : StateDefine, RuleDefine
+	interface Update : StateDefinable, RuleDefinable
 	{
 		val currentState: STATE
 		val has: Has
@@ -660,7 +661,7 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override fun <S : STATE> S.invoke(block: StateTemplate<S>)
+		override fun <S : STATE> S.invoke(block: StateDefine<S>)
 		{
 			this@UpdateImpl shouldNot expired
 			stateMap[this] = KotlmataMutableState(this, logLevel, "$prefix$tab", block)
@@ -670,7 +671,7 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override fun <S : T, T : STATE> S.extends(template: StateTemplate<T>) = object : StateDefine.With<S>
+		override fun <S : STATE> S.extends(template: StateTemplate) = object : StateDefinable.With<S>
 		{
 			val state: KotlmataMutableState<S>
 			
@@ -685,7 +686,7 @@ private class KotlmataMachineImpl(
 				}
 			}
 			
-			override fun with(block: StateTemplate<S>)
+			override fun with(block: StateDefine<S>)
 			{
 				this@UpdateImpl shouldNot expired
 				state.update(block)
@@ -693,7 +694,7 @@ private class KotlmataMachineImpl(
 		}
 		
 		@Suppress("UNCHECKED_CAST")
-		override fun <S : T, T : STATE> S.update(block: KotlmataMutableState.Update.(state: T) -> Unit)
+		override fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
 		{
 			this@UpdateImpl shouldNot expired
 			stateMap[this]?.update(block as KotlmataMutableState.Update.(STATE) -> Unit)
