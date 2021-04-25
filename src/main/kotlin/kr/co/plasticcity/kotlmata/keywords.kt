@@ -1,4 +1,4 @@
-@file:Suppress("FunctionName")
+@file:Suppress("FunctionName", "ClassName")
 
 package kr.co.plasticcity.kotlmata
 
@@ -80,15 +80,15 @@ object self
  */
 object all
 
-interface Signals<T : SIGNAL> : MutableList<SIGNAL>
+interface Signals<T : SIGNAL> : List<SIGNAL>
 interface SignalsDefinable
 {
-	infix fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2): Signals<R>
-	infix fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>): Signals<R>
-	infix fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2): Signals<R>
-	infix fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>): Signals<R>
-	infix fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2): Signals<R>
-	infix fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> T.OR(signal: U): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> T.OR(signal: KClass<U>): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: U): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: KClass<U>): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: U): Signals<R>
+	infix fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: KClass<U>): Signals<R>
 }
 
 interface ErrorHolder
@@ -162,7 +162,6 @@ interface PayloadErrorActionDSL : PayloadActionDSL, ErrorActionDSL
 /*###################################################################################################################################
  * typealias for action
  *###################################################################################################################################*/
-
 typealias EntryAction<T> = EntryActionDSL.(signal: T) -> Unit
 typealias EntryFunction<T> = EntryFunctionDSL.(signal: T) -> Any?
 typealias EntryErrorAction<T> = EntryErrorActionDSL.(signal: T) -> Unit
@@ -193,11 +192,30 @@ typealias DaemonFallback = PayloadErrorActionDSL.() -> Unit
 /*###################################################################################################################################
  * typealias for template
  *###################################################################################################################################*/
-
-typealias StateTemplate<T> = KotlmataState.Init.(state: T) -> Unit
+typealias StateTemplate = StateDefine<STATE>
+typealias StateDefine<T> = KotlmataState.Init.(state: T) -> Unit
 
 typealias MachineTemplate = KotlmataMachine.Base.(machine: KotlmataMachine) -> Unit
 typealias MachineDefine = KotlmataMachine.Init.(machine: KotlmataMachine) -> KotlmataMachine.Init.End
 
 typealias DaemonTemplate = KotlmataDaemon.Base.(daemon: KotlmataDaemon) -> Unit
 typealias DaemonDefine = KotlmataDaemon.Init.(daemon: KotlmataDaemon) -> KotlmataMachine.Init.End
+
+/*###################################################################################################################################
+ * MachineTemplates and DaemonTemplates
+ *###################################################################################################################################*/
+interface MachineTemplates : List<MachineTemplate>
+
+operator fun MachineTemplate.plus(template: MachineTemplate): MachineTemplates = object : MachineTemplates, List<MachineTemplate> by listOf(this, template)
+{ /* empty */ }
+
+operator fun MachineTemplates.plus(template: MachineTemplate): MachineTemplates = object : MachineTemplates, List<MachineTemplate> by (this as List<MachineTemplate>) + template
+{ /* empty */ }
+
+interface DaemonTemplates : List<DaemonTemplate>
+
+operator fun DaemonTemplate.plus(template: DaemonTemplate): DaemonTemplates = object : DaemonTemplates, List<DaemonTemplate> by listOf(this, template)
+{ /* empty */ }
+
+operator fun DaemonTemplates.plus(template: DaemonTemplate): DaemonTemplates = object : DaemonTemplates, List<DaemonTemplate> by (this as List<DaemonTemplate>) + template
+{ /* empty */ }

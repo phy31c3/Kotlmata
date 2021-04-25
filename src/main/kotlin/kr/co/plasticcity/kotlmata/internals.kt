@@ -8,6 +8,38 @@ import kotlin.reflect.KClass
 @DslMarker
 internal annotation class KotlmataMarker
 
+internal val KClass<*>.string get() = "${this.java.simpleName}::class"
+
+internal object Initial_state_for_KotlmataDaemon
+{
+	override fun toString(): String = this::class.java.simpleName
+}
+
+internal object Start_KotlmataDaemon
+{
+	override fun toString(): String = this::class.java.simpleName
+}
+
+internal fun Any?.convertToSync() = when (this)
+{
+	null -> null
+	is Unit -> null
+	is Nothing -> null
+	is FunctionDSL.Return -> this
+	else /* this is SIGNAL */ -> FunctionDSL.Return(this)
+}
+
+internal inline fun <T> T.ifOneOf(vararg args: T, then: () -> Unit)
+{
+	if (this in args)
+	{
+		then()
+	}
+}
+
+/*###################################################################################################################################
+ * Receivers
+ *###################################################################################################################################*/
 internal object ActionReceiver : ActionDSL
 
 internal class ErrorActionReceiver(
@@ -80,63 +112,28 @@ internal class PayloadErrorActionReceiver(
 	override val throwable: Throwable
 ) : PayloadErrorActionDSL
 
-internal object Initial_state_for_KotlmataDaemon
-{
-	override fun toString(): String = this::class.java.simpleName
-}
-
-internal object Start_KotlmataDaemon
-{
-	override fun toString(): String = this::class.java.simpleName
-}
-
-internal const val tab: String = "    "
-internal val KClass<*>.string get() = "${this.java.simpleName}::class"
-
-internal fun Any?.convertToSync() = when (this)
-{
-	null -> null
-	is Unit -> null
-	is Nothing -> null
-	is FunctionDSL.Return -> this
-	else /* this is SIGNAL */ -> FunctionDSL.Return(this)
-}
-
-internal inline fun <T> T.ifOneOf(vararg args: T, block: () -> Unit)
-{
-	if (this in args)
-	{
-		block()
-	}
-}
-
+/*###################################################################################################################################
+ * Internal classes
+ *###################################################################################################################################*/
 internal object SignalsDefinableImpl : SignalsDefinable
 {
-	override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: T2): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> T.OR(signal: U): Signals<R> = object : Signals<R>, List<SIGNAL> by listOf(this, signal)
 	{ /* empty */ }
 	
-	override fun <T1 : R, T2 : R, R : SIGNAL> T1.OR(signal: KClass<T2>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> T.OR(signal: KClass<U>): Signals<R> = object : Signals<R>, List<SIGNAL> by listOf(this, signal)
 	{ /* empty */ }
 	
-	override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: T2): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: U): Signals<R> = object : Signals<R>, List<SIGNAL> by listOf(this, signal)
 	{ /* empty */ }
 	
-	override fun <T1 : R, T2 : R, R : SIGNAL> KClass<T1>.OR(signal: KClass<T2>): Signals<R> = object : Signals<R>, MutableList<SIGNAL> by mutableListOf(this, signal)
+	override fun <T : R, U : R, R : SIGNAL> KClass<T>.OR(signal: KClass<U>): Signals<R> = object : Signals<R>, List<SIGNAL> by listOf(this, signal)
 	{ /* empty */ }
 	
-	@Suppress("UNCHECKED_CAST")
-	override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: T2): Signals<R>
-	{
-		add(signal)
-		return this as Signals<R>
-	}
+	override fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: U): Signals<R> = object : Signals<R>, List<SIGNAL> by this + signal
+	{ /* empty */ }
 	
-	@Suppress("UNCHECKED_CAST")
-	override fun <T1 : R, T2 : R, R : SIGNAL> Signals<T1>.OR(signal: KClass<T2>): Signals<R>
-	{
-		add(signal)
-		return this as Signals<R>
-	}
+	override fun <T : R, U : R, R : SIGNAL> Signals<T>.OR(signal: KClass<U>): Signals<R> = object : Signals<R>, List<SIGNAL> by this + signal
+	{ /* empty */ }
 }
 
 internal open class Expirable internal constructor(private val block: () -> Nothing) : Closeable

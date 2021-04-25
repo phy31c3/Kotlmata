@@ -8,7 +8,7 @@ Automata-based programming library for Kotlin.
 ### Gradle
 
 ```
-implementation 'kr.co.plasticcity:kotlmata:1.0.3'
+implementation 'kr.co.plasticcity:kotlmata:1.0.4'
 ```
 
 ### Maven
@@ -17,7 +17,7 @@ implementation 'kr.co.plasticcity:kotlmata:1.0.3'
 <dependency>
   <groupId>kr.co.plasticcity</groupId>
   <artifactId>kotlmata</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4</version>
   <type>pom</type>
 </dependency>
 ```
@@ -57,6 +57,18 @@ val machine = KotlmataMachine("sample") extends template by {
     // 추가 머신 정의
 }
 ```
+#### 여러 템플릿을 상속받는 경우
+```kotlin
+val template1: MachineTemplate = {
+    // 첫 번째 템플릿
+}
+val template2: MachineTemplate = {
+    // 두 번째 템플릿
+}
+val machine = KotlmataMachine("sample") extends (template1 + template2) by {
+    // 추가 머신 정의
+}
+```
 
 ### 머신 정의
 
@@ -87,7 +99,7 @@ val machine = KotlmataMachine("sample") {
     "A" x 10 %= "A" // 재귀도 가능함
     "A" x String::class %= "B" // String 타입의 객체가 신호로 입력되면 "B"로 전이 (타입 신호)
     "A" x String::class %= "A" // 동일한 좌변을 중복해서 정의하면 기존 규칙을 덮어씀
-
+    
     start at "A"
 }
 ```
@@ -278,22 +290,22 @@ val machine = KotlmataMachine("sample") {
 ```kotlin
 val machine = KotlmataMachine("sample") {
     // 상태들의 공통 정의를 미리 템플릿으로 만들어 놓음
-    val template: StateTemplate<String/* 상태 태그의 타입 */> = {
+    val template1: StateTemplate = {
         on error { s ->
             println(throwable.message)
         }
-        entry action { s ->
-            println(s)
-        }
+    }
+    val template2: StateTemplate = {
+        // 상태 정의
     }
     
-    "A" extends template with {
-        on error { s -> // 템플릿의 on error가 덮어써짐
+    "A" extends template1 by {
+        on error { s -> // template1의 on error가 덮어써짐
             println(s)
         }
-        // 추가 정의
     }
-    "B" extends template // 추가 정의는 생략할 수 있음
+    "B" extends template1 // 추가 정의(by)는 생략할 수 있음
+    "C" extends (template1 + template2) // 여러 템플릿을 한 번에 적용할 수 있음
     
     start at "A"
 }
@@ -303,14 +315,14 @@ val machine = KotlmataMachine("sample") {
 
 #### 신호 입력
 ```kotlin
-val machine = KotlmataMachine("sample") { 
+val machine = KotlmataMachine("sample") {
     "A" {}
     "B" {
         entry action { s ->
             // 아래의 입력에 의해 s == 10
         }
     }
-
+    
     "A" x 0 %= "B"
     
     start at "A"
@@ -357,7 +369,7 @@ val machine = KotlmataMachine("sample") {
             println(payload) // 상태 전이 시 최종적으로 entry까지 전달됨
         }
     }
-
+    
     "A" x 0 %= "B"
     
     start at "A"
@@ -389,10 +401,10 @@ machine.release() // 머신을 해제함. "상태 A 정리" 출력
 ```kotlin
 // KotlmataMachine은 생성되면 수정이 불가능
 // KotlmataMutableMachine은 생성 후 수정(업데이트) 가능함
-val machine = KotlmataMutableMachine("sample") { 
+val machine = KotlmataMutableMachine("sample") {
     "A" {}
     "B" {}
-
+    
     "A" x 0 %= "B"
     
     start at "A"
@@ -425,15 +437,15 @@ machine {
 #### 머신 업데이트 3 - 상태 및 전이규칙 삭제
 ```kotlin
 machine {
-    delete state "A" // 머신에서 "A" 상태 삭제
-    delete state all // 머신의 모든 상태 삭제
+    delete state "A" // 머신에서 상태 "A" 삭제 ("A"가 현재 상태일 경우 삭제 불가)
+    delete state all // 현재 상태를 제외한 머신의 모든 상태 삭제
     delete rule ("A" x "S") // 좌변이 "A" x "S"인 전이규칙 삭제
     delete rule all // 머신의 모든 전이규칙 삭제
 }
 ```
 #### 상태 업데이트 1 - update 함수
 ```kotlin
-val machine = KotlmataMutableMachine("sample") { 
+val machine = KotlmataMutableMachine("sample") {
     "A" {
         entry action { s ->
             println(s)
@@ -512,7 +524,7 @@ val machine = KotlmataMachine("sample") {
     }
     "B" {}
     "C" {}
-
+    
     "A" x 1 %= "B"
     "B" x 1 %= "C"
     "A" x 10 %= "C"
@@ -599,7 +611,7 @@ val machine = KotlmataMachine("sample") {
         }
     }
     "B" { state ->
-       entry action { signal ->
+        entry action { signal ->
             println("$transitionCount: $state entry via $signal")
         }
         input action { signal ->
@@ -609,7 +621,7 @@ val machine = KotlmataMachine("sample") {
             println("$transitionCount: $state exit via $signal")
         }
     }
-
+    
     "A" x any %= "B"
     "B" x any %= "A"
     
@@ -774,7 +786,7 @@ daemon.stop() // 데몬을 정지함
 daemon.terminate() // 데몬을 종료함
 ```
 #### 생명주기 그래프
-![enter image description here](https://user-images.githubusercontent.com/3992883/105116267-bdaf0b00-5b0d-11eb-8b8e-4766714ba1d2.png)
+![enter image description here](https://user-images.githubusercontent.com/3992883/107477321-e1b8b600-6bba-11eb-96d9-85c450ce42ae.png)
 > "create"와 "destroy"는 데몬 내부적으로 사용하는 신호
 
 ### 요청 큐와 우선순위
