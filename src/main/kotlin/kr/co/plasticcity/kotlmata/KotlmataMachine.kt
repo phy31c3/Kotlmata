@@ -27,12 +27,22 @@ interface KotlmataMachine
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineTemplate, MachineDefine, KotlmataMachine>
+		) = object : Extends<KotlmataMachine>
 		{
-			override fun extends(template: MachineTemplate) = object : By<MachineDefine, KotlmataMachine>
+			override fun extends(template: MachineTemplate) = object : By<KotlmataMachine>
 			{
 				override fun by(define: MachineDefine) = invoke(name, logLevel) { machine ->
 					template(machine)
+					define(machine)
+				}
+			}
+			
+			override fun extends(templates: MachineTemplates) = object : By<KotlmataMachine>
+			{
+				override fun by(define: MachineDefine) = invoke(name, logLevel) { machine ->
+					templates.forEach { template ->
+						template(machine)
+					}
 					define(machine)
 				}
 			}
@@ -51,12 +61,19 @@ interface KotlmataMachine
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineTemplate, MachineDefine, Lazy<KotlmataMachine>>
+		) = object : Extends<Lazy<KotlmataMachine>>
 		{
-			override fun extends(template: MachineTemplate) = object : By<MachineDefine, Lazy<KotlmataMachine>>
+			override fun extends(template: MachineTemplate) = object : By<Lazy<KotlmataMachine>>
 			{
 				override fun by(define: MachineDefine) = lazy {
 					invoke(name, logLevel) extends template by define
+				}
+			}
+			
+			override fun extends(templates: MachineTemplates) = object : By<Lazy<KotlmataMachine>>
+			{
+				override fun by(define: MachineDefine) = lazy {
+					invoke(name, logLevel) extends templates by define
 				}
 			}
 			
@@ -65,14 +82,15 @@ interface KotlmataMachine
 			}
 		}
 		
-		interface Extends<B, T, R> : By<T, R>
+		interface Extends<R> : By<R>
 		{
-			infix fun extends(template: B): By<T, R>
+			infix fun extends(template: MachineTemplate): By<R>
+			infix fun extends(templates: MachineTemplates): By<R>
 		}
 		
-		interface By<T, R>
+		interface By<R>
 		{
-			infix fun by(define: T): R
+			infix fun by(define: MachineDefine): R
 		}
 	}
 	
@@ -269,12 +287,22 @@ interface KotlmataMutableMachine : KotlmataMachine
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineTemplate, MachineDefine, KotlmataMutableMachine>
+		) = object : Extends<KotlmataMutableMachine>
 		{
-			override fun extends(template: MachineTemplate) = object : By<MachineDefine, KotlmataMutableMachine>
+			override fun extends(template: MachineTemplate) = object : By<KotlmataMutableMachine>
 			{
 				override fun by(define: MachineDefine) = invoke(name, logLevel) { machine ->
 					template(machine)
+					define(machine)
+				}
+			}
+			
+			override fun extends(templates: MachineTemplates) = object : By<KotlmataMutableMachine>
+			{
+				override fun by(define: MachineDefine) = invoke(name, logLevel) { machine ->
+					templates.forEach { template ->
+						template(machine)
+					}
 					define(machine)
 				}
 			}
@@ -293,12 +321,19 @@ interface KotlmataMutableMachine : KotlmataMachine
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineTemplate, MachineDefine, Lazy<KotlmataMutableMachine>>
+		) = object : Extends<Lazy<KotlmataMutableMachine>>
 		{
-			override fun extends(template: MachineTemplate) = object : By<MachineDefine, Lazy<KotlmataMutableMachine>>
+			override fun extends(template: MachineTemplate) = object : By<Lazy<KotlmataMutableMachine>>
 			{
 				override fun by(define: MachineDefine) = lazy {
 					invoke(name, logLevel) extends template by define
+				}
+			}
+			
+			override fun extends(templates: MachineTemplates) = object : By<Lazy<KotlmataMutableMachine>>
+			{
+				override fun by(define: MachineDefine) = lazy {
+					invoke(name, logLevel) extends templates by define
 				}
 			}
 			
