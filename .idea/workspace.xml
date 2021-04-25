@@ -36,8 +36,6 @@
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="0.5.5">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -146,6 +144,17 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Tests.M-005 머신의 모든 유형의 전이규칙이 잘 정의되는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Kotlmata.test" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="Tests" />
+      <option name="METHOD_NAME" value="M-005 머신의 모든 유형의 전이규칙이 잘 정의되는가" />
+      <option name="TEST_OBJECT" value="method" />
+      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Tests.M-017 머신의 모든 유형의 다중 상태 및 다중 신호 전이규칙이 잘 정의 되는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Kotlmata.test" />
       <option name="PACKAGE_NAME" value="" />
@@ -162,17 +171,6 @@
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="Tests" />
       <option name="METHOD_NAME" value="M-018 머신의 다중 템플릿 정의가 잘 동작하는가" />
-      <option name="TEST_OBJECT" value="method" />
-      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Tests.S-012 다중 상태 템플릿이 잘 적용되는가" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Kotlmata.test" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="Tests" />
-      <option name="METHOD_NAME" value="S-012 다중 상태 템플릿이 잘 적용되는가" />
       <option name="TEST_OBJECT" value="method" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
       <method v="2">
@@ -197,18 +195,18 @@
     </configuration>
     <list>
       <item itemvalue="JUnit.Tests" />
-      <item itemvalue="JUnit.Tests.S-012 다중 상태 템플릿이 잘 적용되는가" />
       <item itemvalue="JUnit.Tests.M-017 머신의 모든 유형의 다중 상태 및 다중 신호 전이규칙이 잘 정의 되는가" />
       <item itemvalue="JUnit.Tests.M-018 머신의 다중 템플릿 정의가 잘 동작하는가" />
       <item itemvalue="JUnit.Tests.D-013 데몬의 다중 템플릿 정의가 잘 동작하는가" />
+      <item itemvalue="JUnit.Tests.M-005 머신의 모든 유형의 전이규칙이 잘 정의되는가" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="JUnit.Tests" />
+        <item itemvalue="JUnit.Tests.M-005 머신의 모든 유형의 전이규칙이 잘 정의되는가" />
         <item itemvalue="JUnit.Tests.D-013 데몬의 다중 템플릿 정의가 잘 동작하는가" />
         <item itemvalue="JUnit.Tests.M-018 머신의 다중 템플릿 정의가 잘 동작하는가" />
         <item itemvalue="JUnit.Tests.M-017 머신의 모든 유형의 다중 상태 및 다중 신호 전이규칙이 잘 정의 되는가" />
-        <item itemvalue="JUnit.Tests.S-012 다중 상태 템플릿이 잘 적용되는가" />
       </list>
     </recent_temporary>
   </component>
@@ -664,6 +662,14 @@
     <MESSAGE value="#133: Kotlmata infix 생명주기 함수 실수한 부분 수정" />
     <MESSAGE value="0.5.5" />
     <option name="LAST_COMMIT_MESSAGE" value="0.5.5" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="JUnit">
+        <watch expression="ruleMap" />
+        <watch expression="testerMap[from]" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

@@ -57,6 +57,18 @@ val machine = KotlmataMachine("sample") extends template by {
     // 추가 머신 정의
 }
 ```
+#### 여러 템플릿을 상속받는 경우
+```kotlin
+val template1: MachineTemplate = {
+    // 첫 번째 템플릿
+}
+val template2: MachineTemplate = {
+    // 두 번째 템플릿
+}
+val machine = KotlmataMachine("sample") extends (template1 + template2) by {
+    // 추가 머신 정의
+}
+```
 
 ### 머신 정의
 
@@ -278,22 +290,22 @@ val machine = KotlmataMachine("sample") {
 ```kotlin
 val machine = KotlmataMachine("sample") {
     // 상태들의 공통 정의를 미리 템플릿으로 만들어 놓음
-    val template: StateTemplate<String/* 상태 태그의 타입 */> = {
+    val template1: StateTemplate = {
         on error { s ->
             println(throwable.message)
         }
-        entry action { s ->
-            println(s)
-        }
+    }
+    val template2: StateTemplate = {
+        // 상태 정의
     }
     
-    "A" extends template by {
-        on error { s -> // 템플릿의 on error가 덮어써짐
+    "A" extends template1 by {
+        on error { s -> // template1의 on error가 덮어써짐
             println(s)
         }
-        // 추가 정의
     }
-    "B" extends template // 추가 정의는 생략할 수 있음
+    "B" extends template1 // 추가 정의(by)는 생략할 수 있음
+    "C" extends (template1 + template2) // 여러 템플릿을 한 번에 적용할 수 있음
     
     start at "A"
 }
