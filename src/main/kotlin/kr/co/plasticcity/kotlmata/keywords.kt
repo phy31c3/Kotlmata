@@ -209,7 +209,7 @@ interface MachineTemplates : List<MachineTemplate>
 operator fun MachineTemplate.plus(template: MachineTemplate): MachineTemplates = object : MachineTemplates, List<MachineTemplate> by listOf(this, template)
 { /* empty */ }
 
-operator fun MachineTemplates.plus(template: MachineTemplate): MachineTemplates = object : MachineTemplates, List<MachineTemplate> by this + template
+operator fun MachineTemplates.plus(template: MachineTemplate): MachineTemplates = object : MachineTemplates, List<MachineTemplate> by (this as List<MachineTemplate>) + template
 { /* empty */ }
 
 interface DaemonTemplates : List<DaemonTemplate>
@@ -217,5 +217,5 @@ interface DaemonTemplates : List<DaemonTemplate>
 operator fun DaemonTemplate.plus(template: DaemonTemplate): DaemonTemplates = object : DaemonTemplates, List<DaemonTemplate> by listOf(this, template)
 { /* empty */ }
 
-operator fun DaemonTemplates.plus(template: DaemonTemplate): DaemonTemplates = object : DaemonTemplates, List<DaemonTemplate> by this + template
+operator fun DaemonTemplates.plus(template: DaemonTemplate): DaemonTemplates = object : DaemonTemplates, List<DaemonTemplate> by (this as List<DaemonTemplate>) + template
 { /* empty */ }

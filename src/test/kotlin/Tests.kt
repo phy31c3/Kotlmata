@@ -1730,6 +1730,48 @@ class Tests
 	}
 	
 	@Test
+	fun `M-018 머신의 다중 템플릿 정의가 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"template1" to false,
+			"template2" to false,
+			"template3" to false
+		)
+		
+		val stateTemplate: StateDefine<String> = { state ->
+			entry action {
+				checklist[state] = true
+			}
+		}
+		
+		val template1: MachineTemplate = {
+			"template1" by stateTemplate
+		}
+		val template2: MachineTemplate = {
+			"template2" by stateTemplate
+		}
+		val template3: MachineTemplate = {
+			"template3" by stateTemplate
+		}
+		val define: MachineDefine = {
+			"start" { /* nothing */ }
+			
+			"start" x any %= "template1"
+			"template1" x any %= "template2"
+			"template2" x any %= "template3"
+			
+			start at "start"
+		}
+		
+		val machine = KotlmataMachine("M-018", logLevel) extends (template1 + template2 + template3) by define
+		machine.input(0)
+		machine.input(0)
+		machine.input(0)
+		
+		checklist.verify()
+	}
+	
+	@Test
 	fun `D-001 데몬의 모든 유형의 생성이 잘 되는가`()
 	{
 		val checklist = mutableMapOf(
@@ -2388,6 +2430,60 @@ class Tests
 			daemon.run()
 			daemon.terminate()
 		}
+		
+		latch.await()
+		checklist.verify()
+	}
+	
+	@Test
+	fun `D-013 데몬의 다중 템플릿 정의가 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"template1" to false,
+			"template2" to false,
+			"template3" to false
+		)
+		
+		val latch = Latch(1)
+		
+		val stateTemplate: StateDefine<String> = { state ->
+			entry action {
+				checklist[state] = true
+			}
+		}
+		
+		val template1: DaemonTemplate = {
+			"template1" by stateTemplate
+		}
+		val template2: DaemonTemplate = {
+			"template2" by stateTemplate
+		}
+		val template3: DaemonTemplate = {
+			"template3" by stateTemplate
+		}
+		val define: DaemonDefine = { daemon ->
+			latch()
+			"start" { /* nothing */ }
+			"terminate" {
+				entry action {
+					daemon.terminate()
+				}
+			}
+			
+			"start" x any %= "template1"
+			"template1" x any %= "template2"
+			"template2" x any %= "template3"
+			any x "terminate" %= "terminate"
+			
+			start at "start"
+		}
+		
+		val daemon = KotlmataDaemon("D-013", logLevel) extends (template1 + template2 + template3) by define
+		daemon.run()
+		daemon.input(0)
+		daemon.input(0)
+		daemon.input(0)
+		daemon.input("terminate")
 		
 		latch.await()
 		checklist.verify()
