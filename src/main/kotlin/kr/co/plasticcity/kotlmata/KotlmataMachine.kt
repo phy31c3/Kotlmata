@@ -6,6 +6,7 @@ import kr.co.plasticcity.kotlmata.KotlmataMachine.*
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefinable.*
+import kr.co.plasticcity.kotlmata.KotlmataMachine.StateDefinable.StateTemplates
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.Delete
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.Has
@@ -26,12 +27,22 @@ interface KotlmataMachine
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineTemplate, MachineDefine, KotlmataMachine>
+		) = object : Extends<KotlmataMachine>
 		{
-			override fun extends(template: MachineTemplate) = object : By<MachineDefine, KotlmataMachine>
+			override fun extends(template: MachineTemplate) = object : By<KotlmataMachine>
 			{
 				override fun by(define: MachineDefine) = invoke(name, logLevel) { machine ->
 					template(machine)
+					define(machine)
+				}
+			}
+			
+			override fun extends(templates: MachineTemplates) = object : By<KotlmataMachine>
+			{
+				override fun by(define: MachineDefine) = invoke(name, logLevel) { machine ->
+					templates.forEach { template ->
+						template(machine)
+					}
 					define(machine)
 				}
 			}
@@ -50,12 +61,19 @@ interface KotlmataMachine
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineTemplate, MachineDefine, Lazy<KotlmataMachine>>
+		) = object : Extends<Lazy<KotlmataMachine>>
 		{
-			override fun extends(template: MachineTemplate) = object : By<MachineDefine, Lazy<KotlmataMachine>>
+			override fun extends(template: MachineTemplate) = object : By<Lazy<KotlmataMachine>>
 			{
 				override fun by(define: MachineDefine) = lazy {
 					invoke(name, logLevel) extends template by define
+				}
+			}
+			
+			override fun extends(templates: MachineTemplates) = object : By<Lazy<KotlmataMachine>>
+			{
+				override fun by(define: MachineDefine) = lazy {
+					invoke(name, logLevel) extends templates by define
 				}
 			}
 			
@@ -64,14 +82,15 @@ interface KotlmataMachine
 			}
 		}
 		
-		interface Extends<B, T, R> : By<T, R>
+		interface Extends<R> : By<R>
 		{
-			infix fun extends(template: B): By<T, R>
+			infix fun extends(template: MachineTemplate): By<R>
+			infix fun extends(templates: MachineTemplates): By<R>
 		}
 		
-		interface By<T, R>
+		interface By<R>
 		{
-			infix fun by(define: T): R
+			infix fun by(define: MachineDefine): R
 		}
 	}
 	
@@ -112,14 +131,20 @@ interface KotlmataMachine
 	interface StateDefinable
 	{
 		operator fun <S : STATE> S.invoke(block: StateDefine<S>)
-		infix fun <S : STATE> S.with(block: StateDefine<S>) = invoke(block)
-		infix fun <S : STATE> S.extends(template: StateTemplate): With<S>
+		infix fun <S : STATE> S.by(block: StateDefine<S>) = invoke(block)
+		infix fun <S : STATE> S.extends(template: StateTemplate): By<S>
+		infix fun <S : STATE> S.extends(templates: StateTemplates): By<S>
 		infix fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
 		
-		interface With<S : STATE>
+		interface By<S : STATE>
 		{
-			infix fun with(block: StateDefine<S>)
+			infix fun by(block: StateDefine<S>)
 		}
+		
+		interface StateTemplates : List<StateTemplate>
+		
+		operator fun StateTemplate.plus(template: StateTemplate): StateTemplates
+		operator fun StateTemplates.plus(template: StateTemplate): StateTemplates
 		
 		infix fun <S : STATE> S.action(action: EntryAction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL> = function(action)
 		infix fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
@@ -132,7 +157,7 @@ interface KotlmataMachine
 	
 	interface RuleDefinable : SignalsDefinable
 	{
-		interface States : MutableList<STATE>
+		interface States : List<STATE>
 		
 		infix fun STATE.AND(state: STATE): States
 		infix fun States.AND(state: STATE): States
@@ -262,12 +287,22 @@ interface KotlmataMutableMachine : KotlmataMachine
 		operator fun invoke(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineTemplate, MachineDefine, KotlmataMutableMachine>
+		) = object : Extends<KotlmataMutableMachine>
 		{
-			override fun extends(template: MachineTemplate) = object : By<MachineDefine, KotlmataMutableMachine>
+			override fun extends(template: MachineTemplate) = object : By<KotlmataMutableMachine>
 			{
 				override fun by(define: MachineDefine) = invoke(name, logLevel) { machine ->
 					template(machine)
+					define(machine)
+				}
+			}
+			
+			override fun extends(templates: MachineTemplates) = object : By<KotlmataMutableMachine>
+			{
+				override fun by(define: MachineDefine) = invoke(name, logLevel) { machine ->
+					templates.forEach { template ->
+						template(machine)
+					}
 					define(machine)
 				}
 			}
@@ -286,12 +321,19 @@ interface KotlmataMutableMachine : KotlmataMachine
 		fun lazy(
 			name: String,
 			logLevel: Int = NO_LOG
-		) = object : Extends<MachineTemplate, MachineDefine, Lazy<KotlmataMutableMachine>>
+		) = object : Extends<Lazy<KotlmataMutableMachine>>
 		{
-			override fun extends(template: MachineTemplate) = object : By<MachineDefine, Lazy<KotlmataMutableMachine>>
+			override fun extends(template: MachineTemplate) = object : By<Lazy<KotlmataMutableMachine>>
 			{
 				override fun by(define: MachineDefine) = lazy {
 					invoke(name, logLevel) extends template by define
+				}
+			}
+			
+			override fun extends(templates: MachineTemplates) = object : By<Lazy<KotlmataMutableMachine>>
+			{
+				override fun by(define: MachineDefine) = lazy {
+					invoke(name, logLevel) extends templates by define
 				}
 			}
 			
@@ -671,7 +713,7 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override fun <S : STATE> S.extends(template: StateTemplate) = object : StateDefinable.With<S>
+		override fun <S : STATE> S.extends(template: StateTemplate) = object : StateDefinable.By<S>
 		{
 			val state: KotlmataMutableState<S>
 			
@@ -686,12 +728,44 @@ private class KotlmataMachineImpl(
 				}
 			}
 			
-			override fun with(block: StateDefine<S>)
+			override fun by(block: StateDefine<S>)
 			{
 				this@UpdateImpl shouldNot expired
 				state.update(block)
 			}
 		}
+		
+		override fun <S : STATE> S.extends(templates: StateTemplates) = object : StateDefinable.By<S>
+		{
+			val state: KotlmataMutableState<S>
+			
+			init
+			{
+				this@UpdateImpl shouldNot expired
+				state = KotlmataMutableState(this@extends, logLevel, "$prefix$tab", templates[0])
+				stateMap[this@extends] = state
+				if (this@extends !== Initial_state_for_KotlmataDaemon)
+				{
+					logLevel.normal(prefix, this@extends) { MACHINE_ADD_STATE }
+				}
+				for (i in 1..templates.lastIndex)
+				{
+					state.update(templates[i])
+				}
+			}
+			
+			override fun by(block: StateDefine<S>)
+			{
+				this@UpdateImpl shouldNot expired
+				state.update(block)
+			}
+		}
+		
+		override fun StateTemplate.plus(template: StateTemplate): StateTemplates = object : StateTemplates, List<StateTemplate> by listOf(this, template)
+		{ /* empty */ }
+		
+		override fun StateTemplates.plus(template: StateTemplate): StateTemplates = object : StateTemplates, List<StateTemplate> by (this as List<StateTemplate>) + template
+		{ /* empty */ }
 		
 		@Suppress("UNCHECKED_CAST")
 		override fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
@@ -936,12 +1010,11 @@ private class KotlmataMachineImpl(
 		/*###################################################################################################################################
 		 * Transition rules
 		 *###################################################################################################################################*/
-		override fun STATE.AND(state: STATE): States = object : States, MutableList<SIGNAL> by mutableListOf(this, state)
+		override fun STATE.AND(state: STATE): States = object : States, List<SIGNAL> by listOf(this, state)
 		{ /* empty */ }
 		
-		override fun States.AND(state: STATE): States = this.apply {
-			add(state)
-		}
+		override fun States.AND(state: STATE): States = object : States, List<SIGNAL> by this + state
+		{ /* empty */ }
 		
 		override fun any.invoke(vararg except: SIGNAL): AnyExcept = object : AnyExcept, List<SIGNAL> by listOf(*except)
 		{ /* empty */ }

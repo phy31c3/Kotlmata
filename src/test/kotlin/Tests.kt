@@ -714,7 +714,7 @@ class Tests
 				}
 			}
 			
-			"state" extends template with {
+			"state" extends template by {
 				input action {
 					checklist["input"] = true
 					throw Exception()
@@ -753,6 +753,63 @@ class Tests
 			
 			start at "a"
 		}.also { machine ->
+			machine.input(0)
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `S-012 다중 상태 템플릿이 잘 적용되는가`()
+	{
+		val checklist = mutableMapOf(
+			"a" to false,
+			"b" to false,
+			"c" to false,
+			"define" to false,
+		)
+		
+		KotlmataMachine("S-012", logLevel) {
+			val a: StateTemplate = {
+				input action {
+					checklist["a"] = false
+				}
+				input signal "a" action {
+					checklist["a"] = true
+				}
+			}
+			
+			val b: StateTemplate = {
+				input action {
+					checklist["b"] = false
+				}
+				input signal "b" action {
+					checklist["b"] = true
+				}
+			}
+			
+			val c: StateTemplate = {
+				input action {
+					checklist["c"] = false
+				}
+				input signal "c" action {
+					checklist["c"] = true
+				}
+			}
+			
+			val define: StateDefine<String> = { state ->
+				input action {
+					checklist[state] = true
+				}
+			}
+			
+			"define" extends (a + b + c) by define
+			
+			start at "define"
+		}.also { machine ->
+			machine.input("a")
+			machine.input("b")
+			machine.input("c")
 			machine.input(0)
 		}
 		
@@ -1326,14 +1383,14 @@ class Tests
 			}
 			
 			"state" {}
-			"state x signal" with define
-			"state x type" with define
-			"state x any" with define
-			"state x predicate" with define
-			"any x signal" with define
-			"any x type" with define
-			"any x any" with define
-			"any x predicate" with define
+			"state x signal" by define
+			"state x type" by define
+			"state x any" by define
+			"state x predicate" by define
+			"any x signal" by define
+			"any x type" by define
+			"any x any" by define
+			"any x predicate" by define
 			
 			"state" x 0 %= "state x signal"
 			"state" x Int::class %= "state x type"
@@ -1583,6 +1640,133 @@ class Tests
 			}
 			machine.input(0)
 		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `M-017 머신의 모든 유형의 다중 상태 및 다중 신호 전이규칙이 잘 정의 되는가`()
+	{
+		val checklist = mutableMapOf(
+			"3AND1" to false,
+			"3AND2" to false,
+			"3AND3" to false,
+			"signal OR signal" to false,
+			"signal OR type" to false,
+			"type OR signal" to false,
+			"type OR type" to false,
+			"signals OR signal" to false,
+			"signals OR type" to false,
+		)
+		
+		class A
+		class B
+		class C
+		class D
+		class E
+		class F
+		class G
+		
+		KotlmataMachine("M-017", logLevel) {
+			"a" {
+				entry via 2 action {
+					checklist["3AND3"] = true
+				}
+				entry via B::class action {
+					checklist["type OR signal"] = true
+				}
+				entry via G::class action {
+					checklist["signals OR type"] = true
+				}
+			}
+			"b" {
+				entry via 0 action {
+					checklist["3AND1"] = true
+				}
+				entry via 4 action {
+					checklist["signal OR signal"] = true
+				}
+				entry via D::class action {
+					checklist["type OR type"] = true
+				}
+			}
+			"c" {
+				entry via 1 action {
+					checklist["3AND2"] = true
+				}
+				entry via A::class action {
+					checklist["signal OR type"] = true
+				}
+				entry via 9 action {
+					checklist["signals OR signal"] = true
+				}
+			}
+			
+			("a" AND "b" AND "c") x 0 %= "b"
+			("a" AND "b" AND "c") x 1 %= "c"
+			("a" AND "b" AND "c") x 2 %= "a"
+			
+			"a" x (3 OR 4) %= "b"
+			"b" x (5 OR A::class) %= "c"
+			"c" x (B::class OR 6) %= "a"
+			"a" x (C::class OR D::class) %= "b"
+			"b" x (E::class OR 8 OR 9) %= "c"
+			"c" x (10 OR F::class OR G::class) %= "a"
+			
+			start at "a"
+		}.also { machine ->
+			machine.input(0)
+			machine.input(1)
+			machine.input(2)
+			machine.input(4)
+			machine.input(A())
+			machine.input(B())
+			machine.input(D())
+			machine.input(9)
+			machine.input(G())
+		}
+		
+		checklist.verify()
+	}
+	
+	@Test
+	fun `M-018 머신의 다중 템플릿 정의가 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"template1" to false,
+			"template2" to false,
+			"template3" to false
+		)
+		
+		val stateTemplate: StateDefine<String> = { state ->
+			entry action {
+				checklist[state] = true
+			}
+		}
+		
+		val template1: MachineTemplate = {
+			"template1" by stateTemplate
+		}
+		val template2: MachineTemplate = {
+			"template2" by stateTemplate
+		}
+		val template3: MachineTemplate = {
+			"template3" by stateTemplate
+		}
+		val define: MachineDefine = {
+			"start" { /* nothing */ }
+			
+			"start" x any %= "template1"
+			"template1" x any %= "template2"
+			"template2" x any %= "template3"
+			
+			start at "start"
+		}
+		
+		val machine = KotlmataMachine("M-018", logLevel) extends (template1 + template2 + template3) by define
+		machine.input(0)
+		machine.input(0)
+		machine.input(0)
 		
 		checklist.verify()
 	}
@@ -2246,6 +2430,60 @@ class Tests
 			daemon.run()
 			daemon.terminate()
 		}
+		
+		latch.await()
+		checklist.verify()
+	}
+	
+	@Test
+	fun `D-013 데몬의 다중 템플릿 정의가 잘 동작하는가`()
+	{
+		val checklist = mutableMapOf(
+			"template1" to false,
+			"template2" to false,
+			"template3" to false
+		)
+		
+		val latch = Latch(1)
+		
+		val stateTemplate: StateDefine<String> = { state ->
+			entry action {
+				checklist[state] = true
+			}
+		}
+		
+		val template1: DaemonTemplate = {
+			"template1" by stateTemplate
+		}
+		val template2: DaemonTemplate = {
+			"template2" by stateTemplate
+		}
+		val template3: DaemonTemplate = {
+			"template3" by stateTemplate
+		}
+		val define: DaemonDefine = { daemon ->
+			latch()
+			"start" { /* nothing */ }
+			"terminate" {
+				entry action {
+					daemon.terminate()
+				}
+			}
+			
+			"start" x any %= "template1"
+			"template1" x any %= "template2"
+			"template2" x any %= "template3"
+			any x "terminate" %= "terminate"
+			
+			start at "start"
+		}
+		
+		val daemon = KotlmataDaemon("D-013", logLevel) extends (template1 + template2 + template3) by define
+		daemon.run()
+		daemon.input(0)
+		daemon.input(0)
+		daemon.input(0)
+		daemon.input("terminate")
 		
 		latch.await()
 		checklist.verify()
