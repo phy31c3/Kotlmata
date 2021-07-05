@@ -546,7 +546,7 @@ private class KotlmataDaemonImpl(
 			"Stopped" x Run::class %= "Running"
 			"Stopped" x Pause::class %= "Paused"
 			
-			any("Nil", "Terminated", "Destroyed") x Terminate::class %= "Terminated"
+			any.except("Nil", "Terminated", "Destroyed") x Terminate::class %= "Terminated"
 			("Nil" AND "Terminated") x Destroy %= "Destroyed"
 			
 			start at "Nil"

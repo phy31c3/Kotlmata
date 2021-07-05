@@ -15,6 +15,11 @@ typealias STATE = Any
 typealias SIGNAL = Any
 
 /**
+ * Supertype of Kotlmata state or signal
+ */
+typealias STATE_OR_SIGNAL = Any
+
+/**
  * In Machine:
  * ```
  * "state1" x any %= "state2"
