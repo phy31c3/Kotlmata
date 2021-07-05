@@ -1,17 +1,12 @@
-buildscript {
-	repositories {
-		jcenter()
-	}
-	dependencies {
-		classpath 'com.novoda:bintray-release:0.9.2'
-	}
-}
-
 plugins {
 	id 'org.jetbrains.kotlin.jvm' version '1.4.21'
+	id 'maven'
+	id 'signing'
 }
 
-apply plugin: 'com.novoda.bintray-release'
+group = "kr.co.plasticcity"
+archivesBaseName = "kotlmata"
+version = "1.0.5"
 
 repositories {
 	mavenCentral()
@@ -30,12 +25,64 @@ compileTestKotlin {
 	kotlinOptions.jvmTarget = "1.8"
 }
 
-publish {
-	userOrg = 'phy31c3'
-	groupId = 'kr.co.plasticcity'
-	artifactId = 'kotlmata'
-	publishVersion = '1.0.4'
-	desc = 'Kotlin State-based Programming Library'
-	website = 'https://github.com/phy31c3/Kotlmata'
-	repository = "${website}.git"
+task javadocJar(type: Jar) {
+	classifier = 'javadoc'
+	from javadoc
+}
+
+task sourcesJar(type: Jar) {
+	classifier = 'sources'
+	from sourceSets.main.allSource
+}
+
+artifacts {
+	archives javadocJar, sourcesJar
+}
+
+signing {
+	sign configurations.archives
+}
+
+uploadArchives {
+	repositories {
+		mavenDeployer {
+			beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+			repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+				authentication(userName: ossrhUsername, password: ossrhPassword)
+			}
+
+			snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+				authentication(userName: ossrhUsername, password: ossrhPassword)
+			}
+
+			pom.project {
+				name 'Kotlmata'
+				packaging 'jar'
+				description 'Automata-based programming library for Kotlin.'
+				url 'https://github.com/phy31c3/Kotlmata'
+
+				scm {
+					connection = 'scm:git:github.com/phy31c3/Kotlmata.git'
+					developerConnection = 'scm:git:ssh://github.com/phy31c3/Kotlmata.git'
+					url = 'https://github.com/phy31c3/Kotlmata'
+				}
+
+				licenses {
+					license {
+						name 'The Apache License, Version 2.0'
+						url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+					}
+				}
+
+				developers {
+					developer {
+						id 'phy31c3'
+						name 'Jongsun Yoo'
+						email 'phy31c3@gmail.com'
+					}
+				}
+			}
+		}
+	}
 }
