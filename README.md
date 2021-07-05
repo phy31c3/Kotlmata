@@ -8,6 +8,10 @@ Automata-based programming library for Kotlin.
 ### Gradle
 
 ```
+repositories {
+    mavenCentral()
+}
+
 implementation 'kr.co.plasticcity:kotlmata:1.0.4'
 ```
 
@@ -15,10 +19,10 @@ implementation 'kr.co.plasticcity:kotlmata:1.0.4'
 
 ```
 <dependency>
-  <groupId>kr.co.plasticcity</groupId>
-  <artifactId>kotlmata</artifactId>
-  <version>1.0.4</version>
-  <type>pom</type>
+    <groupId>kr.co.plasticcity</groupId>
+    <artifactId>kotlmata</artifactId>
+    <version>1.0.4</version>
+    <type>pom</type>
 </dependency>
 ```
 
