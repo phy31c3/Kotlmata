@@ -162,9 +162,9 @@ interface KotlmataMachine
 		infix fun STATE.AND(state: STATE): States
 		infix fun States.AND(state: STATE): States
 		
-		interface AnyExcept : List<SIGNAL>
+		interface AnyExcept : List<STATE_OR_SIGNAL>
 		
-		operator fun any.invoke(vararg except: SIGNAL): AnyExcept
+		fun any.except(vararg statesOrSignals: STATE_OR_SIGNAL): AnyExcept
 		
 		infix fun STATE.x(signal: SIGNAL): RuleLeft
 		infix fun STATE.x(signal: KClass<out SIGNAL>): RuleLeft
@@ -787,7 +787,7 @@ private class KotlmataMachineImpl(
 				stateMap[this@function] = state
 				if (this@function !== Initial_state_for_KotlmataDaemon)
 				{
-					logLevel.normal(prefix, this) { MACHINE_ADD_STATE }
+					logLevel.normal(prefix, this@function) { MACHINE_ADD_STATE }
 				}
 			}
 			
@@ -1016,7 +1016,7 @@ private class KotlmataMachineImpl(
 		override fun States.AND(state: STATE): States = object : States, List<SIGNAL> by this + state
 		{ /* empty */ }
 		
-		override fun any.invoke(vararg except: SIGNAL): AnyExcept = object : AnyExcept, List<SIGNAL> by listOf(*except)
+		override fun any.except(vararg statesOrSignals: SIGNAL): AnyExcept = object : AnyExcept, List<STATE_OR_SIGNAL> by listOf(*statesOrSignals)
 		{ /* empty */ }
 		
 		private fun ruleLeft(from: STATE, signal: SIGNAL) = object : RuleLeft

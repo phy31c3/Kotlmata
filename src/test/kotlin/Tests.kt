@@ -1081,7 +1081,7 @@ class Tests
 			"1" x Int::class %= "2"
 			"2" x (2 OR 3) %= "3"
 			"3" x any %= "4"
-			"4" x any(3, 5) %= "5"
+			"4" x any.except(3, 5) %= "5"
 			"5" x { s: Int -> s == 5 } %= "6"
 			"6" x 6..7 %= "7"
 			
@@ -1089,7 +1089,7 @@ class Tests
 			("1a" AND "1b") x Int::class %= "2b"
 			("2a" AND "2b") x (2 OR 3) %= "3a"
 			("3a" AND "3b") x any %= "4b"
-			("4a" AND "4b") x any(3, 5) %= "5b"
+			("4a" AND "4b") x any.except(3, 5) %= "5b"
 			("5a" AND "5b") x { s: Int -> s == 5 } %= "6a"
 			("6a" AND "6b") x 6..7 %= "7b"
 			
@@ -1100,11 +1100,11 @@ class Tests
 			any x { s: Int -> s == 5 } %= "6c"
 			any x 6..7 %= "7c"
 			
-			any("6c", "1d") x "0" %= "1d"
-			any("3c", "4c", "3d", "4d") x String::class %= "2d"
-			any("1d", "3d") x ("2" OR "22") %= "3d"
-			any("4d", "6d") x { s: String -> s == "5" } %= "6d"
-			any("5d", "7d") x "6".."7" %= "7d"
+			any.except("6c", "1d") x "0" %= "1d"
+			any.except("3c", "4c", "3d", "4d") x String::class %= "2d"
+			any.except("1d", "3d") x ("2" OR "22") %= "3d"
+			any.except("4d", "6d") x { s: String -> s == "5" } %= "6d"
+			any.except("5d", "7d") x "6".."7" %= "7d"
 			
 			start at "0"
 		}.also { machine ->
@@ -1129,7 +1129,7 @@ class Tests
 			machine.input(2)
 			machine.input("3")
 			machine {
-				any x any("3", "5") %= "5c"
+				any x any.except("3", "5") %= "5c"
 			}
 			machine.input("4")
 			machine.input(5)
@@ -1139,11 +1139,11 @@ class Tests
 			machine.input("1")
 			machine.input("2")
 			machine {
-				any("2d", "4d") x any %= "4d"
+				any.except("2d", "4d") x any %= "4d"
 			}
 			machine.input("3")
 			machine {
-				any("3d", "5d") x any("3", "5") %= "5d"
+				any.except("3d", "5d") x any.except("3", "5") %= "5d"
 			}
 			machine.input("4")
 			machine.input("5")
@@ -1205,7 +1205,7 @@ class Tests
 			chain from "a" to "b" to "c" to "d" via 5..9
 			
 			chain from "d" to "e" to "f" via any
-			chain from "f" to "g" to "h" via any(0, String::class)
+			chain from "f" to "g" to "h" via any.except(0, String::class)
 			
 			start at "a"
 		}.also { machine ->

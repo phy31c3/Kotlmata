@@ -35,9 +35,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e4c9157c-34ae-4123-9956-83e58e97af4f" name="Default Changelist" comment="0.5.5">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataDaemon.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/KotlmataMachine.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kr/co/plasticcity/kotlmata/keywords.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/Tests.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,43 +76,7 @@
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="Kotlmata" type="f1a62948:ProjectNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="build" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Kotlmata" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="build setup" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Kotlmata" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="documentation" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Kotlmata" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="help" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Kotlmata" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="other" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Kotlmata" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
                 <item name="upload" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Kotlmata" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="verification" type="c8890929:TasksNode$1" />
               </path>
             </expand>
             <select />
