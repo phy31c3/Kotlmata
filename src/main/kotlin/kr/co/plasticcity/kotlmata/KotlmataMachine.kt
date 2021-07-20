@@ -6,7 +6,6 @@ import kr.co.plasticcity.kotlmata.KotlmataMachine.*
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.By
 import kr.co.plasticcity.kotlmata.KotlmataMachine.Companion.Extends
 import kr.co.plasticcity.kotlmata.KotlmataMachine.RuleDefinable.*
-import kr.co.plasticcity.kotlmata.KotlmataMachine.StateDefinable.StateTemplates
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.Delete
 import kr.co.plasticcity.kotlmata.KotlmataMutableMachine.Update.Has
@@ -133,18 +132,13 @@ interface KotlmataMachine
 		operator fun <S : STATE> S.invoke(block: StateDefine<S>)
 		infix fun <S : STATE> S.by(block: StateDefine<S>) = invoke(block)
 		infix fun <S : STATE> S.extends(template: StateTemplate): By<S>
-		infix fun <S : STATE> S.extends(templates: StateTemplates): By<S>
+		infix fun <S : T, T : STATE> S.extends(templates: StateTemplates<T>): By<S>
 		infix fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
 		
 		interface By<S : STATE>
 		{
 			infix fun by(block: StateDefine<S>)
 		}
-		
-		interface StateTemplates : List<StateTemplate>
-		
-		operator fun StateTemplate.plus(template: StateTemplate): StateTemplates
-		operator fun StateTemplates.plus(template: StateTemplate): StateTemplates
 		
 		infix fun <S : STATE> S.action(action: EntryAction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL> = function(action)
 		infix fun <S : STATE> S.function(function: EntryFunction<SIGNAL>): KotlmataState.Entry.Catch<SIGNAL>
@@ -735,7 +729,7 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override fun <S : STATE> S.extends(templates: StateTemplates) = object : StateDefinable.By<S>
+		override fun <S : T, T : STATE> S.extends(templates: StateTemplates<T>): StateDefinable.By<S> = object : StateDefinable.By<S>
 		{
 			val state: KotlmataMutableState<S>
 			
@@ -760,12 +754,6 @@ private class KotlmataMachineImpl(
 				state.update(block)
 			}
 		}
-		
-		override fun StateTemplate.plus(template: StateTemplate): StateTemplates = object : StateTemplates, List<StateTemplate> by listOf(this, template)
-		{ /* empty */ }
-		
-		override fun StateTemplates.plus(template: StateTemplate): StateTemplates = object : StateTemplates, List<StateTemplate> by (this as List<StateTemplate>) + template
-		{ /* empty */ }
 		
 		@Suppress("UNCHECKED_CAST")
 		override fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
