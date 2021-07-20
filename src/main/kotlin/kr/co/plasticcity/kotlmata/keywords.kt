@@ -207,8 +207,16 @@ typealias DaemonTemplate = KotlmataDaemon.Base.(daemon: KotlmataDaemon) -> Unit
 typealias DaemonDefine = KotlmataDaemon.Init.(daemon: KotlmataDaemon) -> KotlmataMachine.Init.End
 
 /*###################################################################################################################################
- * MachineTemplates and DaemonTemplates
+ * 'Templates' declaration
  *###################################################################################################################################*/
+interface StateTemplates<T : STATE> : List<StateDefine<T>>
+
+operator fun <T : STATE> StateDefine<in T>.plus(template: StateDefine<in T>): StateTemplates<T> = object : StateTemplates<T>, List<StateDefine<T>> by listOf(this, template)
+{ /* empty */ }
+
+operator fun <T : STATE> StateTemplates<T>.plus(template: StateDefine<in T>): StateTemplates<T> = object : StateTemplates<T>, List<StateDefine<T>> by (this as List<StateDefine<T>>) + template
+{ /* empty */ }
+
 interface MachineTemplates : List<MachineTemplate>
 
 operator fun MachineTemplate.plus(template: MachineTemplate): MachineTemplates = object : MachineTemplates, List<MachineTemplate> by listOf(this, template)

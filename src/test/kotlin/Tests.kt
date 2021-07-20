@@ -779,7 +779,7 @@ class Tests
 				}
 			}
 			
-			val b: StateTemplate = {
+			val b: StateDefine<String> = {
 				input action {
 					checklist["b"] = false
 				}
@@ -788,7 +788,7 @@ class Tests
 				}
 			}
 			
-			val c: StateTemplate = {
+			val c: StateDefine<CharSequence> = {
 				input action {
 					checklist["c"] = false
 				}
