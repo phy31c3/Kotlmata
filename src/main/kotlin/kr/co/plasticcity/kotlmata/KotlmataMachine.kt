@@ -131,7 +131,7 @@ interface KotlmataMachine
 	{
 		operator fun <S : STATE> S.invoke(block: StateDefine<S>)
 		infix fun <S : STATE> S.by(block: StateDefine<S>) = invoke(block)
-		infix fun <S : STATE> S.extends(template: StateTemplate): By<S>
+		infix fun <S : STATE> S.extends(template: StateDefine<S>): By<S>
 		infix fun <S : T, T : STATE> S.extends(templates: StateTemplates<T>): By<S>
 		infix fun <S : STATE> S.update(block: KotlmataMutableState.Update.(state: S) -> Unit)
 		
@@ -707,7 +707,7 @@ private class KotlmataMachineImpl(
 			}
 		}
 		
-		override fun <S : STATE> S.extends(template: StateTemplate) = object : StateDefinable.By<S>
+		override fun <S : STATE> S.extends(template: StateDefine<S>) = object : StateDefinable.By<S>
 		{
 			val state: KotlmataMutableState<S>
 			
