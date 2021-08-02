@@ -69,7 +69,7 @@ val template1: MachineTemplate = {
 val template2: MachineTemplate = {
     // 두 번째 템플릿
 }
-val machine = KotlmataMachine("sample") extends (template1 + template2) by {
+val machine = KotlmataMachine("sample") extends template1 + template2 by {
     // 추가 머신 정의
 }
 ```
@@ -309,7 +309,7 @@ val machine = KotlmataMachine("sample") {
         }
     }
     "B" extends template1 // 추가 정의(by)는 생략할 수 있음
-    "C" extends (template1 + template2) // 여러 템플릿을 한 번에 적용할 수 있음
+    "C" extends template1 + template2 // 여러 템플릿을 한 번에 적용할 수 있음
     
     start at "A"
 }

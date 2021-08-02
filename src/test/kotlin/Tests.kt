@@ -803,7 +803,7 @@ class Tests
 				}
 			}
 			
-			"define" extends (a + b + c) by define
+			"define" extends a + b + c by define
 			
 			start at "define"
 		}.also { machine ->
@@ -1763,7 +1763,7 @@ class Tests
 			start at "start"
 		}
 		
-		val machine = KotlmataMachine("M-018", logLevel) extends (template1 + template2 + template3) by define
+		val machine = KotlmataMachine("M-018", logLevel) extends template1 + template2 + template3 by define
 		machine.input(0)
 		machine.input(0)
 		machine.input(0)
@@ -2478,7 +2478,7 @@ class Tests
 			start at "start"
 		}
 		
-		val daemon = KotlmataDaemon("D-013", logLevel) extends (template1 + template2 + template3) by define
+		val daemon = KotlmataDaemon("D-013", logLevel) extends template1 + template2 + template3 by define
 		daemon.run()
 		daemon.input(0)
 		daemon.input(0)
