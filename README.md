@@ -12,7 +12,7 @@ repositories {
     mavenCentral()
 }
 
-implementation 'kr.co.plasticcity:kotlmata:1.0.7'
+implementation 'kr.co.plasticcity:kotlmata:1.0.8'
 ```
 
 ### Maven
@@ -21,7 +21,7 @@ implementation 'kr.co.plasticcity:kotlmata:1.0.7'
 <dependency>
     <groupId>kr.co.plasticcity</groupId>
     <artifactId>kotlmata</artifactId>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
     <type>pom</type>
 </dependency>
 ```
