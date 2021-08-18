@@ -442,9 +442,21 @@ private class KotlmataDaemonImpl(
 				}
 			}
 			"Stopped" {
+				fun PriorityBlockingQueue<Request>.deleteIf(test: (Request) -> Boolean)
+				{
+					val iterator = iterator()
+					while (iterator.hasNext())
+					{
+						if (test(iterator.next()))
+						{
+							iterator.remove()
+						}
+					}
+				}
+				
 				var sync: Sync? = null
 				val cleanup: InputAction<Request> = { currentR ->
-					queue!!.removeIf { queueR ->
+					queue!!.deleteIf { queueR ->
 						queueR.isInput && queueR.olderThan(currentR)
 					}
 					sync?.also { syncR -> queue!!.offer(syncR) }
