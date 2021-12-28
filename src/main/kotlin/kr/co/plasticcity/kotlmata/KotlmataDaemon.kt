@@ -152,12 +152,12 @@ interface KotlmataDaemon
 	fun terminate(payload: Any? = null)
 	
 	/**
-	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
+	 * @param priority Smaller is higher. Priority must be (-10 <= priority <= 10). Default value is 0.
 	 */
 	fun input(signal: SIGNAL, payload: Any? = null, priority: Int = 0)
 	
 	/**
-	 * @param priority Smaller means higher. Priority must be (priority >= 0). Default value is 0.
+	 * @param priority Smaller is higher. Priority must be (-10 <= priority <= 10). Default value is 0.
 	 */
 	fun <S : T, T : SIGNAL> input(signal: S, type: KClass<T>, payload: Any? = null, priority: Int = 0)
 	
@@ -822,11 +822,6 @@ private class KotlmataDaemonImpl(
 	
 	private sealed class Request(val priority: Int, val desc: String) : Comparable<Request>
 	{
-		constructor(basePriority: Int, subPriority: Int, desc: String) : this(
-			priority = if (subPriority > 0) basePriority + subPriority else basePriority,
-			desc = desc
-		)
-		
 		open class Control(val payload: Any?, desc: String) : Request(DAEMON_CONTROL, desc)
 		class Run(payload: Any?) : Control(payload, "run")
 		class Pause(payload: Any?) : Control(payload, "pause")
@@ -845,15 +840,15 @@ private class KotlmataDaemonImpl(
 		
 		class Sync(val signal: SIGNAL, val type: KClass<SIGNAL>?, val payload: Any?) : Request(SYNC, "input")
 		
-		class Input(val signal: SIGNAL, val payload: Any?, priority: Int) : Request(INPUT, priority, "input")
-		class TypedInput(val signal: SIGNAL, val type: KClass<SIGNAL>, val payload: Any?, priority: Int) : Request(INPUT, priority, "input")
+		class Input(val signal: SIGNAL, val payload: Any?, priority: Int) : Request(INPUT + priority.coerceIn(-10, 10), "input")
+		class TypedInput(val signal: SIGNAL, val type: KClass<SIGNAL>, val payload: Any?, priority: Int) : Request(INPUT + priority.coerceIn(-10, 10), "input")
 		
 		companion object
 		{
 			private const val DAEMON_CONTROL = -3
 			private const val UPDATE = -2
 			private const val SYNC = -1
-			private const val INPUT = 0
+			private const val INPUT = 10
 			
 			val ticket: AtomicLong = AtomicLong(0)
 		}
