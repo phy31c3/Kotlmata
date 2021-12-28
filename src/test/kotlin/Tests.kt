@@ -1992,8 +1992,9 @@ class Tests
 	fun `D-003 데몬의 입력 우선순위가 잘 동작하는가`()
 	{
 		val checklist = mutableMapOf(
-			"priority 0" to false,
-			"priority 1" to true
+			"a" to false,
+			"b" to true,
+			"c" to false
 		)
 		
 		val latch = Latch(1)
@@ -2001,14 +2002,31 @@ class Tests
 		KotlmataDaemon("D-003", logLevel) { daemon ->
 			latch()
 			"a" {
+				input signal -2 function {
+					checklist["a"] = true
+					checklist["b"] = !checklist["b"]!!
+					checklist["c"] = !checklist["c"]!!
+					-1
+				}
+				input signal -1 action {
+					checklist["a"] = !checklist["a"]!!
+					checklist["b"] = false
+					checklist["c"] = !checklist["c"]!!
+				}
 				input signal 0 action {
-					checklist["priority 0"] = true
+					checklist["a"] = !checklist["a"]!!
+					checklist["b"] = !checklist["b"]!!
+					checklist["c"] = true
 				}
 				input signal 1 action {
-					checklist["priority 1"] = !checklist["priority 1"]!!
+					checklist["a"] = !checklist["a"]!!
+					checklist["b"] = !checklist["b"]!!
+					checklist["c"] = !checklist["c"]!!
 				}
 				input signal 2 action {
-					checklist["priority 1"] = !checklist["priority 1"]!!
+					checklist["a"] = !checklist["a"]!!
+					checklist["b"] = !checklist["b"]!!
+					checklist["c"] = !checklist["c"]!!
 					daemon.terminate()
 				}
 			}
@@ -2016,9 +2034,10 @@ class Tests
 			start at "a"
 		}.also { daemon ->
 			daemon.pause()
-			daemon.input(1, priority = 1)
-			daemon.input(2, priority = 1)
+			daemon.input(2, priority = 2)
 			daemon.input(0, priority = 0)
+			daemon.input(-2, priority = -2)
+			daemon.input(1, priority = 1)
 			daemon.run()
 		}
 		
